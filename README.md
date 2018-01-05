@@ -211,3 +211,10 @@ Add this to `/etc/hosts/`
 
  * Disable the rpcbind socket activation: `systemctl disable rpcbind.socket`
  * Disable all networking in MariaDB by adding `skip-networking` to `/etc/my.cnf`
+
+
+Missing firmware at LVFS
+========================
+If your device is missing a firmware update that you think should be on LVFS
+please file an issue against this project and apply the Github label *missing-firmware*.
+
