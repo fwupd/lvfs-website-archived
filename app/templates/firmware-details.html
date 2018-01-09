@@ -69,6 +69,15 @@
       </form>
     </td>
   </tr>
+  <tr class="row">
+    <th class="col-sm-4">Reports</th>
+    <td class="col-sm-4">👍 {{reports_success}} 👎 {{reports_failure}}</td>
+    <td class="col-sm-4 text-right">
+      <form method="get" action="/lvfs/firmware/{{firmware_id}}/analytics/reports/2">
+        <button class="btn btn-info">View</button>
+      </form>
+    </td>
+  </tr>
 </table>
 
 <h2>Firmware Components</h2>

@@ -12,7 +12,7 @@ Chart.defaults.global.animation = false;
 <nav>
   <ul class="nav nav-tabs">
     <li class="nav-item">
-      <a class="nav-link active" href="/lvfs/firmware/{{firmware_id}}/analytics/clients">Downloads</a>
+      <a class="nav-link" href="/lvfs/firmware/{{firmware_id}}/analytics/clients">Downloads</a>
     </li>
     <li class="nav-item">
       <a class="nav-link" href="/lvfs/firmware/{{firmware_id}}/analytics/year">Past Year</a>
@@ -21,32 +21,61 @@ Chart.defaults.global.animation = false;
       <a class="nav-link" href="/lvfs/firmware/{{firmware_id}}/analytics/month">Past Month</a>
     </li>
     <li class="nav-item">
+{% if state == 2 %}
+      <a class="nav-link active" href="/lvfs/firmware/{{firmware_id}}/analytics/reports/2">👍 Reports</a>
+{% else %}
       <a class="nav-link" href="/lvfs/firmware/{{firmware_id}}/analytics/reports/2">👍 Reports</a>
+{% endif %}
     </li>
     <li class="nav-item">
+{% if state == 3 %}
+      <a class="nav-link active" href="/lvfs/firmware/{{firmware_id}}/analytics/reports/3">👎 Reports</a>
+{% else %}
       <a class="nav-link" href="/lvfs/firmware/{{firmware_id}}/analytics/reports/3">👎 Reports</a>
+{% endif %}
     </li>
   </ul>
 </nav>
 
 <div class="container mt-3">
 
-<h2>Recent Activity</h2>
+<h2>Recent</h2>
 
+{% if reports|length > 0 %}
 <table class="table">
   <tr class="row">
     <th class="col-sm-2">Timestamp</th>
-    <th class="col-sm-2">Address</th>
-    <th class="col-sm-8">User Agent</th>
+    <th class="col-sm-1">State</th>
+    <th class="col-sm-9">Full Report</th>
   </tr>
-{% for c in clients %}
+{% for r in reports %}
   <tr class="row">
-    <td class="col-sm-2">{{c.timestamp}}</td>
-    <td class="col-sm-2"><code>{{format_truncate(c.addr,8)}}</code></td>
-    <td class="col-sm-8">{{c.user_agent}}</td>
+    <td class="col-sm-2">{{r.timestamp}}</td>
+    <td class="col-sm-1">
+{% if r.state == 0 %}
+      <p class="text-warning">Unknown</p>
+{% elif r.state == 1 %}
+      <p class="text-warning">Pending</p>
+{% elif r.state == 2 %}
+      <p class="text-success">Success</p>
+{% elif r.state == 3 %}
+      <p class="text-danger">Failed</p>
+{% else %}
+      <p class="text-danger">Invalid!</p>
+{% endif %}
+    </td>
+    <td class="col-sm-9"><code>{{r.json}}</code></td>
   </tr>
 {% endfor %}
 </table>
+
+{% else %}
+
+<div class="alert alert-light" role="alert">
+  No reports found.
+</div>
+
+{% endif %}
 
 <a class="btn btn-info" href="/lvfs/firmware/{{firmware_id}}" role="button">&laquo; Back to firmware file</a>
 

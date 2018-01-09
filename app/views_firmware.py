@@ -5,8 +5,9 @@
 # Licensed under the GNU General Public License Version 2
 
 import os
+import json
 
-from flask import session, request, url_for, redirect, render_template, flash
+from flask import session, request, url_for, redirect, render_template, flash, Response
 from flask.ext.login import login_required
 
 import appstream
@@ -279,6 +280,16 @@ def firmware_show(firmware_id):
     else:
         embargo_url = '/downloads/firmware-%s.xml.gz' % _qa_hash(group_id)
 
+    # get the reports for this firmware
+    reports_success = 0
+    reports_failure = 0
+    reports = db.reports.get_all_for_firmware_id(firmware_id, limit=10000)
+    for r in reports:
+        if r.state == 2:
+            reports_success += 1
+        elif r.state == 3:
+            reports_failure += 1
+
     cnt_fn = db.clients.get_firmware_count_filename(item.filename)
     return render_template('firmware-details.html',
                            fw=item,
@@ -287,6 +298,8 @@ def firmware_show(firmware_id):
                            embargo_url=embargo_url,
                            group_id=group_id,
                            cnt_fn=cnt_fn,
+                           reports_success=reports_success,
+                           reports_failure=reports_failure,
                            firmware_id=firmware_id)
 
 @app.route('/lvfs/firmware/<firmware_id>/analytics/year')
@@ -337,6 +350,36 @@ def firmware_analytics_clients(firmware_id):
                            fw=item,
                            firmware_id=firmware_id,
                            clients=clients)
+
+@app.route('/lvfs/firmware/<firmware_id>/analytics/reports')
+@app.route('/lvfs/firmware/<firmware_id>/analytics/reports/<int:state>')
+@login_required
+def firmware_analytics_reports(firmware_id, state=None):
+    """ Show firmware clients information """
+
+    # get reports about the firmware
+    try:
+        item = db.firmware.get_item(firmware_id)
+    except CursorError as e:
+        return _error_internal(str(e))
+    if not item:
+        return _error_internal('No firmware matched!')
+
+    # we can only view our own firmware, unless admin
+    group_id = item.group_id
+    if group_id != session['group_id'] and session['group_id'] != 'admin':
+        return _error_permission_denied('Unable to view other vendor firmware')
+    reports = db.reports.get_all_for_firmware_id(firmware_id)
+    reports_filtered = []
+    for r in reports:
+        if state and r.state != state:
+            continue
+        reports_filtered.append(r)
+    return render_template('firmware-analytics-reports.html',
+                           fw=item,
+                           state=state,
+                           firmware_id=firmware_id,
+                           reports=reports_filtered)
 
 @app.route('/lvfs/firmware/<firmware_id>/analytics/month')
 @login_required
@@ -526,3 +569,86 @@ def firmware_component_requires_set(firmware_id, cid, kind, value):
                             firmware_id=firmware_id,
                             cid=cid,
                             page='requires'))
+
+def json_success(msg=None, errcode=200):
+    """ Success handler: JSON output """
+    item = {}
+    item['success'] = True
+    if msg:
+        item['msg'] = msg
+    dat = json.dumps(item, sort_keys=True, indent=4, separators=(',', ': '))
+    return Response(response=dat,
+                    status=errcode, \
+                    mimetype="application/json")
+
+@app.errorhandler(400)
+def json_error(msg=None, errcode=400):
+    """ Error handler: JSON output """
+    item = {}
+    item['success'] = False
+    if msg:
+        item['msg'] = msg
+    dat = json.dumps(item, sort_keys=True, indent=4, separators=(',', ': '))
+    return Response(response=dat,
+                    status=errcode, \
+                    mimetype="application/json")
+
+@app.route('/lvfs/firmware/report', methods=['POST'])
+def firmware_report():
+    """ Upload a report """
+
+    # only accept form data
+    if request.method != 'POST':
+        return json_error('only POST supported')
+
+    # parse JSON data
+    try:
+        item = json.loads(request.data.decode('utf8'))
+    except ValueError as e:
+        return json_error(str(e))
+
+    # check we got enough data
+    for key in ['ReportVersion', 'MachineId', 'Reports']:
+        if not key in item:
+            return json_error('invalid data, expected %s' % key)
+        if item[key] is None:
+            return json_error('missing data, expected %s' % key)
+
+    # parse only this version
+    if item['ReportVersion'] != 1:
+        return json_error('report version not supported')
+
+    # add each firmware report
+    machine_id = item['MachineId']
+    reports = item['Reports']
+    if len(reports) == 0:
+        return json_error('no reports included')
+    for report in reports:
+        for key in ['Checksum', 'UpdateState']:
+            if not key in report:
+                return json_error('invalid data, expected %s' % key)
+            if report[key] is None:
+                return json_error('missing data, expected %s' % key)
+        checksum = report['Checksum']
+        try:
+            # try to find the firmware_id (which might not exist on this server)
+            firmware_id = db.firmware.get_id_from_container_checksum(checksum)
+            if not firmware_id:
+                continue
+            # remove any old report
+            report_old = db.reports.find_by_id_checksum(machine_id, checksum)
+            if report_old:
+                db.reports.remove_by_id(report_old.id)
+
+            # copy common keys
+            for root_key in item:
+                if root_key != 'Reports':
+                    report[root_key] = item[root_key]
+
+            # save in the database
+            json_raw = json.dumps(report, sort_keys=True,
+                                  indent=2, separators=(',', ': '))
+            db.reports.add(report['UpdateState'], machine_id, firmware_id, checksum, json_raw)
+        except CursorError as e:
+            return json_error(str(e))
+    return json_success()

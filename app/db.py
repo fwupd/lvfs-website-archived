@@ -8,7 +8,7 @@ import cgi
 import datetime
 import MySQLdb as mdb
 
-from .models import User, FirmwareMd, Firmware, FirmwareRequirement, EventLogItem, Group, Vendor, Client
+from .models import User, FirmwareMd, Firmware, FirmwareRequirement, EventLogItem, Group, Vendor, Client, Report
 from .hash import _addr_hash, _password_hash
 
 def _create_user_item(e):
@@ -80,6 +80,17 @@ def _create_client_item(e):
     item.user_agent = e[4]
     return item
 
+def _create_report_item(e):
+    item = Report()
+    item.id = e[0]
+    item.timestamp = e[1]
+    item.state = e[2]
+    item.json = e[3]
+    item.machine_id = e[4]
+    item.firmware_id = e[5]
+    item.checksum = e[6]
+    return item
+
 def _create_vendor_item(e):
     item = Vendor()
     item.group_id = e[0]
@@ -145,6 +156,7 @@ class Database(object):
         self.clients = DatabaseClients(self._db)
         self.firmware = DatabaseFirmware(self._db)
         self.vendors = DatabaseVendors(self._db)
+        self.reports = DatabaseReports(self._db)
 
     def verify(self):
         """ repairs database when required """
@@ -560,6 +572,19 @@ class DatabaseFirmware(object):
         self._add_items_md(item)
         return item
 
+    def get_id_from_container_checksum(self, checksum_container):
+        """ Gets a firmware ID from the container checksum """
+        try:
+            cur = self._db.cursor()
+            cur.execute("SELECT firmware_id FROM firmware_md WHERE checksum_container = %s LIMIT 1;",
+                        (checksum_container,))
+        except mdb.Error as e:
+            raise CursorError(cur, e)
+        e = cur.fetchone()
+        if not e:
+            return None
+        return e[0]
+
 
 class DatabaseEventlog(object):
 
@@ -801,6 +826,87 @@ class DatabaseClients(object):
         items = []
         for e in cur.fetchall():
             items.append(_create_client_item(e))
+        return items
+
+class DatabaseReports(object):
+
+    def __init__(self, db):
+        """ Constructor for object """
+        self._db = db
+
+    def add(self, state, machine_id, firmware_id, checksum, json=None):
+        """ add a report """
+        try:
+            cur = self._db.cursor()
+            cur.execute("INSERT INTO reports (state, machine_id, firmware_id, checksum, json) "
+                        "VALUES (%s, %s, %s, %s, %s)",
+                        (state, machine_id, firmware_id, checksum, json,))
+        except mdb.Error as e:
+            raise CursorError(cur, e)
+
+    def find_by_id_checksum(self, machine_id, checksum):
+        """ get the reports """
+        try:
+            cur = self._db.cursor()
+            cur.execute("SELECT id, timestamp, state, json, machine_id, firmware_id, checksum FROM reports "
+                        "WHERE machine_id = %s AND checksum = %s LIMIT 1",
+                        (machine_id, checksum,))
+        except mdb.Error as e:
+            raise CursorError(cur, e)
+        res = cur.fetchone()
+        if not res:
+            return None
+        return _create_report_item(res)
+
+    def find_by_id(self, report_id):
+        """ get the report """
+        try:
+            cur = self._db.cursor()
+            cur.execute("SELECT id, timestamp, state, json, machine_id, firmware_id, checksum FROM reports "
+                        "WHERE id = %s LIMIT 1",
+                        (report_id,))
+        except mdb.Error as e:
+            raise CursorError(cur, e)
+        res = cur.fetchone()
+        if not res:
+            return None
+        return _create_report_item(res)
+
+    def remove_by_id(self, report_id):
+        """ Removes the report """
+        assert report_id
+        try:
+            cur = self._db.cursor()
+            cur.execute("DELETE FROM reports WHERE id=%s;", (report_id,))
+        except mdb.Error as e:
+            raise CursorError(cur, e)
+
+    def get_all_for_firmware_id(self, firmware_id, limit=10):
+        """ get the reports """
+        try:
+            cur = self._db.cursor()
+            cur.execute("SELECT id, timestamp, state, json, machine_id, firmware_id, checksum FROM reports "
+                        "WHERE firmware_id = %s ORDER BY id DESC LIMIT %s",
+                        (firmware_id, limit,))
+        except mdb.Error as e:
+            raise CursorError(cur, e)
+        items = []
+        for e in cur.fetchall():
+            items.append(_create_report_item(e))
+        return items
+
+    def get_all(self, limit=10):
+        """ get the reports """
+        try:
+            cur = self._db.cursor()
+            cur.execute("SELECT id, timestamp, state, json, machine_id, firmware_id, checksum FROM reports "
+                        "ORDER BY id DESC LIMIT %s",
+                        (limit,))
+        except mdb.Error as e:
+            raise CursorError(cur, e)
+        items = []
+        for e in cur.fetchall():
+            items.append(_create_report_item(e))
         return items
 
 class DatabaseVendors(object):

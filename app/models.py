@@ -173,6 +173,19 @@ class Client(object):
     def __repr__(self):
         return "Client object %s" % self.id
 
+class Report(object):
+    def __init__(self):
+        """ Constructor for object """
+        self.id = 0
+        self.timestamp = None
+        self.state = None
+        self.json = None
+        self.machine_id = None
+        self.firmware_id = None
+        self.checksum = None
+    def __repr__(self):
+        return "Report object %s" % self.id
+
 class DownloadKind(object):
     METADATA = 0
     FIRMWARE = 1

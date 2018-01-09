@@ -13,7 +13,7 @@ import ConfigParser
 import cabarchive
 import appstream
 
-from flask import session, request, flash, url_for, redirect, render_template
+from flask import session, request, flash, url_for, redirect, render_template, Response
 from flask import send_from_directory, abort, make_response
 from flask.ext.login import login_required, login_user, logout_user
 
@@ -569,6 +569,36 @@ def analytics_clients():
         return _error_permission_denied('Unable to view analytics')
     clients = db.clients.get_all(limit=25)
     return render_template('analytics-clients.html', clients=clients)
+
+@app.route('/lvfs/analytics/reports')
+@login_required
+def analytics_reports():
+    """ A analytics screen to show information about users """
+
+    # security check
+    if session['group_id'] != 'admin':
+        return _error_permission_denied('Unable to view analytics')
+    try:
+        reports = db.reports.get_all(limit=25)
+    except CursorError as e:
+        return _error_internal(str(e))
+    return render_template('analytics-reports.html', reports=reports)
+
+@app.route('/lvfs/report/<report_id>')
+@login_required
+def report_view(report_id):
+    if session['group_id'] != 'admin':
+        return _error_permission_denied('Unable to view report')
+    try:
+        # remove it if it already exists
+        item = db.reports.find_by_id(report_id)
+        if not item:
+            return _error_permission_denied('Report does not exist')
+    except CursorError as e:
+        return _error_internal(str(e))
+    return Response(response=item.json,
+                    status=400, \
+                    mimetype="application/json")
 
 @app.route('/lvfs/login', methods=['POST'])
 def login():
