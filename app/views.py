@@ -9,7 +9,6 @@ import datetime
 import hashlib
 import math
 import ConfigParser
-from StringIO import StringIO
 
 import cabarchive
 import appstream
@@ -170,7 +169,7 @@ def metadata_remote(qa_group):
     fn = qa_group + '-embargo.conf'
     response = make_response('\n'.join(remote))
     response.headers['Content-Disposition'] = 'attachment; filename=' + fn
-    response.mimetype='text/plain'
+    response.mimetype = 'text/plain'
     return response
 
 @app.route('/lvfs/metadata')
