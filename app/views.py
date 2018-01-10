@@ -116,6 +116,10 @@ def errorhandler_401(msg=None):
 def developers():
     return render_template('developers.html')
 
+@app.route('/privacy')
+def privacy():
+    return render_template('privacy.html')
+
 @app.route('/users')
 def users():
     return render_template('users.html')
