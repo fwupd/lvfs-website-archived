@@ -22,6 +22,7 @@ from app import app, db, lm
 from .db import CursorError
 from .models import Firmware, FirmwareMd, FirmwareRequirement, DownloadKind
 from .affidavit import NoKeyError
+from .foreign_archive import _build_cab
 from .inf_parser import InfParser
 from .hash import _qa_hash, _password_hash
 from .util import _create_affidavit, _event_log, _get_client_address
@@ -252,19 +253,14 @@ def upload():
         flash('A firmware file with hash %s already exists' % firmware_id, 'danger')
         return redirect(request.url)
 
-
     # parse the file
-    arc = cabarchive.CabArchive()
     try:
-        cabextract_cmd = app.config['CABEXTRACT_CMD']
-        if os.path.exists(cabextract_cmd):
-            arc.set_decompressor(cabextract_cmd)
-        arc.parse(data)
+        arc = _build_cab(fileitem.filename, data)
     except cabarchive.CorruptionError as e:
         flash('Invalid file type: %s' % str(e), 'danger')
         return redirect(request.url)
     except cabarchive.NotSupportedError as e:
-        flash('The file is unsupported: %s' % str(e), 'danger')
+        flash('Upload had no supported extension, expected .cab or .zip', 'danger')
         return redirect(request.url)
 
     # check .inf exists
@@ -399,7 +395,7 @@ def upload():
 
     # only save if we passed all tests
     basename = os.path.basename(fileitem.filename)
-    new_filename = firmware_id + '-' + basename
+    new_filename = firmware_id + '-' + basename.replace('.zip', '.cab')
 
     # add these after parsing in case multiple components use the same file
     asc_files = {}
@@ -731,9 +727,6 @@ def _update_metadata_from_fn(fwobj, fn):
     # load cab file
     arc = cabarchive.CabArchive()
     try:
-        cabextract_cmd = app.config['CABEXTRACT_CMD']
-        if os.path.exists(cabextract_cmd):
-            arc.set_decompressor(cabextract_cmd)
         arc.parse_file(fn)
     except cabarchive.CorruptionError as e:
         return _error_internal('Invalid file type: %s' % str(e))

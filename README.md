@@ -9,6 +9,7 @@ IMPORTANT: This needs to be hosted over SSL, i.e. with a `https://` prefix.
 
     yum install https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm
     yum install \
+      bsdtar \
       cabextract \
       git \
       httpd \
@@ -99,7 +100,6 @@ Then add something like this to `lvfs-website/app/lvfs.cfg`:
     PORT = 80
     DOWNLOAD_DIR = '/home/lvfs/downloads'
     KEYRING_DIR = '/home/lvfs/.gnupg'
-    CABEXTRACT_CMD = '/usr/bin/cabextract'
     CDN_URI = 'https://s3.amazonaws.com/lvfsbucket'
     CDN_BUCKET = 'lvfsbucket'
     DATABASE_HOST = 'localhost'

@@ -62,18 +62,6 @@ def _checksum_compute(content, seed=0):
         csum ^= ul
     return csum
 
-def _listdir_recurse(basedir):
-    """ Return all files and folders """
-    files = []
-    for res in os.listdir(basedir):
-        fn = os.path.join(basedir, res)
-        if not os.path.isfile(fn):
-            children = _listdir_recurse(fn)
-            files.extend(children)
-            continue
-        files.append(fn)
-    return files
-
 class CabArchive(object):
     """An object representing a Microsoft Cab archive """
 
@@ -84,13 +72,6 @@ class CabArchive(object):
         self._buf_file = None
         self._folder_data = []
         self._is_multi_folder = False
-        self._decompressor = None
-        self._tmpdir = None
-
-    def set_decompressor(self, cmd, tmpdir=None):
-        """ Sets an external binary to be used for decompression """
-        self._decompressor = cmd
-        self._tmpdir = tmpdir
 
     def add_file(self, cffile):
         """ Add file to archive """
@@ -225,41 +206,6 @@ class CabArchive(object):
 
     def parse(self, buf):
         """ Parse .cab data """
-
-        # we've got an external binary to help us
-        if self._decompressor:
-            import tempfile
-            import subprocess
-            import shutil
-
-            # write to temp file
-            src = tempfile.NamedTemporaryFile(mode='wb',
-                                              prefix='cabarchive_',
-                                              suffix=".cab",
-                                              dir=self._tmpdir,
-                                              delete=True)
-            src.write(buf)
-            src.flush()
-
-            # decompress to a temp directory
-            dest_fn = tempfile.mkdtemp(prefix='cabarchive_', dir=self._tmpdir)
-            argv = [self._decompressor,
-                    '--quiet',
-                    '--directory',
-                    dest_fn,
-                    src.name]
-            ps = subprocess.Popen(argv, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-            if ps.wait() != 0:
-                raise CorruptionError("Failed to extract: %s" % ps.stderr.read())
-
-            # add all the fake CFFILE objects
-            for fn in _listdir_recurse(dest_fn):
-                cff = CabFile(os.path.basename(fn))
-                cff.contents = open(fn, 'rb').read()
-                self.add_file(cff)
-            shutil.rmtree(dest_fn)
-            src.close()
-            return
 
         # slurp the whole buffer at once
         self._buf_file = buf
