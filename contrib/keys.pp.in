@@ -1,0 +1,14 @@
+# replace these with actual values
+$aws_access_key_id = 'xxx'
+$aws_secret_access_key = 'xxx'
+$cdn_bucket = 'xxx'
+$cdn_uri = 'xxx'
+$dbusername = 'lvfs'
+$dbpassword = 'lvfs'
+$lvfs_secret_key = 'xxx'
+$munin_username = 'admin'
+$munin_password = 'admin'
+$server_baseurl = 'http://localhost'
+$server_hostname = 'localhost'
+$server_ip = '127.0.0.1'
+$using_ssl = False
