@@ -14,8 +14,8 @@ Setting up the web service
 
 The official instance is set up using puppet on RHEL 7, on which you could use:
 
-    wget -q https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm
-    yum install epel-release-latest-7.noarch.rpm
+    yum install https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm
+    yum install https://kojipkgs.fedoraproject.org//work/tasks/4001/24374001/libappstream-glib-0.7.5-1.fc28.x86_64.rpm
     yum install puppet
     hostname admin
     puppet module install puppetlabs-vcsrepo --version 2.2.0

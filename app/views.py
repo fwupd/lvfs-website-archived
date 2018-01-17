@@ -11,7 +11,9 @@ import math
 import ConfigParser
 
 import cabarchive
-import appstream
+
+from gi.repository import AppStreamGlib
+from gi.repository import GLib
 
 from flask import session, request, flash, url_for, redirect, render_template, Response
 from flask import send_from_directory, abort, make_response
@@ -323,19 +325,19 @@ def upload():
     # parse each MetaInfo file
     apps = []
     for cf in cfs:
-        component = appstream.Component()
+        component = AppStreamGlib.App.new()
         try:
-            component.parse(str(cf.contents))
-            component.validate()
-        except appstream.ParseError as e:
+            component.parse_data(GLib.Bytes.new(cf.contents), AppStreamGlib.AppParseFlags.NONE)
+            fmt = AppStreamGlib.Format.new()
+            fmt.set_kind(AppStreamGlib.FormatKind.METAINFO)
+            component.add_format(fmt)
+            component.validate(AppStreamGlib.AppValidateFlags.NONE)
+        except GLib.Error as e:
             flash('The metadata %s could not be parsed: %s' % (cf, str(e)), 'danger')
-            return redirect(request.url)
-        except appstream.ValidationError as e:
-            flash('The metadata %s file did not validate: %s' % (cf, str(e)), 'danger')
             return redirect(request.url)
 
         # get the metadata ID
-        component.custom['metainfo_id'] = hashlib.sha1(cf.contents).hexdigest()
+        component.add_metadata('metainfo_id', hashlib.sha1(cf.contents).hexdigest())
 
         # check the file does not have any missing request.form
         if cf.contents.find('FIXME') != -1:
@@ -345,21 +347,29 @@ def upload():
             return redirect(request.url)
 
         # check the firmware provides something
-        if len(component.provides) == 0:
+        if len(component.get_provides()) == 0:
             flash('The metadata file did not provide any GUID.', 'danger')
             return redirect(request.url)
-        if len(component.releases) == 0:
+        release_default = component.get_release_default()
+        if not release_default:
             flash('The metadata file did not provide any releases.', 'danger')
             return redirect(request.url)
 
+        # fix up hex value
+        release_version = release_default.get_version()
+        if release_version.startswith('0x'):
+            release_version = str(int(release_version[2:], 16))
+            release_default.set_version(release_version)
+
         # check the inf file matches up with the .xml file
-        if fw_version_inf and fw_version_inf != component.releases[0].version:
+        if fw_version_inf and fw_version_inf != release_version:
             flash('The inf Firmware_AddReg[HKR->FirmwareVersion] '
                   '%s did not match the metainfo.xml value %s.'
-                  % (fw_version_inf, component.releases[0].version), 'danger')
+                  % (fw_version_inf, release_version), 'danger')
             return redirect(request.url)
 
         # check the guid and version does not already exist
+        provides_value = component.get_provides()[0].get_value()
         try:
             items = db.firmware.get_all()
         except CursorError as e:
@@ -367,17 +377,19 @@ def upload():
         for item in items:
             for md in item.mds:
                 for guid in md.guids:
-                    if guid == component.provides[0].value and md.version == component.releases[0].version:
-                        flash('A firmware file for this version already exists', 'danger')
+                    if guid == provides_value and md.version == release_version:
+                        flash('A firmware file for version %s already exists' % release_version, 'danger')
                         return redirect('/lvfs/firmware/%s' % item.firmware_id)
 
         # check if the file dropped a GUID previously supported
         new_guids = []
-        for prov in component.provides:
-            new_guids.append(prov.value)
+        for prov in component.get_provides():
+            if prov.get_kind() != AppStreamGlib.ProvideKind.FIRMWARE_FLASHED:
+                continue
+            new_guids.append(prov.get_value())
         for item in items:
             for md in item.mds:
-                if md.cid != component.id:
+                if md.cid != component.get_id():
                     continue
                 for old_guid in md.guids:
                     if not old_guid in new_guids:
@@ -387,7 +399,7 @@ def upload():
 
         # check the file didn't try to add it's own <require> on vendor-id
         # to work around the vendor-id security checks in fwupd
-        req = component.get_require_by_kind('firmware', 'vendor-id')
+        req = component.get_require_by_value(AppStreamGlib.RequireKind.FIRMWARE, 'vendor-id')
         if req:
             flash('Firmware cannot specify vendor-id', 'danger')
             return redirect(request.url)
@@ -406,37 +418,37 @@ def upload():
     for component in apps:
 
         # ensure there's always a container checksum
-        release = component.releases[0]
-        csum = release.get_checksum_by_target('content')
+        release = component.get_release_default()
+        csum = release.get_checksum_by_target(AppStreamGlib.ChecksumTarget.CONTENT)
         if not csum:
-            csum = appstream.Checksum()
-            csum.target = 'content'
-            csum.filename = 'firmware.bin'
-            component.releases[0].add_checksum(csum)
+            csum = AppStreamGlib.Checksum.new()
+            csum.set_target(AppStreamGlib.ChecksumTarget.CONTENT)
+            csum.set_filename('firmware.bin')
+            release.add_checksum(csum)
 
         # get the contents checksum
-        fw_data = arc.find_file(csum.filename)
+        fw_data = arc.find_file(csum.get_filename())
         if not fw_data:
-            flash('No %s found in the archive' % csum.filename, 'danger')
+            flash('No %s found in the archive' % csum.get_filename(), 'danger')
             return redirect(request.url)
-        csum.kind = 'sha1'
-        csum.value = hashlib.sha1(fw_data.contents).hexdigest()
+        csum.set_kind(GLib.ChecksumType.SHA1)
+        csum.set_value(hashlib.sha1(fw_data.contents).hexdigest())
 
         # set the sizes
-        release.size_installed = len(fw_data.contents)
-        release.size_download = len(data)
+        release.set_size(AppStreamGlib.SizeKind.INSTALLED, len(fw_data.contents))
+        release.set_size(AppStreamGlib.SizeKind.DOWNLOAD, len(data))
 
         # add the detached signature if not already signed
-        sig_data = arc.find_file(csum.filename + ".asc")
+        sig_data = arc.find_file(csum.get_filename() + ".asc")
         if not sig_data:
-            if csum.filename not in asc_files:
+            if csum.get_filename() not in asc_files:
                 try:
                     affidavit = _create_affidavit()
                 except NoKeyError as e:
                     return _error_internal('Failed to sign archive: ' + str(e))
                 cff = cabarchive.CabFile(fw_data.filename + '.asc',
                                          affidavit.create(fw_data.contents))
-                asc_files[csum.filename] = cff
+                asc_files[csum.get_filename()] = cff
         else:
             # check this file is signed by something we trust
             try:
@@ -475,38 +487,43 @@ def upload():
     for component in apps:
         md = FirmwareMd()
         md.firmware_id = firmware_id
-        md.metainfo_id = component.custom['metainfo_id']
-        md.cid = component.id
-        md.name = component.name
-        md.summary = component.summary
-        md.developer_name = component.developer_name
-        md.metadata_license = component.metadata_license
-        md.project_license = component.project_license
-        md.url_homepage = component.urls['homepage']
-        md.description = component.description
+        md.metainfo_id = component.get_metadata_item('metainfo_id')
+        md.cid = component.get_id()
+        md.name = component.get_name()
+        md.summary = component.get_comment()
+        md.developer_name = component.get_developer_name()
+        md.metadata_license = component.get_metadata_license()
+        md.project_license = component.get_project_license()
+        md.url_homepage = component.get_url_item(AppStreamGlib.UrlKind.HOMEPAGE)
+        md.description = component.get_description()
         md.checksum_container = checksum_container
 
         # from the provide
-        for prov in component.provides:
-            md.guids.append(prov.value)
+        for prov in component.get_provides():
+            if prov.get_kind() != AppStreamGlib.ProvideKind.FIRMWARE_FLASHED:
+                continue
+            md.guids.append(prov.get_value())
 
         # from the release
-        rel = component.releases[0]
-        md.version = rel.version
-        md.release_description = rel.description
-        md.release_timestamp = rel.timestamp
-        md.release_installed_size = rel.size_installed
-        md.release_download_size = rel.size_download
-        md.release_urgency = rel.urgency
+        rel = component.get_release_default()
+        md.version = rel.get_version()
+        md.release_description = rel.get_description()
+        md.release_timestamp = rel.get_timestamp()
+        md.release_installed_size = rel.get_size(AppStreamGlib.SizeKind.INSTALLED)
+        md.release_download_size = rel.get_size(AppStreamGlib.SizeKind.DOWNLOAD)
+        md.release_urgency = AppStreamGlib.urgency_kind_to_string(rel.get_urgency())
 
         # from requires
-        for req in component.requires:
-            fwreq = FirmwareRequirement(req.kind, req.value, req.compare, req.version)
+        for req in component.get_requires():
+            fwreq = FirmwareRequirement(AppStreamGlib.Require.kind_to_string(req.get_kind()),
+                                        req.get_value(),
+                                        AppStreamGlib.Require.compare_from_string(req.get_compare()),
+                                        req.get_version())
             md.requirements.append(fwreq)
 
         # from the first screenshot
-        if len(component.screenshots) > 0:
-            ss = component.screenshots[0]
+        if len(component.get_screenshots()) > 0:
+            ss = component.get_screenshots()[0]
             if ss.caption:
                 md.screenshot_caption = ss.caption
             if len(ss.images) > 0:
@@ -515,9 +532,9 @@ def upload():
                     md.screenshot_url = im.url
 
         # from the content checksum
-        csum = component.releases[0].get_checksum_by_target('content')
-        md.checksum_contents = csum.value
-        md.filename_contents = csum.filename
+        csum = rel.get_checksum_by_target(AppStreamGlib.ChecksumTarget.CONTENT)
+        md.checksum_contents = csum.get_value()
+        md.filename_contents = csum.get_filename()
 
         fwobj.mds.append(md)
 
@@ -737,10 +754,10 @@ def _update_metadata_from_fn(fwobj, fn):
     cf = arc.find_file("*.metainfo.xml")
     if not cf:
         return _error_internal('The firmware file had no valid metadata')
-    component = appstream.Component()
+    component = AppStreamGlib.App.new()
     try:
-        component.parse(str(cf.contents))
-    except appstream.ParseError as e:
+        component.parse_data(GLib.Bytes.new(cf.contents), AppStreamGlib.AppParseFlags.NONE)
+    except GLib.Error as e:
         return _error_internal('The metadata could not be parsed: ' + str(e))
 
     # parse the inf file
@@ -771,8 +788,8 @@ def _update_metadata_from_fn(fwobj, fn):
     fwobj.mds[0].release_download_size = os.path.getsize(fn)
 
     # update the descriptions
-    fwobj.mds[0].release_description = component.releases[0].description
-    fwobj.mds[0].description = component.description
+    fwobj.mds[0].release_description = component.get_release_default().get_description()
+    fwobj.mds[0].description = component.get_description()
     if driver_ver:
         fwobj.version_display = driver_ver[1]
     db.firmware.update(fwobj)

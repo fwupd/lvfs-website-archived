@@ -10,7 +10,8 @@ import json
 from flask import session, request, url_for, redirect, render_template, flash, Response
 from flask.ext.login import login_required
 
-import appstream
+from gi.repository import AppStreamGlib
+from gi.repository import GLib
 
 from app import app, db
 
@@ -105,10 +106,10 @@ def firmware_modify(firmware_id):
         if 'description' in request.form:
             txt = request.form['description']
             if txt.find('<p>') == -1:
-                txt = appstream.utils.import_description(txt)
+                txt = AppStreamGlib.markup_import(txt, AppStreamGlib.MarkupConvertFormat.SIMPLE)
             try:
-                appstream.utils.validate_description(txt)
-            except appstream.ParseError as e:
+                AppStreamGlib.markup_validate(txt)
+            except GLib.Error as e:
                 return _error_internal("Failed to parse %s: %s" % (txt, str(e)))
             md.release_description = txt
 
