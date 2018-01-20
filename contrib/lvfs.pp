@@ -7,11 +7,20 @@ file { '/var/www/lvfs':
     group    => 'uwsgi',
     require  => File['/var/www'],
 }
-vcsrepo { '/var/www/lvfs/stable':
+vcsrepo { '/var/www/lvfs/admin':
     ensure   => latest,
     provider => git,
     revision => $lvfs_revision',
     source   => 'https://github.com/hughsie/lvfs-website.git',
+    user     => 'uwsgi',
+    group    => 'uwsgi',
+    require  => [ File['/var/www/lvfs'], Package['uwsgi']],
+}
+vcsrepo { '/var/www/lvfs/sync':
+    ensure   => latest,
+    provider => git,
+    revision => $lvfs_revision',
+    source   => 'https://github.com/hughsie/lvfs-sync.git',
     user     => 'uwsgi',
     group    => 'uwsgi',
     require  => [ File['/var/www/lvfs'], Package['uwsgi']],
@@ -46,7 +55,7 @@ file { '/var/www/backup':
     group   => 'uwsgi',
     require => Package['uwsgi'],
 }
-file { '/var/www/lvfs/stable/app/custom.cfg':
+file { '/var/www/lvfs/admin/app/custom.cfg':
     ensure  => 'present',
     replace => 'no',
     owner   => 'uwsgi',
@@ -62,8 +71,6 @@ IP = '${server_ip}'
 PORT = 80
 DOWNLOAD_DIR = '/var/www/lvfs/downloads'
 KEYRING_DIR = '/var/www/lvfs/.gnupg'
-CDN_URI = '${cdn_uri}'
-CDN_BUCKET = '${cdn_bucket}'
 DATABASE_HOST = 'localhost'
 DATABASE_USERNAME = '${dbusername}'
 DATABASE_PASSWORD = '${dbpassword}'
@@ -73,6 +80,29 @@ SESSION_COOKIE_SECURE = ${using_ssl}
 REMEMBER_COOKIE_SECURE = ${using_ssl}
 ",
     require => [ File['/var/www/lvfs'], Package['uwsgi'] ],
+}
+file { '/var/www/lvfs/sync/app/custom.cfg':
+    ensure  => 'present',
+    owner   => 'uwsgi',
+    group   => 'uwsgi',
+    content => "# Managed by Puppet, DO NOT EDIT
+import os
+DEBUG = False
+PROPAGATE_EXCEPTIONS = True
+SECRET_KEY = '${lvfs_secret_key}'
+HOST_NAME = 'localhost'
+APP_NAME = 'lvfs'
+IP = '127.0.0.1'
+PORT = 8080
+CDN_URI = '${cdn_uri}'
+CDN_BUCKET = '${cdn_bucket}'
+CDN_FOLDER = 'downloads'
+FILES = [ '/var/www/lvfs/downloads/firmware.xml.gz',
+          '/var/www/lvfs/downloads/firmware.xml.gz.asc',
+          '/var/www/lvfs/downloads/firmware-testing.xml.gz',
+          '/var/www/lvfs/downloads/firmware-testing.xml.gz.asc' ]
+",
+    require => Vcsrepo['/var/www/lvfs/sync'],
 }
 
 # all the Flask request
@@ -143,7 +173,7 @@ CREATE DATABASE lvfs;
 CREATE USER '${dbusername}'@'localhost' IDENTIFIED BY '${dbpassword}';
 USE lvfs;
 GRANT ALL ON lvfs.* TO '${dbusername}'@'localhost';
-SOURCE /var/www/lvfs/stable/schema.sql
+SOURCE /var/www/lvfs/admin/schema.sql
 ",
     require => Package['mariadb-server'],
 }
@@ -173,7 +203,7 @@ file { '/etc/uwsgi.d/lvfs.ini':
     group    => 'uwsgi',
     content => "# Managed by Puppet, DO NOT EDIT
 [uwsgi]
-chdir = /var/www/lvfs/stable
+chdir = /var/www/lvfs/admin
 module = app:app
 plugins = python
 uid = uwsgi
@@ -182,6 +212,22 @@ socket = /run/uwsgi/%n.socket
 chmod-socket = 660
 logto = /var/log/uwsgi/%n.log
 stats = 127.0.0.1:9191
+",
+    require => Package['uwsgi'],
+}
+file { '/etc/uwsgi.d/lvfs-sync.ini':
+    ensure   => "file",
+    owner    => 'uwsgi',
+    group    => 'uwsgi',
+    content => "# Managed by Puppet, DO NOT EDIT
+[uwsgi]
+chdir = /var/www/lvfs/sync
+module = app:app
+plugins = python
+uid = uwsgi
+gid = uwsgi
+master = true
+http-socket = 127.0.0.1:2000
 ",
     require => Package['uwsgi'],
 }
@@ -255,7 +301,7 @@ http {
         include /etc/nginx/default.d/*.conf;
 
         location /img/ {
-            alias /var/www/lvfs/stable/app/static/img/;
+            alias /var/www/lvfs/admin/app/static/img/;
         }
         location /downloads/firmware.xml.gz {
             alias /var/www/lvfs/downloads/firmware.xml.gz;

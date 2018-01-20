@@ -62,7 +62,7 @@ def serveStaticResource(resource):
         except CursorError as e:
             print str(e)
 
-    # firmware blobs can be stored on a CDN
+    # firmware blobs
     if resource.startswith('downloads/'):
         return send_from_directory(app.config['DOWNLOAD_DIR'], os.path.basename(resource))
 
