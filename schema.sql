@@ -141,3 +141,9 @@ INSERT INTO settings (config_key, config_value)
   VALUES ('server_warning', 'This is a test instance and may be broken at any time.');
 INSERT INTO settings (config_key, config_value)
   VALUES ('firmware_baseuri', 'https://fwupd.org/downloads/');
+INSERT INTO settings (config_key, config_value)
+  VALUES ('cdn_sync_folder', 'downloads');
+INSERT INTO settings (config_key, config_value)
+  VALUES ('cdn_sync_bucket', 'lvfstestbucket');
+INSERT INTO settings (config_key, config_value)
+  VALUES ('cdn_sync_files', 'firmware.xml.gz,firmware.xml.gz.asc,firmware-testing.xml.gz,firmware-testing.xml.gz.asc');

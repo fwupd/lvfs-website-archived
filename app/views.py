@@ -19,7 +19,7 @@ from flask import session, request, flash, url_for, redirect, render_template, R
 from flask import send_from_directory, abort, make_response
 from flask.ext.login import login_required, login_user, logout_user
 
-from app import app, db, lm
+from app import app, db, lm, ploader
 
 from .db import CursorError
 from .models import Firmware, FirmwareMd, FirmwareRequirement, DownloadKind
@@ -64,7 +64,7 @@ def serveStaticResource(resource):
         except CursorError as e:
             print str(e)
 
-    # firmware blobs can be stored on a CDN
+    # firmware blobs
     if resource.startswith('downloads/'):
         return send_from_directory(app.config['DOWNLOAD_DIR'], os.path.basename(resource))
 
@@ -472,6 +472,9 @@ def upload():
     fn = os.path.join(download_dir, new_filename)
     open(fn, 'wb').write(cab_data)
 
+    # inform the plugin loader
+    ploader.file_modified(fn)
+
     # create parent firmware object
     target = request.form['target']
     fwobj = Firmware()
@@ -838,10 +841,12 @@ def settings():
     # get all settings
     try:
         settings = db.settings.get_all()
+        plugins = ploader.get_all()
     except CursorError as e:
         return _error_internal(str(e))
     return render_template('settings.html',
-                           settings=settings)
+                           settings=settings,
+                           plugins=plugins)
 
 @app.route('/lvfs/settings/modify', methods=['GET', 'POST'])
 @login_required
@@ -857,14 +862,18 @@ def settings_modify():
         return _error_permission_denied('Unable to modify settings as non-admin')
 
     # not enough data
-    for key in ['server_warning', 'firmware_baseuri']:
+    keys = ['server_warning', 'firmware_baseuri']
+    for p in ploader.get_all():
+        for s in p.settings():
+            keys.append(s.key)
+    for key in keys:
         if key not in request.form:
             return _error_internal('no key %s in form data' % key)
 
     # save new values
     try:
-        db.settings.modify('server_warning', request.form['server_warning'])
-        db.settings.modify('firmware_baseuri', request.form['firmware_baseuri'])
+        for key in keys:
+            db.settings.modify(key, request.form[key])
     except CursorError as e:
         return _error_internal(str(e))
     _event_log('Changed server settings')

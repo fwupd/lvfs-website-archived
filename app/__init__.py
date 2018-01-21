@@ -12,6 +12,7 @@ from werkzeug.local import LocalProxy
 
 from .db import Database
 from .response import SecureResponse
+from .pluginloader import Pluginloader
 
 app = Flask(__name__)
 app.response_class = SecureResponse
@@ -22,6 +23,8 @@ else:
 
 lm = LoginManager()
 lm.init_app(app)
+
+ploader = Pluginloader('plugins')
 
 # only load once per app context
 def get_db():
