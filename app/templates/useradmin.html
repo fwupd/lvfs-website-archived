@@ -25,12 +25,6 @@
     <label for="email">Contact Email:</label>
     <input type="text" class="form-control" name="email" value="{{u.email}}" required>
   </div>
-{% if u.username != 'admin' %}
-  <div class="form-group">
-    <label for="pubkey">GPG Public Key (optional):</label>
-    <textarea class="form-control" name="pubkey" cols="64" rows="5">{{u.pubkey}}</textarea>
-  </div>
-{% endif %}
   <div class="form-group">
     <label for="password">New Password:</label>
     <input type="password" class="form-control" name="password">

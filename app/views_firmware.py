@@ -15,7 +15,6 @@ from gi.repository import GLib
 
 from app import app, db
 
-from .affidavit import NoKeyError
 from .db import CursorError
 from .hash import _qa_hash
 from .metadata import _metadata_update_group, _metadata_update_targets
@@ -204,8 +203,6 @@ def firmware_delete_force(firmware_id):
             _metadata_update_targets(targets=['stable', 'testing'])
         elif item.target == 'testing':
             _metadata_update_targets(targets=['testing'])
-    except NoKeyError as e:
-        return _error_internal('Failed to sign metadata: ' + str(e))
     except CursorError as e:
         return _error_internal('Failed to generate metadata: ' + str(e))
 
@@ -252,8 +249,6 @@ def firmware_promote(firmware_id, target):
             targets.append('testing')
         if len(targets) > 0:
             _metadata_update_targets(targets)
-    except NoKeyError as e:
-        return _error_internal('Failed to sign metadata: ' + str(e))
     except CursorError as e:
         return _error_internal('Failed to generate metadata: ' + str(e))
     return redirect(url_for('.firmware_show', firmware_id=firmware_id))

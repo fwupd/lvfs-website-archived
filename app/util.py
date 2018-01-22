@@ -4,21 +4,12 @@
 # Copyright (C) 2015 Richard Hughes <richard@hughsie.com>
 # Licensed under the GNU General Public License Version 2
 
-import os
-import sys
 import calendar
 import datetime
 
 from flask import session, request, flash, render_template
 
-from app import app, db
-
-from .affidavit import Affidavit
-
-def _create_affidavit():
-    """ Create an affidavit that can be used to sign files """
-    key_uid = db.users.get_signing_uid()
-    return Affidavit(key_uid, app.config['KEYRING_DIR'])
+from app import db
 
 def _get_client_address():
     """ Gets user IP address """

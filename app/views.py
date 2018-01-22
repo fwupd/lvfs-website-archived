@@ -23,11 +23,10 @@ from app import app, db, lm, ploader
 
 from .db import CursorError
 from .models import Firmware, FirmwareMd, FirmwareRequirement, DownloadKind
-from .affidavit import NoKeyError
 from .foreign_archive import _build_cab
 from .inf_parser import InfParser
 from .hash import _qa_hash, _password_hash
-from .util import _create_affidavit, _event_log, _get_client_address
+from .util import _event_log, _get_client_address
 from .util import _error_internal, _error_permission_denied
 from .util import _get_chart_labels_months, _get_chart_labels_days
 from .metadata import _metadata_update_group, _metadata_update_targets, _metadata_update_pulp
@@ -411,9 +410,6 @@ def upload():
     basename = os.path.basename(fileitem.filename)
     new_filename = firmware_id + '-' + basename.replace('.zip', '.cab')
 
-    # add these after parsing in case multiple components use the same file
-    asc_files = {}
-
     # fix up the checksums and add the detached signature
     for component in apps:
 
@@ -438,28 +434,8 @@ def upload():
         release.set_size(AppStreamGlib.SizeKind.INSTALLED, len(fw_data.contents))
         release.set_size(AppStreamGlib.SizeKind.DOWNLOAD, len(data))
 
-        # add the detached signature if not already signed
-        sig_data = arc.find_file(csum.get_filename() + ".asc")
-        if not sig_data:
-            if csum.get_filename() not in asc_files:
-                try:
-                    affidavit = _create_affidavit()
-                except NoKeyError as e:
-                    return _error_internal('Failed to sign archive: ' + str(e))
-                cff = cabarchive.CabFile(fw_data.filename + '.asc',
-                                         affidavit.create(fw_data.contents))
-                asc_files[csum.get_filename()] = cff
-        else:
-            # check this file is signed by something we trust
-            try:
-                affidavit = _create_affidavit()
-                affidavit.verify(fw_data.contents)
-            except NoKeyError as e:
-                return _error_internal('Failed to verify archive: ' + str(e))
-
-    # add all the .asc files to the archive
-    for key in asc_files:
-        arc.add_file(asc_files[key])
+        # allow plugins to sign files in the archive too
+        ploader.archive_sign(arc, fw_data)
 
     # export the new archive and get the checksum
     cab_data = arc.save(compressed=True)
@@ -557,9 +533,6 @@ def upload():
             _metadata_update_targets(['stable', 'testing'])
         elif target == 'testing':
             _metadata_update_targets(['testing'])
-
-    except NoKeyError as e:
-        return _error_internal('Failed to sign metadata: ' + str(e))
     except CursorError as e:
         return _error_internal('Failed to generate metadata: ' + str(e))
 
@@ -824,8 +797,7 @@ def profile():
         item.email = "info@example.com"
     return render_template('profile.html',
                            vendor_name=item.display_name,
-                           contact_email=item.email,
-                           pubkey=item.pubkey)
+                           contact_email=item.email)
 
 @app.route('/lvfs/settings')
 @login_required
@@ -897,8 +869,6 @@ def metadata_rebuild():
             _metadata_update_group(group.group_id)
         _metadata_update_targets(['stable', 'testing'])
         _metadata_update_pulp()
-    except NoKeyError as e:
-        return _error_internal('Failed to sign metadata: ' + str(e))
     except CursorError as e:
         return _error_internal('Failed to generate metadata: ' + str(e))
     return redirect(url_for('.metadata'))

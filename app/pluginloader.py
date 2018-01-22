@@ -7,6 +7,8 @@
 import os
 import sys
 
+from .util import _event_log
+
 class PluginError(Exception):
     pass
 
@@ -91,4 +93,18 @@ class Pluginloader(object):
             self.load_plugins()
         for plugin in self._plugins:
             if hasattr(plugin, 'file_modified'):
-                plugin.file_modified(fn)
+                try:
+                    plugin.file_modified(fn)
+                except PluginError as e:
+                    _event_log('Plugin %s failed for FileModifed(%s): %s' % (plugin.id, fn, str(e)))
+
+    # an archive is being built
+    def archive_sign(self, arc, firmware_cff):
+        if not self.loaded:
+            self.load_plugins()
+        for plugin in self._plugins:
+            if hasattr(plugin, 'archive_sign'):
+                try:
+                    plugin.archive_sign(arc, firmware_cff)
+                except PluginError as e:
+                    _event_log('Plugin %s failed for ArchiveSign(): %s' % (plugin.id, str(e)))

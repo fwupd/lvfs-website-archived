@@ -17,7 +17,6 @@ class User(object):
         self.is_qa = False
         self.group_id = None
         self.is_locked = False
-        self.pubkey = None
 
     @property
     def is_authenticated(self):

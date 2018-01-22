@@ -17,12 +17,6 @@
       <label for="contact_email" class="col-sm-2 col-form-label">Contact Email</label>
       <div class="col-sm-10">
         <input type="text" class="form-control" name="email" value="{{contact_email}}" required>
-{% if session['username'] == 'admin' %}
-        <div class="alert alert-danger mt-1" role="alert">
-          The email address set here will be used as the signing key for all
-          firmware and metadata.
-        </div>
-{% endif %}
       </div>
     </div>
     <div class="form-group row">
@@ -38,16 +32,6 @@
         <p class="text-secondary">
           A good password consists of upper and lower case with numbers.
         </p>
-      </div>
-    </div>
-    <div class="form-group row">
-      <label for="pubkey" class="col-sm-2 col-form-label">GPG Public Key (optional)</label>
-      <div class="col-sm-10">
-        <textarea name="pubkey" class="form-control" cols="64" rows="5">{{pubkey}}</textarea>
-        <div class="alert alert-warning mt-1" role="alert">
-          Setting a public key would mean you are responsible for signing the
-          firmware payload prior to file upload.
-        </div>
       </div>
     </div>
     <div class="form-group row">

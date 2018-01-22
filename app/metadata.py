@@ -14,10 +14,8 @@ from gi.repository import GLib
 from app import app, db, ploader
 
 from .hash import _qa_hash
-from .util import _create_affidavit
 
-def _generate_metadata_kind(filename, items, firmware_baseuri='',
-                            affidavit=None):
+def _generate_metadata_kind(filename, items, firmware_baseuri=''):
     """ Generates AppStream metadata of a specific kind """
     store = AppStreamGlib.Store.new()
     store.set_origin('lvfs')
@@ -128,17 +126,6 @@ def _generate_metadata_kind(filename, items, firmware_baseuri='',
     # inform the plugin loader
     ploader.file_modified(filename)
 
-    # generate and upload the detached signature
-    if affidavit:
-        blob = open(filename, 'rb').read()
-        blob_asc = affidavit.create(blob)
-        filename_asc = filename + '.asc'
-        with open(filename_asc,'w') as f:
-            f.write(blob_asc)
-
-        # inform the plugin loader
-        ploader.file_modified(filename_asc)
-
 def _metadata_update_group(group_id):
     """ updates metadata for a specific group_id """
 
@@ -154,16 +141,13 @@ def _metadata_update_group(group_id):
         firmwares_filtered.append(f)
 
     # create metadata file for the embargoed firmware
-    affidavit = _create_affidavit()
     filename = 'firmware-%s.xml.gz' % _qa_hash(group_id)
     _generate_metadata_kind(filename,
                             firmwares_filtered,
-                            firmware_baseuri=settings['firmware_baseuri'],
-                            affidavit=affidavit)
+                            firmware_baseuri=settings['firmware_baseuri'])
 
 def _metadata_update_targets(targets):
     """ updates metadata for a specific target """
-    affidavit = _create_affidavit()
     firmwares = db.firmware.get_all()
     settings = db.settings.get_all()
     for target in targets:
@@ -177,13 +161,11 @@ def _metadata_update_targets(targets):
         if target == 'stable':
             _generate_metadata_kind('firmware.xml.gz',
                                     firmwares_filtered,
-                                    firmware_baseuri=settings['firmware_baseuri'],
-                                    affidavit=affidavit)
+                                    firmware_baseuri=settings['firmware_baseuri'])
         elif target == 'testing':
             _generate_metadata_kind('firmware-testing.xml.gz',
                                     firmwares_filtered,
-                                    firmware_baseuri=settings['firmware_baseuri'],
-                                    affidavit=affidavit)
+                                    firmware_baseuri=settings['firmware_baseuri'])
 
 def _hashfile(afile, hasher, blocksize=65536):
     buf = afile.read(blocksize)

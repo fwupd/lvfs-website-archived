@@ -35,11 +35,6 @@ def _email_check(value):
         return False
     return True
 
-def _pubkey_check(pubkey):
-    if not pubkey:
-        return True
-    return pubkey.startswith("-----BEGIN PGP PUBLIC KEY BLOCK-----")
-
 @app.route('/lvfs/user/<username>/modify', methods=['GET', 'POST'])
 @login_required
 def user_modify(username):
@@ -83,21 +78,13 @@ def user_modify(username):
         flash('Invalid email address', 'warning')
         return redirect(url_for('.profile'))
 
-    # check pubkey
-    pubkey = ''
-    if 'pubkey' in request.form:
-        pubkey = request.form['pubkey']
-        if not _pubkey_check(pubkey):
-            flash('Invalid GPG public key', 'warning')
-            return redirect(url_for('.profile'), 302)
-
     # verify name
     name = request.form['name']
     if len(name) < 3:
         flash('Name invalid', 'warning')
         return redirect(url_for('.profile'), 302)
     try:
-        db.users.update(session['username'], password, name, email, pubkey)
+        db.users.update(session['username'], password, name, email)
     except CursorError as e:
         return _error_internal(str(e))
     #session['password'] = _password_hash(password)
@@ -121,8 +108,7 @@ def user_modify_by_admin(username):
                 'password',
                 'is_enabled',
                 'is_qa',
-                'is_locked',
-                'pubkey']:
+                'is_locked']:
         # unchecked checkbuttons are not included in the form data
         if key in request.form:
             tmp = request.form[key]
@@ -132,13 +118,6 @@ def user_modify_by_admin(username):
             # don't set the optional password
             if key == 'password' and len(tmp) == 0:
                 continue
-            if key == 'pubkey':
-                if tmp == '0':
-                    continue
-                if not _pubkey_check(tmp):
-                    flash('Invalid GPG public key', 'warning')
-                    return redirect(url_for('.user_admin',
-                                            username=username), 303)
             db.users.set_property(username, key, tmp)
         except CursorError as e:
             return _error_internal(str(e))

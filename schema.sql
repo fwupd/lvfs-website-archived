@@ -4,7 +4,6 @@ CREATE TABLE users (
   password VARCHAR(40) NOT NULL DEFAULT '',
   display_name VARCHAR(128) DEFAULT NULL,
   email VARCHAR(255) DEFAULT NULL,
-  pubkey VARCHAR(4096) DEFAULT NULL,
   is_enabled TINYINT DEFAULT 0,
   is_qa TINYINT DEFAULT 0,
   group_id VARCHAR(40) DEFAULT NULL,
@@ -147,3 +146,7 @@ INSERT INTO settings (config_key, config_value)
   VALUES ('cdn_sync_bucket', 'lvfstestbucket');
 INSERT INTO settings (config_key, config_value)
   VALUES ('cdn_sync_files', 'firmware.xml.gz,firmware.xml.gz.asc,firmware-testing.xml.gz,firmware-testing.xml.gz.asc');
+INSERT INTO settings (config_key, config_value)
+  VALUES ('sign_gpg_signing_uid', 'sign-test@fwupd.org');
+INSERT INTO settings (config_key, config_value)
+  VALUES ('sign_gpg_keyring_dir', '/var/www/lvfs/.gnupg');
