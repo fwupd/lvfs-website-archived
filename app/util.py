@@ -10,8 +10,6 @@ from glob import fnmatch
 
 from flask import session, request, flash, render_template
 
-from app import db
-
 def _archive_get_files_from_glob(arc, glob):
     arr = []
     for cffolder in arc.get_folders():
@@ -41,6 +39,10 @@ def _event_log(msg, is_important=False):
         group_id = 'admin'
     if request:
         request_path = request.path
+    from app import db
+    if not hasattr(db, 'eventlog'):
+        print 'no eventlog, so ignoring %s from %s' % (msg, request_path)
+        return
     db.eventlog.add(msg, username, group_id,
                     _get_client_address(), is_important, request_path)
 
