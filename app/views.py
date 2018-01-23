@@ -10,9 +10,9 @@ import hashlib
 import math
 import ConfigParser
 
-import cabarchive
-
 from gi.repository import AppStreamGlib
+from gi.repository import GCab
+from gi.repository import Gio
 from gi.repository import GLib
 
 from flask import session, request, flash, url_for, redirect, render_template, Response
@@ -23,11 +23,12 @@ from app import app, db, lm, ploader
 
 from .db import CursorError
 from .models import Firmware, FirmwareMd, FirmwareRequirement, DownloadKind
-from .foreign_archive import _build_cab
+from .foreign_archive import _repackage_archive
 from .inf_parser import InfParser
 from .hash import _qa_hash, _password_hash
 from .util import _event_log, _get_client_address
 from .util import _error_internal, _error_permission_denied
+from .util import _archive_get_files_from_glob
 from .util import _get_chart_labels_months, _get_chart_labels_days
 from .metadata import _metadata_update_group, _metadata_update_targets, _metadata_update_pulp
 
@@ -258,27 +259,30 @@ def upload():
 
     # parse the file
     try:
-        arc = _build_cab(fileitem.filename, data)
-    except cabarchive.CorruptionError as e:
+        if fileitem.filename.endswith('.cab'):
+            istream = Gio.MemoryInputStream.new_from_bytes(GLib.Bytes.new(data))
+            arc = GCab.Cabinet.new()
+            arc.load(istream)
+            arc.extract(None)
+        else:
+            arc = _repackage_archive(fileitem.filename, data)
+    except NotImplementedError as e:
         flash('Invalid file type: %s' % str(e), 'danger')
-        return redirect(request.url)
-    except cabarchive.NotSupportedError as e:
-        flash('Upload had no supported extension, expected .cab or .zip', 'danger')
         return redirect(request.url)
 
     # check .inf exists
     fw_version_inf = None
     fw_version_display_inf = None
-    cf = arc.find_file("*.inf")
-    if cf:
-        if cf.contents.find('FIXME') != -1:
+    for cf in _archive_get_files_from_glob(arc, '*.inf'):
+        contents = cf.get_bytes().get_data()
+        if contents.find('FIXME') != -1:
             flash('The inf file was not complete; Any FIXME text must be '
                   'replaced with the correct values.', 'danger')
             return redirect(request.url)
 
         # check .inf file is valid
         cfg = InfParser()
-        cfg.read_data(cf.contents)
+        cfg.read_data(contents)
         try:
             tmp = cfg.get('Version', 'Class')
         except (ConfigParser.NoOptionError, ConfigParser.NoSectionError) as e:
@@ -316,7 +320,7 @@ def upload():
             pass
 
     # check metainfo exists
-    cfs = arc.find_files("*.metainfo.xml")
+    cfs = _archive_get_files_from_glob(arc, '*.metainfo.xml')
     if len(cfs) == 0:
         flash('The firmware file had no .metadata.xml files', 'danger')
         return redirect(request.url)
@@ -326,7 +330,7 @@ def upload():
     for cf in cfs:
         component = AppStreamGlib.App.new()
         try:
-            component.parse_data(GLib.Bytes.new(cf.contents), AppStreamGlib.AppParseFlags.NONE)
+            component.parse_data(cf.get_bytes(), AppStreamGlib.AppParseFlags.NONE)
             fmt = AppStreamGlib.Format.new()
             fmt.set_kind(AppStreamGlib.FormatKind.METAINFO)
             component.add_format(fmt)
@@ -336,10 +340,11 @@ def upload():
             return redirect(request.url)
 
         # get the metadata ID
-        component.add_metadata('metainfo_id', hashlib.sha1(cf.contents).hexdigest())
+        contents = cf.get_bytes().get_data()
+        component.add_metadata('metainfo_id', hashlib.sha1(contents).hexdigest())
 
         # check the file does not have any missing request.form
-        if cf.contents.find('FIXME') != -1:
+        if contents.find('FIXME') != -1:
             flash('The metadata file was not complete; '
                   'Any FIXME text must be replaced with the correct values.',
                   'danger')
@@ -423,22 +428,25 @@ def upload():
             release.add_checksum(csum)
 
         # get the contents checksum
-        fw_data = arc.find_file(csum.get_filename())
-        if not fw_data:
+        cfs = _archive_get_files_from_glob(arc, csum.get_filename())
+        if not cfs:
             flash('No %s found in the archive' % csum.get_filename(), 'danger')
             return redirect(request.url)
+        contents = cfs[0].get_bytes().get_data()
         csum.set_kind(GLib.ChecksumType.SHA1)
-        csum.set_value(hashlib.sha1(fw_data.contents).hexdigest())
+        csum.set_value(hashlib.sha1(contents).hexdigest())
 
         # set the sizes
-        release.set_size(AppStreamGlib.SizeKind.INSTALLED, len(fw_data.contents))
+        release.set_size(AppStreamGlib.SizeKind.INSTALLED, len(contents))
         release.set_size(AppStreamGlib.SizeKind.DOWNLOAD, len(data))
 
         # allow plugins to sign files in the archive too
-        ploader.archive_sign(arc, fw_data)
+        ploader.archive_sign(arc, cfs[0])
 
     # export the new archive and get the checksum
-    cab_data = arc.save(compressed=True)
+    ostream = Gio.MemoryOutputStream.new_resizable()
+    arc.write_simple(ostream)
+    cab_data = Gio.MemoryOutputStream.steal_as_bytes(ostream).get_data()
     checksum_container = hashlib.sha1(cab_data).hexdigest()
 
     # dump to a file
@@ -713,63 +721,6 @@ def eventlog(start=0, length=20):
         else:
             html += '<a href="/lvfs/eventlog/%i/%s">%i</a> ' % (i * int(length), int(length), i + 1)
     return render_template('eventlog.html', events=items, pagination_footer=html)
-
-def _update_metadata_from_fn(fwobj, fn):
-    """
-    Re-parses the .cab file and updates the database version.
-    """
-
-    # load cab file
-    arc = cabarchive.CabArchive()
-    try:
-        arc.parse_file(fn)
-    except cabarchive.CorruptionError as e:
-        return _error_internal('Invalid file type: %s' % str(e))
-
-    # parse the MetaInfo file
-    cf = arc.find_file("*.metainfo.xml")
-    if not cf:
-        return _error_internal('The firmware file had no valid metadata')
-    component = AppStreamGlib.App.new()
-    try:
-        component.parse_data(GLib.Bytes.new(cf.contents), AppStreamGlib.AppParseFlags.NONE)
-    except GLib.Error as e:
-        return _error_internal('The metadata could not be parsed: ' + str(e))
-
-    # parse the inf file
-    cf = arc.find_file("*.inf")
-    if not cf:
-        return _error_internal('The firmware file had no valid inf file')
-    cfg = InfParser()
-    cfg.read_data(cf.contents)
-    try:
-        tmp = cfg.get('Version', 'DriverVer')
-        driver_ver = tmp.split(',')
-        if len(driver_ver) != 2:
-            return _error_internal('The inf file Version:DriverVer was invalid')
-    except ConfigParser.NoOptionError as e:
-        driver_ver = None
-
-    # get the contents
-    fw_data = arc.find_file('*.bin')
-    if not fw_data:
-        fw_data = arc.find_file('*.rom')
-    if not fw_data:
-        fw_data = arc.find_file('*.cap')
-    if not fw_data:
-        return _error_internal('No firmware found in the archive')
-
-    # update sizes
-    fwobj.mds[0].release_installed_size = len(fw_data.contents)
-    fwobj.mds[0].release_download_size = os.path.getsize(fn)
-
-    # update the descriptions
-    fwobj.mds[0].release_description = component.get_release_default().get_description()
-    fwobj.mds[0].description = component.get_description()
-    if driver_ver:
-        fwobj.version_display = driver_ver[1]
-    db.firmware.update(fwobj)
-    return None
 
 @app.route('/lvfs/profile')
 @login_required

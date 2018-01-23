@@ -6,10 +6,14 @@
 
 import os
 import gnupg
-import cabarchive
+
+from gi.repository import Gio
+from gi.repository import GLib
+from gi.repository import GCab
 
 from app.pluginloader import PluginBase, PluginError, PluginSettingText
 from app import db, ploader
+from app.util import _archive_get_files_from_glob
 
 class Affidavit(object):
 
@@ -99,15 +103,22 @@ class Plugin(PluginBase):
     def archive_sign(self, arc, firmware_cff):
 
         # does the detached signature already exist?
-        detached_fn = firmware_cff.filename + '.asc'
-        if arc.find_file(detached_fn):
-            print "file %s is already GPG signed" % firmware_cff.filename
+        detached_fn = firmware_cff.get_name() + '.asc'
+        if _archive_get_files_from_glob(arc, detached_fn):
+            print "file %s is already GPG signed" % firmware_cff.get_name()
             return
 
-        # create the detached signature and add it to the archive
+        # create the detached signature
         affidavit = self._create_affidavit()
         if not affidavit:
             return
-        detached_cff = cabarchive.CabFile(detached_fn,
-                                          affidavit.create(firmware_cff.contents))
-        arc.add_file(detached_cff)
+        contents = firmware_cff.get_bytes().get_data()
+        contents_asc = affidavit.create(contents)
+        asc_cff = GCab.File.new_with_bytes(detached_fn, GLib.Bytes.new(contents_asc))
+
+        # add it to the archive
+        folders = arc.get_folders()
+        if not folders:
+            print 'archive has no folders'
+            return
+        folders[0].add_file(asc_cff, False)

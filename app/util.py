@@ -6,10 +6,19 @@
 
 import calendar
 import datetime
+from glob import fnmatch
 
 from flask import session, request, flash, render_template
 
 from app import db
+
+def _archive_get_files_from_glob(arc, glob):
+    arr = []
+    for cffolder in arc.get_folders():
+        for cffile in cffolder.get_files():
+            if fnmatch.fnmatch(cffile.get_name(), glob):
+                arr.append(cffile)
+    return arr
 
 def _get_client_address():
     """ Gets user IP address """

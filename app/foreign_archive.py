@@ -9,7 +9,8 @@ import shutil
 import subprocess
 import tempfile
 
-import cabarchive
+from gi.repository import GCab
+from gi.repository import Gio
 
 def _listdir_recurse(basedir):
     """ Return all files and folders """
@@ -23,7 +24,8 @@ def _listdir_recurse(basedir):
         files.append(fn)
     return files
 
-def _build_cab(filename, buf, tmpdir=None):
+def _repackage_archive(filename, buf, tmpdir=None):
+    """ Unpacks an archive (typically a .zip) into a GCab.Cabinet object """
 
     # write to temp file
     src = tempfile.NamedTemporaryFile(mode='wb',
@@ -40,25 +42,25 @@ def _build_cab(filename, buf, tmpdir=None):
     # work out what binary to use
     split = filename.rsplit('.', 1)
     if len(split) < 2:
-        raise cabarchive.NotSupportedError('Filename not valid')
+        raise NotImplementedError('Filename not valid')
     if split[1] == 'zip':
         argv = ['/usr/bin/bsdtar', '--directory', dest_fn, '-xvf', src.name]
-    elif split[1] == 'cab':
-        argv = ['/usr/bin/cabextract', '--quiet', '--directory', dest_fn, src.name]
     else:
-        raise cabarchive.NotSupportedError('Filename had no supported extension')
+        raise NotImplementedError('Filename had no supported extension')
 
     # extract
     ps = subprocess.Popen(argv, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     if ps.wait() != 0:
-        raise cabarchive.CorruptionError('Failed to extract: %s' % ps.stderr.read())
+        raise IOError('Failed to extract: %s' % ps.stderr.read())
 
     # add all the fake CFFILE objects
-    arc = cabarchive.CabArchive()
+    arc = GCab.Cabinet.new()
+    cffolder = GCab.Folder.new()
+    arc.add_folder(cffolder)
     for fn in _listdir_recurse(dest_fn):
-        cff = cabarchive.CabFile(os.path.basename(fn.replace('\\', '/')))
-        cff.contents = open(fn, 'rb').read()
-        arc.add_file(cff)
+        fn_fixed = os.path.basename(fn.replace('\\', '/'))
+        cffile = GCab.File.new_with_file(fn_fixed, Gio.file_new_for_path(fn))
+        cffolder.add_file(cffile, False)
     shutil.rmtree(dest_fn)
     src.close()
     return arc
