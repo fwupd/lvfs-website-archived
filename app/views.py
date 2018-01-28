@@ -327,6 +327,9 @@ def upload():
         flash('The firmware file had no .metadata.xml files', 'danger')
         return redirect(request.url)
 
+    # a good guess, but everyone should have this
+    fwupd_min_version = '0.8.0'
+
     # parse each MetaInfo file
     apps = []
     for cf in cfs:
@@ -410,6 +413,12 @@ def upload():
             flash('Firmware cannot specify vendor-id', 'danger')
             return redirect(request.url)
 
+        # does the firmware require a specific fwupd version?
+        req = component.get_require_by_value(AppStreamGlib.RequireKind.ID,
+                                             'org.freedesktop.fwupd')
+        if req:
+            fwupd_min_version = req.get_version()
+
         # add to array
         apps.append(component)
 
@@ -444,6 +453,15 @@ def upload():
 
         # allow plugins to sign files in the archive too
         ploader.archive_sign(arc, cfs[0])
+
+    # allow plugins to add files
+    settings = db.settings.get_all()
+    metadata = {}
+    metadata['$DATE$'] = datetime.datetime.now().replace(microsecond=0).isoformat()
+    metadata['$FWUPD_MIN_VERSION$'] = fwupd_min_version
+    metadata['$CAB_FILENAME$'] = new_filename
+    metadata['$FIRMWARE_BASEURI$'] = settings['firmware_baseuri']
+    ploader.archive_finalize(arc, metadata)
 
     # export the new archive and get the checksum
     ostream = Gio.MemoryOutputStream.new_resizable()
@@ -506,19 +524,17 @@ def upload():
         for req in component.get_requires():
             fwreq = FirmwareRequirement(AppStreamGlib.Require.kind_to_string(req.get_kind()),
                                         req.get_value(),
-                                        AppStreamGlib.Require.compare_from_string(req.get_compare()),
+                                        AppStreamGlib.Require.compare_to_string(req.get_compare()),
                                         req.get_version())
             md.requirements.append(fwreq)
 
         # from the first screenshot
         if len(component.get_screenshots()) > 0:
             ss = component.get_screenshots()[0]
-            if ss.caption:
-                md.screenshot_caption = ss.caption
-            if len(ss.images) > 0:
-                im = ss.images[0]
-                if im.url:
-                    md.screenshot_url = im.url
+            md.screenshot_caption = ss.get_caption(None)
+            if len(ss.get_images()) > 0:
+                im = ss.get_images()[0]
+                md.screenshot_url = im.get_url()
 
         # from the content checksum
         csum = rel.get_checksum_by_target(AppStreamGlib.ChecksumTarget.CONTENT)
