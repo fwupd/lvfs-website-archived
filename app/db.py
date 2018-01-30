@@ -70,6 +70,7 @@ def _create_firmware_item(e):
     item.firmware_id = e[4]
     item.target = e[5]
     item.version_display = e[6]
+    item.download_cnt = int(e[7])
     return item
 
 def _create_client_item(e):
@@ -392,6 +393,15 @@ class DatabaseFirmware(object):
         except mdb.Error as e:
             raise CursorError(cur, e)
 
+    def set_download_count(self, firmware_id, cnt):
+        """ set the download counter """
+        assert firmware_id
+        try:
+            cur = self._db.cursor()
+            cur.execute("UPDATE firmware SET download_cnt=%s WHERE firmware_id=%s;", (cnt, firmware_id,))
+        except mdb.Error as e:
+            raise CursorError(cur, e)
+
     def update(self, fwobj):
         """ Update firmware details """
         assert fwobj
@@ -512,7 +522,7 @@ class DatabaseFirmware(object):
         try:
             cur = self._db.cursor()
             cur.execute("SELECT group_id, addr, timestamp, "
-                        "filename, firmware_id, target, version_display "
+                        "filename, firmware_id, target, version_display, download_cnt "
                         "FROM firmware ORDER BY timestamp DESC;")
         except mdb.Error as e:
             raise CursorError(cur, e)
@@ -531,7 +541,7 @@ class DatabaseFirmware(object):
         try:
             cur = self._db.cursor()
             cur.execute("SELECT group_id, addr, timestamp, "
-                        "filename, firmware_id, target, version_display "
+                        "filename, firmware_id, target, version_display, download_cnt "
                         "FROM firmware WHERE firmware_id = %s LIMIT 1;",
                         (firmware_id,))
         except mdb.Error as e:
@@ -656,12 +666,18 @@ class DatabaseClients(object):
         except mdb.Error as e:
             raise CursorError(cur, e)
 
-    def get_firmware_count_filename(self, filename):
+    def get_firmware_count_filename(self, filename, age_days=0):
         """ get the number of files we've provided """
         try:
             cur = self._db.cursor()
-            cur.execute("SELECT DISTINCT(COUNT(addr)) FROM clients "
-                        "WHERE filename = %s", (filename,))
+            if age_days == 0:
+                cur.execute("SELECT DISTINCT(COUNT(addr)) FROM clients "
+                            "WHERE filename = %s", (filename,))
+            else:
+                cur.execute("SELECT DISTINCT(COUNT(addr)) FROM clients "
+                            "WHERE filename = %s AND "
+                            "TIMESTAMPDIFF(DAY, timestamp, CURRENT_TIMESTAMP()) < %s;",
+                            (filename,age_days,))
         except mdb.Error as e:
             raise CursorError(cur, e)
         user_cnt = cur.fetchone()[0]
@@ -696,6 +712,8 @@ class DatabaseClients(object):
             cur.execute("INSERT INTO clients (addr, filename, user_agent) "
                         "VALUES (%s, %s, %s);",
                         (_addr_hash(address), fn, user_agent,))
+            cur.execute("UPDATE firmware SET download_cnt = download_cnt + 1 "
+                        "WHERE filename = %s;", (fn,))
         except mdb.Error as e:
             raise CursorError(cur, e)
 
@@ -852,13 +870,36 @@ class DatabaseReports(object):
         except mdb.Error as e:
             raise CursorError(cur, e)
 
-    def get_all_for_firmware_id(self, firmware_id, limit=10):
+    def get_all_for_firmware_id(self, firmware_id, limit=10, age=0):
         """ get the reports """
         try:
             cur = self._db.cursor()
-            cur.execute("SELECT id, timestamp, state, json, machine_id, firmware_id, checksum FROM reports "
-                        "WHERE firmware_id = %s ORDER BY id DESC LIMIT %s",
-                        (firmware_id, limit,))
+            if age == 0:
+                if limit > 0:
+                    cur.execute("SELECT id, timestamp, state, json, machine_id, "
+                                "firmware_id, checksum FROM reports "
+                                "WHERE firmware_id = %s ORDER BY id DESC LIMIT %s",
+                                (firmware_id, limit,))
+                else:
+                    cur.execute("SELECT id, timestamp, state, json, machine_id, "
+                                "firmware_id, checksum FROM reports "
+                                "WHERE firmware_id = %s ORDER BY id DESC",
+                                (firmware_id,))
+            else:
+                if limit > 0:
+                    cur.execute("SELECT id, timestamp, state, json, machine_id, "
+                                "firmware_id, checksum FROM reports "
+                                "WHERE firmware_id = %s AND "
+                                "TIMESTAMPDIFF(DAY, timestamp, CURRENT_TIMESTAMP()) < %s "
+                                "ORDER BY id DESC LIMIT %s",
+                                (firmware_id, age, limit,))
+                else:
+                    cur.execute("SELECT id, timestamp, state, json, machine_id, "
+                                "firmware_id, checksum FROM reports "
+                                "WHERE firmware_id = %s AND "
+                                "TIMESTAMPDIFF(DAY, timestamp, CURRENT_TIMESTAMP()) < %s "
+                                "ORDER BY id DESC",
+                                (firmware_id, age,))
         except mdb.Error as e:
             raise CursorError(cur, e)
         items = []

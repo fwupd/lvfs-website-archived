@@ -21,6 +21,23 @@ from .metadata import _metadata_update_group, _metadata_update_targets
 from .models import FirmwareRequirement
 from .util import _event_log, _error_internal, _error_permission_denied, _get_chart_labels_months, _get_chart_labels_days, _validate_guid
 
+def _get_split_names_for_firmware(fw):
+    names = []
+    for md in fw.mds:
+        name_safe = md.name.replace(' System Update', '')
+        name_split = name_safe.split('/')
+        all_substrings_long_enough = True
+        for name in name_split:
+            if len(name) < 8:
+                all_substrings_long_enough = False
+                break
+        if all_substrings_long_enough:
+            for name in name_split:
+                names.append(name)
+        else:
+            names.append(name_safe)
+    return sorted(names)
+
 @app.route('/lvfs/firmware')
 def firmware(show_all=False):
     """
@@ -279,7 +296,7 @@ def firmware_show(firmware_id):
     # get the reports for this firmware
     reports_success = 0
     reports_failure = 0
-    reports = db.reports.get_all_for_firmware_id(firmware_id, limit=10000)
+    reports = db.reports.get_all_for_firmware_id(firmware_id, limit=0)
     for r in reports:
         if r.state == 2:
             reports_success += 1
@@ -435,6 +452,113 @@ def firmware_component_show(firmware_id, cid, page='overview'):
                            fw=fwobj,
                            qa_capability=session['qa_capability'],
                            firmware_id=firmware_id)
+
+@app.route('/lvfs/telemetry/repair')
+@login_required
+def telemetry_repair():
+
+    if session['group_id'] != 'admin':
+        return _error_permission_denied('Not admin user')
+
+    # are all the download counts zero, i.e. an old database schema?
+    total_downloads = 0
+    fws = db.firmware.get_all()
+    for fw in fws:
+        total_downloads += fw.download_cnt
+
+    # repair the firmware database using the client data
+    if total_downloads == 0:
+        for fw in fws:
+            cnt = db.clients.get_firmware_count_filename(fw.filename)
+            db.firmware.set_download_count(fw.firmware_id, cnt)
+    return redirect(url_for('.telemetry'))
+
+@app.route('/lvfs/telemetry/<int:age>/<sort_key>/<sort_direction>')
+@app.route('/lvfs/telemetry/<int:age>/<sort_key>')
+@app.route('/lvfs/telemetry/<int:age>')
+@app.route('/lvfs/telemetry')
+@login_required
+def telemetry(age=0, sort_key='downloads', sort_direction='up'):
+    """ Show firmware component information """
+
+    # only QA users can view this data
+    if not session['qa_capability']:
+        return _error_permission_denied('Unable to view telemetry as not QA')
+
+    # get firmware component
+    try:
+        fws = db.firmware.get_all()
+    except CursorError as e:
+        return _error_internal(str(e))
+
+    # get data
+    total_downloads = 0
+    total_success = 0
+    total_failed = 0
+    show_duplicate_warning = False
+    firmware = []
+    for fw in fws:
+
+        # not allowed to view
+        if session['group_id'] != 'admin' and fw.group_id != session['group_id']:
+            continue
+        if len(fw.mds) == 0:
+            continue
+        if fw.target == 'private' or fw.target == 'embargo':
+            continue
+
+        # reports
+        if age == 0:
+            cnt_download = fw.download_cnt
+        else:
+            cnt_download = db.clients.get_firmware_count_filename(fw.filename, age)
+        cnt_success = 0
+        cnt_failed = 0
+        rpts = db.reports.get_all_for_firmware_id(fw.firmware_id, age=age, limit=0)
+        for rpt in rpts:
+            if rpt.state == 2:
+                cnt_success += 1
+            if rpt.state == 3:
+                cnt_failed += 1
+        total_success += cnt_success
+        total_failed += cnt_failed
+        total_downloads += cnt_download
+
+        # add items
+        res = {}
+        res['downloads'] = cnt_download
+        res['success'] = cnt_success
+        res['failed'] = cnt_failed
+        res['names'] = _get_split_names_for_firmware(fw)
+        res['version'] = fw.version_display
+        if not res['version']:
+            res['version'] = fw.mds[0].version
+        res['nameversion'] = res['names'][0] + ' ' + res['version']
+        res['firmware_id'] = fw.firmware_id
+        res['target'] = fw.target
+        res['duplicate'] = len(fw.mds)
+        firmware.append(res)
+
+        # show the user a warning
+        if len(fw.mds) > 1:
+            show_duplicate_warning = True
+
+    if sort_direction == 'down':
+        firmware.sort(key=lambda x: x['downloads'])
+        firmware.sort(key=lambda x: x[sort_key])
+    else:
+        firmware.sort(key=lambda x: x['downloads'], reverse=True)
+        firmware.sort(key=lambda x: x[sort_key], reverse=True)
+    return render_template('telemetry.html',
+                           age=age,
+                           sort_key=sort_key,
+                           sort_direction=sort_direction,
+                           firmware=firmware,
+                           group_id=session['group_id'],
+                           show_duplicate_warning=show_duplicate_warning,
+                           total_failed=total_failed,
+                           total_downloads=total_downloads,
+                           total_success=total_success)
 
 @app.route('/lvfs/firmware/<firmware_id>/component/<cid>/requires/remove/hwid/<hwid>')
 @login_required

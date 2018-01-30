@@ -37,6 +37,9 @@ CREATE TABLE firmware (
   timestamp TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP, -- upload date/time
   filename VARCHAR(255) DEFAULT NULL,           -- filename of the original .cab file
 
+  -- information about the download
+  download_cnt INT DEFAULT 0,                   -- generated from the client database
+
   -- parsed from the uploaded data
   firmware_id VARCHAR(40) DEFAULT NULL,         -- SHA1 of the original .cab file
   version_display VARCHAR(255) DEFAULT NULL,    -- from the firmware.inf file
@@ -101,6 +104,7 @@ CREATE TABLE clients (
   user_agent VARCHAR(256) DEFAULT NULL,
   UNIQUE KEY id (id)
 ) CHARSET=utf8;
+CREATE INDEX filename_idx ON clients (filename(40));
 
 DROP TABLE IF EXISTS groups;
 CREATE TABLE groups (

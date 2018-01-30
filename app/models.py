@@ -157,6 +157,7 @@ class Firmware(object):
         self.firmware_id = None
         self.target = None
         self.version_display = None
+        self.download_cnt = 0
         self.mds = []
     def __repr__(self):
         return "Firmware object %s" % self.firmware_id

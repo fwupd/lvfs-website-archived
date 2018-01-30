@@ -1,0 +1,92 @@
+{% extends "default.html" %}
+{% block title %}Telemetry{% endblock %}
+
+{% block content %}
+<div class="container mt-3">
+
+<nav>
+  <ul class="nav nav-tabs">
+    <div><h3></h3></div>
+    <li class="nav-item">
+      <a class="nav-link {{'active' if age == 0}}" href="/lvfs/telemetry/0/{{sort_key}}/{{sort_direction}}">All</a>
+    </li>
+    <li class="nav-item">
+      <a class="nav-link {{'active' if age == 30}}" href="/lvfs/telemetry/30/{{sort_key}}/{{sort_direction}}">Last 30 days</a>
+    </li>
+    <li class="nav-item">
+      <a class="nav-link {{'active' if age == 180}}" href="/lvfs/telemetry/180/{{sort_key}}/{{sort_direction}}">Last 6 months</a>
+    </li>
+  </ul>
+</nav>
+
+<div class="container mt-3">
+
+{% if show_duplicate_warning %}
+<div class="alert alert-info" role="alert">
+  Some archives contains firmware for more than one machine. These have been marked with <sup>★</sup>.
+</div>
+{% endif %}
+
+<h2>Telemetry for group {{group_id}}</h2>
+<div class="container mt-3">
+<table class="table">
+  <tr class="row">
+    <th class="col-sm-4">Hardware</th>
+    <th class="col-sm-2">
+      Version
+      <a class="{{'text-warning' if sort_key=='nameversion' and sort_direction=='up'}}" href="/lvfs/telemetry/{{age}}/nameversion/up">▼</a>
+      <a class="{{'text-warning' if sort_key=='nameversion' and sort_direction=='down'}}" href="/lvfs/telemetry/{{age}}/nameversion/down">▲</a>
+    </th>
+    <th class="col-sm-2">
+      Downloads
+      <a class="{{'text-warning' if sort_key=='downloads' and sort_direction=='up'}}" href="/lvfs/telemetry/{{age}}/downloads/up">▼</a>
+      <a class="{{'text-warning' if sort_key=='downloads' and sort_direction=='down'}}" href="/lvfs/telemetry/{{age}}/downloads/down">▲</a>
+    </th>
+    <th class="col-sm-2">
+      Success
+      <a class="{{'text-warning' if sort_key=='success' and sort_direction=='up'}}" href="/lvfs/telemetry/{{age}}/success/up">▼</a>
+      <a class="{{'text-warning' if sort_key=='success' and sort_direction=='down'}}" href="/lvfs/telemetry/{{age}}/success/down">▲</a>
+    </th>
+    <th class="col-sm-2">
+      Failed
+      <a class="{{'text-warning' if sort_key=='failed' and sort_direction=='up'}}" href="/lvfs/telemetry/{{age}}/failed/up">▼</a>
+      <a class="{{'text-warning' if sort_key=='failed' and sort_direction=='down'}}" href="/lvfs/telemetry/{{age}}/failed/down">▲</a>
+    </th>
+  </tr>
+{% for f in firmware %}
+  <tr class="row">
+    <td class="col-sm-4">
+{% for n in f['names'] %}
+      <div>
+        <a href="/lvfs/firmware/{{f['firmware_id']}}">{{n}}</a>
+      </div>
+{% endfor %}
+{% if f['target'] == 'testing' %}
+      <span class="badge badge-info">testing</span>
+{% endif %}
+    </td>
+    <td class="col-sm-2">{{f['version']}}</td>
+    <td class="col-sm-2">
+      {{f['downloads']}}
+{% if f['duplicate'] > 1 %}
+      <span><sup>★</sup></span>
+{% endif %}
+    </td>
+    <td class="col-sm-2">{{f['success']}}</td>
+    <td class="col-sm-2">{{f['failed']}}</td>
+  </tr>
+{% endfor %}
+  <tr class="row">
+    <td class="col-sm-4"><b>&nbsp;</b></td>
+    <td class="col-sm-2"><b>&nbsp;</b></td>
+    <td class="col-sm-2"><b>{{total_downloads}}</b></td>
+    <td class="col-sm-2"><b>{{total_success}}</b></td>
+    <td class="col-sm-2"><b>{{total_failed}}</b></td>
+  </tr>
+</table>
+</div>
+
+</div>
+
+</div> <!-- container -->
+{% endblock %}
