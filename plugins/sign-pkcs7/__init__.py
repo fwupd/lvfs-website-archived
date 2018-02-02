@@ -17,7 +17,7 @@ from gi.repository import GCab
 
 from app.pluginloader import PluginBase, PluginError, PluginSettingText, PluginSettingBool
 from app import db, ploader
-from app.util import _archive_get_files_from_glob
+from app.util import _get_basename_safe
 
 class Plugin(PluginBase):
     def __init__(self):
@@ -100,12 +100,6 @@ class Plugin(PluginBase):
 
     def archive_sign(self, arc, firmware_cff):
 
-        # does the detached signature already exist?
-        detached_fn = firmware_cff.get_name() + '.p7b'
-        if _archive_get_files_from_glob(arc, detached_fn):
-            print("file %s is already PKCS7 signed" % firmware_cff.get_name())
-            return
-
         # create the detached signature
         blob = firmware_cff.get_bytes().get_data()
         blob_p7b = self._sign_blob(blob)
@@ -118,5 +112,6 @@ class Plugin(PluginBase):
             print('archive has no folders')
             return
         contents_bytes = GLib.Bytes.new(blob_p7b.encode('utf-8'))
+        detached_fn = _get_basename_safe(firmware_cff.get_name() + '.p7b')
         p7b_cff = GCab.File.new_with_bytes(detached_fn, contents_bytes)
         folders[0].add_file(p7b_cff, False)

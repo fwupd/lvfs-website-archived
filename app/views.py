@@ -10,12 +10,9 @@ import os
 import datetime
 import hashlib
 import math
-import ConfigParser
 
 from gi.repository import AppStreamGlib
-from gi.repository import GCab
 from gi.repository import Gio
-from gi.repository import GLib
 
 from flask import session, request, flash, url_for, redirect, render_template, Response
 from flask import send_from_directory, abort, make_response
@@ -25,12 +22,10 @@ from app import app, db, lm, ploader
 
 from .db import CursorError
 from .models import Firmware, FirmwareMd, FirmwareRequirement, DownloadKind
-from .foreign_archive import _repackage_archive
-from .inf_parser import InfParser
+from .uploadedfile import UploadedFile, FileTooLarge, FileTooSmall, FileNotSupported, MetadataInvalid
 from .hash import _qa_hash, _password_hash
 from .util import _event_log, _get_client_address
 from .util import _error_internal, _error_permission_denied
-from .util import _archive_get_files_from_glob
 from .util import _get_chart_labels_months, _get_chart_labels_days
 from .metadata import _metadata_update_group, _metadata_update_targets, _metadata_update_pulp
 
@@ -237,151 +232,31 @@ def upload():
         if not session['qa_capability']:
             return _error_permission_denied('Unable to upload to this target as not QA user')
 
-    # check size < 50Mb
+    # load in the archive
     fileitem = request.files['file']
     if not fileitem:
         return _error_internal('No file object')
-    data = fileitem.read()
-    if len(data) > 50000000:
-        flash('File too large, limit is 50Mb', 'danger')
-        return redirect(request.url)
-    if len(data) == 0:
-        flash('File has no content', 'danger')
-        return redirect(request.url)
-    if len(data) < 1024:
-        flash('File too small, mimimum is 1k', 'danger')
+    try:
+        ufile = UploadedFile(ploader)
+        ufile.parse(os.path.basename(fileitem.filename), fileitem.read())
+    except (FileTooLarge, FileTooSmall, FileNotSupported, MetadataInvalid) as e:
+        flash(str(e), 'danger')
         return redirect(request.url)
 
     # check the file does not already exist
-    firmware_id = hashlib.sha1(data).hexdigest()
     try:
-        item = db.firmware.get_item(firmware_id)
+        item = db.firmware.get_item(ufile.firmware_id)
     except CursorError as e:
         return _error_internal(str(e))
     if item:
-        flash('A firmware file with hash %s already exists' % firmware_id, 'danger')
+        flash('A firmware file with hash %s already exists' % item.firmware_id, 'danger')
         return redirect('/lvfs/firmware/%s' % item.firmware_id)
 
-    # parse the file
-    try:
-        if fileitem.filename.endswith('.cab'):
-            istream = Gio.MemoryInputStream.new_from_bytes(GLib.Bytes.new(data))
-            arc = GCab.Cabinet.new()
-            arc.load(istream)
-            arc.extract(None)
-        else:
-            arc = _repackage_archive(fileitem.filename, data)
-    except NotImplementedError as e:
-        flash('Invalid file type: %s' % str(e), 'danger')
-        return redirect(request.url)
-
-    # check .inf exists
-    fw_version_inf = None
-    fw_version_display_inf = None
-    for cf in _archive_get_files_from_glob(arc, '*.inf'):
-        contents = cf.get_bytes().get_data().decode('utf-8', 'ignore')
-        if contents.find('FIXME') != -1:
-            flash('The inf file was not complete; Any FIXME text must be '
-                  'replaced with the correct values.', 'danger')
-            return redirect(request.url)
-
-        # check .inf file is valid
-        cfg = InfParser()
-        cfg.read_data(contents)
-        try:
-            tmp = cfg.get('Version', 'Class')
-        except (ConfigParser.NoOptionError, ConfigParser.NoSectionError) as e:
-            flash('The inf file Version:Class was missing', 'danger')
-            return redirect(request.url)
-        if tmp != 'Firmware':
-            flash('The inf file Version:Class was invalid', 'danger')
-            return redirect(request.url)
-        try:
-            tmp = cfg.get('Version', 'ClassGuid')
-        except ConfigParser.NoOptionError as e:
-            flash('The inf file Version:ClassGuid was missing', 'danger')
-            return redirect(request.url)
-        if tmp != '{f2e7dd72-6468-4e36-b6f1-6488f42c1b52}':
-            flash('The inf file Version:ClassGuid was invalid', 'danger')
-            return redirect(request.url)
-        try:
-            tmp = cfg.get('Version', 'DriverVer')
-            fw_version_display_inf = tmp.split(',')
-            if len(fw_version_display_inf) != 2:
-                flash('The inf file Version:DriverVer was invalid', 'danger')
-                return redirect(request.url)
-        except ConfigParser.NoOptionError as e:
-            pass
-
-        # this is optional, but if supplied must match the version in the XML
-        # -- also note this will not work with multi-firmware .cab files
-        try:
-            fw_version_inf = cfg.get('Firmware_AddReg', 'HKR->FirmwareVersion')
-            if fw_version_inf.startswith('0x'):
-                fw_version_inf = str(int(fw_version_inf[2:], 16))
-            if fw_version_inf == '0':
-                fw_version_inf = None
-        except (ConfigParser.NoOptionError, ConfigParser.NoSectionError) as e:
-            pass
-
-    # check metainfo exists
-    cfs = _archive_get_files_from_glob(arc, '*.metainfo.xml')
-    if len(cfs) == 0:
-        flash('The firmware file had no .metadata.xml files', 'danger')
-        return redirect(request.url)
-
-    # a good guess, but everyone should have this
-    fwupd_min_version = '0.8.0'
-
-    # parse each MetaInfo file
-    apps = []
-    for cf in cfs:
-        component = AppStreamGlib.App.new()
-        try:
-            component.parse_data(cf.get_bytes(), AppStreamGlib.AppParseFlags.NONE)
-            fmt = AppStreamGlib.Format.new()
-            fmt.set_kind(AppStreamGlib.FormatKind.METAINFO)
-            component.add_format(fmt)
-            component.validate(AppStreamGlib.AppValidateFlags.NONE)
-        except GLib.Error as e:
-            flash('The metadata %s could not be parsed: %s' % (cf.get_name(), str(e)), 'danger')
-            return redirect(request.url)
-
-        # get the metadata ID
-        contents = cf.get_bytes().get_data()
-        component.add_metadata('metainfo_id', hashlib.sha1(contents).hexdigest())
-
-        # check the file does not have any missing request.form
-        if contents.decode('utf-8', 'ignore').find('FIXME') != -1:
-            flash('The metadata file was not complete; '
-                  'Any FIXME text must be replaced with the correct values.',
-                  'danger')
-            return redirect(request.url)
-
-        # check the firmware provides something
-        if len(component.get_provides()) == 0:
-            flash('The metadata file did not provide any GUID.', 'danger')
-            return redirect(request.url)
-        release_default = component.get_release_default()
-        if not release_default:
-            flash('The metadata file did not provide any releases.', 'danger')
-            return redirect(request.url)
-
-        # fix up hex value
-        release_version = release_default.get_version()
-        if release_version.startswith('0x'):
-            release_version = str(int(release_version[2:], 16))
-            release_default.set_version(release_version)
-
-        # check the inf file matches up with the .xml file
-        if fw_version_inf and fw_version_inf != release_version:
-            flash('The inf Firmware_AddReg[HKR->FirmwareVersion] '
-                  '%s did not match the metainfo.xml value %s.'
-                  % (fw_version_inf, release_version), 'danger')
-            return redirect(request.url)
-
-        # check the guid and version does not already exist
+    # check the guid and version does not already exist
+    for component in ufile.get_components():
         provides_value = component.get_provides()[0].get_value()
+        release_default = component.get_release_default()
+        release_version = release_default.get_version()
         try:
             items = db.firmware.get_all()
         except CursorError as e:
@@ -393,7 +268,8 @@ def upload():
                         flash('A firmware file for version %s already exists' % release_version, 'danger')
                         return redirect('/lvfs/firmware/%s' % item.firmware_id)
 
-        # check if the file dropped a GUID previously supported
+    # check if the file dropped a GUID previously supported
+    for component in ufile.get_components():
         new_guids = []
         for prov in component.get_provides():
             if prov.get_kind() != AppStreamGlib.ProvideKind.FIRMWARE_FLASHED:
@@ -409,66 +285,18 @@ def upload():
                               'supported %s' % (md.cid, old_guid), 'danger')
                         return redirect(request.url)
 
-        # check the file didn't try to add it's own <require> on vendor-id
-        # to work around the vendor-id security checks in fwupd
-        req = component.get_require_by_value(AppStreamGlib.RequireKind.FIRMWARE, 'vendor-id')
-        if req:
-            flash('Firmware cannot specify vendor-id', 'danger')
-            return redirect(request.url)
-
-        # does the firmware require a specific fwupd version?
-        req = component.get_require_by_value(AppStreamGlib.RequireKind.ID,
-                                             'org.freedesktop.fwupd')
-        if req:
-            fwupd_min_version = req.get_version()
-
-        # add to array
-        apps.append(component)
-
-    # only save if we passed all tests
-    basename = os.path.basename(fileitem.filename)
-    new_filename = firmware_id + '-' + basename.replace('.zip', '.cab')
-
-    # fix up the checksums and add the detached signature
-    for component in apps:
-
-        # ensure there's always a container checksum
-        release = component.get_release_default()
-        csum = release.get_checksum_by_target(AppStreamGlib.ChecksumTarget.CONTENT)
-        if not csum:
-            csum = AppStreamGlib.Checksum.new()
-            csum.set_target(AppStreamGlib.ChecksumTarget.CONTENT)
-            csum.set_filename('firmware.bin')
-            release.add_checksum(csum)
-
-        # get the contents checksum
-        cfs = _archive_get_files_from_glob(arc, csum.get_filename())
-        if not cfs:
-            flash('No %s found in the archive' % csum.get_filename(), 'danger')
-            return redirect(request.url)
-        contents = cfs[0].get_bytes().get_data()
-        csum.set_kind(GLib.ChecksumType.SHA1)
-        csum.set_value(hashlib.sha1(contents).hexdigest())
-
-        # set the sizes
-        release.set_size(AppStreamGlib.SizeKind.INSTALLED, len(contents))
-        release.set_size(AppStreamGlib.SizeKind.DOWNLOAD, len(data))
-
-        # allow plugins to sign files in the archive too
-        ploader.archive_sign(arc, cfs[0])
-
     # allow plugins to add files
     settings = db.settings.get_all()
     metadata = {}
     metadata['$DATE$'] = datetime.datetime.now().replace(microsecond=0).isoformat()
-    metadata['$FWUPD_MIN_VERSION$'] = fwupd_min_version
-    metadata['$CAB_FILENAME$'] = new_filename
+    metadata['$FWUPD_MIN_VERSION$'] = ufile.fwupd_min_version
+    metadata['$CAB_FILENAME$'] = ufile.filename_new
     metadata['$FIRMWARE_BASEURI$'] = settings['firmware_baseuri']
-    ploader.archive_finalize(arc, metadata)
+    ploader.archive_finalize(ufile.get_repacked_cabinet(), metadata)
 
     # export the new archive and get the checksum
     ostream = Gio.MemoryOutputStream.new_resizable()
-    arc.write_simple(ostream)
+    ufile.get_repacked_cabinet().write_simple(ostream)
     cab_data = Gio.MemoryOutputStream.steal_as_bytes(ostream).get_data()
     checksum_container = hashlib.sha1(cab_data).hexdigest()
 
@@ -476,7 +304,7 @@ def upload():
     download_dir = app.config['DOWNLOAD_DIR']
     if not os.path.exists(download_dir):
         os.mkdir(download_dir)
-    fn = os.path.join(download_dir, new_filename)
+    fn = os.path.join(download_dir, ufile.filename_new)
     open(fn, 'wb').write(cab_data)
 
     # inform the plugin loader
@@ -487,16 +315,16 @@ def upload():
     fwobj = Firmware()
     fwobj.group_id = session['group_id']
     fwobj.addr = _get_client_address()
-    fwobj.filename = new_filename
-    fwobj.firmware_id = firmware_id
+    fwobj.filename = ufile.filename_new
+    fwobj.firmware_id = ufile.firmware_id
     fwobj.target = target
-    if fw_version_display_inf:
-        fwobj.version_display = fw_version_display_inf[1]
+    if ufile._version_inf_display:
+        fwobj.version_display = ufile._version_inf_display[1]
 
     # create child metadata object for the component
-    for component in apps:
+    for component in ufile.get_components():
         md = FirmwareMd()
-        md.firmware_id = firmware_id
+        md.firmware_id = ufile.firmware_id
         md.metainfo_id = component.get_metadata_item('metainfo_id')
         md.cid = component.get_id()
         md.name = component.get_name()
@@ -552,7 +380,7 @@ def upload():
     except CursorError as e:
         return _error_internal(str(e))
     # set correct response code
-    _event_log("Uploaded file %s to %s" % (new_filename, target))
+    _event_log("Uploaded file %s to %s" % (ufile.filename_new, target))
 
     # ensure up to date
     try:
@@ -565,7 +393,7 @@ def upload():
     except CursorError as e:
         return _error_internal('Failed to generate metadata: ' + str(e))
 
-    return redirect(url_for('.firmware_show', firmware_id=firmware_id))
+    return redirect(url_for('.firmware_show', firmware_id=ufile.firmware_id))
 
 @app.route('/lvfs/analytics')
 @app.route('/lvfs/analytics/month')

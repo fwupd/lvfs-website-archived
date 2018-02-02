@@ -4,17 +4,23 @@
 # Copyright (C) 2015 Richard Hughes <richard@hughsie.com>
 # Licensed under the GNU General Public License Version 2
 
+import os
 import calendar
 import datetime
 from glob import fnmatch
 
 from flask import session, request, flash, render_template
 
+def _get_basename_safe(fn):
+    """ gets the file basename, also with win32-style backslashes """
+    return os.path.basename(fn.replace('\\', '/'))
+
 def _archive_get_files_from_glob(arc, glob):
     arr = []
     for cffolder in arc.get_folders():
         for cffile in cffolder.get_files():
-            if fnmatch.fnmatch(cffile.get_name(), glob):
+            filename = cffile.get_name().replace('\\', '/')
+            if fnmatch.fnmatch(filename, glob):
                 arr.append(cffile)
     return arr
 
