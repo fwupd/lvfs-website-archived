@@ -25,31 +25,19 @@
 {% if g.user.check_capability('admin') %}
   <div class="form-group">
     <label for="is_enabled">
-{% if u.is_enabled %}
-      <input class="checkbox" type="checkbox" name="is_enabled" value="1" checked />
-{% else %}
-      <input class="checkbox" type="checkbox" name="is_enabled" value="1"/>
-{% endif %}
+      <input class="checkbox" type="checkbox" name="is_enabled" value="1" {{'checked' if u.is_enabled}} />
       Account enabled:
     </label>
   </div>
   <div class="form-group">
     <label for="is_locked">
-{% if u.is_locked %}
-      <input class="checkbox" type="checkbox" name="is_locked" value="1" checked />
-{% else %}
-      <input class="checkbox" type="checkbox" name="is_locked" value="1"/>
-{% endif %}
+      <input class="checkbox" type="checkbox" name="is_locked" value="1" {{'checked' if u.is_locked}} />
       Prevent password change:
     </label>
   </div>
   <div class="form-group">
     <label for="is_qa">
-{% if u.is_qa %}
-      <input class="checkbox" type="checkbox" name="is_qa" value="1" checked />
-{% else %}
-      <input class="checkbox" type="checkbox" name="is_qa" value="1"/>
-{% endif %}
+      <input class="checkbox" type="checkbox" name="is_qa" value="1" {{'checked' if u.is_qa}} />
       Allow moving to testing and stable:
     </label>
   </div>
