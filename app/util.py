@@ -9,7 +9,7 @@ import calendar
 import datetime
 from glob import fnmatch
 
-from flask import session, request, flash, render_template
+from flask import session, request, flash, render_template, g
 
 def _get_basename_safe(fn):
     """ gets the file basename, also with win32-style backslashes """
@@ -32,17 +32,12 @@ def _get_client_address():
 
 def _event_log(msg, is_important=False):
     """ Adds an item to the event log """
-    username = None
-    group_id = None
+    username = 'anonymous'
+    group_id = 'admin'
     request_path = None
-    if 'username' in session:
-        username = session['username']
-    if not username:
-        username = 'anonymous'
-    if 'group_id' in session:
-        group_id = session['group_id']
-    if not group_id:
-        group_id = 'admin'
+    if hasattr(g, 'user'):
+        username = g.user.username
+        group_id = g.user.group_id
     if request:
         request_path = request.path
     from app import db

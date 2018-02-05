@@ -4,7 +4,7 @@
 # Copyright (C) 2017 Richard Hughes <richard@hughsie.com>
 # Licensed under the GNU General Public License Version 2
 
-from flask import session, request, flash, url_for, redirect, render_template
+from flask import request, flash, url_for, redirect, render_template, g
 from flask_login import login_required
 
 from app import app, db
@@ -45,9 +45,9 @@ def user_modify(username):
         return redirect(url_for('.profile'))
 
     # security check
-    if session['username'] != username:
+    if g.user.username != username:
         return _error_permission_denied('Unable to modify a different user')
-    if session['is_locked']:
+    if g.user.is_locked:
         return _error_permission_denied('Unable to change user as account locked')
 
     # check we got enough data
@@ -60,7 +60,7 @@ def user_modify(username):
     if not 'email' in request.form:
         return _error_permission_denied('Unable to change user as no data')
     try:
-        auth = db.users.verify(session['username'], request.form['password_old'])
+        auth = db.users.verify(g.user.username, request.form['password_old'])
     except CursorError as e:
         return _error_internal(str(e))
     if not auth:
@@ -84,7 +84,7 @@ def user_modify(username):
         flash('Name invalid', 'warning')
         return redirect(url_for('.profile'), 302)
     try:
-        db.users.update(session['username'], password, name, email)
+        db.users.update(g.user.username, password, name, email)
     except CursorError as e:
         return _error_internal(str(e))
     #session['password'] = _password_hash(password)
@@ -98,7 +98,7 @@ def user_modify_by_admin(username):
     """ Change details about the any user """
 
     # security check
-    if session['group_id'] != 'admin':
+    if g.user.group_id != 'admin':
         return _error_permission_denied('Unable to modify user as non-admin')
 
     # set each thing in turn
@@ -135,7 +135,7 @@ def user_add():
         return redirect(url_for('.profile'))
 
     # security check
-    if session['group_id'] != 'admin':
+    if g.user.group_id != 'admin':
         return _error_permission_denied('Unable to add user as non-admin')
 
     if not 'password_new' in request.form:
@@ -200,7 +200,7 @@ def user_delete(username):
     """ Delete a user """
 
     # security check
-    if session['group_id'] != 'admin':
+    if g.user.group_id != 'admin':
         return _error_permission_denied('Unable to remove user as not admin')
 
     # check whether exists in database
@@ -225,7 +225,7 @@ def user_list():
     """
     Show a list of all users
     """
-    if session['group_id'] != 'admin':
+    if g.user.group_id != 'admin':
         return _error_permission_denied('Unable to show userlist for non-admin user')
     try:
         items = db.users.get_all()
@@ -239,7 +239,7 @@ def user_admin(username):
     """
     Shows an admin panel for a user
     """
-    if session['group_id'] != 'admin':
+    if g.user.group_id != 'admin':
         return _error_permission_denied('Unable to modify user for non-admin user')
     try:
         item = db.users.get_item(username)

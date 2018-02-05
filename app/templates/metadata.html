@@ -42,7 +42,7 @@
 {% endfor %}
 </table>
 
-{% if not session['qa_capability'] %}
+{% if not g.user.is_qa %}
 <div class="alert alert-warning mt-1" role="alert">
   End-to-end tests using the metadata can <strong>only</strong> be used with a
   custom <code>/etc/fwupd/remotes.d/{{group_id}}-embargo.conf</code> file as this user account does not

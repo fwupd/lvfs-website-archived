@@ -41,8 +41,8 @@ def close_db(error):
 
 @lm.user_loader
 def load_user(user_id):
-    user = db.users.get_item(user_id)
-    return user
+    g.user = db.users.get_item(user_id)
+    return g.user
 
 @app.errorhandler(404)
 def error_page_not_found(msg=None):

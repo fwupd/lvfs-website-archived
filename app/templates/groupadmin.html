@@ -35,7 +35,7 @@
   <input type="submit" class="btn btn-primary" value="Modify">
 </form>
 
-{% if session['group_id'] != 'admin' %}
+{% if g.user.group_id != 'admin' %}
 <h2>Delete Group</h2>
 <p>
   Unless you are required to delete a group for legal or compliance reasons,

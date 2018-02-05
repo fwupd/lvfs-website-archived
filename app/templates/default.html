@@ -54,7 +54,7 @@
             </div>
           </li>
 {% endif %}
-{% if session['username'] and session['group_id'] == 'admin' %}
+{% if session['username'] and g.user.group_id == 'admin' %}
           <li class="nav-item dropdown">
             <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
               Admin
@@ -77,10 +77,10 @@
               Profile
             </a>
             <div class="dropdown-menu" aria-labelledby="navbarDropdown">
-{% if not session['is_locked'] %}
+{% if session['username'] and not g.user.is_locked %}
               <a class="dropdown-item" href="/lvfs/profile">Modify</a>
 {% endif %}
-{% if session['qa_capability'] %}
+{% if g.user.is_qa %}
               <a class="dropdown-item" href="/lvfs/eventlog">Events</a>
 {% endif %}
               <div class="dropdown-divider"></div>

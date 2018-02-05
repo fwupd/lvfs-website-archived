@@ -4,10 +4,10 @@
 {% block content %}
 <div class="container mt-3">
 <h1>Event Log</h1>
-{% if session['username'] == 'admin' %}
+{% if g.user.username == 'admin' %}
 <p>This list shows all events for all users.</p>
 {% else %}
-<p>This list shows all events for the {{session['group_id']}} QA group.</p>
+<p>This list shows all events for the {{g.user.group_id}} QA group.</p>
 {% endif %}
 
 <table class="table">

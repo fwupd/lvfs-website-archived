@@ -4,7 +4,7 @@
 # Copyright (C) 2017 Richard Hughes <richard@hughsie.com>
 # Licensed under the GNU General Public License Version 2
 
-from flask import session, request, flash, url_for, redirect, render_template
+from flask import request, flash, url_for, redirect, render_template, g
 from flask_login import login_required
 
 from app import app, db
@@ -40,7 +40,7 @@ def vendor_add():
         return redirect(url_for('.vendor_list'))
 
     # security check
-    if session['group_id'] != 'admin':
+    if g.user.group_id != 'admin':
         return _error_permission_denied('Unable to add vendor as non-admin')
 
     if not 'group_id' in request.form:
@@ -64,7 +64,7 @@ def vendor_delete(group_id):
     """ Removes a vendor [ADMIN ONLY] """
 
     # security check
-    if session['group_id'] != 'admin':
+    if g.user.group_id != 'admin':
         return _error_permission_denied('Unable to remove vendor as non-admin')
     try:
         vendor = db.vendors.get_item(group_id)
@@ -85,7 +85,7 @@ def vendor_details(group_id):
     """ Allows changing a vendor [ADMIN ONLY] """
 
     # security check
-    if session['group_id'] != 'admin':
+    if g.user.group_id != 'admin':
         return _error_permission_denied('Unable to edit vendor as non-admin')
     try:
         vendor = db.vendors.get_item(group_id)
@@ -107,7 +107,7 @@ def vendor_modify_by_admin(group_id):
         return redirect(url_for('.vendor_list'))
 
     # security check
-    if session['group_id'] != 'admin':
+    if g.user.group_id != 'admin':
         return _error_permission_denied('Unable to modify vendor as non-admin')
 
     try:

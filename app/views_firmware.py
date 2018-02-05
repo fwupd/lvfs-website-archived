@@ -7,7 +7,7 @@
 import os
 import json
 
-from flask import session, request, url_for, redirect, render_template, flash, Response
+from flask import request, url_for, redirect, render_template, flash, Response, g
 from flask_login import login_required
 
 from gi.repository import AppStreamGlib
@@ -38,6 +38,7 @@ def _get_split_names_for_firmware(fw):
             names.append(name_safe)
     return sorted(names)
 
+@login_required
 @app.route('/lvfs/firmware')
 def firmware(show_all=False):
     """
@@ -51,11 +52,10 @@ def firmware(show_all=False):
         return _error_internal(str(e))
 
     session_group_id = None
-    if 'group_id' in session:
-        session_group_id = session['group_id']
     session_username = None
-    if 'username' in session:
-        session_username = session['username']
+    if hasattr(g, 'user'):
+        session_group_id = g.user.group_id
+        session_username = g.user.username
 
     # group by the firmware name
     names = {}
@@ -195,11 +195,11 @@ def firmware_delete_force(firmware_id):
         return _error_internal(str(e))
     if not item:
         return _error_internal("No firmware file with hash %s exists" % firmware_id)
-    if session['group_id'] != 'admin' and item.group_id != session['group_id']:
+    if g.user.group_id != 'admin' and item.group_id != g.user.group_id:
         return _error_permission_denied("No QA access to %s" % firmware_id)
 
     # only QA users can delete once the firmware has gone stable
-    if not session['qa_capability'] and item.target == 'stable':
+    if not g.user.is_qa and item.target == 'stable':
         return _error_permission_denied('Unable to delete stable firmware as not QA')
 
     # delete id from database
@@ -235,7 +235,7 @@ def firmware_promote(firmware_id, target):
      """
 
     # check is QA
-    if not session['qa_capability']:
+    if not g.user.is_qa:
         return _error_permission_denied('Unable to promote as not QA')
 
     # check valid
@@ -247,7 +247,7 @@ def firmware_promote(firmware_id, target):
         item = db.firmware.get_item(firmware_id)
     except CursorError as e:
         return _error_internal(str(e))
-    if session['group_id'] != 'admin' and item.group_id != session['group_id']:
+    if g.user.group_id != 'admin' and item.group_id != g.user.group_id:
         return _error_permission_denied("No QA access to %s" % firmware_id)
     try:
         db.firmware.set_target(firmware_id, target)
@@ -285,7 +285,7 @@ def firmware_show(firmware_id):
 
     # we can only view our own firmware, unless admin
     group_id = item.group_id
-    if group_id != session['group_id'] and session['group_id'] != 'admin':
+    if group_id != g.user.group_id and g.user.group_id != 'admin':
         return _error_permission_denied('Unable to view other vendor firmware')
     if not group_id:
         embargo_url = '/downloads/firmware.xml.gz'
@@ -306,7 +306,7 @@ def firmware_show(firmware_id):
     cnt_fn = db.clients.get_firmware_count_filename(item.filename)
     return render_template('firmware-details.html',
                            fw=item,
-                           qa_capability=session['qa_capability'],
+                           qa_capability=g.user.is_qa,
                            orig_filename='-'.join(item.filename.split('-')[1:]),
                            embargo_url=embargo_url,
                            group_id=group_id,
@@ -330,7 +330,7 @@ def firmware_analytics_year(firmware_id):
 
     # we can only view our own firmware, unless admin
     group_id = item.group_id
-    if group_id != session['group_id'] and session['group_id'] != 'admin':
+    if group_id != g.user.group_id and g.user.group_id != 'admin':
         return _error_permission_denied('Unable to view other vendor firmware')
 
     data_fw = db.clients.get_stats_for_fn(12, 30, item.filename)
@@ -356,7 +356,7 @@ def firmware_analytics_clients(firmware_id):
 
     # we can only view our own firmware, unless admin
     group_id = item.group_id
-    if group_id != session['group_id'] and session['group_id'] != 'admin':
+    if group_id != g.user.group_id and g.user.group_id != 'admin':
         return _error_permission_denied('Unable to view other vendor firmware')
     clients = db.clients.get_all_for_filename(item.filename)
     return render_template('firmware-analytics-clients.html',
@@ -380,7 +380,7 @@ def firmware_analytics_reports(firmware_id, state=None):
 
     # we can only view our own firmware, unless admin
     group_id = item.group_id
-    if group_id != session['group_id'] and session['group_id'] != 'admin':
+    if group_id != g.user.group_id and g.user.group_id != 'admin':
         return _error_permission_denied('Unable to view other vendor firmware')
     reports = db.reports.get_all_for_firmware_id(firmware_id)
     reports_filtered = []
@@ -409,7 +409,7 @@ def firmware_analytics_month(firmware_id):
 
     # we can only view our own firmware, unless admin
     group_id = item.group_id
-    if group_id != session['group_id'] and session['group_id'] != 'admin':
+    if group_id != g.user.group_id and g.user.group_id != 'admin':
         return _error_permission_denied('Unable to view other vendor firmware')
 
     data_fw = db.clients.get_stats_for_fn(30, 1, item.filename)
@@ -444,19 +444,19 @@ def firmware_component_show(firmware_id, cid, page='overview'):
 
     # we can only view our own firmware, unless admin
     group_id = fwobj.group_id
-    if group_id != session['group_id'] and session['group_id'] != 'admin':
+    if group_id != g.user.group_id and g.user.group_id != 'admin':
         return _error_permission_denied('Unable to view other vendor firmware')
 
     return render_template('firmware-md-' + page + '.html',
                            md=md,
                            fw=fwobj,
-                           qa_capability=session['qa_capability'],
+                           qa_capability=g.user.is_qa,
                            firmware_id=firmware_id)
 
 @app.route('/lvfs/telemetry/repair')
 @login_required
 def telemetry_repair():
-    if session['group_id'] != 'admin':
+    if g.user.group_id != 'admin':
         return _error_permission_denied('Not admin user')
     for fw in db.firmware.get_all():
         cnt = db.clients.get_firmware_count_filename(fw.filename)
@@ -472,7 +472,7 @@ def telemetry(age=0, sort_key='downloads', sort_direction='up'):
     """ Show firmware component information """
 
     # only QA users can view this data
-    if not session['qa_capability']:
+    if not g.user.is_qa:
         return _error_permission_denied('Unable to view telemetry as not QA')
 
     # get firmware component
@@ -490,7 +490,7 @@ def telemetry(age=0, sort_key='downloads', sort_direction='up'):
     for fw in fws:
 
         # not allowed to view
-        if session['group_id'] != 'admin' and fw.group_id != session['group_id']:
+        if g.user.group_id != 'admin' and fw.group_id != g.user.group_id:
             continue
         if len(fw.mds) == 0:
             continue
@@ -544,7 +544,7 @@ def telemetry(age=0, sort_key='downloads', sort_direction='up'):
                            sort_key=sort_key,
                            sort_direction=sort_direction,
                            firmware=firmware,
-                           group_id=session['group_id'],
+                           group_id=g.user.group_id,
                            show_duplicate_warning=show_duplicate_warning,
                            total_failed=total_failed,
                            total_downloads=total_downloads,
@@ -567,7 +567,7 @@ def firmware_component_requires_remove_hwid(firmware_id, cid, hwid):
 
     # we can only modify our own firmware, unless admin
     group_id = fwobj.group_id
-    if group_id != session['group_id'] and session['group_id'] != 'admin':
+    if group_id != g.user.group_id and g.user.group_id != 'admin':
         return _error_permission_denied('Unable to modify other vendor firmware')
 
     # remove hwid
@@ -605,7 +605,7 @@ def firmware_component_requires_add_hwid(firmware_id, cid):
 
     # we can only modify our own firmware, unless admin
     group_id = fwobj.group_id
-    if group_id != session['group_id'] and session['group_id'] != 'admin':
+    if group_id != g.user.group_id and g.user.group_id != 'admin':
         return _error_permission_denied('Unable to modify other vendor firmware')
 
     # check we have data
@@ -650,7 +650,7 @@ def firmware_component_requires_set(firmware_id, cid, kind, value):
 
     # we can only modify our own firmware, unless admin
     group_id = fwobj.group_id
-    if group_id != session['group_id'] and session['group_id'] != 'admin':
+    if group_id != g.user.group_id and g.user.group_id != 'admin':
         return _error_permission_denied('Unable to modify other vendor firmware')
 
     # check we have data

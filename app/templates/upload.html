@@ -84,10 +84,10 @@
       <label for="target" class="col-sm-2 col-form-label">Target</label>
       <div class="col-sm-10">
 <!-- can the user upload directly to stable -->
-{% if session['qa_capability'] %}
+{% if g.user.is_qa %}
     <select class="form-control" name="target" required>
       <option value="private">Private (secret)</option>
-      <option value="embargo">Embargoed (available to all members of the {{session['group_id']}} group)</option>
+      <option value="embargo">Embargoed (available to all members of the {{g.user.group_id}} group)</option>
       <option value="testing">Testing (available to some users)</option>
       <option value="stable">Stable (available to all users)</option>
     </select>

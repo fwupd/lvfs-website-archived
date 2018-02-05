@@ -4,7 +4,7 @@
 # Copyright (C) 2017 Richard Hughes <richard@hughsie.com>
 # Licensed under the GNU General Public License Version 2
 
-from flask import session, render_template
+from flask import render_template, g
 from flask_login import login_required
 
 from app import app, db
@@ -20,7 +20,7 @@ def device():
     """
 
     # security check
-    if session['group_id'] != 'admin':
+    if g.user.group_id != 'admin':
         return _error_permission_denied('Unable to view devices')
 
     # get all firmware

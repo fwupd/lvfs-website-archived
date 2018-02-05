@@ -15,7 +15,7 @@ from gi.repository import AppStreamGlib
 from gi.repository import Gio
 
 from flask import session, request, flash, url_for, redirect, render_template, Response
-from flask import send_from_directory, abort, make_response
+from flask import send_from_directory, abort, make_response, g
 from flask_login import login_required, login_user, logout_user
 
 from app import app, db, lm, ploader
@@ -28,17 +28,6 @@ from .util import _event_log, _get_client_address
 from .util import _error_internal, _error_permission_denied
 from .util import _get_chart_labels_months, _get_chart_labels_days
 from .metadata import _metadata_update_group, _metadata_update_targets, _metadata_update_pulp
-
-def _check_session():
-    if 'username' not in session:
-        return False
-    if 'group_id' not in session:
-        return False
-    if 'qa_capability' not in session:
-        return False
-    if 'is_locked' not in session:
-        return False
-    return True
 
 ################################################################################
 
@@ -190,7 +179,7 @@ def metadata():
 
     # show all embargo metadata URLs when admin user
     group_ids = []
-    if session['group_id'] == 'admin':
+    if g.user.group_id == 'admin':
         try:
             groups = db.groups.get_all()
             for group in groups:
@@ -198,9 +187,9 @@ def metadata():
         except CursorError as e:
             return _error_internal(str(e))
     else:
-        group_ids.append(session['group_id'])
+        group_ids.append(g.user.group_id)
     return render_template('metadata.html',
-                           group_id=session['group_id'],
+                           group_id=g.user.group_id,
                            group_ids=group_ids)
 
 @app.route('/lvfs/upload', methods=['GET', 'POST'])
@@ -214,7 +203,7 @@ def upload():
             return redirect(url_for('.index'))
         vendor_ids = []
         try:
-            item = db.groups.get_item(session['group_id'])
+            item = db.groups.get_item(g.user.group_id)
         except CursorError as e:
             return _error_internal(str(e))
         if item:
@@ -229,7 +218,7 @@ def upload():
 
     # can the user upload directly to stable
     if request.form['target'] in ['stable', 'testing']:
-        if not session['qa_capability']:
+        if not g.user.is_qa:
             return _error_permission_denied('Unable to upload to this target as not QA user')
 
     # load in the archive
@@ -313,7 +302,7 @@ def upload():
     # create parent firmware object
     target = request.form['target']
     fwobj = Firmware()
-    fwobj.group_id = session['group_id']
+    fwobj.group_id = g.user.group_id
     fwobj.addr = _get_client_address()
     fwobj.filename = ufile.filename_new
     fwobj.firmware_id = ufile.firmware_id
@@ -402,7 +391,7 @@ def analytics_month():
     """ A analytics screen to show information about users """
 
     # security check
-    if session['group_id'] != 'admin':
+    if g.user.group_id != 'admin':
         return _error_permission_denied('Unable to view analytics')
     labels_days = _get_chart_labels_days()[::-1]
     data_days = db.clients.get_stats_for_month(DownloadKind.FIRMWARE)[::-1]
@@ -416,7 +405,7 @@ def analytics_year():
     """ A analytics screen to show information about users """
 
     # security check
-    if session['group_id'] != 'admin':
+    if g.user.group_id != 'admin':
         return _error_permission_denied('Unable to view analytics')
     labels_months = _get_chart_labels_months()[::-1]
     data_months = db.clients.get_stats_for_year(DownloadKind.FIRMWARE)[::-1]
@@ -430,7 +419,7 @@ def analytics_user_agents():
     """ A analytics screen to show information about users """
 
     # security check
-    if session['group_id'] != 'admin':
+    if g.user.group_id != 'admin':
         return _error_permission_denied('Unable to view analytics')
     labels_user_agent, data_user_agent = db.clients.get_user_agent_stats()
     return render_template('analytics-user-agent.html',
@@ -443,7 +432,7 @@ def analytics_clients():
     """ A analytics screen to show information about users """
 
     # security check
-    if session['group_id'] != 'admin':
+    if g.user.group_id != 'admin':
         return _error_permission_denied('Unable to view analytics')
     clients = db.clients.get_all(limit=25)
     return render_template('analytics-clients.html', clients=clients)
@@ -454,7 +443,7 @@ def analytics_reports():
     """ A analytics screen to show information about users """
 
     # security check
-    if session['group_id'] != 'admin':
+    if g.user.group_id != 'admin':
         return _error_permission_denied('Unable to view analytics')
     try:
         reports = db.reports.get_all(limit=25)
@@ -465,7 +454,7 @@ def analytics_reports():
 @app.route('/lvfs/report/<report_id>')
 @login_required
 def report_view(report_id):
-    if session['group_id'] != 'admin':
+    if g.user.group_id != 'admin':
         return _error_permission_denied('Unable to view report')
     try:
         # remove it if it already exists
@@ -481,7 +470,7 @@ def report_view(report_id):
 @app.route('/lvfs/report/<report_id>/delete')
 @login_required
 def report_delete(report_id):
-    if session['group_id'] != 'admin':
+    if g.user.group_id != 'admin':
         return _error_permission_denied('Unable to view report')
     try:
         db.reports.remove_by_id(report_id)
@@ -513,9 +502,6 @@ def login():
 
     # this is signed, not encrypted
     session['username'] = user.username
-    session['qa_capability'] = user.is_qa
-    session['group_id'] = user.group_id
-    session['is_locked'] = user.is_locked
     login_user(user, remember=False)
 
     # log success
@@ -538,22 +524,22 @@ def eventlog(start=0, length=20):
     Show an event log of user actions.
     """
     # security check
-    if not session['qa_capability']:
+    if not g.user.is_qa:
         return _error_permission_denied('Unable to show event log for non-QA user')
 
     # get the page selection correct
-    if session['group_id'] == 'admin':
+    if g.user.group_id == 'admin':
         eventlog_len = db.eventlog.size()
     else:
-        eventlog_len = db.eventlog.size_for_group_id(session['group_id'])
+        eventlog_len = db.eventlog.size_for_group_id(g.user.group_id)
     nr_pages = int(math.ceil(eventlog_len / float(length)))
 
     # table contents
     try:
-        if session['group_id'] == 'admin':
+        if g.user.group_id == 'admin':
             items = db.eventlog.get_all(int(start), int(length))
         else:
-            items = db.eventlog.get_all_for_group_id(session['group_id'], int(start), int(length))
+            items = db.eventlog.get_all_for_group_id(g.user.group_id, int(start), int(length))
     except CursorError as e:
         return _error_internal(str(e))
     if len(items) == 0:
@@ -579,25 +565,12 @@ def profile():
     """
 
     # security check
-    if session['is_locked']:
+    if g.user.is_locked:
         return _error_permission_denied('Unable to view profile as account locked')
 
-    # auth check
-    try:
-        item = db.users.get_item(session['username'])
-    except CursorError as e:
-        return _error_internal(str(e))
-    if not item:
-        return _error_internal('Invalid username query')
-
-    # add defaults
-    if not item.display_name:
-        item.display_name = "Example Name"
-    if not item.email:
-        item.email = "info@example.com"
     return render_template('profile.html',
-                           vendor_name=item.display_name,
-                           contact_email=item.email)
+                           vendor_name=g.user.display_name,
+                           contact_email=g.user.email)
 
 @app.route('/lvfs/settings')
 @app.route('/lvfs/settings/<plugin_id>')
@@ -608,7 +581,7 @@ def settings(plugin_id='general'):
     """
 
     # security check
-    if session['group_id'] != 'admin':
+    if g.user.group_id != 'admin':
         return _error_permission_denied('Only admin is allowed to change settings')
 
     # get all settings
@@ -637,7 +610,7 @@ def settings_modify(plugin_id='general'):
         return redirect(url_for('.settings', plugin_id=plugin_id))
 
     # security check
-    if session['group_id'] != 'admin':
+    if g.user.group_id != 'admin':
         return _error_permission_denied('Unable to modify settings as non-admin')
 
     # save new values
@@ -661,7 +634,7 @@ def metadata_rebuild():
     """
 
     # security check
-    if session['group_id'] != 'admin':
+    if g.user.group_id != 'admin':
         return _error_permission_denied('Only admin is allowed to force-rebuild metadata')
 
     # update metadata
