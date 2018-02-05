@@ -5,13 +5,6 @@
 <div class="container mt-3">
 <h1>Details of user ‘{{u.username}}’</h1>
 
-{% if u.username == 'admin' %}
-<p>
-  The email address set here will be used as the signing key for all firmware
-  and metadata.
-</p>
-{% endif %}
-
 <form method="post" action="/lvfs/user/{{u.username}}/modify_by_admin">
   <div class="form-group">
     <label for="group_id">Group:</label>
