@@ -49,15 +49,9 @@ def firmware(show_all=False):
     if not g.user.check_capability(UserCapability.User):
         return _error_permission_denied('Not a valid user')
 
-    # get all firmware
-    try:
-        items = db.firmware.get_all()
-    except CursorError as e:
-        return _error_internal(str(e))
-
     # group by the firmware name
     names = {}
-    for item in items:
+    for item in db.firmware.get_all():
         # admin can see everything
         if g.user.username != 'admin':
             if item.group_id != g.user.group_id:
@@ -105,10 +99,7 @@ def firmware_modify(firmware_id):
         return redirect(url_for('.firmware'))
 
     # find firmware
-    try:
-        fwobj = db.firmware.get_item(firmware_id)
-    except CursorError as e:
-        return _error_internal(str(e))
+    fwobj = db.firmware.get_item(firmware_id)
     if not fwobj:
         return _error_internal("No firmware %s" % firmware_id)
 
@@ -127,10 +118,7 @@ def firmware_modify(firmware_id):
             md.release_description = txt
 
     # modify
-    try:
-        db.firmware.update(fwobj)
-    except CursorError as e:
-        return _error_internal(str(e))
+    db.firmware.update(fwobj)
 
     # log
     _event_log('Changed update description on %s' % firmware_id)
@@ -146,10 +134,7 @@ def firmware_modify_requirements(firmware_id):
         return redirect(url_for('.firmware'))
 
     # find firmware
-    try:
-        fwobj = db.firmware.get_item(firmware_id)
-    except CursorError as e:
-        return _error_internal(str(e))
+    fwobj = db.firmware.get_item(firmware_id)
     if not fwobj:
         return _error_internal("No firmware %s" % firmware_id)
 
@@ -170,10 +155,7 @@ def firmware_modify_requirements(firmware_id):
                 md.requirements.append(fwreq)
 
     # modify
-    try:
-        db.firmware.update(fwobj)
-    except CursorError as e:
-        return _error_internal(str(e))
+    db.firmware.update(fwobj)
 
     # log
     _event_log('Changed requirements on %s' % firmware_id)
@@ -186,10 +168,7 @@ def firmware_delete_force(firmware_id):
     """ Delete a firmware entry and also delete the file from disk """
 
     # check firmware exists in database
-    try:
-        item = db.firmware.get_item(firmware_id)
-    except CursorError as e:
-        return _error_internal(str(e))
+    item = db.firmware.get_item(firmware_id)
     if not item:
         return _error_internal("No firmware file with hash %s exists" % firmware_id)
     if not g.user.check_group_id(item.group_id):
@@ -200,10 +179,7 @@ def firmware_delete_force(firmware_id):
         return _error_permission_denied('Unable to delete stable firmware as not QA')
 
     # delete id from database
-    try:
-        db.firmware.remove(firmware_id)
-    except CursorError as e:
-        return _error_internal(str(e))
+    db.firmware.remove(firmware_id)
 
     # delete file
     path = os.path.join(app.config['DOWNLOAD_DIR'], item.filename)
@@ -211,14 +187,11 @@ def firmware_delete_force(firmware_id):
         os.remove(path)
 
     # update everything
-    try:
-        _metadata_update_group(item.group_id)
-        if item.target == 'stable':
-            _metadata_update_targets(targets=['stable', 'testing'])
-        elif item.target == 'testing':
-            _metadata_update_targets(targets=['testing'])
-    except CursorError as e:
-        return _error_internal('Failed to generate metadata: ' + str(e))
+    _metadata_update_group(item.group_id)
+    if item.target == 'stable':
+        _metadata_update_targets(targets=['stable', 'testing'])
+    elif item.target == 'testing':
+        _metadata_update_targets(targets=['testing'])
 
     _event_log("Deleted firmware %s" % firmware_id)
     return redirect(url_for('.firmware'))
@@ -240,31 +213,24 @@ def firmware_promote(firmware_id, target):
         return _error_internal("Target %s invalid" % target)
 
     # check firmware exists in database
-    try:
-        item = db.firmware.get_item(firmware_id)
-    except CursorError as e:
-        return _error_internal(str(e))
+    item = db.firmware.get_item(firmware_id)
+    if not item:
+        return _error_internal('No firmware matched!')
     if not g.user.check_group_id(item.group_id):
         return _error_permission_denied("No QA access to %s" % firmware_id)
-    try:
-        db.firmware.set_target(firmware_id, target)
-    except CursorError as e:
-        return _error_internal(str(e))
+    db.firmware.set_target(firmware_id, target)
     # set correct response code
     _event_log("Moved firmware %s to %s" % (firmware_id, target))
 
     # update everything
-    try:
-        _metadata_update_group(item.group_id)
-        targets = []
-        if target == 'stable' or item.target == 'stable':
-            targets.append('stable')
-        if target == 'testing' or item.target == 'testing':
-            targets.append('testing')
-        if len(targets) > 0:
-            _metadata_update_targets(targets)
-    except CursorError as e:
-        return _error_internal('Failed to generate metadata: ' + str(e))
+    _metadata_update_group(item.group_id)
+    targets = []
+    if target == 'stable' or item.target == 'stable':
+        targets.append('stable')
+    if target == 'testing' or item.target == 'testing':
+        targets.append('testing')
+    if len(targets) > 0:
+        _metadata_update_targets(targets)
     return redirect(url_for('.firmware_show', firmware_id=firmware_id))
 
 @app.route('/lvfs/firmware/<firmware_id>')
@@ -273,10 +239,7 @@ def firmware_show(firmware_id):
     """ Show firmware information """
 
     # get details about the firmware
-    try:
-        item = db.firmware.get_item(firmware_id)
-    except CursorError as e:
-        return _error_internal(str(e))
+    item = db.firmware.get_item(firmware_id)
     if not item:
         return _error_internal('No firmware matched!')
 
@@ -314,10 +277,7 @@ def firmware_analytics_year(firmware_id):
     """ Show firmware analytics information """
 
     # get details about the firmware
-    try:
-        item = db.firmware.get_item(firmware_id)
-    except CursorError as e:
-        return _error_internal(str(e))
+    item = db.firmware.get_item(firmware_id)
     if not item:
         return _error_internal('No firmware matched!')
 
@@ -339,10 +299,7 @@ def firmware_analytics_clients(firmware_id):
     """ Show firmware clients information """
 
     # get details about the firmware
-    try:
-        item = db.firmware.get_item(firmware_id)
-    except CursorError as e:
-        return _error_internal(str(e))
+    item = db.firmware.get_item(firmware_id)
     if not item:
         return _error_internal('No firmware matched!')
 
@@ -362,10 +319,7 @@ def firmware_analytics_reports(firmware_id, state=None):
     """ Show firmware clients information """
 
     # get reports about the firmware
-    try:
-        item = db.firmware.get_item(firmware_id)
-    except CursorError as e:
-        return _error_internal(str(e))
+    item = db.firmware.get_item(firmware_id)
     if not item:
         return _error_internal('No firmware matched!')
 
@@ -390,10 +344,7 @@ def firmware_analytics_month(firmware_id):
     """ Show firmware analytics information """
 
     # get details about the firmware
-    try:
-        item = db.firmware.get_item(firmware_id)
-    except CursorError as e:
-        return _error_internal(str(e))
+    item = db.firmware.get_item(firmware_id)
     if not item:
         return _error_internal('No firmware matched!')
 
@@ -421,10 +372,7 @@ def firmware_component_show(firmware_id, cid, page='overview'):
     """ Show firmware component information """
 
     # get firmware component
-    try:
-        fwobj = db.firmware.get_item(firmware_id)
-    except CursorError as e:
-        return _error_internal(str(e))
+    fwobj = db.firmware.get_item(firmware_id)
     if not fwobj:
         return _error_internal('No firmware matched!')
     md = _item_filter_by_cid(fwobj, cid)
@@ -462,19 +410,13 @@ def telemetry(age=0, sort_key='downloads', sort_direction='up'):
     if not g.user.check_capability(UserCapability.QA):
         return _error_permission_denied('Unable to view telemetry as not QA')
 
-    # get firmware component
-    try:
-        fws = db.firmware.get_all()
-    except CursorError as e:
-        return _error_internal(str(e))
-
     # get data
     total_downloads = 0
     total_success = 0
     total_failed = 0
     show_duplicate_warning = False
     firmware = []
-    for fw in fws:
+    for fw in db.firmware.get_all():
 
         # not allowed to view
         if not g.user.check_capability(UserCapability.Admin) and fw.group_id != g.user.group_id:
@@ -542,10 +484,7 @@ def telemetry(age=0, sort_key='downloads', sort_direction='up'):
 def firmware_component_requires_remove_hwid(firmware_id, cid, hwid):
 
     # get firmware component
-    try:
-        fwobj = db.firmware.get_item(firmware_id)
-    except CursorError as e:
-        return _error_internal(str(e))
+    fwobj = db.firmware.get_item(firmware_id)
     if not fwobj:
         return _error_internal('No firmware matched!')
     md = _item_filter_by_cid(fwobj, cid)
@@ -561,10 +500,7 @@ def firmware_component_requires_remove_hwid(firmware_id, cid, hwid):
     md.requirements.remove(fwreq)
 
     # modify
-    try:
-        db.firmware.update(fwobj)
-    except CursorError as e:
-        return _error_internal(str(e))
+    db.firmware.update(fwobj)
 
     # log
     _event_log('Removed HWID %s on %s' % (hwid, firmware_id))
@@ -579,10 +515,7 @@ def firmware_component_requires_add_hwid(firmware_id, cid):
     """ Modifies the update urgency and release notes for the update """
 
     # get firmware component
-    try:
-        fwobj = db.firmware.get_item(firmware_id)
-    except CursorError as e:
-        return _error_internal(str(e))
+    fwobj = db.firmware.get_item(firmware_id)
     if not fwobj:
         return _error_internal('No firmware matched!')
     md = _item_filter_by_cid(fwobj, cid)
@@ -607,10 +540,7 @@ def firmware_component_requires_add_hwid(firmware_id, cid):
     else:
         fwreq = FirmwareRequirement('hardware', hwid)
         md.requirements.append(fwreq)
-        try:
-            db.firmware.update(fwobj)
-        except CursorError as e:
-            return _error_internal(str(e))
+        db.firmware.update(fwobj)
         _event_log('Added HWID %s on %s' % (hwid, firmware_id))
     return redirect(url_for('.firmware_component_show',
                             firmware_id=firmware_id,
@@ -623,10 +553,7 @@ def firmware_component_requires_set(firmware_id, cid, kind, value):
     """ Modifies the update urgency and release notes for the update """
 
     # get firmware component
-    try:
-        fwobj = db.firmware.get_item(firmware_id)
-    except CursorError as e:
-        return _error_internal(str(e))
+    fwobj = db.firmware.get_item(firmware_id)
     if not fwobj:
         return _error_internal('No firmware matched!')
     md = _item_filter_by_cid(fwobj, cid)
@@ -654,10 +581,7 @@ def firmware_component_requires_set(firmware_id, cid, kind, value):
             md.requirements.append(fwreq)
         fwreq.compare = request.form['compare']
         fwreq.version = request.form['version']
-    try:
-        db.firmware.update(fwobj)
-    except CursorError as e:
-        return _error_internal(str(e))
+    db.firmware.update(fwobj)
     _event_log('Changed %s/%s requirement on %s' % (kind, value, firmware_id))
     return redirect(url_for('.firmware_component_show',
                             firmware_id=firmware_id,

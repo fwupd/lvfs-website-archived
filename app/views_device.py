@@ -9,8 +9,7 @@ from flask_login import login_required
 
 from app import app, db
 
-from .util import _error_internal, _error_permission_denied
-from .db import CursorError
+from .util import _error_permission_denied
 from .models import UserCapability
 
 @app.route('/lvfs/device')
@@ -24,16 +23,10 @@ def device():
     if not g.user.check_capability(UserCapability.Admin):
         return _error_permission_denied('Unable to view devices')
 
-    # get all firmware
-    try:
-        items = db.firmware.get_all()
-    except CursorError as e:
-        return _error_internal(str(e))
-
     # get all the guids we can target
     devices = []
     seen_guid = {}
-    for item in items:
+    for item in db.firmware.get_all():
         for md in item.mds:
             if md.guids[0] in seen_guid:
                 continue
@@ -48,15 +41,9 @@ def device_guid(guid):
     Show information for one device, which can be seen without a valid login
     """
 
-    # get all firmware
-    try:
-        items = db.firmware.get_all()
-    except CursorError as e:
-        return _error_internal(str(e))
-
     # get all the guids we can target
     firmware_items = []
-    for item in items:
+    for item in db.firmware.get_all():
         for md in item.mds:
             if md.guids[0] != guid:
                 continue
@@ -68,13 +55,9 @@ def device_guid(guid):
 
 @app.route('/lvfs/devicelist')
 def device_list():
-    # add devices in stable or testing
-    try:
-        items = db.firmware.get_all()
-    except CursorError as e:
-        return _error_internal(str(e))
 
     # get a sorted list of vendors
+    items = db.firmware.get_all()
     vendors = []
     for item in items:
         if item.target not in ['stable', 'testing']:

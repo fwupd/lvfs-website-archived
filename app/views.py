@@ -20,7 +20,6 @@ from flask_login import login_required, login_user, logout_user
 
 from app import app, db, lm, ploader
 
-from .db import CursorError
 from .models import Firmware, FirmwareMd, FirmwareRequirement, DownloadKind, UserCapability
 from .uploadedfile import UploadedFile, FileTooLarge, FileTooSmall, FileNotSupported, MetadataInvalid
 from .hash import _qa_hash, _password_hash
@@ -45,13 +44,10 @@ def serveStaticResource(resource):
 
     # log certain kinds of files
     if resource.endswith('.cab'):
-        try:
-            db.clients.add(datetime.date.today(), DownloadKind.FIRMWARE)
-            db.clients.increment(_get_client_address(),
-                                 os.path.basename(resource),
-                                 user_agent)
-        except CursorError as e:
-            print(str(e))
+        db.clients.add(datetime.date.today(), DownloadKind.FIRMWARE)
+        db.clients.increment(_get_client_address(),
+                             os.path.basename(resource),
+                             user_agent)
 
     # firmware blobs
     if resource.startswith('downloads/'):
@@ -149,11 +145,7 @@ def metadata_remote(qa_group):
     """
 
     # find the Group
-    try:
-        item = db.groups.get_item(qa_group)
-    except CursorError as e:
-        return _error_internal(str(e))
-    if not item:
+    if not db.groups.get_item(qa_group):
         return _error_internal('No QA Group')
 
     # generate file
@@ -180,12 +172,8 @@ def metadata():
     # show all embargo metadata URLs when admin user
     group_ids = []
     if g.user.check_capability('admin'):
-        try:
-            groups = db.groups.get_all()
-            for group in groups:
-                group_ids.append(group.group_id)
-        except CursorError as e:
-            return _error_internal(str(e))
+        for group in db.groups.get_all():
+            group_ids.append(group.group_id)
     else:
         group_ids.append(g.user.group_id)
     return render_template('metadata.html',
@@ -202,10 +190,7 @@ def upload():
         if 'username' not in session:
             return redirect(url_for('.index'))
         vendor_ids = []
-        try:
-            item = db.groups.get_item(g.user.group_id)
-        except CursorError as e:
-            return _error_internal(str(e))
+        item = db.groups.get_item(g.user.group_id)
         if item:
             vendor_ids.extend(item.vendor_ids)
         return render_template('upload.html', vendor_ids=vendor_ids)
@@ -233,23 +218,17 @@ def upload():
         return redirect(request.url)
 
     # check the file does not already exist
-    try:
-        item = db.firmware.get_item(ufile.firmware_id)
-    except CursorError as e:
-        return _error_internal(str(e))
+    item = db.firmware.get_item(ufile.firmware_id)
     if item:
         flash('A firmware file with hash %s already exists' % item.firmware_id, 'danger')
         return redirect('/lvfs/firmware/%s' % item.firmware_id)
 
     # check the guid and version does not already exist
+    items = db.firmware.get_all()
     for component in ufile.get_components():
         provides_value = component.get_provides()[0].get_value()
         release_default = component.get_release_default()
         release_version = release_default.get_version()
-        try:
-            items = db.firmware.get_all()
-        except CursorError as e:
-            return _error_internal(str(e))
         for item in items:
             for md in item.mds:
                 for guid in md.guids:
@@ -364,23 +343,18 @@ def upload():
         fwobj.mds.append(md)
 
     # add to database
-    try:
-        db.firmware.add(fwobj)
-    except CursorError as e:
-        return _error_internal(str(e))
+    db.firmware.add(fwobj)
+
     # set correct response code
     _event_log("Uploaded file %s to %s" % (ufile.filename_new, target))
 
     # ensure up to date
-    try:
-        if target == 'embargo':
-            _metadata_update_group(fwobj.group_id)
-        if target == 'stable':
-            _metadata_update_targets(['stable', 'testing'])
-        elif target == 'testing':
-            _metadata_update_targets(['testing'])
-    except CursorError as e:
-        return _error_internal('Failed to generate metadata: ' + str(e))
+    if target == 'embargo':
+        _metadata_update_group(fwobj.group_id)
+    if target == 'stable':
+        _metadata_update_targets(['stable', 'testing'])
+    elif target == 'testing':
+        _metadata_update_targets(['testing'])
 
     return redirect(url_for('.firmware_show', firmware_id=ufile.firmware_id))
 
@@ -445,10 +419,7 @@ def analytics_reports():
     # security check
     if not g.user.check_capability(UserCapability.Admin):
         return _error_permission_denied('Unable to view analytics')
-    try:
-        reports = db.reports.get_all(limit=25)
-    except CursorError as e:
-        return _error_internal(str(e))
+    reports = db.reports.get_all(limit=25)
     return render_template('analytics-reports.html', reports=reports)
 
 @app.route('/lvfs/report/<report_id>')
@@ -456,13 +427,9 @@ def analytics_reports():
 def report_view(report_id):
     if not g.user.check_capability(UserCapability.Admin):
         return _error_permission_denied('Unable to view report')
-    try:
-        # remove it if it already exists
-        item = db.reports.find_by_id(report_id)
-        if not item:
-            return _error_permission_denied('Report does not exist')
-    except CursorError as e:
-        return _error_internal(str(e))
+    item = db.reports.find_by_id(report_id)
+    if not item:
+        return _error_permission_denied('Report does not exist')
     return Response(response=item.json,
                     status=400, \
                     mimetype="application/json")
@@ -472,10 +439,7 @@ def report_view(report_id):
 def report_delete(report_id):
     if not g.user.check_capability(UserCapability.Admin):
         return _error_permission_denied('Unable to view report')
-    try:
-        db.reports.remove_by_id(report_id)
-    except CursorError as e:
-        return _error_internal(str(e))
+    db.reports.remove_by_id(report_id)
     return redirect(url_for('.analytics_reports'))
 
 @app.route('/lvfs/login', methods=['POST'])
@@ -484,11 +448,7 @@ def login():
     # auth check
     user = None
     password = _password_hash(request.form['password'])
-    try:
-        user = db.users.get_item(request.form['username'],
-                                 password)
-    except CursorError as e:
-        return _error_internal(str(e))
+    user = db.users.get_item(request.form['username'], password)
     if not user:
         # log failure
         _event_log('Failed login attempt for %s' % request.form['username'])
@@ -535,13 +495,10 @@ def eventlog(start=0, length=20):
     nr_pages = int(math.ceil(eventlog_len / float(length)))
 
     # table contents
-    try:
-        if g.user.check_capability(UserCapability.Admin):
-            items = db.eventlog.get_all(int(start), int(length))
-        else:
-            items = db.eventlog.get_all_for_group_id(g.user.group_id, int(start), int(length))
-    except CursorError as e:
-        return _error_internal(str(e))
+    if g.user.check_capability(UserCapability.Admin):
+        items = db.eventlog.get_all(int(start), int(length))
+    else:
+        items = db.eventlog.get_all_for_group_id(g.user.group_id, int(start), int(length))
     if len(items) == 0:
         return _error_internal('No event log available!')
 
@@ -585,15 +542,12 @@ def settings(plugin_id='general'):
         return _error_permission_denied('Only admin is allowed to change settings')
 
     # get all settings
-    try:
-        settings = db.settings.get_all()
-        plugins = ploader.get_all()
-        for p in plugins:
-            for s in p.settings():
-                if s.key not in settings:
-                    db.settings.add(s.key, s.default)
-    except CursorError as e:
-        return _error_internal(str(e))
+    settings = db.settings.get_all()
+    plugins = ploader.get_all()
+    for p in plugins:
+        for s in p.settings():
+            if s.key not in settings:
+                db.settings.add(s.key, s.default)
     return render_template('settings.html',
                            settings=settings,
                            plugin_id=plugin_id,
@@ -614,15 +568,12 @@ def settings_modify(plugin_id='general'):
         return _error_permission_denied('Unable to modify settings as non-admin')
 
     # save new values
-    try:
-        settings = db.settings.get_all()
-        for key in request.form:
-            if settings[key] == request.form[key]:
-                continue
-            _event_log('Changed server settings %s to %s' % (key, request.form[key]))
-            db.settings.modify(key, request.form[key])
-    except CursorError as e:
-        return _error_internal(str(e))
+    settings = db.settings.get_all()
+    for key in request.form:
+        if settings[key] == request.form[key]:
+            continue
+        _event_log('Changed server settings %s to %s' % (key, request.form[key]))
+        db.settings.modify(key, request.form[key])
     flash('Updated settings', 'info')
     return redirect(url_for('.settings', plugin_id=plugin_id), 302)
 
@@ -638,11 +589,8 @@ def metadata_rebuild():
         return _error_permission_denied('Only admin is allowed to force-rebuild metadata')
 
     # update metadata
-    try:
-        for group in db.groups.get_all():
-            _metadata_update_group(group.group_id)
-        _metadata_update_targets(['stable', 'testing'])
-        _metadata_update_pulp()
-    except CursorError as e:
-        return _error_internal('Failed to generate metadata: ' + str(e))
+    for group in db.groups.get_all():
+        _metadata_update_group(group.group_id)
+    _metadata_update_targets(['stable', 'testing'])
+    _metadata_update_pulp()
     return redirect(url_for('.metadata'))

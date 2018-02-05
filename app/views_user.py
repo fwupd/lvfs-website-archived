@@ -10,7 +10,6 @@ from flask_login import login_required
 from app import app, db
 
 from .util import _event_log, _error_internal, _error_permission_denied
-from .db import CursorError
 from .models import UserCapability
 
 def _password_check(value):
@@ -60,11 +59,7 @@ def user_modify(username):
         return _error_permission_denied('Unable to change user as no data')
     if not 'email' in request.form:
         return _error_permission_denied('Unable to change user as no data')
-    try:
-        auth = db.users.verify(g.user.username, request.form['password_old'])
-    except CursorError as e:
-        return _error_internal(str(e))
-    if not auth:
+    if not db.users.verify(g.user.username, request.form['password_old']):
         flash('Incorrect existing password', 'danger')
         return redirect(url_for('.profile'), 302)
 
@@ -84,10 +79,7 @@ def user_modify(username):
     if len(name) < 3:
         flash('Name invalid', 'warning')
         return redirect(url_for('.profile'), 302)
-    try:
-        db.users.update(g.user.username, password, name, email)
-    except CursorError as e:
-        return _error_internal(str(e))
+    db.users.update(g.user.username, password, name, email)
     #session['password'] = _password_hash(password)
     _event_log('Changed password')
     flash('Updated profile', 'info')
@@ -115,13 +107,10 @@ def user_modify_by_admin(username):
             tmp = request.form[key]
         else:
             tmp = '0'
-        try:
-            # don't set the optional password
-            if key == 'password' and len(tmp) == 0:
-                continue
-            db.users.set_property(username, key, tmp)
-        except CursorError as e:
-            return _error_internal(str(e))
+        # don't set the optional password
+        if key == 'password' and len(tmp) == 0:
+            continue
+        db.users.set_property(username, key, tmp)
     _event_log('Changed user %s properties' % username)
     flash('Updated profile', 'info')
     return redirect(url_for('.user_admin', username=username))
@@ -149,11 +138,7 @@ def user_add():
         return _error_permission_denied('Unable to add user as no name')
     if not 'email' in request.form:
         return _error_permission_denied('Unable to add user as no email')
-    try:
-        auth = db.users.is_enabled(request.form['username_new'])
-    except CursorError as e:
-        return _error_internal(str(e))
-    if auth:
+    if db.users.is_enabled(request.form['username_new']):
         return _error_internal('Already a entry with that username', 422)
 
     # verify password
@@ -184,12 +169,9 @@ def user_add():
     if len(username_new) < 3:
         flash('Username invalid', 'warning')
         return redirect(url_for('.user_list'), 422)
-    try:
-        db.users.add(username_new, password, name, email, group_id)
-        if not db.groups.get_item(group_id):
-            db.groups.add(group_id)
-    except CursorError as e:
-        return _error_internal(str(e))
+    db.users.add(username_new, password, name, email, group_id)
+    if not db.groups.get_item(group_id):
+        db.groups.add(group_id)
 
     _event_log("Created user %s" % username_new)
     flash('Added user', 'info')
@@ -205,17 +187,10 @@ def user_delete(username):
         return _error_permission_denied('Unable to remove user as not admin')
 
     # check whether exists in database
-    try:
-        exists = db.users.is_enabled(username)
-    except CursorError as e:
-        return _error_internal(str(e))
-    if not exists:
+    if not db.users.is_enabled(username):
         flash("No entry with username %s" % username, 'danger')
         return redirect(url_for('.user_list'), 422)
-    try:
-        db.users.remove(username)
-    except CursorError as e:
-        return _error_internal(str(e))
+    db.users.remove(username)
     _event_log("Deleted user %s" % username)
     flash('Deleted user', 'info')
     return redirect(url_for('.user_list'), 302)
@@ -228,11 +203,7 @@ def user_list():
     """
     if not g.user.check_capability(UserCapability.Admin):
         return _error_permission_denied('Unable to show userlist for non-admin user')
-    try:
-        items = db.users.get_all()
-    except CursorError as e:
-        return _error_internal(str(e))
-    return render_template('userlist.html', users=items)
+    return render_template('userlist.html', users=db.users.get_all())
 
 @app.route('/lvfs/user/<username>/admin')
 @login_required
@@ -242,8 +213,4 @@ def user_admin(username):
     """
     if not g.user.check_capability(UserCapability.Admin):
         return _error_permission_denied('Unable to modify user for non-admin user')
-    try:
-        item = db.users.get_item(username)
-    except CursorError as e:
-        return _error_internal(str(e))
-    return render_template('useradmin.html', u=item)
+    return render_template('useradmin.html', u=db.users.get_item(username))

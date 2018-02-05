@@ -10,9 +10,10 @@ from flask import Flask, flash, render_template, g
 from flask_login import LoginManager
 from werkzeug.local import LocalProxy
 
-from .db import Database
+from .db import Database, CursorError
 from .response import SecureResponse
 from .pluginloader import Pluginloader
+from .util import _error_internal
 
 app = Flask(__name__)
 app.response_class = SecureResponse
@@ -49,6 +50,10 @@ def error_page_not_found(msg=None):
     """ Error handler: File not found """
     flash(msg)
     return render_template('error.html'), 404
+
+@app.errorhandler(CursorError)
+def handle_error(error):
+    return _error_internal(str(error))
 
 from app import views
 from app import views_user

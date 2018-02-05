@@ -9,8 +9,7 @@ from flask_login import login_required
 
 from app import app, db
 
-from .util import _event_log, _error_internal, _error_permission_denied
-from .db import CursorError
+from .util import _event_log, _error_permission_denied
 from .models import UserCapability
 
 # sort by awesomeness
@@ -46,11 +45,7 @@ def vendor_add():
 
     if not 'group_id' in request.form:
         return _error_permission_denied('Unable to add vendor as no data')
-    try:
-        vendor = db.vendors.get_item(request.form['group_id'])
-    except CursorError as e:
-        return _error_internal(str(e))
-    if vendor:
+    if db.vendors.get_item(request.form['group_id']):
         flash('Already a vendor with that group ID', 'warning')
         return redirect(url_for('.vendor_list'), 302)
     db.vendors.add(request.form['group_id'])
@@ -67,11 +62,7 @@ def vendor_delete(group_id):
     # security check
     if not g.user.check_capability(UserCapability.Admin):
         return _error_permission_denied('Unable to remove vendor as non-admin')
-    try:
-        vendor = db.vendors.get_item(group_id)
-    except CursorError as e:
-        return _error_internal(str(e))
-    if not vendor:
+    if not db.vendors.get_item(group_id):
         flash('No a vendor with that group ID', 'warning')
         return redirect(url_for('.vendor_list'), 302)
     db.vendors.remove(group_id)
@@ -88,10 +79,7 @@ def vendor_details(group_id):
     # security check
     if not g.user.check_capability(UserCapability.Admin):
         return _error_permission_denied('Unable to edit vendor as non-admin')
-    try:
-        vendor = db.vendors.get_item(group_id)
-    except CursorError as e:
-        return _error_internal(str(e))
+    vendor = db.vendors.get_item(group_id)
     if not vendor:
         flash('No a vendor with that group ID', 'warning')
         return redirect(url_for('.vendor_list'), 302)
@@ -111,19 +99,16 @@ def vendor_modify_by_admin(group_id):
     if not g.user.check_capability(UserCapability.Admin):
         return _error_permission_denied('Unable to modify vendor as non-admin')
 
-    try:
-        # don't set the optional password
-        db.vendors.modify(group_id,
-                          request.form['display_name'],
-                          request.form['plugins'],
-                          request.form['description'],
-                          request.form['visible'],
-                          request.form['is_fwupd_supported'],
-                          request.form['is_account_holder'],
-                          request.form['is_uploading'],
-                          request.form['comments'])
-    except CursorError as e:
-        return _error_internal(str(e))
+    # don't set the optional password
+    db.vendors.modify(group_id,
+                      request.form['display_name'],
+                      request.form['plugins'],
+                      request.form['description'],
+                      request.form['visible'],
+                      request.form['is_fwupd_supported'],
+                      request.form['is_account_holder'],
+                      request.form['is_uploading'],
+                      request.form['comments'])
 
     _event_log('Changed vendor %s properties' % group_id)
     flash('Updated vendor', 'info')
