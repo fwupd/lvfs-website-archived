@@ -77,7 +77,7 @@
               Profile
             </a>
             <div class="dropdown-menu" aria-labelledby="navbarDropdown">
-{% if session['username'] and not g.user.is_locked %}
+{% if not g.user.is_locked %}
               <a class="dropdown-item" href="/lvfs/profile">Modify</a>
 {% endif %}
 {% if g.user.is_qa %}

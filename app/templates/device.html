@@ -6,34 +6,34 @@
 <h1>Device Details</h1>
 <p>This page show all the firmware releases for a specific device.</p>
 <table class="table">
-  <tr><th>Name</th><td>{{items[0].mds[0].name}}</td></tr>
-  <tr><th>Summary</th><td>{{items[0].mds[0].summary}}</td></tr>
-  <tr><th>Developer Name</th><td><a href="{{items[0].mds[0].url_homepage}}">{{items[0].mds[0].developer_name}}</a></td></tr>
-  <tr><th>Firmware License</th><td>{{items[0].mds[0].project_license}}</td></tr>
+  <tr><th>Name</th><td>{{fws[0].mds[0].name}}</td></tr>
+  <tr><th>Summary</th><td>{{fws[0].mds[0].summary}}</td></tr>
+  <tr><th>Developer Name</th><td><a href="{{fws[0].mds[0].url_homepage}}">{{fws[0].mds[0].developer_name}}</a></td></tr>
+  <tr><th>Firmware License</th><td>{{fws[0].mds[0].project_license}}</td></tr>
 </table>
 
 <h1>Update History</h1>
-{% for item in items %}
+{% for fw in fws %}
 
-{% if g.user.check_capability('admin') or item.target == 'stable' or item.target == 'testing' %}
+{% if g.user.check_capability('admin') or fw.target == 'stable' or fw.target == 'testing' %}
 <hr/>
-{% if item.version_display %}
-<h2>Version {{item.version_display}}:</h2>
+{% if fw.version_display %}
+<h2>Version {{fw.version_display}}:</h2>
 {% else %}
-<h2>Version {{item.mds[0].version}}:</h2>
+<h2>Version {{fw.mds[0].version}}:</h2>
 {% endif %}
-{% if item.target == 'testing' %}
+{% if fw.target == 'testing' %}
 <p>
   <b>Warning:</b> This firmware is in the testing state and may not be suitable for
   production systems.
 </p>
 {% endif %}
 <table class="table">
-  <tr><th>Uploaded</th><td>{{item.timestamp}}</td></tr>
-  <tr><th>State</th><td>{{item.target}}</td></tr>
-  <tr><th>Urgency</th><td>{{item.mds[0].release_urgency}}</td></tr>
-  <tr><th>Filename</th><td><a href="/downloads/{{item.filename}}">{{item.filename}}</a></td></tr>
-  <tr><th>Description</th><td>{{item.mds[0].release_description|safe}}</td></tr>
+  <tr><th>Uploaded</th><td>{{fw.timestamp}}</td></tr>
+  <tr><th>State</th><td>{{fw.target}}</td></tr>
+  <tr><th>Urgency</th><td>{{fw.mds[0].release_urgency}}</td></tr>
+  <tr><th>Filename</th><td><a href="/downloads/{{fw.filename}}">{{fw.filename}}</a></td></tr>
+  <tr><th>Description</th><td>{{fw.mds[0].release_description|safe}}</td></tr>
 </table>
 {% endif %}
 

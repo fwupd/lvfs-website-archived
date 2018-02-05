@@ -10,7 +10,7 @@
     <th class="col-sm-4 align-middle">Filename</th>
     <td class="col-sm-4 align-middle"><a href="/downloads/{{fw.filename}}">{{orig_filename}}</a></td>
     <td class="col-sm-4 text-right">
-{% if fw.target != 'stable' or qa_capability %}
+{% if fw.target != 'stable' or g.user.is_qa %}
       <form method="get" action="/lvfs/firmware/{{firmware_id}}/delete">
       <button class="btn btn-danger">Delete</button>
       </form>
@@ -21,7 +21,7 @@
     <th class="col-sm-4 align-middle">Current Target</th>
     <td class="col-sm-4 align-middle">{{fw.target}}</td>
     <td class="col-sm-4 align-middle text-right">
-{% if qa_capability %}
+{% if g.user.is_qa %}
 {% if fw.target == 'private' %}
       <form method="get" action="/lvfs/firmware/{{firmware_id}}/promote/embargo">
         <button class="btn btn-primary">&#8594; Embargo</button>

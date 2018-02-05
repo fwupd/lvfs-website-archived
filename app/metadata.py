@@ -15,15 +15,15 @@ from app import app, db, ploader
 
 from .hash import _qa_hash
 
-def _generate_metadata_kind(filename, items, firmware_baseuri=''):
+def _generate_metadata_kind(filename, fws, firmware_baseuri=''):
     """ Generates AppStream metadata of a specific kind """
     store = AppStreamGlib.Store.new()
     store.set_origin('lvfs')
     store.set_api_version(0.9)
-    for item in items:
+    for fw in fws:
 
         # add each component
-        for md in item.mds:
+        for md in fw.mds:
             component = AppStreamGlib.App.new()
             component.set_id(md.cid)
             component.set_kind(AppStreamGlib.AppKind.FIRMWARE)
@@ -52,7 +52,7 @@ def _generate_metadata_kind(filename, items, firmware_baseuri=''):
                 if md.release_timestamp:
                     rel.set_timestamp(md.release_timestamp)
                 rel.checksums = []
-                rel.add_location(firmware_baseuri + item.filename)
+                rel.add_location(firmware_baseuri + fw.filename)
                 rel.set_size(AppStreamGlib.SizeKind.INSTALLED, md.release_installed_size)
                 rel.set_size(AppStreamGlib.SizeKind.DOWNLOAD, md.release_download_size)
                 if md.release_urgency:
@@ -65,7 +65,7 @@ def _generate_metadata_kind(filename, items, firmware_baseuri=''):
                     csum.set_kind(GLib.ChecksumType.SHA1)
                     csum.set_target(AppStreamGlib.ChecksumTarget.CONTAINER)
                     csum.set_value(md.checksum_container)
-                    csum.set_filename(item.filename)
+                    csum.set_filename(fw.filename)
                     rel.add_checksum(csum)
 
                 # add content checksum
@@ -88,7 +88,7 @@ def _generate_metadata_kind(filename, items, firmware_baseuri=''):
                 component.add_screenshot(ss)
 
             # add requires for each allowed vendor_ids
-            group = db.groups.get_item(item.group_id)
+            group = db.groups.get_item(fw.group_id)
             if group and group.vendor_ids:
                 req = AppStreamGlib.Require.new()
                 req.set_kind(AppStreamGlib.RequireKind.FIRMWARE)
@@ -176,14 +176,11 @@ def _hashfile(afile, hasher, blocksize=65536):
 
 def _metadata_update_pulp():
     """ updates metadata for Pulp """
-    items = db.firmware.get_all()
-    files_to_scan = []
-    files_to_scan.append('firmware.xml.gz')
-    files_to_scan.append('firmware.xml.gz.asc')
-    for item in items:
-        if item.target != 'stable':
+    files_to_scan = ['firmware.xml.gz', 'firmware.xml.gz.asc']
+    for fw in db.firmware.get_all():
+        if fw.target != 'stable':
             continue
-        files_to_scan.append(item.filename)
+        files_to_scan.append(fw.filename)
 
     # for each file in stable plus metadata
     data = []

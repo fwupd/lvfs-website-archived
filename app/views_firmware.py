@@ -51,30 +51,30 @@ def firmware(show_all=False):
 
     # group by the firmware name
     names = {}
-    for item in db.firmware.get_all():
+    for fw in db.firmware.get_all():
         # admin can see everything
         if g.user.username != 'admin':
-            if item.group_id != g.user.group_id:
+            if fw.group_id != g.user.group_id:
                 continue
-        if len(item.mds) == 0:
+        if len(fw.mds) == 0:
             continue
-        name = item.mds[0].developer_name + ' ' + item.mds[0].name
+        name = fw.mds[0].developer_name + ' ' + fw.mds[0].name
         if not name in names:
             names[name] = []
-        names[name].append(item)
+        names[name].append(fw)
 
     # only show one version in each state
     for name in sorted(names):
         targets_seen = {}
-        for item in names[name]:
-            if len(item.mds) == 0:
+        for fw in names[name]:
+            if len(fw.mds) == 0:
                 continue
-            key = item.target + item.mds[0].cid
+            key = fw.target + fw.mds[0].cid
             if key in targets_seen:
-                item.is_newest_in_state = False
+                fw.is_newest_in_state = False
             else:
-                item.is_newest_in_state = True
-                targets_seen[key] = item
+                fw.is_newest_in_state = True
+                targets_seen[key] = fw
 
     return render_template('firmware.html',
                            fw_by_name=names,
@@ -99,12 +99,12 @@ def firmware_modify(firmware_id):
         return redirect(url_for('.firmware'))
 
     # find firmware
-    fwobj = db.firmware.get_item(firmware_id)
-    if not fwobj:
+    fw = db.firmware.get_item(firmware_id)
+    if not fw:
         return _error_internal("No firmware %s" % firmware_id)
 
     # set new metadata values
-    for md in fwobj.mds:
+    for md in fw.mds:
         if 'urgency' in request.form:
             md.release_urgency = request.form['urgency']
         if 'description' in request.form:
@@ -118,7 +118,7 @@ def firmware_modify(firmware_id):
             md.release_description = txt
 
     # modify
-    db.firmware.update(fwobj)
+    db.firmware.update(fw)
 
     # log
     _event_log('Changed update description on %s' % firmware_id)
@@ -134,12 +134,12 @@ def firmware_modify_requirements(firmware_id):
         return redirect(url_for('.firmware'))
 
     # find firmware
-    fwobj = db.firmware.get_item(firmware_id)
-    if not fwobj:
+    fw = db.firmware.get_item(firmware_id)
+    if not fw:
         return _error_internal("No firmware %s" % firmware_id)
 
     # set new metadata values
-    for md in fwobj.mds:
+    for md in fw.mds:
         if 'requirements' in request.form:
             req_txt = request.form['requirements']
             req_txt = req_txt.replace('\n', ',')
@@ -155,7 +155,7 @@ def firmware_modify_requirements(firmware_id):
                 md.requirements.append(fwreq)
 
     # modify
-    db.firmware.update(fwobj)
+    db.firmware.update(fw)
 
     # log
     _event_log('Changed requirements on %s' % firmware_id)
@@ -168,29 +168,29 @@ def firmware_delete_force(firmware_id):
     """ Delete a firmware entry and also delete the file from disk """
 
     # check firmware exists in database
-    item = db.firmware.get_item(firmware_id)
-    if not item:
+    fw = db.firmware.get_item(firmware_id)
+    if not fw:
         return _error_internal("No firmware file with hash %s exists" % firmware_id)
-    if not g.user.check_group_id(item.group_id):
+    if not g.user.check_group_id(fw.group_id):
         return _error_permission_denied("No QA access to %s" % firmware_id)
 
     # only QA users can delete once the firmware has gone stable
-    if not g.user.is_qa and item.target == 'stable':
+    if not g.user.is_qa and fw.target == 'stable':
         return _error_permission_denied('Unable to delete stable firmware as not QA')
 
     # delete id from database
     db.firmware.remove(firmware_id)
 
     # delete file
-    path = os.path.join(app.config['DOWNLOAD_DIR'], item.filename)
+    path = os.path.join(app.config['DOWNLOAD_DIR'], fw.filename)
     if os.path.exists(path):
         os.remove(path)
 
     # update everything
-    _metadata_update_group(item.group_id)
-    if item.target == 'stable':
+    _metadata_update_group(fw.group_id)
+    if fw.target == 'stable':
         _metadata_update_targets(targets=['stable', 'testing'])
-    elif item.target == 'testing':
+    elif fw.target == 'testing':
         _metadata_update_targets(targets=['testing'])
 
     _event_log("Deleted firmware %s" % firmware_id)
@@ -213,21 +213,21 @@ def firmware_promote(firmware_id, target):
         return _error_internal("Target %s invalid" % target)
 
     # check firmware exists in database
-    item = db.firmware.get_item(firmware_id)
-    if not item:
+    fw = db.firmware.get_item(firmware_id)
+    if not fw:
         return _error_internal('No firmware matched!')
-    if not g.user.check_group_id(item.group_id):
+    if not g.user.check_group_id(fw.group_id):
         return _error_permission_denied("No QA access to %s" % firmware_id)
     db.firmware.set_target(firmware_id, target)
     # set correct response code
     _event_log("Moved firmware %s to %s" % (firmware_id, target))
 
     # update everything
-    _metadata_update_group(item.group_id)
+    _metadata_update_group(fw.group_id)
     targets = []
-    if target == 'stable' or item.target == 'stable':
+    if target == 'stable' or fw.target == 'stable':
         targets.append('stable')
-    if target == 'testing' or item.target == 'testing':
+    if target == 'testing' or fw.target == 'testing':
         targets.append('testing')
     if len(targets) > 0:
         _metadata_update_targets(targets)
@@ -239,15 +239,15 @@ def firmware_show(firmware_id):
     """ Show firmware information """
 
     # get details about the firmware
-    item = db.firmware.get_item(firmware_id)
-    if not item:
+    fw = db.firmware.get_item(firmware_id)
+    if not fw:
         return _error_internal('No firmware matched!')
 
     # we can only view our own firmware, unless admin
-    if not g.user.check_group_id(item.group_id):
+    if not g.user.check_group_id(fw.group_id):
         return _error_permission_denied('Unable to view other vendor firmware')
 
-    embargo_url = '/downloads/firmware-%s.xml.gz' % _qa_hash(item.group_id)
+    embargo_url = '/downloads/firmware-%s.xml.gz' % _qa_hash(fw.group_id)
 
     # get the reports for this firmware
     reports_success = 0
@@ -259,13 +259,12 @@ def firmware_show(firmware_id):
         elif r.state == 3:
             reports_failure += 1
 
-    cnt_fn = db.clients.get_firmware_count_filename(item.filename)
+    cnt_fn = db.clients.get_firmware_count_filename(fw.filename)
     return render_template('firmware-details.html',
-                           fw=item,
-                           qa_capability=g.user.is_qa,
-                           orig_filename='-'.join(item.filename.split('-')[1:]),
+                           fw=fw,
+                           orig_filename='-'.join(fw.filename.split('-')[1:]),
                            embargo_url=embargo_url,
-                           group_id=item.group_id,
+                           group_id=fw.group_id,
                            cnt_fn=cnt_fn,
                            reports_success=reports_success,
                            reports_failure=reports_failure,
@@ -277,17 +276,17 @@ def firmware_analytics_year(firmware_id):
     """ Show firmware analytics information """
 
     # get details about the firmware
-    item = db.firmware.get_item(firmware_id)
-    if not item:
+    fw = db.firmware.get_item(firmware_id)
+    if not fw:
         return _error_internal('No firmware matched!')
 
     # we can only view our own firmware, unless admin
-    if not g.user.check_group_id(item.group_id):
+    if not g.user.check_group_id(fw.group_id):
         return _error_permission_denied('Unable to view other vendor firmware')
 
-    data_fw = db.clients.get_stats_for_fn(12, 30, item.filename)
+    data_fw = db.clients.get_stats_for_fn(12, 30, fw.filename)
     return render_template('firmware-analytics-year.html',
-                           fw=item,
+                           fw=fw,
                            firmware_id=firmware_id,
                            graph_labels=_get_chart_labels_months()[::-1],
                            graph_data=data_fw[::-1])
@@ -299,16 +298,16 @@ def firmware_analytics_clients(firmware_id):
     """ Show firmware clients information """
 
     # get details about the firmware
-    item = db.firmware.get_item(firmware_id)
-    if not item:
+    fw = db.firmware.get_item(firmware_id)
+    if not fw:
         return _error_internal('No firmware matched!')
 
     # we can only view our own firmware, unless admin
-    if not g.user.check_group_id(item.group_id):
+    if not g.user.check_group_id(fw.group_id):
         return _error_permission_denied('Unable to view other vendor firmware')
-    clients = db.clients.get_all_for_filename(item.filename)
+    clients = db.clients.get_all_for_filename(fw.filename)
     return render_template('firmware-analytics-clients.html',
-                           fw=item,
+                           fw=fw,
                            firmware_id=firmware_id,
                            clients=clients)
 
@@ -319,12 +318,12 @@ def firmware_analytics_reports(firmware_id, state=None):
     """ Show firmware clients information """
 
     # get reports about the firmware
-    item = db.firmware.get_item(firmware_id)
-    if not item:
+    fw = db.firmware.get_item(firmware_id)
+    if not fw:
         return _error_internal('No firmware matched!')
 
     # we can only view our own firmware, unless admin
-    if not g.user.check_group_id(item.group_id):
+    if not g.user.check_group_id(fw.group_id):
         return _error_permission_denied('Unable to view other vendor firmware')
     reports = db.reports.get_all_for_firmware_id(firmware_id)
     reports_filtered = []
@@ -333,7 +332,7 @@ def firmware_analytics_reports(firmware_id, state=None):
             continue
         reports_filtered.append(r)
     return render_template('firmware-analytics-reports.html',
-                           fw=item,
+                           fw=fw,
                            state=state,
                            firmware_id=firmware_id,
                            reports=reports_filtered)
@@ -344,24 +343,24 @@ def firmware_analytics_month(firmware_id):
     """ Show firmware analytics information """
 
     # get details about the firmware
-    item = db.firmware.get_item(firmware_id)
-    if not item:
+    fw = db.firmware.get_item(firmware_id)
+    if not fw:
         return _error_internal('No firmware matched!')
 
     # we can only view our own firmware, unless admin
-    if not g.user.check_group_id(item.group_id):
+    if not g.user.check_group_id(fw.group_id):
         return _error_permission_denied('Unable to view other vendor firmware')
 
-    data_fw = db.clients.get_stats_for_fn(30, 1, item.filename)
+    data_fw = db.clients.get_stats_for_fn(30, 1, fw.filename)
     return render_template('firmware-analytics-month.html',
-                           fw=item,
+                           fw=fw,
                            firmware_id=firmware_id,
                            graph_labels=_get_chart_labels_days()[::-1],
                            graph_data=data_fw[::-1])
 
 # get the right component
-def _item_filter_by_cid(item, cid):
-    for md in item.mds:
+def _item_filter_by_cid(fw, cid):
+    for md in fw.mds:
         if md.cid == cid:
             return md
 
@@ -372,20 +371,20 @@ def firmware_component_show(firmware_id, cid, page='overview'):
     """ Show firmware component information """
 
     # get firmware component
-    fwobj = db.firmware.get_item(firmware_id)
-    if not fwobj:
+    fw = db.firmware.get_item(firmware_id)
+    if not fw:
         return _error_internal('No firmware matched!')
-    md = _item_filter_by_cid(fwobj, cid)
+    md = _item_filter_by_cid(fw, cid)
     if not md:
         return _error_internal('No component matched!')
 
     # we can only view our own firmware, unless admin
-    if not g.user.check_group_id(fwobj.group_id):
+    if not g.user.check_group_id(fw.group_id):
         return _error_permission_denied('Unable to view other vendor firmware')
 
     return render_template('firmware-md-' + page + '.html',
                            md=md,
-                           fw=fwobj,
+                           fw=fw,
                            firmware_id=firmware_id)
 
 @app.route('/lvfs/telemetry/repair')
@@ -443,7 +442,7 @@ def telemetry(age=0, sort_key='downloads', sort_direction='up'):
         total_failed += cnt_failed
         total_downloads += cnt_download
 
-        # add items
+        # add lines
         res = {}
         res['downloads'] = cnt_download
         res['success'] = cnt_success
@@ -484,15 +483,15 @@ def telemetry(age=0, sort_key='downloads', sort_direction='up'):
 def firmware_component_requires_remove_hwid(firmware_id, cid, hwid):
 
     # get firmware component
-    fwobj = db.firmware.get_item(firmware_id)
-    if not fwobj:
+    fw = db.firmware.get_item(firmware_id)
+    if not fw:
         return _error_internal('No firmware matched!')
-    md = _item_filter_by_cid(fwobj, cid)
+    md = _item_filter_by_cid(fw, cid)
     if not md:
         return _error_internal('No component matched!')
 
     # we can only modify our own firmware, unless admin
-    if not g.user.check_group_id(fwobj.group_id):
+    if not g.user.check_group_id(fw.group_id):
         return _error_permission_denied('Unable to modify other vendor firmware')
 
     # remove hwid
@@ -500,7 +499,7 @@ def firmware_component_requires_remove_hwid(firmware_id, cid, hwid):
     md.requirements.remove(fwreq)
 
     # modify
-    db.firmware.update(fwobj)
+    db.firmware.update(fw)
 
     # log
     _event_log('Removed HWID %s on %s' % (hwid, firmware_id))
@@ -515,15 +514,15 @@ def firmware_component_requires_add_hwid(firmware_id, cid):
     """ Modifies the update urgency and release notes for the update """
 
     # get firmware component
-    fwobj = db.firmware.get_item(firmware_id)
-    if not fwobj:
+    fw = db.firmware.get_item(firmware_id)
+    if not fw:
         return _error_internal('No firmware matched!')
-    md = _item_filter_by_cid(fwobj, cid)
+    md = _item_filter_by_cid(fw, cid)
     if not md:
         return _error_internal('No component matched!')
 
     # we can only modify our own firmware, unless admin
-    if not g.user.check_group_id(fwobj.group_id):
+    if not g.user.check_group_id(fw.group_id):
         return _error_permission_denied('Unable to modify other vendor firmware')
 
     # check we have data
@@ -540,7 +539,7 @@ def firmware_component_requires_add_hwid(firmware_id, cid):
     else:
         fwreq = FirmwareRequirement('hardware', hwid)
         md.requirements.append(fwreq)
-        db.firmware.update(fwobj)
+        db.firmware.update(fw)
         _event_log('Added HWID %s on %s' % (hwid, firmware_id))
     return redirect(url_for('.firmware_component_show',
                             firmware_id=firmware_id,
@@ -553,15 +552,15 @@ def firmware_component_requires_set(firmware_id, cid, kind, value):
     """ Modifies the update urgency and release notes for the update """
 
     # get firmware component
-    fwobj = db.firmware.get_item(firmware_id)
-    if not fwobj:
+    fw = db.firmware.get_item(firmware_id)
+    if not fw:
         return _error_internal('No firmware matched!')
-    md = _item_filter_by_cid(fwobj, cid)
+    md = _item_filter_by_cid(fw, cid)
     if not md:
         return _error_internal('No component matched!')
 
     # we can only modify our own firmware, unless admin
-    if not g.user.check_group_id(fwobj.group_id):
+    if not g.user.check_group_id(fw.group_id):
         return _error_permission_denied('Unable to modify other vendor firmware')
 
     # check we have data
@@ -581,7 +580,7 @@ def firmware_component_requires_set(firmware_id, cid, kind, value):
             md.requirements.append(fwreq)
         fwreq.compare = request.form['compare']
         fwreq.version = request.form['version']
-    db.firmware.update(fwobj)
+    db.firmware.update(fw)
     _event_log('Changed %s/%s requirement on %s' % (kind, value, firmware_id))
     return redirect(url_for('.firmware_component_show',
                             firmware_id=firmware_id,

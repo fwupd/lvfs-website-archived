@@ -190,9 +190,9 @@ def upload():
         if 'username' not in session:
             return redirect(url_for('.index'))
         vendor_ids = []
-        item = db.groups.get_item(g.user.group_id)
-        if item:
-            vendor_ids.extend(item.vendor_ids)
+        grp = db.groups.get_item(g.user.group_id)
+        if grp:
+            vendor_ids.extend(grp.vendor_ids)
         return render_template('upload.html', vendor_ids=vendor_ids)
 
     # not correct parameters
@@ -218,23 +218,23 @@ def upload():
         return redirect(request.url)
 
     # check the file does not already exist
-    item = db.firmware.get_item(ufile.firmware_id)
-    if item:
-        flash('A firmware file with hash %s already exists' % item.firmware_id, 'danger')
-        return redirect('/lvfs/firmware/%s' % item.firmware_id)
+    fw = db.firmware.get_item(ufile.firmware_id)
+    if fw:
+        flash('A firmware file with hash %s already exists' % fw.firmware_id, 'danger')
+        return redirect('/lvfs/firmware/%s' % fw.firmware_id)
 
     # check the guid and version does not already exist
-    items = db.firmware.get_all()
+    fws = db.firmware.get_all()
     for component in ufile.get_components():
         provides_value = component.get_provides()[0].get_value()
         release_default = component.get_release_default()
         release_version = release_default.get_version()
-        for item in items:
-            for md in item.mds:
+        for fw in fws:
+            for md in fw.mds:
                 for guid in md.guids:
                     if guid == provides_value and md.version == release_version:
                         flash('A firmware file for version %s already exists' % release_version, 'danger')
-                        return redirect('/lvfs/firmware/%s' % item.firmware_id)
+                        return redirect('/lvfs/firmware/%s' % fw.firmware_id)
 
     # check if the file dropped a GUID previously supported
     for component in ufile.get_components():
@@ -243,8 +243,8 @@ def upload():
             if prov.get_kind() != AppStreamGlib.ProvideKind.FIRMWARE_FLASHED:
                 continue
             new_guids.append(prov.get_value())
-        for item in items:
-            for md in item.mds:
+        for fw in fws:
+            for md in fw.mds:
                 if md.cid != component.get_id():
                     continue
                 for old_guid in md.guids:
@@ -280,14 +280,14 @@ def upload():
 
     # create parent firmware object
     target = request.form['target']
-    fwobj = Firmware()
-    fwobj.group_id = g.user.group_id
-    fwobj.addr = _get_client_address()
-    fwobj.filename = ufile.filename_new
-    fwobj.firmware_id = ufile.firmware_id
-    fwobj.target = target
+    fw = Firmware()
+    fw.group_id = g.user.group_id
+    fw.addr = _get_client_address()
+    fw.filename = ufile.filename_new
+    fw.firmware_id = ufile.firmware_id
+    fw.target = target
     if ufile._version_inf_display:
-        fwobj.version_display = ufile._version_inf_display[1]
+        fw.version_display = ufile._version_inf_display[1]
 
     # create child metadata object for the component
     for component in ufile.get_components():
@@ -340,17 +340,17 @@ def upload():
         md.checksum_contents = csum.get_value()
         md.filename_contents = csum.get_filename()
 
-        fwobj.mds.append(md)
+        fw.mds.append(md)
 
     # add to database
-    db.firmware.add(fwobj)
+    db.firmware.add(fw)
 
     # set correct response code
     _event_log("Uploaded file %s to %s" % (ufile.filename_new, target))
 
     # ensure up to date
     if target == 'embargo':
-        _metadata_update_group(fwobj.group_id)
+        _metadata_update_group(fw.group_id)
     if target == 'stable':
         _metadata_update_targets(['stable', 'testing'])
     elif target == 'testing':
@@ -427,10 +427,10 @@ def analytics_reports():
 def report_view(report_id):
     if not g.user.check_capability(UserCapability.Admin):
         return _error_permission_denied('Unable to view report')
-    item = db.reports.find_by_id(report_id)
-    if not item:
+    rprt = db.reports.find_by_id(report_id)
+    if not rprt:
         return _error_permission_denied('Report does not exist')
-    return Response(response=item.json,
+    return Response(response=rprt.json,
                     status=400, \
                     mimetype="application/json")
 
@@ -496,10 +496,10 @@ def eventlog(start=0, length=20):
 
     # table contents
     if g.user.check_capability(UserCapability.Admin):
-        items = db.eventlog.get_all(int(start), int(length))
+        events = db.eventlog.get_all(int(start), int(length))
     else:
-        items = db.eventlog.get_all_for_group_id(g.user.group_id, int(start), int(length))
-    if len(items) == 0:
+        events = db.eventlog.get_all_for_group_id(g.user.group_id, int(start), int(length))
+    if len(events) == 0:
         return _error_internal('No event log available!')
 
     # limit this to keep the UI sane
@@ -512,7 +512,7 @@ def eventlog(start=0, length=20):
             html += '%i ' % (i + 1)
         else:
             html += '<a href="/lvfs/eventlog/%i/%s">%i</a> ' % (i * int(length), int(length), i + 1)
-    return render_template('eventlog.html', events=items, pagination_footer=html)
+    return render_template('eventlog.html', events=events, pagination_footer=html)
 
 @app.route('/lvfs/profile')
 @login_required

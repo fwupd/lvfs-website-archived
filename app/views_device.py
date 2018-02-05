@@ -26,8 +26,8 @@ def device():
     # get all the guids we can target
     devices = []
     seen_guid = {}
-    for item in db.firmware.get_all():
-        for md in item.mds:
+    for fw in db.firmware.get_all():
+        for md in fw.mds:
             if md.guids[0] in seen_guid:
                 continue
             seen_guid[md.guids[0]] = 1
@@ -42,27 +42,27 @@ def device_guid(guid):
     """
 
     # get all the guids we can target
-    firmware_items = []
-    for item in db.firmware.get_all():
-        for md in item.mds:
+    fws = []
+    for fw in db.firmware.get_all():
+        for md in fw.mds:
             if md.guids[0] != guid:
                 continue
-            firmware_items.append(item)
+            fws.append(fw)
             break
 
-    return render_template('device.html', items=firmware_items)
+    return render_template('device.html', fws=fws)
 
 
 @app.route('/lvfs/devicelist')
 def device_list():
 
     # get a sorted list of vendors
-    items = db.firmware.get_all()
+    fws = db.firmware.get_all()
     vendors = []
-    for item in items:
-        if item.target not in ['stable', 'testing']:
+    for fw in fws:
+        if fw.target not in ['stable', 'testing']:
             continue
-        vendor = item.mds[0].developer_name
+        vendor = fw.mds[0].developer_name
         if vendor in vendors:
             continue
         vendors.append(vendor)
@@ -70,10 +70,10 @@ def device_list():
     seen_ids = {}
     mds_by_vendor = {}
     for vendor in sorted(vendors):
-        for item in items:
-            if item.target not in ['stable', 'testing']:
+        for fw in fws:
+            if fw.target not in ['stable', 'testing']:
                 continue
-            for md in item.mds:
+            for md in fw.mds:
 
                 # only show correct vendor
                 if vendor != md.developer_name:

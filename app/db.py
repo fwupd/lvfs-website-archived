@@ -402,16 +402,16 @@ class DatabaseFirmware(object):
         except mdb.Error as e:
             raise CursorError(cur, e)
 
-    def update(self, fwobj):
+    def update(self, fw):
         """ Update firmware details """
-        assert fwobj
+        assert fw
         try:
             cur = self._db.cursor()
             cur.execute("UPDATE firmware SET version_display=%s "
                         "WHERE firmware_id=%s;",
-                        (fwobj.version_display,
-                         fwobj.firmware_id,))
-            for md in fwobj.mds:
+                        (fw.version_display,
+                         fw.firmware_id,))
+            for md in fw.mds:
                 req_str = []
                 for fwreq in md.requirements:
                     req_str.append(fwreq.to_string())
@@ -428,24 +428,24 @@ class DatabaseFirmware(object):
                              md.release_installed_size,
                              md.release_download_size,
                              ','.join(req_str),
-                             fwobj.firmware_id,))
+                             fw.firmware_id,))
         except mdb.Error as e:
             raise CursorError(cur, e)
 
-    def add(self, fwobj):
+    def add(self, fw):
         """ Add a firmware object to the database """
         try:
             cur = self._db.cursor()
             cur.execute("INSERT INTO firmware (group_id, addr, timestamp, "
                         "filename, firmware_id, target, version_display) "
                         "VALUES (%s, %s, CURRENT_TIMESTAMP, %s, %s, %s, %s);",
-                        (fwobj.group_id,
-                         fwobj.addr,
-                         fwobj.filename,
-                         fwobj.firmware_id,
-                         fwobj.target,
-                         fwobj.version_display,))
-            for md in fwobj.mds:
+                        (fw.group_id,
+                         fw.addr,
+                         fw.filename,
+                         fw.firmware_id,
+                         fw.target,
+                         fw.version_display,))
+            for md in fw.mds:
                 req_str = []
                 for fwreq in md.requirements:
                     req_str.append(fwreq.to_string())
@@ -460,7 +460,7 @@ class DatabaseFirmware(object):
                             "requirements) "
                             "VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, "
                             "%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s);",
-                            (fwobj.firmware_id,
+                            (fw.firmware_id,
                              md.cid,
                              ','.join(md.guids),
                              md.version,
@@ -529,12 +529,12 @@ class DatabaseFirmware(object):
         res = cur.fetchall()
         if not res:
             return []
-        items = []
+        fws = []
         for e in res:
             item = _create_firmware_item(e)
-            items.append(item)
+            fws.append(item)
             self._add_items_md(item)
-        return items
+        return fws
 
     def get_item(self, firmware_id):
         """ Gets a specific firmware object """
