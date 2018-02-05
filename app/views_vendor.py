@@ -11,6 +11,7 @@ from app import app, db
 
 from .util import _event_log, _error_internal, _error_permission_denied
 from .db import CursorError
+from .models import UserCapability
 
 # sort by awesomeness
 def _sort_vendor_func(a, b):
@@ -40,7 +41,7 @@ def vendor_add():
         return redirect(url_for('.vendor_list'))
 
     # security check
-    if g.user.group_id != 'admin':
+    if not g.user.check_capability(UserCapability.Admin):
         return _error_permission_denied('Unable to add vendor as non-admin')
 
     if not 'group_id' in request.form:
@@ -64,7 +65,7 @@ def vendor_delete(group_id):
     """ Removes a vendor [ADMIN ONLY] """
 
     # security check
-    if g.user.group_id != 'admin':
+    if not g.user.check_capability(UserCapability.Admin):
         return _error_permission_denied('Unable to remove vendor as non-admin')
     try:
         vendor = db.vendors.get_item(group_id)
@@ -85,7 +86,7 @@ def vendor_details(group_id):
     """ Allows changing a vendor [ADMIN ONLY] """
 
     # security check
-    if g.user.group_id != 'admin':
+    if not g.user.check_capability(UserCapability.Admin):
         return _error_permission_denied('Unable to edit vendor as non-admin')
     try:
         vendor = db.vendors.get_item(group_id)
@@ -107,7 +108,7 @@ def vendor_modify_by_admin(group_id):
         return redirect(url_for('.vendor_list'))
 
     # security check
-    if g.user.group_id != 'admin':
+    if not g.user.check_capability(UserCapability.Admin):
         return _error_permission_denied('Unable to modify vendor as non-admin')
 
     try:

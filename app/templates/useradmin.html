@@ -29,7 +29,7 @@
     <label for="password">New Password:</label>
     <input type="password" class="form-control" name="password">
   </div>
-{% if g.user.group_id == 'admin' %}
+{% if g.user.check_capability('admin') %}
   <div class="form-group">
     <label for="is_enabled">
 {% if u.is_enabled %}

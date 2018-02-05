@@ -54,7 +54,7 @@
             </div>
           </li>
 {% endif %}
-{% if session['username'] and g.user.group_id == 'admin' %}
+{% if session['username'] and g.user.check_capability('admin') %}
           <li class="nav-item dropdown">
             <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
               Admin

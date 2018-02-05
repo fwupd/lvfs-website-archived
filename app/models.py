@@ -4,7 +4,10 @@
 # Copyright (C) 2015-2017 Richard Hughes <richard@hughsie.com>
 # Licensed under the GNU General Public License Version 2
 
-#from app import db
+class UserCapability(object):
+    Admin = 'admin'
+    QA = 'qa'
+    User = 'user'
 
 class User(object):
     def __init__(self):
@@ -17,6 +20,46 @@ class User(object):
         self.is_qa = False
         self.group_id = None
         self.is_locked = False
+
+    def check_group_id(self, group_id):
+
+        # admin can see everything
+        if self.group_id == 'admin':
+            return True
+
+        # typically used when checking if a vendor can delete firmware
+        if self.group_id == group_id:
+            return True
+
+        # something else
+        return False
+
+    def check_capability(self, required_auth_level):
+
+        # user has been disabled for bad behaviour
+        if not self.is_enabled:
+            return False
+
+        # admin only
+        if required_auth_level == UserCapability.Admin:
+            if self.group_id == 'admin':
+                return True
+            return False
+
+        # QA only
+        if required_auth_level == UserCapability.QA:
+            if self.group_id == 'admin':
+                return True
+            if self.is_qa:
+                return True
+            return False
+
+        # any action that just requires to be logged in
+        if required_auth_level == UserCapability.User:
+            return True
+
+        # something else
+        return False
 
     @property
     def is_authenticated(self):

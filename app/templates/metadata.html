@@ -45,12 +45,12 @@
 {% if not g.user.is_qa %}
 <div class="alert alert-warning mt-1" role="alert">
   End-to-end tests using the metadata can <strong>only</strong> be used with a
-  custom <code>/etc/fwupd/remotes.d/{{group_id}}-embargo.conf</code> file as this user account does not
+  custom <code>/etc/fwupd/remotes.d/{{g.user.group_id}}-embargo.conf</code> file as this user account does not
   yet have permission to push to <em>testing</em> or <em>stable</em>.
 </div>
 {% endif %}
 
-{% if group_id=='admin' %}
+{% if g.user.check_capability('admin') %}
 <!-- admin only actions -->
 <h2>Actions</h2>
 <p>

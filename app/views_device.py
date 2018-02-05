@@ -11,6 +11,7 @@ from app import app, db
 
 from .util import _error_internal, _error_permission_denied
 from .db import CursorError
+from .models import UserCapability
 
 @app.route('/lvfs/device')
 @login_required
@@ -20,7 +21,7 @@ def device():
     """
 
     # security check
-    if g.user.group_id != 'admin':
+    if not g.user.check_capability(UserCapability.Admin):
         return _error_permission_denied('Unable to view devices')
 
     # get all firmware

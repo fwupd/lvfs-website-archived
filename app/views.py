@@ -21,7 +21,7 @@ from flask_login import login_required, login_user, logout_user
 from app import app, db, lm, ploader
 
 from .db import CursorError
-from .models import Firmware, FirmwareMd, FirmwareRequirement, DownloadKind
+from .models import Firmware, FirmwareMd, FirmwareRequirement, DownloadKind, UserCapability
 from .uploadedfile import UploadedFile, FileTooLarge, FileTooSmall, FileNotSupported, MetadataInvalid
 from .hash import _qa_hash, _password_hash
 from .util import _event_log, _get_client_address
@@ -179,7 +179,7 @@ def metadata():
 
     # show all embargo metadata URLs when admin user
     group_ids = []
-    if g.user.group_id == 'admin':
+    if g.user.check_capability('admin'):
         try:
             groups = db.groups.get_all()
             for group in groups:
@@ -218,7 +218,7 @@ def upload():
 
     # can the user upload directly to stable
     if request.form['target'] in ['stable', 'testing']:
-        if not g.user.is_qa:
+        if not g.user.check_capability(UserCapability.QA):
             return _error_permission_denied('Unable to upload to this target as not QA user')
 
     # load in the archive
@@ -391,7 +391,7 @@ def analytics_month():
     """ A analytics screen to show information about users """
 
     # security check
-    if g.user.group_id != 'admin':
+    if not g.user.check_capability(UserCapability.Admin):
         return _error_permission_denied('Unable to view analytics')
     labels_days = _get_chart_labels_days()[::-1]
     data_days = db.clients.get_stats_for_month(DownloadKind.FIRMWARE)[::-1]
@@ -405,7 +405,7 @@ def analytics_year():
     """ A analytics screen to show information about users """
 
     # security check
-    if g.user.group_id != 'admin':
+    if not g.user.check_capability(UserCapability.Admin):
         return _error_permission_denied('Unable to view analytics')
     labels_months = _get_chart_labels_months()[::-1]
     data_months = db.clients.get_stats_for_year(DownloadKind.FIRMWARE)[::-1]
@@ -419,7 +419,7 @@ def analytics_user_agents():
     """ A analytics screen to show information about users """
 
     # security check
-    if g.user.group_id != 'admin':
+    if not g.user.check_capability(UserCapability.Admin):
         return _error_permission_denied('Unable to view analytics')
     labels_user_agent, data_user_agent = db.clients.get_user_agent_stats()
     return render_template('analytics-user-agent.html',
@@ -432,7 +432,7 @@ def analytics_clients():
     """ A analytics screen to show information about users """
 
     # security check
-    if g.user.group_id != 'admin':
+    if not g.user.check_capability(UserCapability.Admin):
         return _error_permission_denied('Unable to view analytics')
     clients = db.clients.get_all(limit=25)
     return render_template('analytics-clients.html', clients=clients)
@@ -443,7 +443,7 @@ def analytics_reports():
     """ A analytics screen to show information about users """
 
     # security check
-    if g.user.group_id != 'admin':
+    if not g.user.check_capability(UserCapability.Admin):
         return _error_permission_denied('Unable to view analytics')
     try:
         reports = db.reports.get_all(limit=25)
@@ -454,7 +454,7 @@ def analytics_reports():
 @app.route('/lvfs/report/<report_id>')
 @login_required
 def report_view(report_id):
-    if g.user.group_id != 'admin':
+    if not g.user.check_capability(UserCapability.Admin):
         return _error_permission_denied('Unable to view report')
     try:
         # remove it if it already exists
@@ -470,7 +470,7 @@ def report_view(report_id):
 @app.route('/lvfs/report/<report_id>/delete')
 @login_required
 def report_delete(report_id):
-    if g.user.group_id != 'admin':
+    if not g.user.check_capability(UserCapability.Admin):
         return _error_permission_denied('Unable to view report')
     try:
         db.reports.remove_by_id(report_id)
@@ -524,11 +524,11 @@ def eventlog(start=0, length=20):
     Show an event log of user actions.
     """
     # security check
-    if not g.user.is_qa:
+    if not g.user.check_capability(UserCapability.QA):
         return _error_permission_denied('Unable to show event log for non-QA user')
 
     # get the page selection correct
-    if g.user.group_id == 'admin':
+    if g.user.check_capability('admin'):
         eventlog_len = db.eventlog.size()
     else:
         eventlog_len = db.eventlog.size_for_group_id(g.user.group_id)
@@ -536,7 +536,7 @@ def eventlog(start=0, length=20):
 
     # table contents
     try:
-        if g.user.group_id == 'admin':
+        if g.user.check_capability(UserCapability.Admin):
             items = db.eventlog.get_all(int(start), int(length))
         else:
             items = db.eventlog.get_all_for_group_id(g.user.group_id, int(start), int(length))
@@ -565,7 +565,7 @@ def profile():
     """
 
     # security check
-    if g.user.is_locked:
+    if not g.user.check_capability(UserCapability.User):
         return _error_permission_denied('Unable to view profile as account locked')
 
     return render_template('profile.html',
@@ -581,7 +581,7 @@ def settings(plugin_id='general'):
     """
 
     # security check
-    if g.user.group_id != 'admin':
+    if not g.user.check_capability(UserCapability.Admin):
         return _error_permission_denied('Only admin is allowed to change settings')
 
     # get all settings
@@ -610,7 +610,7 @@ def settings_modify(plugin_id='general'):
         return redirect(url_for('.settings', plugin_id=plugin_id))
 
     # security check
-    if g.user.group_id != 'admin':
+    if not g.user.check_capability(UserCapability.Admin):
         return _error_permission_denied('Unable to modify settings as non-admin')
 
     # save new values
@@ -634,7 +634,7 @@ def metadata_rebuild():
     """
 
     # security check
-    if g.user.group_id != 'admin':
+    if not g.user.check_capability(UserCapability.Admin):
         return _error_permission_denied('Only admin is allowed to force-rebuild metadata')
 
     # update metadata

@@ -17,7 +17,7 @@
     <th class="col-sm-3">fwupd support</th>
     <th class="col-sm-1">LVFS account</th>
     <th class="col-sm-1">Uploaded firmware</th>
-{% if session['username'] and g.user.group_id == 'admin' %}
+{% if session['username'] and g.user.check_capability('admin') %}
     <th class="col-sm-4">Comments</th>
     <th class="col-sm-1">&nbsp;</th>
 {% else %}
@@ -25,7 +25,7 @@
 {% endif %}
   </tr>
 {% for v in vendors %}
-{% if v.visible or g.user.group_id == 'admin' %}
+{% if v.visible or (session['username'] and g.user.check_capability('admin')) %}
   <tr class="row" id="{{v.group_id}}">
     <td class="col-sm-2">
 {% if v.visible %}
@@ -73,7 +73,7 @@
       n/a
     </td>
 {% endif %}
-{% if session['username'] and g.user.group_id == 'admin' %}
+{% if session['username'] and g.user.check_capability('admin') %}
     <td class="col-sm-4">{{v.description}}</td>
     <td class="col-sm-1"><a class="btn btn-secondary" href="/lvfs/vendor/{{v.group_id}}/details">Edit</a></td>
 {% else %}
@@ -85,7 +85,7 @@
   </tr>
 </table>
 
-{% if session['username'] and g.user.group_id == 'admin' %}
+{% if session['username'] and g.user.check_capability('admin') %}
 <h1>Create a new vendor</h1>
 <form method="post" action="/lvfs/vendorlist/add" class="form-inline">
   <input class="form-control" type="text" size="20" name="group_id" placeholder="Group ID" required>

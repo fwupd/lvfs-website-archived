@@ -15,7 +15,7 @@
 <h1>Update History</h1>
 {% for item in items %}
 
-{% if g.user.group_id == 'admin' or item.target == 'stable' or item.target == 'testing' %}
+{% if g.user.check_capability('admin') or item.target == 'stable' or item.target == 'testing' %}
 <hr/>
 {% if item.version_display %}
 <h2>Version {{item.version_display}}:</h2>

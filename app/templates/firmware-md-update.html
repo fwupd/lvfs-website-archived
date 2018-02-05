@@ -18,7 +18,7 @@
   </ul>
 </nav>
 
-{% if not qa_capability %}
+{% if not g.user.check_capability('qa') %}
 <table class="table">
 {% if md.release_urgency %}
   <tr><th>Release Urgency</th><td>{{md.release_urgency}}</td></tr>

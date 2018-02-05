@@ -11,6 +11,7 @@ from app import app, db
 
 from .util import _event_log, _error_internal, _error_permission_denied
 from .db import CursorError
+from .models import UserCapability
 
 def _password_check(value):
     """ Check the password for suitability """
@@ -98,7 +99,7 @@ def user_modify_by_admin(username):
     """ Change details about the any user """
 
     # security check
-    if g.user.group_id != 'admin':
+    if not g.user.check_capability(UserCapability.Admin):
         return _error_permission_denied('Unable to modify user as non-admin')
 
     # set each thing in turn
@@ -135,7 +136,7 @@ def user_add():
         return redirect(url_for('.profile'))
 
     # security check
-    if g.user.group_id != 'admin':
+    if not g.user.check_capability(UserCapability.Admin):
         return _error_permission_denied('Unable to add user as non-admin')
 
     if not 'password_new' in request.form:
@@ -200,7 +201,7 @@ def user_delete(username):
     """ Delete a user """
 
     # security check
-    if g.user.group_id != 'admin':
+    if not g.user.check_capability(UserCapability.Admin):
         return _error_permission_denied('Unable to remove user as not admin')
 
     # check whether exists in database
@@ -225,7 +226,7 @@ def user_list():
     """
     Show a list of all users
     """
-    if g.user.group_id != 'admin':
+    if not g.user.check_capability(UserCapability.Admin):
         return _error_permission_denied('Unable to show userlist for non-admin user')
     try:
         items = db.users.get_all()
@@ -239,7 +240,7 @@ def user_admin(username):
     """
     Shows an admin panel for a user
     """
-    if g.user.group_id != 'admin':
+    if not g.user.check_capability(UserCapability.Admin):
         return _error_permission_denied('Unable to modify user for non-admin user')
     try:
         item = db.users.get_item(username)
