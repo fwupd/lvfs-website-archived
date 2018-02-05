@@ -49,7 +49,9 @@
               <a class="dropdown-item" href="/lvfs/upload">Upload new</a>
               <div class="dropdown-divider"></div>
               <a class="dropdown-item" href="/lvfs/firmware">Show all</a>
+{% if g.user.check_capability('analyst') %}
               <a class="dropdown-item" href="/lvfs/telemetry">Telemetry</a>
+{% endif %}
               <a class="dropdown-item" href="/lvfs/metadata">Metadata URLs</a>
             </div>
           </li>

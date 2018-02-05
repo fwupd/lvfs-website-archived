@@ -7,6 +7,7 @@
 class UserCapability(object):
     Admin = 'admin'
     QA = 'qa'
+    Analyst = 'analyst'
     User = 'user'
 
 class User(object):
@@ -17,6 +18,7 @@ class User(object):
         self.display_name = None
         self.email = None
         self.is_enabled = False
+        self.is_analyst = False
         self.is_qa = False
         self.group_id = None
         self.is_locked = False
@@ -43,6 +45,16 @@ class User(object):
         # admin only
         if required_auth_level == UserCapability.Admin:
             if self.group_id == 'admin':
+                return True
+            return False
+
+        # analysts only
+        if required_auth_level == UserCapability.Analyst:
+            if self.group_id == 'admin':
+                return True
+            if self.is_qa:
+                return True
+            if self.is_analyst:
                 return True
             return False
 

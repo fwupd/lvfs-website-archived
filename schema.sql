@@ -6,12 +6,13 @@ CREATE TABLE users (
   email VARCHAR(255) DEFAULT NULL,
   is_enabled TINYINT DEFAULT 0,
   is_qa TINYINT DEFAULT 0,
+  is_analyst TINYINT DEFAULT 0,
   group_id VARCHAR(40) DEFAULT NULL,
   is_locked TINYINT DEFAULT 0,
   UNIQUE KEY id (username)
 ) CHARSET=utf8;
-INSERT INTO users (username, password, display_name, email, is_enabled, is_qa, is_locked, group_id)
-    VALUES ('admin', '5459dbe5e9aa80e077bfa40f3fb2ca8368ed09b4', 'Admin User', 'sign-test@fwupd.org', 1, 1, 0, 'admin');
+INSERT INTO users (username, password, display_name, email, is_enabled, is_qa, is_analyst, is_locked, group_id)
+    VALUES ('admin', '5459dbe5e9aa80e077bfa40f3fb2ca8368ed09b4', 'Admin User', 'sign-test@fwupd.org', 1, 1, 1, 0, 'admin');
 
 DROP TABLE IF EXISTS vendors;
 CREATE TABLE vendors (

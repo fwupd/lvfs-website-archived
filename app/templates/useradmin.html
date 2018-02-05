@@ -36,6 +36,12 @@
     </label>
   </div>
   <div class="form-group">
+    <label for="is_analyst">
+      <input class="checkbox" type="checkbox" name="is_analyst" value="1" {{'checked' if u.is_analyst}} />
+      Allow viewing analytics reports:
+    </label>
+  </div>
+  <div class="form-group">
     <label for="is_qa">
       <input class="checkbox" type="checkbox" name="is_qa" value="1" {{'checked' if u.is_qa}} />
       Allow moving to testing and stable:

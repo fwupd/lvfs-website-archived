@@ -405,9 +405,9 @@ def telemetry_repair():
 def telemetry(age=0, sort_key='downloads', sort_direction='up'):
     """ Show firmware component information """
 
-    # only QA users can view this data
-    if not g.user.check_capability(UserCapability.QA):
-        return _error_permission_denied('Unable to view telemetry as not QA')
+    # only Analyst users can view this data
+    if not g.user.check_capability(UserCapability.Analyst):
+        return _error_permission_denied('Unable to view telemetry as not Analyst')
 
     # get data
     total_downloads = 0

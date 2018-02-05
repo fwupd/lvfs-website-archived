@@ -101,6 +101,7 @@ def user_modify_by_admin(username):
                 'password',
                 'is_enabled',
                 'is_qa',
+                'is_analyst',
                 'is_locked']:
         # unchecked checkbuttons are not included in the form data
         if key in request.form:

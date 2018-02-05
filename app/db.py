@@ -24,6 +24,7 @@ def _create_user_item(e):
     item.is_qa = bool(e[5])
     item.group_id = e[6]
     item.is_locked = bool(e[7])
+    item.is_analyst = bool(e[8])
     if item.username == 'admin':
         item.is_enabled = True
         item.is_qa = True
@@ -344,7 +345,7 @@ class DatabaseUsers(object):
         try:
             cur = self._db.cursor()
             cur.execute("SELECT username, display_name, email, password, "
-                        "is_enabled, is_qa, group_id, is_locked FROM users;")
+                        "is_enabled, is_qa, group_id, is_locked, is_analyst FROM users;")
         except mdb.Error as e:
             raise CursorError(cur, e)
         res = cur.fetchall()
@@ -362,12 +363,12 @@ class DatabaseUsers(object):
             cur = self._db.cursor()
             if password:
                 cur.execute("SELECT username, display_name, email, password, "
-                            "is_enabled, is_qa, group_id, is_locked FROM users "
+                            "is_enabled, is_qa, group_id, is_locked, is_analyst FROM users "
                             "WHERE username = %s AND password = %s LIMIT 1;",
                             (username, password,))
             else:
                 cur.execute("SELECT username, display_name, email, password, "
-                            "is_enabled, is_qa, group_id, is_locked FROM users "
+                            "is_enabled, is_qa, group_id, is_locked, is_analyst FROM users "
                             "WHERE username = %s LIMIT 1;",
                             (username,))
         except mdb.Error as e:
