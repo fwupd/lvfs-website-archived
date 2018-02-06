@@ -298,6 +298,12 @@ class UploadedFile(object):
         # load metainfo files
         self._load_metainfos()
 
+        # allow plugins to copy any extra files from the source archive
+        if self._ploader:
+            for cffolder in self._src_arc.get_folders():
+                for cffile in cffolder.get_files():
+                    self._ploader.archive_copy(self._repacked_cfarchive, cffile)
+
     def get_components(self):
         """ gets all detected AppStream components """
         return self._components

@@ -147,6 +147,17 @@ class Pluginloader(object):
                     _event_log('Plugin %s failed for ArchiveSign(): %s' % (plugin.id, str(e)))
 
     # an archive is being built
+    def archive_copy(self, arc, firmware_cff):
+        if not self.loaded:
+            self.load_plugins()
+        for plugin in self._plugins:
+            if hasattr(plugin, 'archive_copy'):
+                try:
+                    plugin.archive_copy(arc, firmware_cff)
+                except PluginError as e:
+                    _event_log('Plugin %s failed for archive_copy(): %s' % (plugin.id, str(e)))
+
+    # an archive is being built
     def archive_finalize(self, arc, metadata=None):
         if not self.loaded:
             self.load_plugins()
