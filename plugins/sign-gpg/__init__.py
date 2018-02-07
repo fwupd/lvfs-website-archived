@@ -11,7 +11,7 @@ import gnupg
 
 from app.pluginloader import PluginBase, PluginError, PluginSettingText, PluginSettingBool
 from app import db, ploader
-from app.util import _get_basename_safe, _archive_add
+from app.util import _get_basename_safe, _archive_add, _archive_get_files_from_glob
 
 class Affidavit(object):
 
@@ -108,13 +108,17 @@ class Plugin(PluginBase):
 
     def archive_sign(self, arc, firmware_cff):
 
+        # already signed
+        detached_fn = _get_basename_safe(firmware_cff.get_name() + '.asc')
+        if _archive_get_files_from_glob(arc, detached_fn):
+            return
+
         # create the detached signature
         affidavit = self._create_affidavit()
         if not affidavit:
             return
         contents = firmware_cff.get_bytes().get_data()
         contents_asc = affidavit.create(contents)
-        detached_fn = _get_basename_safe(firmware_cff.get_name() + '.asc')
 
         # add it to the archive
         _archive_add(arc, detached_fn, contents_asc.encode('utf-8'))

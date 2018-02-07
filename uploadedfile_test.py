@@ -12,7 +12,8 @@ from gi.repository import GCab
 from gi.repository import Gio
 
 from app.uploadedfile import UploadedFile, FileTooSmall, FileNotSupported, MetadataInvalid
-from app.util import _archive_get_files_from_glob, _archive_add
+from app.util import _archive_get_files_from_glob, _archive_add, _get_basename_safe
+from app.pluginloader import Pluginloader, PluginBase
 
 def _get_valid_firmware():
     return 'fubar'.ljust(1024)
@@ -60,6 +61,17 @@ class InMemoryZip(object):
     def read(self):
         self.in_memory_zip.seek(0)
         return self.in_memory_zip.read()
+
+class TestPlugin(PluginBase):
+
+    def __init__(self):
+        PluginBase.__init__(self, 'test')
+
+    def archive_sign(self, arc, firmware_cff):
+        detached_fn = _get_basename_safe(firmware_cff.get_name() + '.asc')
+        if _archive_get_files_from_glob(arc, detached_fn):
+            return
+        _archive_add(arc, detached_fn, 'signed')
 
 class TestStringMethods(unittest.TestCase):
 
@@ -165,10 +177,17 @@ class TestStringMethods(unittest.TestCase):
         _archive_add(arc, 'firmware.bin', _get_valid_firmware())
         _archive_add(arc, 'firmware1.metainfo.xml', _get_valid_metainfo())
         _archive_add(arc, 'firmware2.metainfo.xml', _get_valid_metainfo())
-        ufile = UploadedFile()
+
+        # use a fake plugin to add a file
+        ploader = Pluginloader()
+        ploader.loaded = True
+        ploader._plugins = [TestPlugin()]
+
+        ufile = UploadedFile(ploader)
         ufile.parse('foo.cab', _archive_to_contents(arc))
         arc2 = ufile.get_repacked_cabinet()
         self.assertTrue(_archive_get_files_from_glob(arc2, 'firmware.bin'))
+        self.assertTrue(_archive_get_files_from_glob(arc2, 'firmware.bin.asc'))
         self.assertTrue(_archive_get_files_from_glob(arc2, 'firmware1.metainfo.xml'))
         self.assertTrue(_archive_get_files_from_glob(arc2, 'firmware2.metainfo.xml'))
 

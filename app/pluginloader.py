@@ -46,6 +46,9 @@ class PluginBase(object):
     def settings(self):
         return []
 
+    def __repr__(self):
+        return "Plugin object %s" % self.id
+
 class PluginGeneral(PluginBase):
     def __init__(self):
         PluginBase.__init__(self, 'general')

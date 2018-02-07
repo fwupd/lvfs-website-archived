@@ -13,7 +13,7 @@ import tempfile
 
 from app.pluginloader import PluginBase, PluginError, PluginSettingText, PluginSettingBool
 from app import db, ploader
-from app.util import _get_basename_safe, _archive_add
+from app.util import _get_basename_safe, _archive_add, _archive_get_files_from_glob
 
 class Plugin(PluginBase):
     def __init__(self):
@@ -96,6 +96,11 @@ class Plugin(PluginBase):
 
     def archive_sign(self, arc, firmware_cff):
 
+        # already signed
+        detached_fn = _get_basename_safe(firmware_cff.get_name() + '.p7b')
+        if _archive_get_files_from_glob(arc, detached_fn):
+            return
+
         # create the detached signature
         blob = firmware_cff.get_bytes().get_data()
         blob_p7b = self._sign_blob(blob)
@@ -103,5 +108,4 @@ class Plugin(PluginBase):
             return
 
         # add it to the archive
-        detached_fn = _get_basename_safe(firmware_cff.get_name() + '.p7b')
         _archive_add(arc, detached_fn, blob_p7b.encode('utf-8'))
