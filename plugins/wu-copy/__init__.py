@@ -5,7 +5,7 @@
 # Licensed under the GNU General Public License Version 2
 
 from app.pluginloader import PluginBase, PluginSettingBool
-from app import db, ploader
+from app import db
 from app.util import _get_basename_safe, _archive_add
 
 class Plugin(PluginBase):

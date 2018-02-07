@@ -6,11 +6,8 @@
 
 from __future__ import print_function
 
-import os
-import datetime
-
 from app.pluginloader import PluginBase, PluginError, PluginSettingText, PluginSettingBool
-from app import db, ploader
+from app import db
 from app.util import _archive_get_files_from_glob, _archive_add
 
 class Plugin(PluginBase):

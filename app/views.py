@@ -70,7 +70,7 @@ def utility_processor():
         return datetime.datetime.fromtimestamp(tmp).strftime('%Y-%m-%d %H:%M:%S')
 
     def format_size(num, suffix='B'):
-        if type(num) not in (int, long):
+        if not isinstance(num, int) and not isinstance(num, long):
             return "???%s???" % num
         for unit in ['', 'Ki', 'Mi', 'Gi', 'Ti', 'Pi', 'Ei', 'Zi']:
             if abs(num) < 1024.0:
@@ -167,7 +167,7 @@ def metadata_remote(qa_group):
 
 @app.route('/lvfs/metadata')
 @login_required
-def metadata():
+def metadata_view():
     """
     Show all metadata available to this user.
     """
@@ -535,7 +535,7 @@ def profile():
 @app.route('/lvfs/settings')
 @app.route('/lvfs/settings/<plugin_id>')
 @login_required
-def settings(plugin_id='general'):
+def settings_view(plugin_id='general'):
     """
     Allows the admin to change details about the LVFS instance
     """
@@ -564,7 +564,7 @@ def settings_modify(plugin_id='general'):
 
     # only accept form data
     if request.method != 'POST':
-        return redirect(url_for('.settings', plugin_id=plugin_id))
+        return redirect(url_for('.settings_view', plugin_id=plugin_id))
 
     # security check
     if not g.user.check_capability(UserCapability.Admin):
@@ -578,7 +578,7 @@ def settings_modify(plugin_id='general'):
         _event_log('Changed server settings %s to %s' % (key, request.form[key]))
         db.settings.modify(key, request.form[key])
     flash('Updated settings', 'info')
-    return redirect(url_for('.settings', plugin_id=plugin_id), 302)
+    return redirect(url_for('.settings_view', plugin_id=plugin_id), 302)
 
 @app.route('/lvfs/metadata_rebuild')
 @login_required
@@ -596,4 +596,4 @@ def metadata_rebuild():
         _metadata_update_group(group.group_id)
     _metadata_update_targets(['stable', 'testing'])
     _metadata_update_pulp()
-    return redirect(url_for('.metadata'))
+    return redirect(url_for('.metadata_view'))

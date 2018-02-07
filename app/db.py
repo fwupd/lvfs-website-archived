@@ -678,7 +678,7 @@ class DatabaseClients(object):
                 cur.execute("SELECT DISTINCT(COUNT(addr)) FROM clients "
                             "WHERE filename = %s AND "
                             "TIMESTAMPDIFF(DAY, timestamp, CURRENT_TIMESTAMP()) < %s;",
-                            (filename,age_days,))
+                            (filename, age_days,))
         except mdb.Error as e:
             raise CursorError(cur, e)
         user_cnt = cur.fetchone()[0]
@@ -947,7 +947,8 @@ class DatabaseVendors(object):
         except mdb.Error as e:
             raise CursorError(cur, e)
 
-    def modify(self, group_id, display_name, plugins, description, visible, is_fwupd_supported, is_account_holder, is_uploading, comments):
+    def modify(self, group_id, display_name, plugins, description, visible,
+               is_fwupd_supported, is_account_holder, is_uploading, comments):
         """ Update vendor details """
         assert group_id
         assert display_name

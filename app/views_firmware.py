@@ -19,7 +19,8 @@ from .db import CursorError
 from .hash import _qa_hash
 from .metadata import _metadata_update_group, _metadata_update_targets
 from .models import FirmwareRequirement, UserCapability
-from .util import _event_log, _error_internal, _error_permission_denied, _get_chart_labels_months, _get_chart_labels_days, _validate_guid
+from .util import _event_log, _error_internal, _error_permission_denied,\
+    _get_chart_labels_months, _get_chart_labels_days, _validate_guid
 
 def _get_split_names_for_firmware(fw):
     names = []
@@ -40,7 +41,7 @@ def _get_split_names_for_firmware(fw):
 
 @app.route('/lvfs/firmware')
 @login_required
-def firmware(show_all=False):
+def firmware_list(show_all=False):
     """
     Show all previsouly uploaded firmware for this user.
     """
@@ -83,7 +84,7 @@ def firmware(show_all=False):
 
 @app.route('/lvfs/firmware_all')
 def firmware_all():
-    return firmware(True)
+    return firmware_list(True)
 
 @app.route('/lvfs/firmware/<firmware_id>/delete')
 def firmware_delete(firmware_id):
@@ -96,7 +97,7 @@ def firmware_modify(firmware_id):
     """ Modifies the update urgency and release notes for the update """
 
     if request.method != 'POST':
-        return redirect(url_for('.firmware'))
+        return redirect(url_for('.firmware_list'))
 
     # find firmware
     fw = db.firmware.get_item(firmware_id)
@@ -113,7 +114,7 @@ def firmware_modify(firmware_id):
                 txt = AppStreamGlib.markup_import(txt, AppStreamGlib.MarkupConvertFormat.SIMPLE)
             try:
                 AppStreamGlib.markup_validate(txt)
-            except GLib.Error as e:
+            except GLib.GError as e:
                 return _error_internal("Failed to parse %s: %s" % (txt, str(e)))
             md.release_description = txt
 
@@ -131,7 +132,7 @@ def firmware_modify_requirements(firmware_id):
     """ Modifies the update urgency and release notes for the update """
 
     if request.method != 'POST':
-        return redirect(url_for('.firmware'))
+        return redirect(url_for('.firmware_list'))
 
     # find firmware
     fw = db.firmware.get_item(firmware_id)
@@ -194,7 +195,7 @@ def firmware_delete_force(firmware_id):
         _metadata_update_targets(targets=['testing'])
 
     _event_log("Deleted firmware %s" % firmware_id)
-    return redirect(url_for('.firmware'))
+    return redirect(url_for('.firmware_list'))
 
 @app.route('/lvfs/firmware/<firmware_id>/promote/<target>')
 @login_required

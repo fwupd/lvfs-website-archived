@@ -2,8 +2,6 @@
 # Copyright (C) 2015 Richard Hughes <richard@hughsie.com>
 # Licensed under the GNU General Public License Version 2
 
-import os
-import sys
 from lvfs_client import LvfsClient
 
 #SERVER = 'https://testing-lvfs.rhcloud.com'
@@ -106,4 +104,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-

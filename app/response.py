@@ -48,7 +48,8 @@ class SecureResponse(Response):
         args = {}
         args["default-src 'none'"] = None
         args["img-src 'self'"] = None
-        args["script-src 'self' 'unsafe-inline' 'unsafe-eval' https://maxcdn.bootstrapcdn.com https://code.jquery.com https://cdnjs.cloudflare.com"] = None
+        args["script-src 'self' 'unsafe-inline' 'unsafe-eval' " +
+             "https://maxcdn.bootstrapcdn.com https://code.jquery.com https://cdnjs.cloudflare.com"] = None
         args["style-src 'self' https://maxcdn.bootstrapcdn.com"] = None
         args["frame-ancestors 'none'"] = None
         headers.add('Content-Security-Policy', None, **args)

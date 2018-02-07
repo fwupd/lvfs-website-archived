@@ -35,7 +35,7 @@ def get_db():
 db = LocalProxy(get_db)
 
 @app.teardown_appcontext
-def close_db(error):
+def close_db(unused_error):
     """Closes the database again at the end of the request."""
     if hasattr(g, 'db'):
         g.db.close()
