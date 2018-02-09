@@ -10,7 +10,7 @@ from flask_login import login_required
 from app import app, db
 
 from .util import _event_log, _error_permission_denied
-from .models import UserCapability
+from .models import UserCapability, Vendor
 
 # sort by awesomeness
 def _sort_vendor_func(a, b):
@@ -26,7 +26,7 @@ def _sort_vendor_func(a, b):
 @app.route('/vendorlist') # deprecated
 @app.route('/lvfs/vendorlist')
 def vendor_list():
-    vendors = db.vendors.get_all()
+    vendors = db.session.query(Vendor).all()
     vendors.sort(_sort_vendor_func)
     return render_template('vendorlist.html', vendors=vendors)
 
@@ -45,10 +45,11 @@ def vendor_add():
 
     if not 'group_id' in request.form:
         return _error_permission_denied('Unable to add vendor as no data')
-    if db.vendors.get_item(request.form['group_id']):
+    if db.session.query(Vendor).filter(Vendor.group_id == request.form['group_id']).first():
         flash('Already a vendor with that group ID', 'warning')
         return redirect(url_for('.vendor_list'), 302)
-    db.vendors.add(request.form['group_id'])
+    db.session.add(Vendor(request.form['group_id']))
+    db.session.commit()
 
     _event_log("Created vendor %s" % request.form['group_id'])
     flash('Added vendor', 'info')
@@ -62,10 +63,12 @@ def vendor_delete(group_id):
     # security check
     if not g.user.check_capability(UserCapability.Admin):
         return _error_permission_denied('Unable to remove vendor as non-admin')
-    if not db.vendors.get_item(group_id):
+    vendor = db.session.query(Vendor).filter(Vendor.group_id == group_id).first()
+    if not vendor:
         flash('No a vendor with that group ID', 'warning')
         return redirect(url_for('.vendor_list'), 302)
-    db.vendors.remove(group_id)
+    db.session.delete(vendor)
+    db.session.commit()
 
     _event_log("Removed vendor %s" % group_id)
     flash('Removed vendor', 'info')
@@ -79,7 +82,7 @@ def vendor_details(group_id):
     # security check
     if not g.user.check_capability(UserCapability.Admin):
         return _error_permission_denied('Unable to edit vendor as non-admin')
-    vendor = db.vendors.get_item(group_id)
+    vendor = db.session.query(Vendor).filter(Vendor.group_id == group_id).first()
     if not vendor:
         flash('No a vendor with that group ID', 'warning')
         return redirect(url_for('.vendor_list'), 302)
@@ -99,16 +102,20 @@ def vendor_modify_by_admin(group_id):
     if not g.user.check_capability(UserCapability.Admin):
         return _error_permission_denied('Unable to modify vendor as non-admin')
 
-    # don't set the optional password
-    db.vendors.modify(group_id,
-                      request.form['display_name'],
-                      request.form['plugins'],
-                      request.form['description'],
-                      request.form['visible'],
-                      request.form['is_fwupd_supported'],
-                      request.form['is_account_holder'],
-                      request.form['is_uploading'],
-                      request.form['comments'])
+    # save to database
+    vendor = db.session.query(Vendor).filter(Vendor.group_id == group_id).first()
+    if not vendor:
+        flash('No a vendor with that group ID', 'warning')
+        return redirect(url_for('.vendor_list'), 302)
+    vendor.display_name = request.form['display_name']
+    vendor.plugins = request.form['plugins']
+    vendor.description = request.form['description']
+    vendor.visible = request.form['visible']
+    vendor.is_fwupd_supported = request.form['is_fwupd_supported']
+    vendor.is_account_holder = request.form['is_account_holder']
+    vendor.is_uploading = request.form['is_uploading']
+    vendor.comments = request.form['comments']
+    db.session.commit()
 
     _event_log('Changed vendor %s properties' % group_id)
     flash('Updated vendor', 'info')

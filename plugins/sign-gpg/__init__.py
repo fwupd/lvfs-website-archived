@@ -10,7 +10,8 @@ import os
 import gnupg
 
 from app.pluginloader import PluginBase, PluginError, PluginSettingText, PluginSettingBool
-from app import db, ploader
+from app import ploader
+from app.util import _get_settings
 from app.util import _get_basename_safe, _archive_add, _archive_get_files_from_glob
 
 class Affidavit(object):
@@ -78,7 +79,7 @@ class Plugin(PluginBase):
 
     def _create_affidavit(self):
         """ Create an affidavit that can be used to sign files """
-        settings = db.settings.get_all()
+        settings = _get_settings('sign_gpg')
         if settings['sign_gpg_enable'] != 'enabled':
             return None
         if not settings['sign_gpg_signing_uid']:

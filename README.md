@@ -17,6 +17,7 @@ The official instance is set up using puppet on RHEL 7, on which you could use:
     yum install https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm
     yum install https://kojipkgs.fedoraproject.org//work/tasks/1429/24421429/libappstream-glib-0.7.5-2.fc28.x86_64.rpm
     yum install https://kojipkgs.fedoraproject.org//packages/gcab/1.0/1.fc27/x86_64/libgcab1-1.0-1.fc27.x86_64.rpm
+    yum install https://kojipkgs.fedoraproject.org//packages/python-flask/0.11.1/6.fc27/noarch/python2-flask-0.11.1-6.fc27.noarch.rpm
     yum install puppet
     git clone https://github.com/hughsie/lvfs-puppet.git
     cd lvfs-puppet
@@ -25,6 +26,11 @@ The official instance is set up using puppet on RHEL 7, on which you could use:
     cp keys.pp.in keys.pp
     vim keys.pp
     puppet apply .
+
+You can set up the database manually using:
+
+    FLASK_APP=app/__init__.py flask-2 initdb
+    FLASK_APP=app/__init__.py flask-2 modifydb
 
 ## Generating a SSL certificate ##
 

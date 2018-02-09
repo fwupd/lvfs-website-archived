@@ -7,13 +7,13 @@
 <nav>
   <ul class="nav nav-tabs">
     <li class="nav-item">
-      <a class="nav-link" href="/lvfs/firmware/{{firmware_id}}/component/{{md.cid}}">Overview</a>
+      <a class="nav-link" href="/lvfs/component/{{md.component_id}}">Overview</a>
     </li>
     <li class="nav-item">
-      <a class="nav-link active" href="/lvfs/firmware/{{firmware_id}}/component/{{md.cid}}/update">Update Details</a>
+      <a class="nav-link active" href="/lvfs/component/{{md.component_id}}/update">Update Details</a>
     </li>
     <li class="nav-item">
-      <a class="nav-link" href="/lvfs/firmware/{{firmware_id}}/component/{{md.cid}}/requires">Requirements</a>
+      <a class="nav-link" href="/lvfs/component/{{md.component_id}}/requires">Requirements</a>
     </li>
   </ul>
 </nav>
@@ -42,7 +42,7 @@
     firmware changes state, e.g. from <em>testing</em> to <em>stable</em>.
   </div>
 {% endif %}
-  <form method="post" action="/lvfs/firmware/{{firmware_id}}/modify">
+  <form method="post" action="/lvfs/firmware/{{fw.firmware_id}}/modify">
     <div class="form-group">
       <label for="urgency">Urgency</label>
       <select class="form-control" id="urgency" name="urgency" required>
@@ -61,7 +61,7 @@
         AppStream XML description markup</a>.
       </p>
     </div>
-    <a class="btn btn-info" href="/lvfs/firmware/{{firmware_id}}" role="button">&laquo; Back to firmware file</a>
+    <a class="btn btn-info" href="/lvfs/firmware/{{fw.firmware_id}}" role="button">&laquo; Back to firmware file</a>
     <input class="btn btn-primary" type="submit" value="Save"/>
   </form>
 </div>

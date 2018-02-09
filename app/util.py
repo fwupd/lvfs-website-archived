@@ -16,6 +16,15 @@ from flask import request, flash, render_template, g
 from gi.repository import GCab
 from gi.repository import GLib
 
+def _get_settings(unused_prefix=None):
+    """ return a dict of all the settings """
+    from app import db
+    from .models import Setting
+    settings = {}
+    for setting in db.session.query(Setting).all():
+        settings[setting.key] = setting.value
+    return settings
+
 def _get_basename_safe(fn):
     """ gets the file basename, also with win32-style backslashes """
     return os.path.basename(fn.replace('\\', '/'))
@@ -55,12 +64,16 @@ def _event_log(msg, is_important=False):
         group_id = g.user.group_id
     if request:
         request_path = request.path
+    from .models import EventLogItem
     from app import db
-    if not hasattr(db, 'eventlog'):
-        print('no eventlog, so ignoring %s from %s' % (msg, request_path))
-        return
-    db.eventlog.add(msg, username, group_id,
-                    _get_client_address(), is_important, request_path)
+    event = EventLogItem(username=username,
+                         message=msg,
+                         group_id=group_id,
+                         address=_get_client_address(),
+                         request=request_path,
+                         is_important=is_important)
+    db.session.add(event)
+    db.session.commit()
 
 def _error_internal(msg=None, errcode=402):
     """ Error handler: Internal """

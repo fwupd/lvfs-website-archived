@@ -1,7 +1,7 @@
 #!/usr/bin/python2
 # -*- coding: utf-8 -*-
 #
-# Copyright (C) 2017 Richard Hughes <richard@hughsie.com>
+# Copyright (C) 2017-2018 Richard Hughes <richard@hughsie.com>
 # Licensed under the GNU General Public License Version 2
 
 from flask import render_template, g
@@ -10,7 +10,7 @@ from flask_login import login_required
 from app import app, db
 
 from .util import _error_permission_denied
-from .models import UserCapability
+from .models import UserCapability, Firmware
 
 @app.route('/lvfs/device')
 @login_required
@@ -26,7 +26,7 @@ def device():
     # get all the guids we can target
     devices = []
     seen_guid = {}
-    for fw in db.firmware.get_all():
+    for fw in db.session.query(Firmware).all():
         for md in fw.mds:
             if md.guids[0] in seen_guid:
                 continue
@@ -43,7 +43,7 @@ def device_guid(guid):
 
     # get all the guids we can target
     fws = []
-    for fw in db.firmware.get_all():
+    for fw in db.session.query(Firmware).all():
         if not fw.mds:
             continue
         for md in fw.mds:
@@ -59,7 +59,7 @@ def device_guid(guid):
 def device_list():
 
     # get a sorted list of vendors
-    fws = db.firmware.get_all()
+    fws = db.session.query(Firmware).all()
     vendors = []
     for fw in fws:
         if fw.target not in ['stable', 'testing']:
@@ -82,9 +82,9 @@ def device_list():
                     continue
 
                 # only show the newest version
-                if md.cid in seen_ids:
+                if md.appstream_id in seen_ids:
                     continue
-                seen_ids[md.cid] = 1
+                seen_ids[md.appstream_id] = 1
 
                 # add
                 if not vendor in mds_by_vendor:

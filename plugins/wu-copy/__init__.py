@@ -5,7 +5,7 @@
 # Licensed under the GNU General Public License Version 2
 
 from app.pluginloader import PluginBase, PluginSettingBool
-from app import db
+from app.util import _get_settings
 from app.util import _get_basename_safe, _archive_add
 
 class Plugin(PluginBase):
@@ -26,7 +26,7 @@ class Plugin(PluginBase):
 
     def archive_copy(self, arc, firmware_cff):
 
-        settings = db.settings.get_all()
+        settings = _get_settings('wu_copy')
         fn = _get_basename_safe(firmware_cff.get_name())
         if fn.endswith('.inf') and settings['wu_copy_inf'] == 'enabled':
             _archive_add(arc, fn, firmware_cff.get_bytes().get_data())

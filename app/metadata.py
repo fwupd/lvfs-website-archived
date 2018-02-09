@@ -1,7 +1,7 @@
 #!/usr/bin/python2
 # -*- coding: utf-8 -*-
 #
-# Copyright (C) 2015 Richard Hughes <richard@hughsie.com>
+# Copyright (C) 2015-2018 Richard Hughes <richard@hughsie.com>
 # Licensed under the GNU General Public License Version 2
 
 import os
@@ -14,6 +14,8 @@ from gi.repository import GLib
 from app import app, db, ploader
 
 from .hash import _qa_hash
+from .models import Firmware, Group
+from .util import _get_settings
 
 def _generate_metadata_kind(filename, fws, firmware_baseuri=''):
     """ Generates AppStream metadata of a specific kind """
@@ -25,7 +27,7 @@ def _generate_metadata_kind(filename, fws, firmware_baseuri=''):
         # add each component
         for md in fw.mds:
             component = AppStreamGlib.App.new()
-            component.set_id(md.cid)
+            component.set_id(md.appstream_id)
             component.set_kind(AppStreamGlib.AppKind.FIRMWARE)
             component.set_name(None, md.name)
             component.set_comment(None, md.summary)
@@ -60,11 +62,11 @@ def _generate_metadata_kind(filename, fws, firmware_baseuri=''):
                 component.add_release(rel)
 
                 # add container checksum
-                if md.checksum_container:
+                if fw.checksum:
                     csum = AppStreamGlib.Checksum.new()
                     csum.set_kind(GLib.ChecksumType.SHA1)
                     csum.set_target(AppStreamGlib.ChecksumTarget.CONTAINER)
-                    csum.set_value(md.checksum_container)
+                    csum.set_value(fw.checksum)
                     csum.set_filename(fw.filename)
                     rel.add_checksum(csum)
 
@@ -88,7 +90,7 @@ def _generate_metadata_kind(filename, fws, firmware_baseuri=''):
                 component.add_screenshot(ss)
 
             # add requires for each allowed vendor_ids
-            group = db.groups.get_item(fw.group_id)
+            group = db.session.query(Group).filter(Group.group_id == fw.group_id).first()
             if group and group.vendor_ids:
                 req = AppStreamGlib.Require.new()
                 req.set_kind(AppStreamGlib.RequireKind.FIRMWARE)
@@ -101,13 +103,14 @@ def _generate_metadata_kind(filename, fws, firmware_baseuri=''):
                 component.add_require(req)
 
             # add manual firmware or fwupd version requires
-            for fwreq in md.requirements:
+            for rq in md.requirements:
                 req = AppStreamGlib.Require.new()
-                req.set_kind(AppStreamGlib.Require.kind_from_string(fwreq.kind))
-                req.set_value(fwreq.value)
-                if fwreq.compare:
-                    req.set_compare(AppStreamGlib.Require.compare_from_string(fwreq.compare))
-                req.set_version(fwreq.version)
+                req.set_kind(AppStreamGlib.Require.kind_from_string(rq.kind))
+                req.set_value(rq.value)
+                if rq.compare:
+                    req.set_compare(AppStreamGlib.Require.compare_from_string(rq.compare))
+                if rq.version:
+                    req.set_version(rq.version)
                 component.add_require(req)
 
             # add component
@@ -130,8 +133,8 @@ def _metadata_update_group(group_id):
     """ updates metadata for a specific group_id """
 
     # get all firmwares in this group
-    settings = db.settings.get_all()
-    firmwares = db.firmware.get_all()
+    settings = _get_settings()
+    firmwares = db.session.query(Firmware).all()
     firmwares_filtered = []
     for f in firmwares:
         if f.target == 'private':
@@ -148,8 +151,8 @@ def _metadata_update_group(group_id):
 
 def _metadata_update_targets(targets):
     """ updates metadata for a specific target """
-    firmwares = db.firmware.get_all()
-    settings = db.settings.get_all()
+    firmwares = db.session.query(Firmware).all()
+    settings = _get_settings()
     for target in targets:
         firmwares_filtered = []
         for f in firmwares:
@@ -177,7 +180,7 @@ def _hashfile(afile, hasher, blocksize=65536):
 def _metadata_update_pulp():
     """ updates metadata for Pulp """
     files_to_scan = ['firmware.xml.gz', 'firmware.xml.gz.asc']
-    for fw in db.firmware.get_all():
+    for fw in db.session.query(Firmware).all():
         if fw.target != 'stable':
             continue
         files_to_scan.append(fw.filename)

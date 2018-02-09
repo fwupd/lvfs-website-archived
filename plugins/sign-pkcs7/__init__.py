@@ -10,7 +10,8 @@ import subprocess
 import tempfile
 
 from app.pluginloader import PluginBase, PluginError, PluginSettingText, PluginSettingBool
-from app import db, ploader
+from app import ploader
+from app.util import _get_settings
 from app.util import _get_basename_safe, _archive_add, _archive_get_files_from_glob
 
 class Plugin(PluginBase):
@@ -35,7 +36,7 @@ class Plugin(PluginBase):
     def _sign_blob(self, contents):
 
         # get settings
-        settings = db.settings.get_all()
+        settings = _get_settings('sign_pkcs7')
         if settings['sign_pkcs7_enable'] != 'enabled':
             return None
         if not settings['sign_pkcs7_privkey']:

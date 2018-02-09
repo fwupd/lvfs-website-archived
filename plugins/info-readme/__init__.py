@@ -6,9 +6,12 @@
 
 from __future__ import print_function
 
+import os
+import datetime
+
 from app.pluginloader import PluginBase, PluginError, PluginSettingText, PluginSettingBool
-from app import db
-from app.util import _archive_get_files_from_glob, _archive_add
+from app.models import Setting
+from app.util import _archive_get_files_from_glob, _archive_add, _get_settings
 
 class Plugin(PluginBase):
     def __init__(self):
@@ -32,7 +35,7 @@ class Plugin(PluginBase):
     def archive_finalize(self, arc, metadata):
 
         # get settings
-        settings = db.settings.get_all()
+        settings = _get_settings('info_readme')
         if settings['info_readme_enable'] != 'enabled':
             return None
         if not settings['info_readme_filename']:

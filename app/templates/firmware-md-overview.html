@@ -7,13 +7,13 @@
 <nav>
   <ul class="nav nav-tabs">
     <li class="nav-item">
-      <a class="nav-link active" href="/lvfs/firmware/{{firmware_id}}/component/{{md.cid}}">Overview</a>
+      <a class="nav-link active" href="/lvfs/component/{{md.component_id}}">Overview</a>
     </li>
     <li class="nav-item">
-      <a class="nav-link" href="/lvfs/firmware/{{firmware_id}}/component/{{md.cid}}/update">Update Details</a>
+      <a class="nav-link" href="/lvfs/component/{{md.component_id}}/update">Update Details</a>
     </li>
     <li class="nav-item">
-      <a class="nav-link" href="/lvfs/firmware/{{firmware_id}}/component/{{md.cid}}/requires">Requirements</a>
+      <a class="nav-link" href="/lvfs/component/{{md.component_id}}/requires">Requirements</a>
     </li>
   </ul>
 </nav>
@@ -26,7 +26,7 @@
 <table class="table">
   <tr class="row">
     <th class="col-sm-3">ID</th>
-    <td class="col-sm-9"><code>{{md.cid}}</code></td>
+    <td class="col-sm-9"><code>{{md.appstream_id}}</code></td>
   </tr>
 {% for guid in md.guids %}
   <tr class="row">
@@ -59,7 +59,7 @@
   </tr>
 {% endif %}
 </table>
-<a class="btn btn-info" href="/lvfs/firmware/{{firmware_id}}" role="button">&laquo; Back to firmware file</a>
+<a class="btn btn-info" href="/lvfs/firmware/{{fw.firmware_id}}" role="button">&laquo; Back to firmware file</a>
 </div>
 
 </div> <!-- container -->

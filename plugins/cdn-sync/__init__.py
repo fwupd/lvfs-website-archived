@@ -10,8 +10,7 @@ import os
 import boto3
 
 from app.pluginloader import PluginBase, PluginError, PluginSettingText, PluginSettingBool
-
-from app import db
+from app.util import _get_settings
 
 class Plugin(PluginBase):
     def __init__(self):
@@ -42,7 +41,7 @@ class Plugin(PluginBase):
     def file_modified(self, fn):
 
         # is the file in the whitelist
-        settings = db.settings.get_all()
+        settings = _get_settings('cdn_sync')
         if settings['cdn_sync_enable'] != 'enabled':
             return
         fns = settings['cdn_sync_files']

@@ -7,13 +7,13 @@
 <nav>
   <ul class="nav nav-tabs">
     <li class="nav-item">
-      <a class="nav-link" href="/lvfs/firmware/{{firmware_id}}/component/{{md.cid}}">Overview</a>
+      <a class="nav-link" href="/lvfs/component/{{md.component_id}}">Overview</a>
     </li>
     <li class="nav-item">
-      <a class="nav-link" href="/lvfs/firmware/{{firmware_id}}/component/{{md.cid}}/update">Update Details</a>
+      <a class="nav-link" href="/lvfs/component/{{md.component_id}}/update">Update Details</a>
     </li>
     <li class="nav-item">
-      <a class="nav-link active" href="/lvfs/firmware/{{firmware_id}}/component/{{md.cid}}/requires">Requirements</a>
+      <a class="nav-link active" href="/lvfs/component/{{md.component_id}}/requires">Requirements</a>
     </li>
   </ul>
 </nav>
@@ -32,46 +32,52 @@
     firmware changes state, e.g. from <em>testing</em> to <em>stable</em>.
   </div>
 {% endif %}
-  <form class="form-inline" action="/lvfs/firmware/{{firmware_id}}/component/{{md.cid}}/requires/set/firmware/bootloader" method="post" >
+  <form class="form-inline" action="/lvfs/component/requirement/add" method="POST" >
+    <input type="hidden" name="component_id" value="{{md.component_id}}">
+    <input type="hidden" name="kind" value="firmware">
+    <input type="hidden" name="value" value="bootloader">
     <div class="col-sm-5">
       Require bootloader version (optional):
     </div>
-    {% set fwreq = md.find_fwreq('firmware','bootloader') %}
+    {% set rq = md.find_req('firmware','bootloader') %}
     <div class="col-sm-6">
       <select class="form-control" name="compare">
-        <option value="" {{ 'selected' if not fwreq }}>Any</option>
-        <option value="ge" {{ 'selected' if fwreq and fwreq.compare == 'ge' }}>Greater than or equal</option>
-        <option value="gt" {{ 'selected' if fwreq and fwreq.compare == 'gt' }}>Greater than</option>
-        <option value="le" {{ 'selected' if fwreq and fwreq.compare == 'le' }}>Less than or equal</option>
-        <option value="lt" {{ 'selected' if fwreq and fwreq.compare == 'lt' }}>Less than</option>
-        <option value="eq" {{ 'selected' if fwreq and fwreq.compare == 'eq' }}>Exactly</option>
-        <option value="glob" {{ 'selected' if fwreq and fwreq.compare == 'glob' }}>Glob</option>
-        <option value="regex" {{ 'selected' if fwreq and fwreq.compare == 'regex' }}>Regular Expression</option>
+        <option value="any" {{ 'selected' if not rq }}>Any</option>
+        <option value="ge" {{ 'selected' if rq and rq.compare == 'ge' }}>Greater than or equal</option>
+        <option value="gt" {{ 'selected' if rq and rq.compare == 'gt' }}>Greater than</option>
+        <option value="le" {{ 'selected' if rq and rq.compare == 'le' }}>Less than or equal</option>
+        <option value="lt" {{ 'selected' if rq and rq.compare == 'lt' }}>Less than</option>
+        <option value="eq" {{ 'selected' if rq and rq.compare == 'eq' }}>Exactly</option>
+        <option value="glob" {{ 'selected' if rq and rq.compare == 'glob' }}>Glob</option>
+        <option value="regex" {{ 'selected' if rq and rq.compare == 'regex' }}>Regular Expression</option>
       </select>
-      <input type="text" class="form-control" name="version" value="{{fwreq.version}}"/>
+      <input type="text" class="form-control" name="version" value="{{rq.version}}"/>
     </div>
     <div class="col-sm-1 text-right">
       <input type="submit" class="btn btn-secondary" value="Set"/>
     </div>
   </form>
 
-  <form class="form-inline mt-2" action="/lvfs/firmware/{{firmware_id}}/component/{{md.cid}}/requires/set/firmware/firmware" method="post" >
+  <form class="form-inline mt-2" action="/lvfs/component/requirement/add" method="POST" >
+    <input type="hidden" name="component_id" value="{{md.component_id}}">
+    <input type="hidden" name="kind" value="firmware">
+    <input type="hidden" name="value" value="firmware">
     <div class="col-sm-5">
       Require existing firmware version (optional):
     </div>
-    {% set fwreq = md.find_fwreq('firmware','firmware') %}
+    {% set rq = md.find_req('firmware','firmware') %}
     <div class="col-sm-6">
       <select class="form-control" name="compare">
-        <option value="" {{ 'selected' if not fwreq }}>Any</option>
-        <option value="ge" {{ 'selected' if fwreq and fwreq.compare == 'ge' }}>Greater than or equal</option>
-        <option value="gt" {{ 'selected' if fwreq and fwreq.compare == 'gt' }}>Greater than</option>
-        <option value="le" {{ 'selected' if fwreq and fwreq.compare == 'le' }}>Less than or equal</option>
-        <option value="lt" {{ 'selected' if fwreq and fwreq.compare == 'lt' }}>Less than</option>
-        <option value="eq" {{ 'selected' if fwreq and fwreq.compare == 'eq' }}>Exactly</option>
-        <option value="glob" {{ 'selected' if fwreq and fwreq.compare == 'glob' }}>Glob</option>
-        <option value="regex" {{ 'selected' if fwreq and fwreq.compare == 'regex' }}>Regular Expression</option>
+        <option value="any" {{ 'selected' if not rq }}>Any</option>
+        <option value="ge" {{ 'selected' if rq and rq.compare == 'ge' }}>Greater than or equal</option>
+        <option value="gt" {{ 'selected' if rq and rq.compare == 'gt' }}>Greater than</option>
+        <option value="le" {{ 'selected' if rq and rq.compare == 'le' }}>Less than or equal</option>
+        <option value="lt" {{ 'selected' if rq and rq.compare == 'lt' }}>Less than</option>
+        <option value="eq" {{ 'selected' if rq and rq.compare == 'eq' }}>Exactly</option>
+        <option value="glob" {{ 'selected' if rq and rq.compare == 'glob' }}>Glob</option>
+        <option value="regex" {{ 'selected' if rq and rq.compare == 'regex' }}>Regular Expression</option>
       </select>
-      <input type="text" class="form-control" name="version" value="{{fwreq.version}}"/>
+      <input type="text" class="form-control" name="version" value="{{rq.version}}"/>
     </div>
      <div class="col-sm-1 text-right">
       <input type="submit" class="btn btn-secondary" value="Set"/>
@@ -79,23 +85,26 @@
  </form>
 
   <h3 class="mt-3">Computer Software Versions</h3>
-  <form class="form-inline" action="/lvfs/firmware/{{firmware_id}}/component/{{md.cid}}/requires/set/id/org.freedesktop.fwupd" method="post" >
+  <form class="form-inline mt-2" action="/lvfs/component/requirement/add" method="POST" >
+    <input type="hidden" name="component_id" value="{{md.component_id}}">
+    <input type="hidden" name="kind" value="id">
+    <input type="hidden" name="value" value="org.freedesktop.fwupd">
     <div class="col-sm-5">
       Require fwupd version (optional):
     </div>
-    {% set fwreq = md.find_fwreq('id','org.freedesktop.fwupd') %}
+    {% set rq = md.find_req('id','org.freedesktop.fwupd') %}
     <div class="col-sm-6">
       <select class="form-control" name="compare">
-        <option value="" {{ 'selected' if not fwreq }}>Any</option>
-        <option value="ge" {{ 'selected' if fwreq and fwreq.compare == 'ge' }}>Greater than or equal</option>
-        <option value="gt" {{ 'selected' if fwreq and fwreq.compare == 'gt' }}>Greater than</option>
-        <option value="le" {{ 'selected' if fwreq and fwreq.compare == 'le' }}>Less than or equal</option>
-        <option value="lt" {{ 'selected' if fwreq and fwreq.compare == 'lt' }}>Less than</option>
-        <option value="eq" {{ 'selected' if fwreq and fwreq.compare == 'eq' }}>Exactly</option>
-        <option value="glob" {{ 'selected' if fwreq and fwreq.compare == 'glob' }}>Glob</option>
-        <option value="regex" {{ 'selected' if fwreq and fwreq.compare == 'regex' }}>Regular Expression</option>
+        <option value="any" {{ 'selected' if not rq }}>Any</option>
+        <option value="ge" {{ 'selected' if rq and rq.compare == 'ge' }}>Greater than or equal</option>
+        <option value="gt" {{ 'selected' if rq and rq.compare == 'gt' }}>Greater than</option>
+        <option value="le" {{ 'selected' if rq and rq.compare == 'le' }}>Less than or equal</option>
+        <option value="lt" {{ 'selected' if rq and rq.compare == 'lt' }}>Less than</option>
+        <option value="eq" {{ 'selected' if rq and rq.compare == 'eq' }}>Exactly</option>
+        <option value="glob" {{ 'selected' if rq and rq.compare == 'glob' }}>Glob</option>
+        <option value="regex" {{ 'selected' if rq and rq.compare == 'regex' }}>Regular Expression</option>
       </select>
-      <input type="text" class="form-control" name="version" value="{{fwreq.version}}"/>
+      <input type="text" class="form-control" name="version" value="{{rq.version}}"/>
     </div>
     <div class="col-sm-1 text-right">
       <input type="submit" class="btn btn-secondary" value="Set"/>
@@ -104,22 +113,24 @@
 
   <h3 class="mt-3">Computer Hardware IDs</h3>
   <table class="table">
-{% for fwreq in md.requirements %}
-{% if fwreq.kind == 'hardware' %}
+{% for rq in md.requirements %}
+{% if rq.kind == 'hardware' %}
     <tr>
       <td class="col-sm-9">
-        <code>{{fwreq.value}}</code>
+        <code>{{rq.value}}</code>
       </td>
       <td class="col-sm-2 text-right">
-        <a class="btn btn-secondary" href="/lvfs/firmware/{{firmware_id}}/component/{{md.cid}}/requires/remove/hwid/{{fwreq.value}}" role="button">&ndash;</a>
+        <a class="btn btn-secondary" href="/lvfs/component/requirement/delete/{{rq.requirement_id}}" role="button">&ndash;</a>
       </td>
     </tr>
 {% endif %}
 {% endfor %}
     <tr>
-      <form class="form-inline" action="/lvfs/firmware/{{firmware_id}}/component/{{md.cid}}/requires/add/hwid" method="POST" >
+      <form class="form-inline" action="/lvfs/component/requirement/add" method="POST" >
         <td class="col-sm-9">
-          <input type="text" class="form-control" name="hwid" placeholder="b0f340b1-361e-55f9-b691-bc46d0921ea8"/>
+          <input type="hidden" name="component_id" value="{{md.component_id}}">
+          <input type="hidden" name="kind" value="hardware">
+          <input type="text" class="form-control" name="value" placeholder="b0f340b1-361e-55f9-b691-bc46d0921ea8"/>
           <p class="text-secondary">
             Add GUIDs here to restrict the update to a specific machine.
           </p>
@@ -130,7 +141,7 @@
       </form>
     </tr>
   </table>
-  <a class="btn btn-info" href="/lvfs/firmware/{{firmware_id}}" role="button">&laquo; Back to firmware file</a>
+  <a class="btn btn-info" href="/lvfs/firmware/{{fw.firmware_id}}" role="button">&laquo; Back to firmware file</a>
 </div>
 
 </div> <!-- container -->

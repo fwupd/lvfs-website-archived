@@ -1,16 +1,17 @@
 #!/usr/bin/python2
 # -*- coding: utf-8 -*-
 #
-# Copyright (C) 2015-2017 Richard Hughes <richard@hughsie.com>
+# Copyright (C) 2015-2018 Richard Hughes <richard@hughsie.com>
 # Licensed under the GNU General Public License Version 2
 
 import os
+import sqlalchemy
 
 from flask import Flask, flash, render_template, g
 from flask_login import LoginManager
 from werkzeug.local import LocalProxy
 
-from .db import Database, CursorError
+from .db import Database
 from .response import SecureResponse
 from .pluginloader import Pluginloader
 from .util import _error_internal
@@ -24,27 +25,34 @@ else:
 if 'LVFS_CUSTOM_SETTINGS' in os.environ:
     app.config.from_envvar('LVFS_CUSTOM_SETTINGS')
 
+db = Database()
+db.init_app(app)
+
+@app.cli.command('initdb')
+def initdb_command():
+    db.init_db()
+
+@app.cli.command('dropdb')
+def dropdb_command():
+    db.drop_db()
+
+@app.cli.command('modifydb')
+def modifydb_command():
+    db.modify_db()
+
 lm = LoginManager()
 lm.init_app(app)
 
 ploader = Pluginloader('plugins')
 
-# only load once per app context
-def get_db():
-    if not hasattr(g, 'db'):
-        g.db = Database(app)
-    return g.db
-db = LocalProxy(get_db)
-
 @app.teardown_appcontext
-def close_db(unused_error):
-    """Closes the database again at the end of the request."""
-    if hasattr(g, 'db'):
-        g.db.close()
+def shutdown_session(unused_exception=None):
+    db.session.remove()
 
 @lm.user_loader
 def load_user(user_id):
-    g.user = db.users.get_item(user_id)
+    from .models import User
+    g.user = db.session.query(User).filter(User.username == user_id).first()
     return g.user
 
 @app.errorhandler(404)
@@ -52,10 +60,6 @@ def error_page_not_found(msg=None):
     """ Error handler: File not found """
     flash(msg)
     return render_template('error.html'), 404
-
-@app.errorhandler(CursorError)
-def handle_error(error):
-    return _error_internal(str(error))
 
 from app import views
 from app import views_user
