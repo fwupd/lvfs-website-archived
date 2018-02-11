@@ -35,7 +35,7 @@ class Database(object):
     def modify_db(self):
 
         # get current schema version
-        from .models import Setting, Component, Requirement, Firmware
+        from .models import Setting, Component, Requirement, Firmware, Guid
         setting = self.session.query(Setting).filter(Setting.key == 'db_schema_version').first()
         if not setting:
             print('Setting initial schema version')
@@ -98,9 +98,23 @@ class Database(object):
             self.session.commit()
             return
 
-        # next version can remove md.unused_requirements and md.unused_checksum
+        # version 12 splits out the GUID table
+        if int(setting.value) == 11:
+            print('Creating GUIDs table')
+            self.Base.metadata.tables['guids'].create(bind=self.engine, checkfirst=True)
+            print('Migrating GUIDs from Component')
+            for md in self.session.query(Component).all():
+                if not md.unused_guid:
+                    continue
+                for guid in md.unused_guid.split(','):
+                    self.session.add(Guid(md.component_id, guid))
+            setting.value = 12
+            self.session.commit()
+
+        # next version can remove md.unused_requirements, md.unused_checksum and md.unused_guid
         #self.engine.execute('ALTER TABLE components DROP COLUMN requirements;')
         #self.engine.execute('ALTER TABLE components DROP COLUMN checksum_container;')
+        #self.engine.execute('ALTER TABLE components DROP COLUMN guid;')
 
     def init_db(self):
 

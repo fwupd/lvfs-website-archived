@@ -21,7 +21,7 @@ from flask_login import login_required, login_user, logout_user
 from app import app, db, lm, ploader
 from .db import _execute_count_star
 
-from .models import Firmware, Component, Requirement, DownloadKind, UserCapability
+from .models import Firmware, Component, Requirement, DownloadKind, UserCapability, Guid
 from .models import Group, Setting, User, Analytic, Client, Report, EventLogItem, _get_datestr_from_datetime
 from .uploadedfile import UploadedFile, FileTooLarge, FileTooSmall, FileNotSupported, MetadataInvalid
 from .hash import _qa_hash, _password_hash, _addr_hash
@@ -268,7 +268,7 @@ def upload():
         for fw in fws:
             for md in fw.mds:
                 for guid in md.guids:
-                    if guid == provides_value and md.version == release_version:
+                    if guid.value == provides_value and md.version == release_version:
                         flash('A firmware file for version %s already exists' % release_version, 'danger')
                         return redirect('/lvfs/firmware/%s' % fw.firmware_id)
 
@@ -284,7 +284,7 @@ def upload():
                 if md.appstream_id != component.get_id():
                     continue
                 for old_guid in md.guids:
-                    if not old_guid in new_guids:
+                    if not old_guid.value in new_guids:
                         flash('Firmware %s dropped a GUID previously '
                               'supported %s' % (md.appstream_id, old_guid), 'danger')
                         return redirect(request.url)
@@ -335,12 +335,10 @@ def upload():
         md.description = component.get_description()
 
         # from the provide
-        guids_fixme = []
         for prov in component.get_provides():
             if prov.get_kind() != AppStreamGlib.ProvideKind.FIRMWARE_FLASHED:
                 continue
-            guids_fixme.append(prov.get_value())
-        md.guids = guids_fixme
+            md.guids.append(Guid(md.component_id, prov.get_value()))
 
         # from the release
         rel = component.get_release_default()

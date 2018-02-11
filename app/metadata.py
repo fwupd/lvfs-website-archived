@@ -42,7 +42,7 @@ def _generate_metadata_kind(filename, fws, firmware_baseuri=''):
             for guid in md.guids:
                 prov = AppStreamGlib.Provide.new()
                 prov.set_kind(AppStreamGlib.ProvideKind.FIRMWARE_FLASHED)
-                prov.set_value(guid)
+                prov.set_value(guid.value)
                 component.add_provide(prov)
 
             # add release

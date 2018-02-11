@@ -150,6 +150,8 @@ def firmware_delete_force(firmware_id):
     for md in fw.mds:
         for rq in md.requirements:
             db.session.delete(rq)
+        for gu in md.guids:
+            db.session.delete(gu)
         db.session.delete(md)
     db.session.delete(fw)
     db.session.commit()

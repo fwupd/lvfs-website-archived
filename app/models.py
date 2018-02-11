@@ -233,6 +233,26 @@ class Requirement(db.Base):
     def __repr__(self):
         return "Requirement object %s/%s/%s/%s" % (self.kind, self.value, self.compare, self.version)
 
+class Guid(db.Base):
+
+    # sqlalchemy metadata
+    __tablename__ = 'guids'
+    guid_id = Column(Integer, primary_key=True, unique=True, nullable=False)
+    component_id = Column(Integer, ForeignKey('components.component_id'), nullable=False)
+    value = Column(Text)
+
+    # link back to parent
+    md = relationship("Component", back_populates="guids")
+
+    def __init__(self, component_id=None, value=None):
+        """ Constructor for object """
+        #self.guid_id = 0
+        self.component_id = component_id
+        self.value = value
+
+    def __repr__(self):
+        return "Guid object %s" % self.guid_id
+
 class Component(db.Base):
 
     # sqlalchemy metadata
@@ -245,7 +265,7 @@ class Component(db.Base):
     appstream_id = Column(Text)
     name = Column(Text)
     summary = Column(Text)
-    _guid = Column('guid', Text)
+    unused_guid = Column('guid', Text)
     description = Column(Text)
     release_description = Column(Text)
     url_homepage = Column(Text)
@@ -267,20 +287,12 @@ class Component(db.Base):
 
     # include all Component objects
     requirements = relationship("Requirement", back_populates="md")
-
-    @property
-    def guids(self):
-        return self._guid.split(',')
-
-    @guids.setter
-    def guids(self, value):
-        self._guid = ','.join(value)
+    guids = relationship("Guid", back_populates="md")
 
     def __init__(self):
         """ Constructor for object """
         self.firmware_id = None             # this maps the object back to Firmware
         self.appstream_id = None            # e.g. com.hughski.ColorHug.firmware
-        self._guid = None
         self.guids = []
         self.version = None
         self.name = None

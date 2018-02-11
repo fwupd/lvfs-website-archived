@@ -28,10 +28,10 @@ def device():
     seen_guid = {}
     for fw in db.session.query(Firmware).all():
         for md in fw.mds:
-            if md.guids[0] in seen_guid:
+            if md.guids[0].value in seen_guid:
                 continue
-            seen_guid[md.guids[0]] = 1
-            devices.append(md.guids[0])
+            seen_guid[md.guids[0].value] = 1
+            devices.append(md.guids[0].value)
 
     return render_template('devices.html', devices=devices)
 
@@ -47,7 +47,7 @@ def device_guid(guid):
         if not fw.mds:
             continue
         for md in fw.mds:
-            if md.guids[0] != guid:
+            if md.guids[0].value != guid:
                 continue
             fws.append(fw)
             break

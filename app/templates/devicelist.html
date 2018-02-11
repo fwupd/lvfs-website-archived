@@ -12,7 +12,7 @@
         <span class="text-muted">{{vendor}}</span>
 {% for md in mds_by_vendor[vendor] %}
         <li class="nav-item">
-          <a class="nav-link" href="/lvfs/device/{{md.guids[0]}}">{{md.name}}</a>
+          <a class="nav-link" href="/lvfs/device/{{md.guids[0].value}}">{{md.name}}</a>
         </li>
 {% endfor %}
 {% endfor %}
