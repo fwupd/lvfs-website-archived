@@ -67,3 +67,10 @@ from app import views_group
 from app import views_device
 from app import views_firmware
 from app import views_vendor
+from app import views_component
+from app import views_telemetry
+from app import views_report
+from app import views_metadata
+from app import views_settings
+from app import views_analytics
+from app import views_upload
