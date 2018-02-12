@@ -11,7 +11,7 @@ from flask_login import login_required
 
 from app import app, db
 
-from .models import Firmware, Report, UserCapability
+from .models import Firmware, Report, Issue, UserCapability
 from .util import _error_internal, _error_permission_denied
 
 @app.route('/lvfs/report/<report_id>')
@@ -39,12 +39,14 @@ def report_delete(report_id):
     flash('Deleted report', 'info')
     return redirect(url_for('.analytics_reports'))
 
-def json_success(msg=None, errcode=200):
+def json_success(msg=None, uri=None, errcode=200):
     """ Success handler: JSON output """
     item = {}
     item['success'] = True
     if msg:
         item['msg'] = msg
+    if uri:
+        item['uri'] = uri
     dat = json.dumps(item, sort_keys=True, indent=4, separators=(',', ': '))
     return Response(response=dat,
                     status=errcode, \
@@ -61,6 +63,24 @@ def json_error(msg=None, errcode=400):
     return Response(response=dat,
                     status=errcode, \
                     mimetype="application/json")
+
+def _do_all_contitions_match(issue, data):
+    for condition in issue.conditions:
+        if not condition.key in data:
+            return False
+        if not condition.matches(data[condition.key]):
+            return False
+    return True
+
+def _find_issue_for_report_data(data, fw):
+    for issue in db.session.query(Issue).all():
+        if not issue.enabled:
+            continue
+        if issue.group_id != 'admin' and issue.group_id != fw.group_id:
+            continue
+        if _do_all_contitions_match(issue, data):
+            return issue
+    return None
 
 @app.route('/lvfs/firmware/report', methods=['POST'])
 def firmware_report():
@@ -97,6 +117,7 @@ def firmware_report():
         return json_error('no metadata included')
 
     msgs = []
+    uris = []
     for report in reports:
         for key in ['Checksum', 'UpdateState', 'Metadata']:
             if not key in report:
@@ -120,6 +141,19 @@ def firmware_report():
         json_raw = json.dumps(report, sort_keys=True,
                               indent=2, separators=(',', ': '))
 
+        # find any matching report
+        issue_id = 0
+        if report['UpdateState'] == 3:
+            issue_data = report_metadata
+            issue_data['MachineId'] = item['MachineId']
+            for key in ['VersionNew', 'VersionOld', 'Plugin', 'UpdateError', 'Guid']:
+                if key in report:
+                    issue_data[key] = report[key]
+            issue = _find_issue_for_report_data(issue_data, fw)
+            if issue:
+                msgs.append('The failure is a known issue')
+                uris.append(issue.url)
+
         # update any old report
         report_old = db.session.query(Report).\
                         filter(Report.checksum == checksum).\
@@ -133,6 +167,7 @@ def firmware_report():
         # save a new report in the database
         db.session.add(Report(machine_id=machine_id,
                               firmware_id=fw.firmware_id,
+                              issue_id=issue_id,
                               state=report['UpdateState'],
                               checksum=checksum,
                               json=json_raw))
@@ -140,9 +175,6 @@ def firmware_report():
     # all done
     db.session.commit()
 
-    # get a message on one line
-    if len(msgs) > 0:
-        return json_success('\n'.join(msgs))
-
-    # no messages to report
-    return json_success()
+    # put messages and URIs on one line
+    return json_success(msg='; '.join(msgs) if msgs else None,
+                        uri='; '.join(uris) if uris else None)

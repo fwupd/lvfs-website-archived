@@ -131,5 +131,7 @@ def analytics_reports():
     # security check
     if not g.user.check_capability(UserCapability.Admin):
         return _error_permission_denied('Unable to view analytics')
-    reports = db.session.query(Report).limit(25).all()
+    reports = db.session.query(Report).\
+                    order_by(Report.timestamp.desc()).\
+                    limit(25).all()
     return render_template('analytics-reports.html', reports=reports)

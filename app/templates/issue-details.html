@@ -1,0 +1,58 @@
+{% extends "default.html" %}
+{% block title %}Issue Details{% endblock %}
+
+{% block content %}
+<div class="container mt-3">
+
+<nav>
+  <ul class="nav nav-tabs">
+    <li class="nav-item">
+      <a class="nav-link active" href="/lvfs/issue/{{issue.issue_id}}/details">Details</a>
+    </li>
+    <li class="nav-item">
+      <a class="nav-link" href="/lvfs/issue/{{issue.issue_id}}/conditions">Conditions</a>
+    </li>
+<!--
+    <li class="nav-item">
+      <a class="nav-link" href="/lvfs/issue/{{issue.issue_id}}/reports">Matching Reports</a>
+    </li>
+-->
+  </ul>
+</nav>
+
+<div class="container mt-3">
+<h2>Issue Details</h2>
+<form method="post" action="/lvfs/issue/{{issue.issue_id}}/modify">
+  <div class="form-group">
+    <label for="group_id">URL:</label>
+    <input type="text" class="form-control" name="url" value="{{issue.url}}" required {{'disabled' if not g.user.check_for_issue(issue)}}>
+  </div>
+  <div class="form-group">
+    <label for="group_id">Group:</label>
+    <input type="text" class="form-control" name="group_id" value="{{issue.group_id}}" required {{'disabled' if not g.user.check_for_issue(issue)}}>
+  </div>
+  <div class="form-group">
+    <label for="group_id">Name:</label>
+    <input type="text" class="form-control" name="name" value="{{issue.name}}" required {{'disabled' if not g.user.check_for_issue(issue)}}>
+  </div>
+  <div class="form-group">
+    <label for="display_name">Description:</label>
+    <input type="text" class="form-control" name="description" value="{{issue.description}}" required {{'disabled' if not g.user.check_for_issue(issue)}}>
+  </div>
+  <div class="form-group">
+    <label for="enabled">
+      <input class="checkbox" type="checkbox" name="enabled" value="1" {{'checked' if issue.enabled}} {{'disabled' if not g.user.check_for_issue(issue)}}/>
+      Enabled
+    </label>
+  </div>
+{% if g.user.check_for_issue(issue) %}
+  <input type="submit" class="btn btn-primary btn-large" class="submit" value="Modify">
+  <a class="btn btn-danger" href="/lvfs/issue/{{issue.issue_id}}/delete" role="button">Delete</a>
+{% endif %}
+</form>
+</div>
+
+<a class="btn btn-info mt-3" href="/lvfs/issue/all" role="button">&laquo; Back to issues</a>
+
+</div> <!-- container -->
+{% endblock %}

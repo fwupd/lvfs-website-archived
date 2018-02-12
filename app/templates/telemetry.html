@@ -32,25 +32,30 @@
 <table class="table">
   <tr class="row">
     <th class="col-sm-4">Hardware</th>
-    <th class="col-sm-2">
-      Version
+    <th class="col-sm-3">
+      Version<br/>
       <a class="{{'text-warning' if sort_key=='nameversion' and sort_direction=='up'}}" href="/lvfs/telemetry/{{age}}/nameversion/up">▼</a>
       <a class="{{'text-warning' if sort_key=='nameversion' and sort_direction=='down'}}" href="/lvfs/telemetry/{{age}}/nameversion/down">▲</a>
     </th>
     <th class="col-sm-2">
-      Downloads
+      Downloads<br/>
       <a class="{{'text-warning' if sort_key=='downloads' and sort_direction=='up'}}" href="/lvfs/telemetry/{{age}}/downloads/up">▼</a>
       <a class="{{'text-warning' if sort_key=='downloads' and sort_direction=='down'}}" href="/lvfs/telemetry/{{age}}/downloads/down">▲</a>
     </th>
-    <th class="col-sm-2">
+    <th class="col-sm-1">
       Success
       <a class="{{'text-warning' if sort_key=='success' and sort_direction=='up'}}" href="/lvfs/telemetry/{{age}}/success/up">▼</a>
       <a class="{{'text-warning' if sort_key=='success' and sort_direction=='down'}}" href="/lvfs/telemetry/{{age}}/success/down">▲</a>
     </th>
-    <th class="col-sm-2">
+    <th class="col-sm-1">
       Failed
       <a class="{{'text-warning' if sort_key=='failed' and sort_direction=='up'}}" href="/lvfs/telemetry/{{age}}/failed/up">▼</a>
       <a class="{{'text-warning' if sort_key=='failed' and sort_direction=='down'}}" href="/lvfs/telemetry/{{age}}/failed/down">▲</a>
+    </th>
+    <th class="col-sm-1">
+      Triaged
+      <a class="{{'text-warning' if sort_key=='issue' and sort_direction=='up'}}" href="/lvfs/telemetry/{{age}}/issue/up">▼</a>
+      <a class="{{'text-warning' if sort_key=='issue' and sort_direction=='down'}}" href="/lvfs/telemetry/{{age}}/issue/down">▲</a>
     </th>
   </tr>
 {% for f in firmware %}
@@ -65,23 +70,25 @@
       <span class="badge badge-info">testing</span>
 {% endif %}
     </td>
-    <td class="col-sm-2">{{f['version']}}</td>
+    <td class="col-sm-3">{{f['version']}}</td>
     <td class="col-sm-2">
       {{f['downloads']}}
 {% if f['duplicate'] > 1 %}
       <span><sup>★</sup></span>
 {% endif %}
     </td>
-    <td class="col-sm-2">{{f['success']}}</td>
-    <td class="col-sm-2">{{f['failed']}}</td>
+    <td class="col-sm-1">{{f['success']}}</td>
+    <td class="col-sm-1">{{f['failed']}}</td>
+    <td class="col-sm-1">{{f['issue']}}</td>
   </tr>
 {% endfor %}
   <tr class="row">
     <td class="col-sm-4"><b>&nbsp;</b></td>
-    <td class="col-sm-2"><b>&nbsp;</b></td>
+    <td class="col-sm-3"><b>&nbsp;</b></td>
     <td class="col-sm-2"><b>{{total_downloads}}</b></td>
-    <td class="col-sm-2"><b>{{total_success}}</b></td>
-    <td class="col-sm-2"><b>{{total_failed}}</b></td>
+    <td class="col-sm-1"><b>{{total_success}}</b></td>
+    <td class="col-sm-1"><b>{{total_failed}}</b></td>
+    <td class="col-sm-1"><b>{{total_issue}}</b></td>
   </tr>
 </table>
 </div>

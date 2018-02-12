@@ -7,6 +7,8 @@
 # pylint: disable=too-few-public-methods,too-many-instance-attributes
 
 import datetime
+import fnmatch
+import re
 
 from sqlalchemy import Column, Integer, String, Text, Boolean, DateTime, ForeignKey, Index
 from sqlalchemy.orm import relationship
@@ -45,6 +47,27 @@ class User(db.Base):
         self.is_qa = is_qa
         self.group_id = group_id
         self.is_locked = is_locked
+
+    def check_for_issue(self, issue, readonly=False):
+
+        # locked accounts can never see issues
+        if not self.is_enabled:
+            return False
+
+        # anyone in the admin group can see everything
+        if self.group_id == 'admin':
+            return True
+
+        # any issues owned by admin can be viewed by a QA user
+        if self.is_qa and issue.group_id == 'admin' and readonly:
+            return True
+
+        # QA user can modify any issues matching group_id
+        if self.is_qa and self.group_id == issue.group_id:
+            return True
+
+        # something else
+        return False
 
     def check_for_firmware(self, fw, readonly=False):
 
@@ -400,6 +423,73 @@ class Client(db.Base):
     def __repr__(self):
         return "Client object %s" % self.id
 
+class Condition(db.Base):
+
+    # sqlalchemy metadata
+    __tablename__ = 'conditions'
+    condition_id = Column(Integer, primary_key=True, nullable=False, unique=True)
+    issue_id = Column(Integer, ForeignKey('issues.issue_id'), nullable=False)
+    key = Column(Text)
+    value = Column(Text)
+    compare = Column(Text, default='eq', nullable=False)
+
+    # link back to parent
+    issue = relationship("Issue", back_populates="conditions")
+
+    def matches(self, value):
+        if self.compare == 'eq':
+            return value == self.value
+        if self.compare == 'lt':
+            return value < self.value
+        if self.compare == 'le':
+            return value <= self.value
+        if self.compare == 'gt':
+            return value > self.value
+        if self.compare == 'ge':
+            return value >= self.value
+        if self.compare == 'glob':
+            return fnmatch.fnmatch(value, self.value)
+        if self.compare == 'regex':
+            return re.search(self.value, value)
+        return False
+
+    def __init__(self, issue_id=0, key=None, value=None, compare='eq'):
+        """ Constructor for object """
+        self.issue_id = issue_id
+        self.key = key
+        self.value = value
+        self.compare = compare
+
+    def __repr__(self):
+        return "Condition object %s %s %s" % (self.key, self.compare, self.value)
+
+class Issue(db.Base):
+
+    # sqlalchemy metadata
+    __tablename__ = 'issues'
+    issue_id = Column(Integer, primary_key=True, nullable=False, unique=True)
+    priority = Column(Integer)
+    enabled = Column(Boolean, default=False)
+    group_id = Column(Text, default=None)
+    url = Column(Text, default='')
+    name = Column(Text)
+    description = Column(Text, default='')
+    conditions = relationship("Condition", back_populates="issue")
+
+    def __init__(self, url=None, name=None, description=None, enabled=False, group_id=None, priority=0):
+        """ Constructor for object """
+        self.url = url
+        self.name = name
+        self.enabled = enabled
+        self.priority = priority
+        self.description = description
+        self.enabled = enabled
+        self.group_id = group_id
+        self.priority = priority
+
+    def __repr__(self):
+        return "Issue object %s" % self.url
+
 class Report(db.Base):
 
     # sqlalchemy metadata
@@ -411,8 +501,9 @@ class Report(db.Base):
     machine_id = Column(String(64), nullable=False)
     firmware_id = Column(String(40), nullable=False)
     checksum = Column(String(64), nullable=False)
+    issue_id = Column(Integer, default=0)
 
-    def __init__(self, firmware_id=None, machine_id=None, state=0, checksum=None, json=None):
+    def __init__(self, firmware_id=None, machine_id=None, state=0, checksum=None, json=None, issue_id=0):
         """ Constructor for object """
         self.id = 0
         self.timestamp = None
@@ -420,6 +511,7 @@ class Report(db.Base):
         self.json = json
         self.machine_id = machine_id
         self.firmware_id = firmware_id
+        self.issue_id = issue_id
         self.checksum = checksum
     def __repr__(self):
         return "Report object %s" % self.id

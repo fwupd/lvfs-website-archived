@@ -59,6 +59,7 @@ def telemetry(age=0, sort_key='downloads', sort_direction='up'):
     total_downloads = 0
     total_success = 0
     total_failed = 0
+    total_issue = 0
     show_duplicate_warning = False
     fwlines = []
     for fw in db.session.query(Firmware).all():
@@ -90,13 +91,18 @@ def telemetry(age=0, sort_key='downloads', sort_direction='up'):
 
         cnt_success = 0
         cnt_failed = 0
+        cnt_issue = 0
         for rpt in rpts:
             if rpt.state == 2:
                 cnt_success += 1
             if rpt.state == 3:
-                cnt_failed += 1
+                if rpt.issue_id:
+                    cnt_issue += 1
+                else:
+                    cnt_failed += 1
         total_success += cnt_success
         total_failed += cnt_failed
+        total_issue += cnt_issue
         total_downloads += cnt_download
 
         # add lines
@@ -104,6 +110,7 @@ def telemetry(age=0, sort_key='downloads', sort_direction='up'):
         res['downloads'] = cnt_download
         res['success'] = cnt_success
         res['failed'] = cnt_failed
+        res['issue'] = cnt_issue
         res['names'] = _get_split_names_for_firmware(fw)
         res['version'] = fw.version_display
         if not res['version']:
@@ -132,5 +139,6 @@ def telemetry(age=0, sort_key='downloads', sort_direction='up'):
                            group_id=g.user.group_id,
                            show_duplicate_warning=show_duplicate_warning,
                            total_failed=total_failed,
+                           total_issue=total_issue,
                            total_downloads=total_downloads,
                            total_success=total_success)

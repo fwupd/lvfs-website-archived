@@ -1,0 +1,53 @@
+{% extends "default.html" %}
+{% block title %}Issues{% endblock %}
+
+{% block content %}
+<div class="container mt-3">
+<h1>Known Issues</h1>
+
+{% if issues|length == 0 %}
+<p>
+  No issues have been created.
+</p>
+
+{% else %}
+
+<div class="container">
+<table class="table">
+  <tr class="row">
+    <th class="col-sm-1">Priority</th>
+    <th class="col-sm-3">Name</th>
+    <th class="col-sm-5">Description</th>
+    <th class="col-sm-2">Group</th>
+    <th class="col-sm-1">&nbsp;</th>
+  </tr>
+{% for issue in issues %}
+  <tr class="row">
+    <td class="col-sm-1">{{issue.priority}}</td>
+    <td class="col-sm-3">
+{% if issue.enabled %}
+      {{issue.name}} <a href="{{issue.url}}">[link]</a>
+{% else %}
+      {{issue.name}} <a href="{{issue.url}}">[link]</a><p class="text-secondary">[disabled]</p>
+{% endif %}
+    </td>
+    <td class="col-sm-5">{{issue.description}}</td>
+    <td class="col-sm-2">{{issue.group_id}}</td>
+    <td class="col-sm-1"><a class="btn btn-info" href="/lvfs/issue/{{issue.issue_id}}/details" role="button">Details &raquo;</a></td>
+  </tr>
+{% endfor %}
+</table>
+</div>
+
+{% endif %}
+
+<hr/>
+
+<h2>Create a new issue</h2>
+<form method="post" action="/lvfs/issue/add" class="form-inline">
+  <input class="form-control" type="text" size="100" name="url" placeholder="Issue URL" required>
+  <input class="btn btn-primary" type="submit" value="Add">
+</form>
+
+</div> <!-- container -->
+{% endblock %}

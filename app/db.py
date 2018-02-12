@@ -136,6 +136,18 @@ class Database(object):
             self.session.commit()
             return
 
+        # version 15 adds the issue functionality
+        if int(setting.value) == 14:
+            print('Adding Issue table')
+            self.Base.metadata.tables['issues'].create(bind=self.engine, checkfirst=True)
+            print('Adding Condition table')
+            self.Base.metadata.tables['conditions'].create(bind=self.engine, checkfirst=True)
+            print('Add the issue_id to the Report')
+            self.engine.execute('ALTER TABLE reports ADD issue_id INT DEFAULT 0;')
+            setting.value = 15
+            self.session.commit()
+            return
+
         print('No schema changes required')
 
         # next version can remove md.unused_requirements, md.unused_checksum and md.unused_guid

@@ -1,0 +1,98 @@
+{% extends "default.html" %}
+{% block title %}Issue Details{% endblock %}
+
+{% block content %}
+<div class="container mt-3">
+
+<nav>
+  <ul class="nav nav-tabs">
+    <li class="nav-item">
+      <a class="nav-link" href="/lvfs/issue/{{issue.issue_id}}/details">Details</a>
+    </li>
+    <li class="nav-item">
+      <a class="nav-link active" href="/lvfs/issue/{{issue.issue_id}}/conditions">Conditions</a>
+    </li>
+  </ul>
+</nav>
+
+<div class="container mt-3">
+<h2>Issue Conditions</h2>
+<table class="table">
+  <tr class="row">
+    <th class="col-sm-4">Key</th>
+    <th class="col-sm-2">Compare</th>
+    <th class="col-sm-4">Value</th>
+    <th class="col-sm-2">&nbsp;</th>
+  </tr>
+{% if issue.conditions|length == 0 %}
+  <tr class="row">
+    <td class="col-sm-12"><p class="text-muted">No conditions exist yet.</p></td>
+  </tr>
+</p>
+{% else %}
+{% for condition in issue.conditions %}
+  <tr class="row">
+    <td class="col-sm-4"><code>{{condition.key}}</code></td>
+    <td class="col-sm-2">
+{% if condition.compare == 'eq' %}
+      <code>=</code>
+{% elif condition.compare == 'gt' %}
+      <code>&gt;</code>
+{% elif condition.compare == 'ge' %}
+      <code>&ge;</code>
+{% elif condition.compare == 'lt' %}
+      <code>&lt;</code>
+{% elif condition.compare == 'le' %}
+      <code>&le;</code>
+{% elif condition.compare == 'glob' %}
+      <code>Glob</code>
+{% elif condition.compare == 'regex' %}
+      <code>Regex</code>
+{% else %}
+      Comparison invalid!
+{% endif %}
+    </td>
+    <td class="col-sm-4">
+      <code>{{format_truncate(condition.value,39)}}</code>
+    </td>
+    <td class="col-sm-2">
+{% if g.user.check_for_issue(issue) %}
+      <a class="btn btn-danger" href="/lvfs/issue/{{issue.issue_id}}/condition/{{condition.condition_id}}/delete" role="button">Delete</a>
+{% endif %}
+    </td>
+  </tr>
+{% endfor %}
+{% endif %}
+{% if g.user.check_for_issue(issue) %}
+  <tr class="row">
+    <form method="post" action="/lvfs/issue/{{issue.issue_id}}/condition/add">
+    <td class="col-sm-4">
+      <input type="text" class="form-control" name="key" value="" placeholder="Key..." required>
+    </td>
+    <td class="col-sm-2">
+      <select class="form-control" name="compare">
+        <option value="eq" selected>=</option>
+        <option value="gt">&gt;</option>
+        <option value="ge">&ge;</option>
+        <option value="lt">&lt;</option>
+        <option value="le">&le;</option>
+        <option value="glob">Glob</option>
+        <option value="regex">Regex</option>
+      </select>
+    </td>
+    <td class="col-sm-4">
+      <input type="text" class="form-control" name="value" value="" placeholder="Value..." required>
+    </td>
+    <td class="col-sm-2">
+      <input type="submit" class="btn btn-primary" class="submit" value="Add">
+    </td>
+    </form>
+  </tr>
+{% endif %}
+</table>
+</div>
+
+<a class="btn btn-info" href="/lvfs/issue/all" role="button">&laquo; Back to issues</a>
+
+</div> <!-- container -->
+{% endblock %}

@@ -48,7 +48,11 @@
 {% elif r.state == 2 %}
       <p class="text-success">Success</p>
 {% elif r.state == 3 %}
+{% if r.issue_id > 0 %}
+      <p class="text-info">Triaged <a class="text-muted" href="/lvfs/issue/{{r.issue_id}}/modify">[issue]</a></p>
+{% else %}
       <p class="text-danger">Failed</p>
+{% endif %}
 {% else %}
       <p class="text-danger">Invalid!</p>
 {% endif %}

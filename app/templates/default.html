@@ -52,6 +52,9 @@
 {% if g.user.check_capability('analyst') %}
               <a class="dropdown-item" href="/lvfs/telemetry">Telemetry</a>
 {% endif %}
+{% if g.user.check_capability('qa') %}
+              <a class="dropdown-item" href="/lvfs/issue/all">Known Issues</a>
+{% endif %}
               <a class="dropdown-item" href="/lvfs/metadata">Metadata URLs</a>
             </div>
           </li>

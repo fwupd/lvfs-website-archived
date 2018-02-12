@@ -229,17 +229,23 @@ def firmware_show(firmware_id):
     # get the reports for this firmware
     reports_success = 0
     reports_failure = 0
+    reports_issue = 0
     reports = db.session.query(Report).filter(Report.firmware_id == firmware_id).all()
     for r in reports:
         if r.state == 2:
             reports_success += 1
-        elif r.state == 3:
-            reports_failure += 1
+        if r.state == 3:
+            if r.issue_id:
+                reports_issue += 1
+            else:
+                reports_failure += 1
+
     return render_template('firmware-details.html',
                            fw=fw,
                            orig_filename='-'.join(fw.filename.split('-')[1:]),
                            embargo_url=embargo_url,
                            reports_success=reports_success,
+                           reports_issue=reports_issue,
                            reports_failure=reports_failure)
 
 def _get_stats_for_fn(size, interval, filename):
