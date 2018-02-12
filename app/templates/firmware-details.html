@@ -68,9 +68,11 @@
     <th class="col-sm-4">Downloads</th>
     <td class="col-sm-4">{{fw.download_cnt}}</td>
     <td class="col-sm-4 text-right">
+{% if g.user.check_capability('analyst') %}
       <form method="get" action="/lvfs/firmware/{{fw.firmware_id}}/analytics">
-        <button class="btn btn-info">Logs</button>
+        <button class="btn btn-info">Analytics</button>
       </form>
+{% endif %}
     </td>
   </tr>
   <tr class="row">

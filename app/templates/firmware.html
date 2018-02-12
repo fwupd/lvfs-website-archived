@@ -7,7 +7,11 @@
 
 {% if fw_by_name|length == 0 %}
 <p>
+{% if g.user.check_capability('qa') %}
   No firmware has been uploaded to the &lsquo;{{g.user.group_id}}&rsquo; QA group yet.
+{% else %}
+  No firmware has been uploaded yet.
+{% endif %}
 </p>
 
 {% else %}

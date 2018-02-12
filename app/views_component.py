@@ -27,7 +27,7 @@ def firmware_component_show(component_id, page='overview'):
     fw = md.fw
     if not fw:
         return _error_internal('No firmware matched!')
-    if not g.user.check_group_id(fw.group_id):
+    if not g.user.check_for_firmware(fw, readonly=True):
         return _error_permission_denied('Unable to view other vendor firmware')
 
     return render_template('firmware-md-' + page + '.html',
@@ -51,7 +51,7 @@ def firmware_requirement_delete(requirement_id):
         return _error_internal('No firmware matched!')
 
     # we can only modify our own firmware, unless admin
-    if not g.user.check_group_id(fw.group_id):
+    if not g.user.check_for_firmware(fw):
         return _error_permission_denied('Unable to modify other vendor firmware')
 
     # remove chid
@@ -87,7 +87,7 @@ def firmware_requirement_add():
         return _error_internal('No firmware matched!')
 
     # we can only modify our own firmware, unless admin
-    if not g.user.check_group_id(fw.group_id):
+    if not g.user.check_for_firmware(fw):
         return _error_permission_denied('Unable to modify other vendor firmware')
 
     # validate CHID is a valid GUID

@@ -67,6 +67,11 @@ class LvfsTestCase(unittest.TestCase):
         rv = self._logout()
         assert b'/lvfs/upload' not in rv.data, rv.data
 
+    def delete_firmware(self, firmware_id='e133637179fa7c37d7a36657c7e302edce3d0fce'):
+        rv = self.app.get('/lvfs/firmware/%s/delete_force' % firmware_id,
+                          follow_redirects=True)
+        assert b'Firmware deleted' in rv.data, rv.data
+
     def _add_user(self, username, group_id, password, email):
         return self.app.post('/lvfs/user/add', data=dict(
             password_new=password,
@@ -77,9 +82,19 @@ class LvfsTestCase(unittest.TestCase):
         ), follow_redirects=True)
 
     def add_user(self, username='testuser', group_id='testgroup',
-                 password='Pa$$w0rd', email='test@test.com'):
+                 password='Pa$$w0rd', email='test@test.com',
+                 is_qa=False, is_analyst=False):
         rv = self._add_user(username, group_id, password, email)
         assert b'Added user' in rv.data, rv.data
+        if is_qa or is_analyst:
+            data = {'is_enabled': '1'}
+            if is_qa:
+                data['is_qa'] = '1'
+            if is_analyst:
+                data['is_analyst'] = '1'
+            rv = self.app.post('/lvfs/user/%s/modify_by_admin' % username,
+                               data=data, follow_redirects=True)
+            assert b'Updated profile' in rv.data, rv.data
 
     def _upload(self, filename, target):
         fd = open(filename, 'rb')
@@ -174,9 +189,106 @@ class LvfsTestCase(unittest.TestCase):
         # test deleting the firmware
         rv = self.app.get('/lvfs/firmware/e133637179fa7c37d7a36657c7e302edce3d0fce/delete')
         assert b'Irrevocably Remove Firmware' in rv.data, rv.data
+        self.delete_firmware()
+
+    def test_user_delete_wrong_user(self):
+
+        # create user
+        self.login()
+        self.add_user('testuser')
+        self.add_user('otheruser')
+        self.logout()
+
+        # upload as testuser
+        self.login('testuser')
+        self.upload()
+        self.logout()
+
+        # try to delete as otheruser
+        self.login('otheruser')
         rv = self.app.get('/lvfs/firmware/e133637179fa7c37d7a36657c7e302edce3d0fce/delete_force',
                           follow_redirects=True)
-        assert b'Firmware deleted' in rv.data, rv.data
+        assert b'Firmware deleted' not in rv.data, rv.data
+        assert b'Insufficient permissions to delete firmware' in rv.data, rv.data
+
+    def test_user_delete_qa_wrong_group(self):
+
+        # create user
+        self.login()
+        self.add_user('testuser')
+        self.add_user('otheruser', 'different_group', is_qa=True)
+        self.logout()
+
+        # upload as testuser
+        self.login('testuser')
+        self.upload()
+        self.logout()
+
+        # try to delete as otheruser
+        self.login('otheruser')
+        rv = self.app.get('/lvfs/firmware/e133637179fa7c37d7a36657c7e302edce3d0fce/delete_force',
+                          follow_redirects=True)
+        assert b'Firmware deleted' not in rv.data, rv.data
+        assert b'Insufficient permissions to delete firmware' in rv.data, rv.data
+
+    def test_user_only_view_own_firmware(self):
+
+        # create User:alice, User:bob, Analyst:clara, and QA:mario
+        self.login()
+        self.add_user('alice')
+        self.add_user('bob')
+        self.add_user('clara', is_analyst=True)
+        self.add_user('mario', is_qa=True)
+        self.logout()
+
+        # let alice upload a file to embargo
+        self.login('alice')
+        self.upload('embargo')
+        rv = self.app.get('/lvfs/firmware/e133637179fa7c37d7a36657c7e302edce3d0fce')
+        assert b'/downloads/e133637179fa7c37d7a36657c7e302edce3d0fce' in rv.data, rv.data
+        rv = self.app.get('/lvfs/firmware')
+        assert b'e133637179fa7c37d7a36657c7e302edce3d0fce' in rv.data, rv.data
+        rv = self.app.get('/lvfs/firmware/e133637179fa7c37d7a36657c7e302edce3d0fce/analytics/clients')
+        assert b'Insufficient permissions to view analytics' in rv.data, rv.data
+        self.logout()
+
+        # bob can't see the file, nor can upload a duplicate
+        self.login('bob')
+        rv = self._upload('contrib/hughski-colorhug2-2.0.3.cab', 'embargo')
+        assert b'Another user has already uploaded this firmware' in rv.data, rv.data
+        rv = self.app.get('/lvfs/firmware/e133637179fa7c37d7a36657c7e302edce3d0fce')
+        assert b'Insufficient permissions to view firmware' in rv.data, rv.data
+        rv = self.app.get('/lvfs/firmware')
+        assert b'No firmware has been uploaded yet' in rv.data, rv.data
+        rv = self.app.get('/lvfs/firmware/e133637179fa7c37d7a36657c7e302edce3d0fce/analytics/clients')
+        assert b'Insufficient permissions to view analytics' in rv.data, rv.data
+        self.logout()
+
+        # clara can see all firmwares, but can't promote them
+        self.login('clara')
+        rv = self.app.get('/lvfs/firmware/e133637179fa7c37d7a36657c7e302edce3d0fce')
+        assert b'/downloads/e133637179fa7c37d7a36657c7e302edce3d0fce' in rv.data, rv.data
+        rv = self.app.get('/lvfs/firmware')
+        assert b'e133637179fa7c37d7a36657c7e302edce3d0fce' in rv.data, rv.data
+        rv = self.app.get('/lvfs/firmware/e133637179fa7c37d7a36657c7e302edce3d0fce/analytics/clients')
+        assert b'Recent Activity' in rv.data, rv.data
+        rv = self.app.get('/lvfs/firmware/e133637179fa7c37d7a36657c7e302edce3d0fce/promote/testing',
+                          follow_redirects=True)
+        assert b'Permission denied: No QA access' in rv.data, rv.data
+        self.logout()
+
+        # mario can see things from both users and promote
+        self.login('mario')
+        rv = self.app.get('/lvfs/firmware/e133637179fa7c37d7a36657c7e302edce3d0fce')
+        assert b'/downloads/e133637179fa7c37d7a36657c7e302edce3d0fce' in rv.data, rv.data
+        rv = self.app.get('/lvfs/firmware')
+        assert b'e133637179fa7c37d7a36657c7e302edce3d0fce' in rv.data, rv.data
+        rv = self.app.get('/lvfs/firmware/e133637179fa7c37d7a36657c7e302edce3d0fce/analytics/clients')
+        assert b'Recent Activity' in rv.data, rv.data
+        rv = self.app.get('/lvfs/firmware/e133637179fa7c37d7a36657c7e302edce3d0fce/promote/testing',
+                          follow_redirects=True)
+        assert b'>testing<' in rv.data, rv.data
+        self.logout()
 
     def test_eventlog(self):
 
@@ -597,8 +709,7 @@ class LvfsTestCase(unittest.TestCase):
 
         # create ODM user as admin
         self.login()
-        rv = self._add_user('testuser', 'testgroup', 'Pa$$w0rd', 'test@test.com')
-        assert b'Added user' in rv.data, rv.data
+        self.add_user('testuser')
         self.logout()
 
         # login and upload firmware to embargo
