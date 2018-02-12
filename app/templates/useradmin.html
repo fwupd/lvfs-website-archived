@@ -26,25 +26,25 @@
   <div class="form-group">
     <label for="is_enabled">
       <input class="checkbox" type="checkbox" name="is_enabled" value="1" {{'checked' if u.is_enabled}} />
-      Account enabled:
+      Account enabled
     </label>
   </div>
   <div class="form-group">
     <label for="is_locked">
       <input class="checkbox" type="checkbox" name="is_locked" value="1" {{'checked' if u.is_locked}} />
-      Prevent password change:
+      Prevent password change
     </label>
   </div>
   <div class="form-group">
     <label for="is_analyst">
       <input class="checkbox" type="checkbox" name="is_analyst" value="1" {{'checked' if u.is_analyst}} />
-      Allow viewing analytics reports:
+      Allow read-only access to all firmware in group
     </label>
   </div>
   <div class="form-group">
     <label for="is_qa">
       <input class="checkbox" type="checkbox" name="is_qa" value="1" {{'checked' if u.is_qa}} />
-      Allow moving to testing and stable:
+      Allow moving firmware in group to testing and stable
     </label>
   </div>
 {% endif %}

@@ -46,14 +46,26 @@ class User(db.Base):
         self.group_id = group_id
         self.is_locked = is_locked
 
-    def check_group_id(self, group_id):
+    def check_for_firmware(self, fw, readonly=False):
 
-        # admin can see everything
+        # locked accounts can never see firmware
+        if not self.is_enabled:
+            return False
+
+        # anyone in the admin group can see everything
         if self.group_id == 'admin':
             return True
 
-        # typically used when checking if a vendor can delete firmware
-        if self.group_id == group_id:
+        # QA user can modify any firmware matching group_id
+        if self.is_qa and self.group_id == fw.group_id:
+            return True
+
+        # Analyst user can view (but not modify) any firmware matching group_id
+        if readonly and self.is_analyst and self.group_id == fw.group_id:
+            return True
+
+        # User can see firmwares in the group owned by them
+        if self.group_id == fw.group_id and self.username == fw.username:
             return True
 
         # something else
@@ -342,6 +354,7 @@ class Firmware(db.Base):
     version_display = Column(String(255), nullable=True, default=None)
     target = Column(String(255), nullable=False)
     checksum = Column(String(40), nullable=False)
+    username = Column(String(40), default=None)
 
     # include all Component objects
     mds = relationship("Component", back_populates="fw")
@@ -357,6 +370,7 @@ class Firmware(db.Base):
         self.version_display = None # from the firmware.inf file
         self.download_cnt = 0       # generated from the client database
         self.checksum = None        # SHA1 of the signed .cab
+        self.username = None        # username of the uploader
         self.mds = []
 
     def __repr__(self):

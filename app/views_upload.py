@@ -75,8 +75,11 @@ def upload():
     # check the file does not already exist
     fw = db.session.query(Firmware).filter(Firmware.firmware_id == ufile.firmware_id).first()
     if fw:
-        flash('A firmware file with hash %s already exists' % fw.firmware_id, 'danger')
-        return redirect('/lvfs/firmware/%s' % fw.firmware_id)
+        if g.user.check_for_firmware(fw):
+            flash('A firmware file with hash %s already exists' % fw.firmware_id, 'warning')
+            return redirect('/lvfs/firmware/%s' % fw.firmware_id)
+        flash('Another user has already uploaded this firmware', 'warning')
+        return redirect('/lvfs/upload')
 
     # check the guid and version does not already exist
     fws = db.session.query(Firmware).all()
@@ -131,6 +134,7 @@ def upload():
     target = request.form['target']
     fw = Firmware()
     fw.group_id = g.user.group_id
+    fw.username = g.user.username
     fw.addr = _get_client_address()
     fw.filename = ufile.filename_new
     fw.firmware_id = ufile.firmware_id
@@ -197,6 +201,7 @@ def upload():
     db.session.commit()
 
     # set correct response code
+    flash('Uploaded firmware to %s' % target, 'info')
     _event_log("Uploaded file %s to %s" % (ufile.filename_new, target))
 
     # ensure up to date

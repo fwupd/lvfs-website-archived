@@ -50,6 +50,10 @@
     <td class="col-sm-8" colspan="2"><a href="{{embargo_url}}">{{fw.group_id}}</a></td>
   </tr>
   <tr class="row">
+    <th class="col-sm-4">Uploader</th>
+    <td class="col-sm-8" colspan="2"><a href="/lvfs/profile">{{fw.username}}</a></td>
+  </tr>
+  <tr class="row">
     <th class="col-sm-4">Uploaded from</th>
     <td class="col-sm-8" colspan="2"><code>{{fw.addr}}</code></td>
   </tr>
@@ -64,9 +68,11 @@
     <th class="col-sm-4">Downloads</th>
     <td class="col-sm-4">{{fw.download_cnt}}</td>
     <td class="col-sm-4 text-right">
+{% if g.user.check_capability('analyst') %}
       <form method="get" action="/lvfs/firmware/{{fw.firmware_id}}/analytics">
-        <button class="btn btn-info">Logs</button>
+        <button class="btn btn-info">Analytics</button>
       </form>
+{% endif %}
     </td>
   </tr>
   <tr class="row">

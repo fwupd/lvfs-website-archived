@@ -35,7 +35,7 @@ class Database(object):
     def modify_db(self):
 
         # get current schema version
-        from .models import Setting, Component, Requirement, Firmware, Guid
+        from .models import Setting, Component, Requirement, Firmware, Guid, EventLogItem
         setting = self.session.query(Setting).filter(Setting.key == 'db_schema_version').first()
         if not setting:
             print('Setting initial schema version')
@@ -110,6 +110,33 @@ class Database(object):
                     self.session.add(Guid(md.component_id, guid))
             setting.value = 12
             self.session.commit()
+            return
+
+        # version 13 adds the uploader username to the firmware table
+        if int(setting.value) == 12:
+            print('Adding username to Firmware table')
+            self.engine.execute('ALTER TABLE firmware ADD username VARCHAR(40) DEFAULT NULL;')
+            setting.value = 14
+            self.session.commit()
+            return
+
+        # version 14 migrates the username using the event log
+        if int(setting.value) == 13:
+            print('Fixing username for each Firmware entry using event log')
+            for fw in self.session.query(Firmware).all():
+                msgtxt = 'Uploaded file ' + fw.firmware_id + '%'
+                ev = self.session.query(EventLogItem).\
+                            filter(EventLogItem.message.like(msgtxt)).\
+                            order_by(EventLogItem.id.desc()).first()
+                if not ev:
+                    print('Failed to get owner for %s' % fw.firmware_id)
+                    continue
+                fw.username = ev.username
+            setting.value = 14
+            self.session.commit()
+            return
+
+        print('No schema changes required')
 
         # next version can remove md.unused_requirements, md.unused_checksum and md.unused_guid
         #self.engine.execute('ALTER TABLE components DROP COLUMN requirements;')
