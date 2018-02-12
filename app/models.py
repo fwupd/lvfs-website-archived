@@ -342,6 +342,7 @@ class Firmware(db.Base):
     version_display = Column(String(255), nullable=True, default=None)
     target = Column(String(255), nullable=False)
     checksum = Column(String(40), nullable=False)
+    username = Column(String(40), default=None)
 
     # include all Component objects
     mds = relationship("Component", back_populates="fw")
@@ -357,6 +358,7 @@ class Firmware(db.Base):
         self.version_display = None # from the firmware.inf file
         self.download_cnt = 0       # generated from the client database
         self.checksum = None        # SHA1 of the signed .cab
+        self.username = None        # username of the uploader
         self.mds = []
 
     def __repr__(self):
