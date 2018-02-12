@@ -108,21 +108,14 @@ def user_modify_by_admin(username):
     if not user:
         return _error_internal('No user with that username', 422)
 
-    # set each thing in turn
-    for key in ['group_id',
-                'display_name',
-                'email',
-                'is_enabled',
-                'is_qa',
-                'is_analyst',
-                'is_locked']:
-        # unchecked checkbuttons are not included in the form data
+    # set each optional thing in turn
+    for key in ['group_id', 'display_name', 'email']:
         if key in request.form:
-            tmp = request.form[key]
-        else:
-            tmp = False
-        # Using an ORM is somewhat magic....
-        setattr(user, key, tmp)
+            setattr(user, key, request.form[key])
+
+    # unchecked checkbuttons are not included in the form data
+    for key in ['is_enabled', 'is_qa', 'is_analyst', 'is_locked']:
+        setattr(user, key, True if key in request.form else False)
 
     # password is optional, and hashed
     if 'password' in request.form:
