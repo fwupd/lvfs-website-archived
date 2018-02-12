@@ -90,6 +90,7 @@ class LvfsTestCase(unittest.TestCase):
 
     def upload(self, target='private'):
         rv = self._upload('contrib/hughski-colorhug2-2.0.3.cab', target)
+        assert b'Uploaded firmware' in rv.data, rv.data
         assert b'com.hughski.ColorHug2.firmware' in rv.data, rv.data
         assert b'e133637179fa7c37d7a36657c7e302edce3d0fce' in rv.data, rv.data
 

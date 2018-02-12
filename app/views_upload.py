@@ -198,6 +198,7 @@ def upload():
     db.session.commit()
 
     # set correct response code
+    flash('Uploaded firmware to %s' % target, 'info')
     _event_log("Uploaded file %s to %s" % (ufile.filename_new, target))
 
     # ensure up to date
