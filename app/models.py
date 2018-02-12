@@ -3,6 +3,8 @@
 #
 # Copyright (C) 2015-2018 Richard Hughes <richard@hughsie.com>
 # Licensed under the GNU General Public License Version 2
+#
+# pylint: disable=too-few-public-methods,too-many-instance-attributes
 
 import datetime
 
@@ -164,7 +166,7 @@ class Vendor(db.Base):
         self.is_uploading = None
         self.comments = None
 
-    def _get_sorting_key(self):
+    def get_sort_key(self):
         val = 0
         if self.is_fwupd_supported == 'yes':
             val += 0x200
@@ -179,6 +181,7 @@ class Vendor(db.Base):
         if self.is_uploading == 'na':
             val += 0x1
         return val
+
     def __repr__(self):
         return "Vendor object %s" % self.group_id
 
@@ -280,7 +283,7 @@ class Component(db.Base):
     release_urgency = Column(String(16))
     screenshot_url = Column(Text)
     screenshot_caption = Column(Text)
-    unused_requirements = Column('requirements', Text) # FIXME: remove
+    unused_requirements = Column('requirements', Text)
 
     # link back to parent
     fw = relationship("Firmware", back_populates="mds")

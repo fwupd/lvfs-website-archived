@@ -3,6 +3,8 @@
 #
 # Copyright (C) 2015-2018 Richard Hughes <richard@hughsie.com>
 # Licensed under the GNU General Public License Version 2
+#
+# pylint: disable=wrong-import-position,wrong-import-order
 
 import os
 import sqlalchemy

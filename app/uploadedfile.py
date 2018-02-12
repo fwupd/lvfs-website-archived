@@ -3,6 +3,8 @@
 #
 # Copyright (C) 2015-2018 Richard Hughes <richard@hughsie.com>
 # Licensed under the GNU General Public License Version 2
+#
+# pylint: disable=fixme,too-many-instance-attributes
 
 import os
 import hashlib
@@ -94,6 +96,7 @@ class UploadedFile(object):
         self.firmware_id = None
         self.filename_new = None
         self.fwupd_min_version = '0.8.0'    # a guess, but everyone should have this
+        self.version_display = None
 
         # strip out any unlisted files
         self._repacked_cfarchive = GCab.Cabinet.new()
@@ -105,7 +108,6 @@ class UploadedFile(object):
         self._data_size = 0
         self._ploader = ploader
         self._src_arc = None
-        self._version_inf_display = None
         self._version_inf = None
 
     def _load_archive(self, filename, data):
@@ -131,26 +133,26 @@ class UploadedFile(object):
         cfg = InfParser()
         try:
             cfg.read_data(contents)
-        except ConfigParser.MissingSectionHeaderError as e:
+        except ConfigParser.MissingSectionHeaderError as _:
             raise MetadataInvalid('The inf file could not be parsed')
         try:
             tmp = cfg.get('Version', 'Class')
-        except (ConfigParser.NoOptionError, ConfigParser.NoSectionError) as e:
+        except (ConfigParser.NoOptionError, ConfigParser.NoSectionError) as _:
             raise MetadataInvalid('The inf file Version:Class was missing')
         if tmp != 'Firmware':
             raise MetadataInvalid('The inf file Version:Class was invalid')
         try:
             tmp = cfg.get('Version', 'ClassGuid')
-        except ConfigParser.NoOptionError as e:
+        except ConfigParser.NoOptionError as _:
             raise MetadataInvalid('The inf file Version:ClassGuid was missing')
         if tmp != '{f2e7dd72-6468-4e36-b6f1-6488f42c1b52}':
             raise MetadataInvalid('The inf file Version:ClassGuid was invalid')
         try:
-            tmp = cfg.get('Version', 'DriverVer')
-            self._version_inf_display = tmp.split(',')
-            if len(self._version_inf_display) != 2:
+            tmp = cfg.get('Version', 'DriverVer').split(',')
+            if len(tmp) != 2:
                 raise MetadataInvalid('The inf file Version:DriverVer was invalid')
-        except ConfigParser.NoOptionError as e:
+            self.version_display = tmp[1]
+        except ConfigParser.NoOptionError as _:
             pass
 
         # this is optional, but if supplied must match the version in the XML
@@ -161,7 +163,7 @@ class UploadedFile(object):
                 self._version_inf = str(int(self._version_inf[2:], 16))
             if self._version_inf == '0':
                 self._version_inf = None
-        except (ConfigParser.NoOptionError, ConfigParser.NoSectionError) as e:
+        except (ConfigParser.NoOptionError, ConfigParser.NoSectionError) as _:
             pass
 
     def _verify_infs(self):

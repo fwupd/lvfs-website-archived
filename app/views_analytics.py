@@ -29,7 +29,7 @@ def analytics_month():
     # this is somewhat klunky
     data = []
     now = datetime.date.today()
-    for i in range(30):
+    for _ in range(30):
         datestr = _get_datestr_from_datetime(now)
         analytic = db.session.query(Analytic).\
                         filter(Analytic.kind == DownloadKind.FIRMWARE).\
@@ -59,7 +59,7 @@ def analytics_year():
     # this is somewhat klunky
     data = []
     now = datetime.date.today()
-    for i in range(12):
+    for _ in range(12):
         datestrold = _get_datestr_from_datetime(now)
         now -= datetime.timedelta(days=30)
         datestrnew = _get_datestr_from_datetime(now)

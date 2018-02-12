@@ -136,8 +136,8 @@ def upload():
     fw.firmware_id = ufile.firmware_id
     fw.target = target
     fw.checksum = hashlib.sha1(cab_data).hexdigest()
-    if ufile._version_inf_display:
-        fw.version_display = ufile._version_inf_display[1]
+    if ufile.version_display:
+        fw.version_display = ufile.version_display
 
     # create child metadata object for the component
     for component in ufile.get_components():

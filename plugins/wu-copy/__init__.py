@@ -3,6 +3,8 @@
 #
 # Copyright (C) 2018 Richard Hughes <richard@hughsie.com>
 # Licensed under the GNU General Public License Version 2
+#
+# pylint: disable=no-self-use
 
 from app.pluginloader import PluginBase, PluginSettingBool
 from app.util import _get_settings

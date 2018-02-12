@@ -3,6 +3,8 @@
 #
 # Copyright (C) 2015 Richard Hughes <richard@hughsie.com>
 # Licensed under the GNU General Public License Version 2
+#
+# pylint: disable=arguments-differ
 
 from __future__ import print_function
 

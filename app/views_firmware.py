@@ -97,7 +97,7 @@ def firmware_modify(firmware_id):
                 txt = AppStreamGlib.markup_import(txt, AppStreamGlib.MarkupConvertFormat.SIMPLE)
             try:
                 AppStreamGlib.markup_validate(txt)
-            except GLib.Error as e:
+            except GLib.Error as e: # pylint: disable=catching-non-exception
                 return _error_internal("Failed to parse %s: %s" % (txt, str(e)))
             md.release_description = txt
 

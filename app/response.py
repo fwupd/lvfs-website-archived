@@ -3,6 +3,8 @@
 #
 # Copyright (C) 2017 Richard Hughes <richard@hughsie.com>
 # Licensed under the GNU General Public License Version 2
+#
+# pylint: disable=too-many-ancestors
 
 from flask import Response
 from werkzeug.datastructures import Headers

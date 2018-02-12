@@ -14,8 +14,8 @@ from .models import UserCapability, Vendor
 
 # sort by awesomeness
 def _sort_vendor_func(a, b):
-    a_val = a._get_sorting_key()
-    b_val = b._get_sorting_key()
+    a_val = a.get_sort_key()
+    b_val = b.get_sort_key()
     if a_val > b_val:
         return -1
     if a_val < b_val:
