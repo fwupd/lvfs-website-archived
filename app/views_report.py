@@ -56,7 +56,7 @@ def json_error(msg=None, errcode=400):
     item = {}
     item['success'] = False
     if msg:
-        item['msg'] = msg
+        item['msg'] = str(msg)
     dat = json.dumps(item, sort_keys=True, indent=4, separators=(',', ': '))
     return Response(response=dat,
                     status=errcode, \
