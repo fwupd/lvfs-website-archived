@@ -64,21 +64,13 @@ def json_error(msg=None, errcode=400):
                     status=errcode, \
                     mimetype="application/json")
 
-def _do_all_contitions_match(issue, data):
-    for condition in issue.conditions:
-        if not condition.key in data:
-            return False
-        if not condition.matches(data[condition.key]):
-            return False
-    return True
-
 def _find_issue_for_report_data(data, fw):
     for issue in db.session.query(Issue).all():
         if not issue.enabled:
             continue
         if issue.group_id != 'admin' and issue.group_id != fw.group_id:
             continue
-        if _do_all_contitions_match(issue, data):
+        if issue.matches(data):
             return issue
     return None
 
@@ -170,7 +162,7 @@ def firmware_report():
                               issue_id=issue_id,
                               state=report['UpdateState'],
                               checksum=checksum,
-                              json=json_raw))
+                              json_raw=json_raw))
 
     # all done
     db.session.commit()

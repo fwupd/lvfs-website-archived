@@ -9,6 +9,7 @@
 import datetime
 import fnmatch
 import re
+import json
 
 from sqlalchemy import Column, Integer, String, Text, Boolean, DateTime, ForeignKey, Index
 from sqlalchemy.orm import relationship
@@ -487,8 +488,29 @@ class Issue(db.Base):
         self.group_id = group_id
         self.priority = priority
 
+    def matches(self, data):
+        """ if all conditions are satisfied from data """
+        for condition in self.conditions:
+            if not condition.key in data:
+                return False
+            if not condition.matches(data[condition.key]):
+                return False
+        return True
+
     def __repr__(self):
         return "Issue object %s" % self.url
+
+def _get_flat_dict_from_json(txt):
+    data = {}
+    items = json.loads(txt)
+    for key in items:
+        if key == 'Metadata':
+            items2 = items[key]
+            for key2 in items2:
+                data[key2] = items2[key2]
+            continue
+        data[key] = items[key]
+    return data
 
 class Report(db.Base):
 
@@ -503,16 +525,20 @@ class Report(db.Base):
     checksum = Column(String(64), nullable=False)
     issue_id = Column(Integer, default=0)
 
-    def __init__(self, firmware_id=None, machine_id=None, state=0, checksum=None, json=None, issue_id=0):
+    def __init__(self, firmware_id=None, machine_id=None, state=0, checksum=None, json_raw=None, issue_id=0):
         """ Constructor for object """
         self.id = 0
         self.timestamp = None
         self.state = state
-        self.json = json
+        self.json = json_raw
         self.machine_id = machine_id
         self.firmware_id = firmware_id
         self.issue_id = issue_id
         self.checksum = checksum
+
+    def to_flat_dict(self):
+        return _get_flat_dict_from_json(self.json)
+
     def __repr__(self):
         return "Report object %s" % self.id
 

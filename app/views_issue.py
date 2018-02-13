@@ -9,7 +9,7 @@ from flask_login import login_required
 
 from app import app, db
 
-from .models import Issue, Condition, UserCapability
+from .models import Issue, Condition, Report, Firmware, UserCapability
 from .util import _error_internal, _error_permission_denied
 
 @app.route('/lvfs/issue/all')
@@ -186,6 +186,47 @@ def issue_details(issue_id):
 
     # show details
     return render_template('issue-details.html', issue=issue)
+
+@app.route('/lvfs/issue/<int:issue_id>/reports')
+@login_required
+def issue_reports(issue_id):
+
+    # find issue
+    issue = db.session.query(Issue).\
+            filter(Issue.issue_id == issue_id).first()
+    if not issue:
+        flash('No issue found', 'info')
+        return redirect(url_for('.issue_all'))
+
+    # permission check
+    if not g.user.check_for_issue(issue, readonly=True):
+        return _error_permission_denied('Unable to view issue reports')
+
+    # check firmware details are available to this user, and check if it matches
+    reports = []
+    reports_hidden = []
+    reports_cnt = 0
+    for report in db.session.query(Report).all():
+        data = report.to_flat_dict()
+        if not issue.matches(data):
+            continue
+        reports_cnt += 1
+
+        # limit this to the latest 10 reports
+        if reports_cnt < 10:
+            fw = db.session.query(Firmware).\
+                    filter(Firmware.firmware_id == report.firmware_id).first()
+            if not g.user.check_for_firmware(fw, readonly=True):
+                reports_hidden.append(report)
+                continue
+            reports.append(report)
+
+    # show reports
+    return render_template('issue-reports.html',
+                           issue=issue,
+                           reports=reports,
+                           reports_hidden=reports_hidden,
+                           reports_cnt=reports_cnt)
 
 @app.route('/lvfs/issue/<int:issue_id>/conditions')
 @login_required

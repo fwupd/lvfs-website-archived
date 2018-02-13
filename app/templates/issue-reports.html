@@ -1,0 +1,52 @@
+{% extends "default.html" %}
+{% block title %}Issue Details{% endblock %}
+
+{% block content %}
+<div class="container mt-3">
+
+<nav>
+  <ul class="nav nav-tabs">
+    <li class="nav-item">
+      <a class="nav-link" href="/lvfs/issue/{{issue.issue_id}}/details">Details</a>
+    </li>
+    <li class="nav-item">
+      <a class="nav-link" href="/lvfs/issue/{{issue.issue_id}}/conditions">Conditions</a>
+    </li>
+    <li class="nav-item">
+      <a class="nav-link active" href="/lvfs/issue/{{issue.issue_id}}/reports">Matching Reports</a>
+    </li>
+  </ul>
+</nav>
+
+<div class="container mt-3">
+<h2>Reports matching this issue ({{reports_cnt}})</h2>
+{% if reports_cnt > 0 %}
+<table class="table">
+  <tr class="row">
+    <th class="col-sm-2">Timestamp</th>
+    <th class="col-sm-10">Full Report</th>
+  </tr>
+{% for r in reports %}
+  <tr class="row">
+    <td class="col-sm-2">{{r.timestamp}}</td>
+    <td class="col-sm-10"><code>{{r.json}}</code></td>
+  </tr>
+{% endfor %}
+{% for r in reports_hidden %}
+  <tr class="row">
+    <td class="col-sm-2">{{r.timestamp}}</td>
+    <td class="col-sm-10"><code>JSON not available for security level</code></td>
+  </tr>
+{% endfor %}
+</table>
+{% else %}
+<div class="alert alert-light" role="alert">
+  None!
+</div>
+{% endif %}
+</div>
+
+<a class="btn btn-info mt-3" href="/lvfs/issue/all" role="button">&laquo; Back to issues</a>
+
+</div> <!-- container -->
+{% endblock %}
