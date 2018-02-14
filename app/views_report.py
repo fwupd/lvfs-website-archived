@@ -65,7 +65,7 @@ def json_error(msg=None, errcode=400):
                     mimetype="application/json")
 
 def _find_issue_for_report_data(data, fw):
-    for issue in db.session.query(Issue).all():
+    for issue in db.session.query(Issue).order_by(Issue.priority.desc()).all():
         if not issue.enabled:
             continue
         if issue.group_id != 'admin' and issue.group_id != fw.group_id:

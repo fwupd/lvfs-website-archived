@@ -22,7 +22,7 @@ def issue_all():
 
     # only show issues with the correct group_id
     issues = []
-    for issue in db.session.query(Issue).all():
+    for issue in db.session.query(Issue).order_by(Issue.priority.desc()).all():
         if g.user.check_for_issue(issue, readonly=True):
             issues.append(issue)
     return render_template('issue-list.html', issues=issues)
@@ -228,6 +228,33 @@ def issue_details(issue_id):
 
     # show details
     return render_template('issue-details.html', issue=issue)
+
+@app.route('/lvfs/issue/<int:issue_id>/priority/<op>')
+@login_required
+def issue_priority(issue_id, op):
+
+    # find issue
+    issue = db.session.query(Issue).\
+            filter(Issue.issue_id == issue_id).first()
+    if not issue:
+        flash('No issue found', 'info')
+        return redirect(url_for('.issue_all'))
+
+    # permission check
+    if not g.user.check_for_issue(issue):
+        return _error_permission_denied('Unable to change issue priority')
+
+    # change integer priority
+    if op == 'up':
+        issue.priority += 1
+    elif op == 'down':
+        issue.priority -= 1
+    else:
+        return _error_internal('Operation %s invalid!', op)
+    db.session.commit()
+
+    # show details
+    return redirect(url_for('.issue_all'))
 
 @app.route('/lvfs/issue/<int:issue_id>/reports')
 @login_required

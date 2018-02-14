@@ -15,15 +15,14 @@
 <div class="container">
 <table class="table">
   <tr class="row">
-    <th class="col-sm-1">Priority</th>
     <th class="col-sm-3">Name</th>
     <th class="col-sm-5">Description</th>
+    <th class="col-sm-1">Priority</th>
     <th class="col-sm-2">Group</th>
     <th class="col-sm-1">&nbsp;</th>
   </tr>
 {% for issue in issues %}
   <tr class="row">
-    <td class="col-sm-1">{{issue.priority}}</td>
     <td class="col-sm-3">
 {% if issue.enabled %}
       {{issue.name}} <a href="{{issue.url}}">[link]</a>
@@ -32,6 +31,19 @@
 {% endif %}
     </td>
     <td class="col-sm-5">{{issue.description}}</td>
+    <td class="col-sm-1">
+      <h3 class="text-center"><span class="badge badge-secondary">{{issue.priority}}</span></h3>
+{% if g.user.check_for_issue(issue) %}
+{% if issue == issues[0] %}
+      <a class="btn btn-outline-dark btn-block" href="/lvfs/issue/{{issue.issue_id}}/priority/down">▼</a>
+{% elif issue == issues[issues|length-1] %}
+      <a class="btn btn-outline-dark btn-block" href="/lvfs/issue/{{issue.issue_id}}/priority/up">▲</a>
+{% else %}
+      <a class="btn btn-outline-dark mt-1 btn-block" href="/lvfs/issue/{{issue.issue_id}}/priority/up">▲</a>
+      <a class="btn btn-outline-dark btn-block" href="/lvfs/issue/{{issue.issue_id}}/priority/down">▼</a>
+{% endif %}
+{% endif %}
+    </td>
     <td class="col-sm-2">{{issue.group_id}}</td>
     <td class="col-sm-1"><a class="btn btn-info" href="/lvfs/issue/{{issue.issue_id}}/details" role="button">Details &raquo;</a></td>
   </tr>

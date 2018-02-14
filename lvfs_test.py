@@ -861,6 +861,8 @@ class LvfsTestCase(unittest.TestCase):
         self.add_issue(name='Shared', url='https://fwupd.org/')
         self.add_issue_condition()
         self.enable_issue()
+        rv = self.app.get('/lvfs/issue/1/priority/down', follow_redirects=True)
+        assert b'>-1<' in rv.data, rv.data
         self.logout()
 
         # let alice create an issue
@@ -868,6 +870,8 @@ class LvfsTestCase(unittest.TestCase):
         self.add_issue(issue_id=2, name='Secret')
         self.add_issue_condition(issue_id=2)
         self.enable_issue(issue_id=2)
+        rv = self.app.get('/lvfs/issue/2/priority/up', follow_redirects=True)
+        assert b'>1<' in rv.data, rv.data
         self.logout()
 
         # bob can only see the admin issue, not the one from alice
@@ -891,6 +895,8 @@ class LvfsTestCase(unittest.TestCase):
         assert b'Unable to delete report' in rv.data, rv.data
         rv = self.app.get('/lvfs/issue/2/details')
         assert b'Unable to view issue details' in rv.data, rv.data
+        rv = self.app.get('/lvfs/issue/2/priority/up', follow_redirects=True)
+        assert b'Unable to change issue priority' in rv.data, rv.data
 
 if __name__ == '__main__':
     unittest.main()
