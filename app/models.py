@@ -454,6 +454,18 @@ class Condition(db.Base):
             return re.search(self.value, value)
         return False
 
+    @property
+    def relative_cost(self):
+        if self.compare == 'eq':
+            return 0
+        if self.compare in ['lt', 'le', 'gt', 'ge']:
+            return 1
+        if self.compare == 'glob':
+            return 5
+        if self.compare == 'regex':
+            return 10
+        return False
+
     def __init__(self, issue_id=0, key=None, value=None, compare='eq'):
         """ Constructor for object """
         self.issue_id = issue_id
@@ -490,7 +502,7 @@ class Issue(db.Base):
 
     def matches(self, data):
         """ if all conditions are satisfied from data """
-        for condition in self.conditions:
+        for condition in sorted(self.conditions, key=lambda x: x.relative_cost):
             if not condition.key in data:
                 return False
             if not condition.matches(data[condition.key]):

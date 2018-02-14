@@ -33,7 +33,7 @@
   </tr>
 </p>
 {% else %}
-{% for condition in issue.conditions %}
+{% for condition in issue.conditions|sort(attribute='relative_cost') %}
   <tr class="row">
     <td class="col-sm-4"><code>{{condition.key}}</code></td>
     <td class="col-sm-2">
