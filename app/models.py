@@ -414,7 +414,6 @@ class Client(db.Base):
 
     def __init__(self, addr=None, filename=None, user_agent=None, timestamp=None):
         """ Constructor for object """
-        self.id = 0
         self.timestamp = timestamp
         self.addr = addr
         self.filename = filename
@@ -538,7 +537,6 @@ class Report(db.Base):
 
     def __init__(self, firmware_id=None, machine_id=None, state=0, checksum=None, json_raw=None, issue_id=0):
         """ Constructor for object """
-        self.id = 0
         self.timestamp = None
         self.state = state
         self.json = json_raw

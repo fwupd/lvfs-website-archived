@@ -586,7 +586,7 @@ class LvfsTestCase(unittest.TestCase):
         assert b'Report does not exist' in rv.data, rv.data
 
         # check the saved report
-        rv = self.app.get('/lvfs/report/0')
+        rv = self.app.get('/lvfs/report/1')
         assert b'"UpdateState": 2' in rv.data, rv.data
 
         # check the report appeared on the telemetry page
@@ -595,11 +595,11 @@ class LvfsTestCase(unittest.TestCase):
         assert b'>1<' in rv.data, rv.data
 
         # delete the report
-        rv = self.app.get('/lvfs/report/0/delete', follow_redirects=True)
+        rv = self.app.get('/lvfs/report/1/delete', follow_redirects=True)
         assert b'Deleted report' in rv.data, rv.data
 
         # check it is really deleted
-        rv = self.app.get('/lvfs/report/0')
+        rv = self.app.get('/lvfs/report/1')
         assert b'Report does not exist' in rv.data, rv.data
 
     def test_settings(self):
