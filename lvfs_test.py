@@ -906,5 +906,27 @@ class LvfsTestCase(unittest.TestCase):
         rv = self.app.get('/lvfs/issue/2/priority/up', follow_redirects=True)
         assert b'Unable to change issue priority' in rv.data, rv.data
 
+    def test_download_old_fwupd(self):
+
+        # upload a file
+        self.login()
+        self.upload()
+
+        # download with a new version of fwupd
+        rv = self.app.get('/downloads/e133637179fa7c37d7a36657c7e302edce3d0fce-hughski-colorhug2-2.0.3.cab',
+                          environ_base={'HTTP_USER_AGENT': 'fwupd/1.0.5'})
+        assert rv.status_code == 200, rv.status_code
+
+        # download with an old gnome-software and a new fwupd
+        rv = self.app.get('/downloads/e133637179fa7c37d7a36657c7e302edce3d0fce-hughski-colorhug2-2.0.3.cab',
+                          environ_base={'HTTP_USER_AGENT': 'gnome-software/3.20.5 fwupd/1.0.5'})
+        assert rv.status_code == 200, rv.status_code
+
+        # download with an old version of fwupd
+        rv = self.app.get('/downloads/e133637179fa7c37d7a36657c7e302edce3d0fce-hughski-colorhug2-2.0.3.cab',
+                          environ_base={'HTTP_USER_AGENT': 'fwupd/0.7.9999'})
+        assert rv.status_code == 412, rv.status_code
+        assert b'fwupd version too old' in rv.data, rv.data
+
 if __name__ == '__main__':
     unittest.main()

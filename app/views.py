@@ -11,17 +11,42 @@ import datetime
 import math
 
 from flask import session, request, flash, url_for, redirect, render_template
-from flask import send_from_directory, abort, g
+from flask import send_from_directory, abort, Response, g
 from flask_login import login_required, login_user, logout_user
+
+from gi.repository import AppStreamGlib
 
 from app import app, db, lm
 from .db import _execute_count_star
 
-from .models import Firmware, DownloadKind, UserCapability
+from .models import Firmware, DownloadKind, UserCapability, Requirement
 from .models import User, Analytic, Client, Event, Useragent, _get_datestr_from_datetime
 from .hash import _qa_hash, _password_hash, _addr_hash
 from .util import _get_client_address, _get_settings
 from .util import _error_internal, _error_permission_denied
+
+def _user_agent_safe_for_requirement(user_agent):
+
+    # very early versions of fwupd used 'fwupdmgr' as the user agent
+    if user_agent == 'fwupdmgr':
+        return False
+
+    # gnome-software/3.26.5 (Linux x86_64 4.14.0) fwupd/1.0.4
+    sections = user_agent.split(' ')
+    for chunk in sections:
+        toks = chunk.split('/')
+        if len(toks) == 2 and toks[0] == 'fwupd':
+            return AppStreamGlib.utils_vercmp(toks[1], '0.8.0') >= 0
+
+    # this is a heuristic; the logic is that it's unlikely that a distro would
+    # ship a very new gnome-software and a very old fwupd
+    for chunk in sections:
+        toks = chunk.split('/')
+        if len(toks) == 2 and toks[0] == 'gnome-software':
+            return AppStreamGlib.utils_vercmp(toks[1], '3.26.0') >= 0
+
+    # is is probably okay
+    return True
 
 @app.route('/<path:resource>')
 def serveStaticResource(resource):
@@ -43,6 +68,20 @@ def serveStaticResource(resource):
                 filter(Firmware.filename == os.path.basename(resource)).first()
         if not fw:
             abort(404)
+
+        # check the user agent isn't in the blocklist for this firmware
+        for md in fw.mds:
+            req = db.session.query(Requirement).\
+                            filter(Requirement.component_id == md.component_id).\
+                            filter(Requirement.kind == 'id').\
+                            filter(Requirement.value == 'org.freedesktop.fwupd').\
+                            first()
+            if req and user_agent and not _user_agent_safe_for_requirement(user_agent):
+                return Response(response='detected fwupd version too old',
+                                status=412,
+                                mimetype="text/plain")
+
+        # this is cached for easy access on the firmware details page
         fw.download_cnt += 1
 
         # either update the analytics counter, or create one for that day
