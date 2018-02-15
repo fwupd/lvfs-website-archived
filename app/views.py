@@ -57,15 +57,16 @@ def serveStaticResource(resource):
             db.session.add(Analytic(DownloadKind.FIRMWARE, datestr))
 
         # update the user-agent counter
-        user_agent_safe = user_agent.split(' ')[0]
-        ug = db.session.query(Useragent).\
-                        filter(Useragent.value == user_agent_safe).\
-                        filter(Useragent.datestr == datestr).\
-                        first()
-        if ug:
-            ug.cnt += 1
-        else:
-            db.session.add(Useragent(user_agent_safe, datestr))
+        if user_agent:
+            user_agent_safe = user_agent.split(' ')[0]
+            ug = db.session.query(Useragent).\
+                            filter(Useragent.value == user_agent_safe).\
+                            filter(Useragent.datestr == datestr).\
+                            first()
+            if ug:
+                ug.cnt += 1
+            else:
+                db.session.add(Useragent(user_agent_safe, datestr))
 
         # log the client request
         db.session.add(Client(addr=_addr_hash(_get_client_address()),

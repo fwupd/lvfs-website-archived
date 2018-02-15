@@ -138,6 +138,11 @@ class LvfsTestCase(unittest.TestCase):
         assert b'com.hughski.ColorHug2.firmware' in rv.data, rv.data
         assert b'e133637179fa7c37d7a36657c7e302edce3d0fce' in rv.data, rv.data
 
+        # download
+        rv = self.app.get('/downloads/e133637179fa7c37d7a36657c7e302edce3d0fce-hughski-colorhug2-2.0.3.cab')
+        assert rv.status_code == 200, rv.status_code
+        assert len(rv.data) == 10942, len(rv.data)
+
         # check analytics works
         uris = ['/lvfs/firmware/e133637179fa7c37d7a36657c7e302edce3d0fce/analytics',
                 '/lvfs/firmware/e133637179fa7c37d7a36657c7e302edce3d0fce/analytics/clients',
