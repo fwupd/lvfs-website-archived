@@ -557,7 +557,8 @@ class Setting(db.Base):
 
     # sqlalchemy metadata
     __tablename__ = 'settings'
-    key = Column('config_key', Text, primary_key=True)
+    setting_id = Column(Integer, primary_key=True, nullable=False, unique=True)
+    key = Column('config_key', Text)
     value = Column('config_value', Text)
 
     def __init__(self, key, value=None):
