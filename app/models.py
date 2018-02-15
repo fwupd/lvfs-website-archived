@@ -11,6 +11,8 @@ import fnmatch
 import re
 import json
 
+from gi.repository import AppStreamGlib
+
 from sqlalchemy import Column, Integer, String, Text, Boolean, DateTime, ForeignKey, Index
 from sqlalchemy.orm import relationship
 
@@ -438,13 +440,13 @@ class Condition(db.Base):
         if self.compare == 'eq':
             return value == self.value
         if self.compare == 'lt':
-            return value < self.value
+            return AppStreamGlib.utils_vercmp(value, self.value) < 0
         if self.compare == 'le':
-            return value <= self.value
+            return AppStreamGlib.utils_vercmp(value, self.value) <= 0
         if self.compare == 'gt':
-            return value > self.value
+            return AppStreamGlib.utils_vercmp(value, self.value) > 0
         if self.compare == 'ge':
-            return value >= self.value
+            return AppStreamGlib.utils_vercmp(value, self.value) >= 0
         if self.compare == 'glob':
             return fnmatch.fnmatch(value, self.value)
         if self.compare == 'regex':

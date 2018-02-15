@@ -783,12 +783,14 @@ class LvfsTestCase(unittest.TestCase):
         rv = self._enable_issue(issue_id)
         assert b'Modified issue' in rv.data, rv.data
 
-    def _add_issue_condition(self, issue_id=1):
-        return self.app.post('/lvfs/issue/%i/condition/add' % issue_id, data=dict(
-            key='DistroId',
-            value='fedora',
-            compare='eq',
-        ), follow_redirects=True)
+    def _add_issue_condition(self, issue_id=1, key='DistroId', value='fedora', compare='eq'):
+        data = {
+            'key': key,
+            'value': value,
+            'compare': compare,
+        }
+        return self.app.post('/lvfs/issue/%i/condition/add' % issue_id,
+                             data=data, follow_redirects=True)
 
     def add_issue_condition(self, issue_id=1):
         rv = self._add_issue_condition(issue_id)
@@ -812,6 +814,10 @@ class LvfsTestCase(unittest.TestCase):
         self.add_issue_condition()
         rv = self._add_issue_condition()
         assert b'Key DistroId already exists' in rv.data, rv.data
+
+        # add another condition on the fwupd version
+        rv = self._add_issue_condition(key='FwupdVersion', compare='gt', value='0.8.0')
+        assert b'Added condition' in rv.data, rv.data
 
         # enable the issue
         self.enable_issue()
