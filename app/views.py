@@ -19,7 +19,7 @@ from gi.repository import AppStreamGlib
 from app import app, db, lm
 from .db import _execute_count_star
 
-from .models import Firmware, DownloadKind, UserCapability, Requirement
+from .models import Firmware, DownloadKind, UserCapability, Requirement, Component
 from .models import User, Analytic, Client, Event, Useragent, _get_datestr_from_datetime
 from .hash import _qa_hash, _password_hash, _addr_hash
 from .util import _get_client_address, _get_settings
@@ -176,7 +176,13 @@ def donations():
 
 @app.route('/vendors')
 def vendors():
-    return render_template('vendors.html')
+    return render_template('vendors.html',
+                           firmware_cnt=db.session.query(Firmware).count(),
+                           devices_cnt=db.session.query(Component.appstream_id).distinct().count())
+
+@app.route('/metainfo')
+def metainfo():
+    return render_template('metainfo.html')
 
 @app.route('/')
 @app.route('/lvfs/')

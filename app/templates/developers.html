@@ -5,47 +5,62 @@
 {% block content %}
 <div class="container mt-3">
 
-<h1>Developers</h1>
+<h1>System Architecture</h1>
 
-<h2>Getting the code</h2>
 <p>
-  The latest fwupd code is always available at <a href="https://github.com/hughsie/fwupd">GitHub</a>
-  and this is also the place to file <a href="https://github.com/hughsie/fwupd/issues">bugs or feature requests</a>.
-  You can trivially get the code by doing:
+  The Linux firmware upgrade architecture is built into three components: <em>presentation</em>
+  (gnome-software), <em>mechanism</em> (fwupd) and <em>data-provider</em> (LVFS)
+  and each can be disabled or replaced if required.
+</p>
+
+<h2>The LVFS project</h2>
+<p>
+  The LVFS is a simple Flask web service using a MySQL database and the code is
+  available for review at <a href="https://github.com/hughsie/lvfs-website">GitHub</a>.
+  This is also the place to file <a href="https://github.com/hughsie/lvfs-website/issues">vendor feature requests</a>
+  and also where you can request existing vendors on the LVFS update specific models of hardware.
+  You can run your own test instance by doing:
+</p>
+<pre>
+$ git clone https://github.com/hughsie/lvfs-website.git
+$ ./app.wsgi
+</pre>
+
+<h2>The fwupd project</h2>
+<p>
+  The fwupd code is available at <a href="https://github.com/hughsie/fwupd">GitHub</a>
+  and this is also the place to file <a href="https://github.com/hughsie/fwupd/issues">bugs or feature requests</a>
+  to add support for new firmware flashing methods.
+  You can get the code by doing:
 </p>
 <pre>
 $ git clone https://github.com/hughsie/fwupd.git
 </pre>
 <p>
-  You can also install all the required dependencies using:
-</p>
-<pre>
-$ sudo dnf install docbook-utils gettext intltool libgudev1-devel \
-                   colord-devel polkit-devel libgcab1-devel \
-                   sqlite-devel gpgme-devel fwupdate-devel libsoup-devel
-</pre>
-
-<h2>Architecture</h2>
-<p>
-  The 'client' which is typically <code>gnome-software</code> or <code>fwupdmgr</code>
-  interacts with the daemon using D-DBus using PolicyKit.
-  The daemon has no network access and only acts as the mechanism for clients.
+  Various <a href="https://github.com/hughsie/fwupd/tree/master/plugins">plugins</a>
+  are included to update devices, which includes native support for UEFI, DFU,
+  Unifying, ThunderBolt and ColorHug.
 </p>
 
-<figure class="text-center">
-  <img src="img/architecture-plan.png" class="figure-img img-fluid rounded" alt="architecture-plan">
-  <figcaption class="figure-caption">
-    fwupd is implemented as a D-Bus activated service that is autostarted when required.
-  </figcaption>
-</figure>
-
-<h2>Plugins</h2>
-<p>
-  Although we already support many different methods of updating firmware
-  we're happy to accept patches for vendor-specific protocols.
-  The plugin loader requires the plugin to obtain the list of attached hardware
-  and assign a model-specific GUID value to each device.
-</p>
+<div class="card mt-3">
+  <h3 class="card-header list-group-item-info">Is updating firmware secure?</h3>
+  <div class="card-body">
+    <p class="card-text">
+      In both the LVFS and fwupd, GPG crypto is being performed using GnuPG and
+      PKCS#7 crypto is using GnuTLS.
+      The fwupd daemon has no network access and only acts as the mechanism for
+      clients using D-DBus and PolicyKit.
+      Some devices also have additional hardware signature verification
+      schemes implemented by the device manufacturer.
+    </p>
+    <p class="card-text">
+      The LVFS and fwupd codebases have had several independant security audits.
+      The LVFS has a huge number of tests <a href="https://travis-ci.org/hughsie/lvfs-website">run for each commit</a>,
+      and fwupd has a <a href="https://travis-ci.org/hughsie/fwupd">comprehensive test suite</a>,
+      and is regularly scanned using both clang and <a href="https://scan.coverity.com/projects/10744">Coverity</a>.
+    </p>
+  </div>
+</div>
 
 </div> <!-- container -->
 {% endblock %}

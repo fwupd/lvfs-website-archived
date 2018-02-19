@@ -21,14 +21,26 @@
       for clients such as fwupdmgr and GNOME Software.
       There is no charge to vendors for the hosting or distribution of content.
     </p>
-    <!--
-    <p><a class="btn btn-primary btn-lg" href="#" role="button">Learn more &raquo;</a></p>
-    -->
   </div>
 </div>
 
 <div class="container">
-  <!-- Example row of columns -->
+
+  <div class="card mb-3">
+    <h3 class="card-header list-group-item-warning">
+      Looking for firmware to fix the Spectre security issue?
+      <img src="/img/spectre.min.svg" alt="spectre logo" height="32"/>
+    </h3>
+    <div class="card-body">
+      <p class="card-text">
+        The LVFS only redistributes vendor-provided firmware, and also relies on
+        the vendor writing release notes that accurately describe the firmware update.
+        If your hardware vendor is <a class="text-dark" href="/vendorlist">not already using the LVFS</a>
+        you should write to them and ask them where to get the new firmware from.
+      </p>
+    </div>
+  </div>
+
   <div class="row">
     <div class="col-md-4">
       <h2>Hardware Vendors</h2>
@@ -58,6 +70,7 @@
       <p><a class="btn btn-secondary" href="/developers" role="button">More information &raquo;</a></p>
     </div>
   </div>
+
 </div> <!-- /container -->
 
 {% if default_admin_password %}

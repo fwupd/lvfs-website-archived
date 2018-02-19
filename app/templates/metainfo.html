@@ -1,0 +1,140 @@
+{% extends "default.html" %}
+
+{% block title %}MetaInfo Files{% endblock %}
+
+{% block content %}
+<div class="container mt-3">
+
+<h1>Introduction</h1>
+
+<p>
+  The <code>.metainfo.xml</code> file describes the device and firmware and
+  is extra metadata added to the firmware archive by the OEM vendor.
+  The file is XML format, and uses a subset of the
+  <a href="http://www.freedesktop.org/software/appstream/docs/sect-Quickstart-Addons.html">AppStream</a> component specification.
+</p>
+<p>
+An example <code>metainfo.xml</code> file looks like this:
+</p>
+<pre class="prettyprint">
+&lt;?xml version="1.0" encoding="UTF-8"?&gt;
+&lt;!-- Copyright 2018 Richard Hughes &lt;richard@hughsie.com&gt; --&gt;
+&lt;component type="firmware"&gt;
+  &lt;id&gt;com.hughski.ColorHugALS.firmware&lt;/id&gt;
+  &lt;name&gt;ColorHugALS&lt;/name&gt;
+  &lt;summary&gt;Firmware for the Hughski ColorHug Ambient Light Sensor&lt;/summary&gt;
+  &lt;description&gt;
+    &lt;p&gt;
+      Updating the firmware on your ColorHugALS device improves performance and
+      adds new features.
+    &lt;/p&gt;
+  &lt;/description&gt;
+  &lt;provides&gt;
+    &lt;firmware type="flashed"&gt;84f40464-9272-4ef7-9399-cd95f12da696&lt;/firmware&gt;
+  &lt;/provides&gt;
+  &lt;url type="homepage"&gt;http://www.hughski.com/&lt;/url&gt;
+  &lt;metadata_license&gt;CC0-1.0&lt;/metadata_license&gt;
+  &lt;project_license&gt;proprietary&lt;/project_license&gt;
+  &lt;developer_name&gt;Hughski Limited&lt;/developer_name&gt;
+  &lt;releases&gt;
+    &lt;release urgency="high" version="3.0.2" date="2017-02-09"&gt;
+    &lt;checksum filename="my-custom-name.bin" target="content"/&gt;
+      &lt;description&gt;
+        &lt;p&gt;This stable release fixes the following bugs:&lt;/p&gt;
+        &lt;ul&gt;
+          &lt;li&gt;Fix the return code from GetHardwareVersion&lt;/li&gt;
+          &lt;li&gt;Scale the output of TakeReadingRaw by the datasheet values&lt;/li&gt;
+        &lt;/ul&gt;
+      &lt;/description&gt;
+    &lt;/release&gt;
+  &lt;/releases&gt;
+  &lt;!-- we can optionally restrict this update to specific fwupd versions,
+       or even previous firmware or bootloader versions --&gt;
+  &lt;requires&gt;
+    &lt;id compare="ge" version="0.8.0"&gt;org.freedesktop.fwupd&lt;/id&gt;
+    &lt;firmware compare="ge" version="0.1.2"&gt;firmware&lt;/firmware&gt;
+    &lt;firmware compare="ge" version="0.3.4"&gt;bootloader&lt;/firmware&gt;
+  &lt;/requires&gt;
+&lt;/component&gt;
+</pre>
+
+<h2>Restricting using CHID</h2>
+<p>
+  Newer versions of fwupd can restrict updates to a specific Computer Hardware
+  ID, much like Microsoft update:
+</p>
+<pre>
+  &lt;!-- only newer versions of fwupd understand 'hardware' requirements --&gt;
+  &lt;requires&gt;
+    &lt;id compare="ge" version="1.0.1"&gt;org.freedesktop.fwupd&lt;/id&gt;
+    &lt;hardware&gt;6de5d951-d755-576b-bd09-c5cf66b27234&lt;/hardware&gt;
+  &lt;/requires&gt;
+</pre>
+<p>
+  CHIDs can also be added or removed in the LVFS web UI, but only before
+  the firmware is published to stable channel.
+</p>
+
+<h2>Style Guide</h2>
+
+<table class="table">
+  <tr class="tr">
+    <th><code>&lt;id&gt;</code></th>
+    <td>
+      <ul>
+        <li>Use a reverse-DNS vendor prefix similar to Java, e.g. <em>com.hughski</em> or <em>org.freedesktop</em></li>
+        <li>The ID has to be totally specific to the device. You can use the partial GUID appended if this helps, e.g. <em>"com.hughski.ColorHug84f40464.firmware"</em></li>
+        <li>Always use a <em>".firmware"</em> suffix</li>
+      </ul>
+    </td>
+  </tr>
+  <tr class="tr">
+    <th><code>&lt;name&gt;</code></th>
+    <td>
+      <ul>
+        <li>Use a short device name, e.g. <em>"ThinkPad"</em> or <em>"ColorHug"</em>.</li>
+        <li>Use a UTF-8 character (e.g. ™ or ®) rather than <code>(R)</code> if required</li>
+        <li>Don't include the vendor name</li>
+      </ul>
+    </td>
+  </tr>
+  <tr class="tr">
+    <th><code>&lt;summary&gt;</code></th>
+    <td>
+      <ul>
+        <li>Refer to the type of hardware, e.g. <em>"Firmware for the Hughski ColorHug Colorimeter"</em></li>
+        <li>Include the vendor name before the full device description</li>
+        <li>Use a UTF-8 character (e.g. ™ or ®) rather than <code>(R)</code> if required</li>
+      </ul>
+    </td>
+  </tr>
+  <tr class="tr">
+    <th><code>&lt;description&gt;</code></th>
+    <td>
+      <ul>
+        <li>
+          Try to avoid explaining the implementation details of the fix, e.g.
+          <em>"Ensure accurate color profile creation with high screen brightness."</em>
+          rather than
+          <em>"Fix overflow in counter when over 500 Lux detected."</em>
+        </li>
+        <li>
+          Do not use overly technical descriptions when simpler text would suffice, e.g. use
+          <em>"Fix LED color during system start up."</em> rather than
+          <em>"Fix LED color during POST."</em>
+        </li>
+        <li>
+          Try to describe fixed bugs and new features from the point of view of the user
+          and how it affects them
+        </li>
+        <li>
+          For security or important updates also include the effect of not applying the update, e.g.
+          <em>"Disk corruption resulting in possible data loss may occur until this update is installed."</em>
+        </li>
+      </ul>
+    </td>
+  </tr>
+</table>
+
+</div> <!-- container -->
+{% endblock %}

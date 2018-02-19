@@ -6,39 +6,17 @@
 <h1>Applying for a new account</h1>
 <p>
   Vendors who can submit automatic firmware updates are in a privileged position where files
-  can be installed on user systems without authentication.
-  This means we have to do careful checks on vendors, and it's important
-  for vendors to understand the ramifications of getting it wrong.
+  can be installed on end-user systems without authentication.
+  This means we have to do careful checks on new requests, which may take a few days to complete.
 </p>
-<p>
-  The Linux Vendor Firmware Project signs the firmware image and repacks
-  the files into a new cabinet file for several reasons:
-</p>
-<ul>
-  <li>
-    Only trusted vendors have access to the LVFS service, so we can be
-    sure the firmware actually came from the vendor.
-  </li>
-  <li>
-    Clients do not (yet) verify the signatures in the catalog file.
-  </li>
-  <li>
-    Not all software trusts the Microsoft WHQL certificate.
-  </li>
-  <li>
-    Only required files are included in the compressed cabinet file,
-    typically making the download size much smaller.
-  </li>
-</ul>
 
 <p>
-  When creating an account we can optionally create two classes of user,
-  which allows you to have your firmware engineers do the upload and QA users
-  control who can access the firmware:
+  Three classes of user can be created for your organisation on the LVFS:
 </p>
 <ul>
-  <li>Unprivileged users can upload files to the private target</li>
-  <li>QA users can move the firmware from Private &#8594; Embargoed &#8594; Testing &#8594; Stable</li>
+  <li>Unprivileged users that can only upload files to a private target</li>
+  <li>Analyst users that can view failure reports for any firmware in the OEM group</li>
+  <li>QA users that can upload files, and can move files from testing to stable</li>
 </ul>
 <p>
   We can create as many different users of each type as required, and

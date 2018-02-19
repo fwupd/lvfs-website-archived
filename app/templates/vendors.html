@@ -6,199 +6,79 @@
 <div class="container mt-3">
 
 <h1>Introduction</h1>
+
 <p>
-  This page provides a information for hardware vendors wishing to automatically
-  deploy firmware updates.
-  The LVFS allows vendors to submit firmware updates quickly and easily.
-  Clients such as <a href="https://github.com/hughsie/fwupd/blob/master/README.md">fwupd</a>
-  check for updated metadata at this site and will offer the firmware
-  to end users or be installed automatically depending on site policy.
+  The LVFS is a secure web service that can be used by OEMs and ODMs to upload
+  redistributable firmware archives for deployment onto Linux systems.
+  This service should only be used to distribute files that are
+  <em>flashed</em> onto non-volatile memory.
   There is no charge to vendors for the hosting or distribution of content.
 </p>
-<p>
-  NOTE: This service should only be used to distribute firmware that is
-  <em>flashed</em> onto non-volatile memory.
-  It is not designed for firmware that has to be uploaded to devices every time
-  the device is used.
-</p>
-<p>
-  Providing a firmware update service actually requires two things:
-</p>
-<ol>
-  <li>Vendors providing information about what updates are available for specific hardware</li>
-  <li>A mechanism to actually deploy the firmware onto the hardware itself</li>
-</ol>
 
-<p>When files are submitted the following actions are performed:</p>
-<ol>
-  <li>The update metadata is <a href="https://github.com/hughsie/fwupd/blob/master/README.md#what-do-i-have-to-do">checked</a></li>
-  <li>The firmware capsule is signed with <a href="GPG-KEY-Linux-Vendor-Firmware-Service">our GPG key</a></li>
-  <li>The new <code>cab</code> file is moved to <a href="/lvfs/devicelist">our infrastructure</a></li>
-  <li>The metadata is added to <a href="downloads/firmware.xml.gz">our database</a></li>
-</ol>
+<p>
+  The LVFS runs on a dedicated virtual private server and uses a public CDN for metadata.
+  Every month there are over ~50 million files being downloaded from ~10 million clients.
+  There are currently {{devices_cnt}} devices supported on the LVFS with
+  {{firmware_cnt}} available firmware versions.
+  Clients such as <a href="https://github.com/hughsie/fwupd/blob/master/README.md">fwupd</a>
+  download metadata about available updates and will offer the firmware
+  update to end users on supported hardware.
+</p>
+
+<div class="card mb-3">
+  <h3 class="card-header list-group-item-info">Do I have to contribute any code?</h3>
+  <div class="card-body">
+    <p class="card-text">
+      No, unless you're using a custom update protocol that fwupd does not already support.
+      In this case you can either write a new plugin with a free license,
+      or provide specifications to the fwupd developers.
+      Most hardware can be updated using the existing UEFI UpdateCapsule or DFU code in fwupd.
+    </p>
+  </div>
+</div>
 
 <h1>Upload Firmware</h1>
 <p>
-  Please log in and upload files using the new secure admin console.
-  If you need a new user created please see <a href="/lvfs/newaccount">this page</a> for more details.
+  Once you have <a href="/lvfs/newaccount">requested an account on the LVFS</a>
+  and have legal permission to redistribute the firmware, you can log in and
+  upload files using the admin console.
   Files can be uploaded privately for testing and optionally embargoed until a specific date.
 </p>
-<p>
-  Three classes of user exist:
-</p>
-<ul>
-  <li>The admin user that can do anything</li>
-  <li>Unprivileged users that can upload files to the testing target</li>
-  <li>QA users that can upload files to testing or stable target, and can move files from testing to stable</li>
-</ul>
-
-<h1>Help With Submitting Firmware</h1>
 
 <p>
-  If you are <b>not</b> using the an already supported update method you need to write a
-  plugin for fwupd to trigger the firmware update from userspace.
-</p>
-
-<p>
-  As per the <a href="https://msdn.microsoft.com/en-us/library/windows/hardware/dn917810%28v=vs.85%29.aspx">Microsoft guidelines</a>
-  package up your firmware into a <code>cab</code> file, with these files inside:
-</p>
-<ul>
-  <li>The actual <code>cap</code> firmware file</li>
-  <li>The <code>metainfo.xml</code> file with <a href="http://www.freedesktop.org/software/appstream/docs/sect-Quickstart-Addons.html">a long description and extra metadata</a></li>
-  <li>The optional <code>inf</code> file <a href="https://msdn.microsoft.com/en-us/library/windows/hardware/ff547402%28v=vs.85%29.aspx">describing the .cap file</a>.</li>
-  <li>The optional <code>cat</code> digital signature.</li>
-</ul>
-<p>
-  You can create a <code>cab</code> file using <code>makecab.exe</code> on Windows and <code>gcab --create</code>
+  All firmware is uploaded as a cabinet archive, which matches the
+  <a href="https://msdn.microsoft.com/en-us/library/windows/hardware/dn917810%28v=vs.85%29.aspx">Microsoft Update</a> requirements.
+  Along with the firmware binary, the LVFS expects the archive to contain at least
+  one <a href="/metainfo">.metainfo.xml</a> file that describes the target device and firmware.
+  You can create a cabinet archives using <code>makecab.exe</code> on Windows and <code>gcab</code>
   on Linux.
 </p>
 <p>
-  It is recommended you name the <code>cab</code> file with the vendor, device and version
-  number, e.g. <code>hughski-colorhug-als-1.2.3.cab</code>.
-  It is suggested that the files inside the <code>cab</code> file have the
-  same basename, for example this is would be ideal:
+  It is recommended you name the archive with the vendor, device and version
+  number, e.g. <code>hughski-colorhug-als-1.2.3.cab</code> and is suggested that
+  the files inside the <code>cab</code> file have the
+  same basename, for example:
 </p>
 <pre>
     hughski-colorhug-als-1.2.3.cab
      |- firmware.bin
      \- firmware.metainfo.xml
 </pre>
-<p>
-An example <code>metainfo.xml</code> file looks like this:
-</p>
-<p>
-<pre class="prettyprint">
-&lt;?xml version="1.0" encoding="UTF-8"?&gt;
-&lt;!-- Copyright 2015 Richard Hughes <richard@hughsie.com> --&gt;
-&lt;component type="firmware"&gt;
-  &lt;id&gt;com.hughski.ColorHugALS.firmware&lt;/id&gt;
-  &lt;name&gt;ColorHugALS&lt;/name&gt;
-  &lt;summary&gt;Firmware for the Hughski ColorHug Ambient Light Sensor&lt;/summary&gt;
-  &lt;description&gt;
-    &lt;p&gt;
-      Updating the firmware on your ColorHugALS device improves performance and
-      adds new features.
-    &lt;/p&gt;
-  &lt;/description&gt;
-  &lt;provides&gt;
-    &lt;firmware type="flashed"&gt;84f40464-9272-4ef7-9399-cd95f12da696&lt;/firmware&gt;
-  &lt;/provides&gt;
-  &lt;url type="homepage"&gt;http://www.hughski.com/&lt;/url&gt;
-  &lt;metadata_license&gt;CC0-1.0&lt;/metadata_license&gt;
-  &lt;project_license&gt;GPL-2.0+&lt;/project_license&gt;
-  &lt;developer_name&gt;Hughski Limited&lt;/developer_name&gt;
-  &lt;releases&gt;
-    &lt;release version="3.0.2" timestamp="1424116753"&gt;
-      &lt;description&gt;
-        &lt;p&gt;This stable release fixes the following bugs:&lt;/p&gt;
-        &lt;ul&gt;
-          &lt;li&gt;Fix the return code from GetHardwareVersion&lt;/li&gt;
-          &lt;li&gt;Scale the output of TakeReadingRaw by the datasheet values&lt;/li&gt;
-        &lt;/ul&gt;
-      &lt;/description&gt;
-    &lt;/release&gt;
-  &lt;/releases&gt;
-&lt;/component&gt;
-</pre>
-</p>
-<p>
-  If the firmware is not free software you have to indicate it in the
-  <code>metainfo.xml</code> file with <code>&lt;project_license&gt;proprietary&lt;/project_license&gt;</code>.
-</p>
-<p>
-  Sometimes the firmware capsule file has to have a different filename for
-  other workflow or legacy reasons.
-  To achieve this just change the value of <code>Firmware_CopyFiles</code>
-  and <code>FirmwareFilename</code> in the inf file, and also add this
-  to the <code>metainfo.xml</code> file:
-</p>
-<pre>
-  &lt;release version="0xtheversion" timestamp="1424116753"&gt;
-    &lt;checksum filename="my-custom-name.bin" target="content"/&gt;
-    ...
-</pre>
 
-<h2>Metainfo Style Guide</h2>
-<h3>&lt;id&gt;</h3>
-<ul>
-<li>Use a reverse-DNS vendor prefix similar to Java, e.g. <em>com.hughski</em> or <em>org.freedesktop</em></li>
-<li>The ID has to be totally specific to the device. You can use the partial GUID appended if this helps, e.g. <em>"com.hughski.ColorHug84f40464.firmware"</em></li>
-<li>Always use a <em>".firmware"</em> suffix</li>
-</ul>
-<h3>&lt;name&gt;</h3>
-<ul>
-<li>Use a short device name, e.g. <em>"ThinkPad"</em> or <em>"ColorHug"</em>.</li>
-<li>Use a UTF-8 character (e.g. ™ or ®) rather than <code>(R)</code> if required</li>
-<li>Don't include the vendor name</li>
-</ul>
-<h3>&lt;summary&gt;</h3>
-<ul>
-<li>Refer to the type of hardware, e.g. <em>"Firmware for the Hughski ColorHug Colorimeter"</em></li>
-<li>Include the vendor name before the full device description</li>
-<li>Use a UTF-8 character (e.g. ™ or ®) rather than <code>(R)</code> if required</li>
-</ul>
-<h3>&lt;description&gt;</h3>
-<ul>
-<li>
-  Try to avoid explaining the implementation details of the fix, e.g.
-  <em>"Ensure accurate color profile creation with high screen brightness."</em>
-  rather than
-  <em>"Fix overflow in counter when over 500 Lux detected."</em>
-</li>
-<li>
-  Do not use overly technical descriptions when simpler text would suffice, e.g. use
-  <em>"Fix LED color during system start up."</em> rather than
-  <em>"Fix LED color during POST."</em>
-</li>
-<li>
-  Try to describe fixed bugs and new features from the point of view of the user
-  and how it affects them
-</li>
-<li>
-  For security or important updates also include the effect of not applying the update, e.g.
-  <em>"Disk corruption resulting in possible data loss may occur until this update is installed."</em>
-</li>
-</ul>
-
-<h2>Why does the LVFS project sign my firmware?</h2>
-<p>
-The Linux Vendor Firmware Project signs the firmware image and repacks
-the files into a new cabinet file for several reasons:
-</p>
-<ul>
-  <li>Only trusted vendors have access to the LVFS service, so we can be sure the firmware actually came from the vendor</li>
-  <li>Clients do not (yet) verify the signatures in the <code>cat</code> file</li>
-  <li>Not all software trusts the Microsoft WHQL certificate</li>
-  <li>We ensure that only required files are included in the cabinet file, typically making the download size much smaller</li>
-</ul>
-
-<h2>Validation</h2>
-<p>
-  The best way to validate the metainfo file or firmware before submission is by using the
-  <code>appstream-util validate</code> tool available from the
-  <a href="https://github.com/hughsie/appstream-glib">appstream-glib</a> project.
-</p>
+<div class="card mb-3">
+  <h3 class="card-header list-group-item-info">Why does the LVFS project sign the archive?</h3>
+  <div class="card-body">
+    <p class="card-text">
+      The upload process repacks the uploaded archive into a new cabinet file
+      and signs the firmware image using a detached GPG or PKCS#7 signature
+      so client tools can be sure the firmware actually originated from the LVFS.
+      Any existing Windows Update signatures are also copied into the new
+      archive although are not used on Linux.
+      The signed archive is prefixed with the a hash of the uploaded file to avoid
+      clashes with other uploaded files and to make the download location non-predictable.
+    </p>
+  </div>
+</div>
 
 </div> <!-- container -->
 {% endblock %}

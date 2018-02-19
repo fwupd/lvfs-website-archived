@@ -7,12 +7,29 @@
 
 <h1>Introduction</h1>
 <p>
-  To update a BIOS or network card firmware in Linux traditionally meant
+  To update a BIOS or device firmware in Linux traditionally meant
   rebooting into Microsoft Windows, or preparing a MS-DOS floppy disk (!) and
   hoping that everything would work after the update.
   Periodically searching a vendor website for updates is a manual and
   error-prone task and not something we should ask users to do.
 </p>
+
+<div class="card mb-3">
+  <h3 class="card-header list-group-item-info">Is my hardware supported?</h3>
+  <div class="card-body">
+    <p class="card-text">
+      The LVFS only provides firmware once the original OEM vendor has joined
+      the project and uploaded files themselves.
+      The OEM vendor is in full control over what models are supported and is the
+      only entity that can add support for new hardware.
+      There are a large number of <a href="/lvfs/devicelist">devices already supported</a>
+      and we also <a href="/vendorlist">have a public record</a> that explains
+      vendor engagement with the LVFS project.
+    </p>
+  </div>
+</div>
+
+<h2>fwupd</h2>
 <p>
   fwupd is a simple daemon to allow session software to update device firmware on
   your local machine. It's designed for desktops, but also usable on phones and
@@ -21,33 +38,11 @@
   updates, the command-line tool or the system D-Bus interface directly.
   Updating firmware on Linux is now automatic, safe and reliable.
 </p>
-
-<h2>Using GNOME Software</h2>
-
-<figure class="text-center">
-  <img src="img/gnome-software1.png" class="figure-img img-fluid rounded" alt="gnome-software updates panel">
-  <figcaption class="figure-caption">New versions of GNOME Software will show and auto-download updates automatically.</figcaption>
-</figure>
-
-<figure class="text-center">
-  <img src="img/gnome-software2.png" class="figure-img img-fluid rounded" alt="gnome-software details panel">
-  <figcaption class="figure-caption">Double clicking on the <code>cab</code> file is also supported.</figcaption>
-</figure>
-
-<h2>Using the command line</h2>
-<p>
-  fwupd ships a command line <code>fwupdmgr</code> program.
-  This allows administrators to get the list of upgradable devices,
-  schedule offline updates or installing firmware on the live system.
-  You can manually download released firmware updates from the LVFS
-  <a href="/lvfs/devicelist">device list</a>.
-</p>
 <pre class="prettyprint">
 $ fwupdmgr get-devices
 Unifying Receiver
-  DeviceId:             /sys/devices/pci0000:00/0000:00:1d.0/usb1/1-1/1-1.2
+  DeviceId:             5ad59b26d556e226f9e5e1ca13e4b717fe19802c
   Guid:                 77d843f7-682c-57e8-8e29-584f5b4f52a1
-  Guid:                 cc4cbfa9-bf9d-540b-b92b-172ce31013c1
   Summary:              A miniaturised USB wireless receiver
   Plugin:               unifying
   Flags:                updatable|supported|registered
@@ -55,12 +50,31 @@ Unifying Receiver
   VendorId:             USB:0x046D
   Version:              RQR24.05_B0029
   VersionBootloader:    BOT03.01_B0008
-  Icon:                 preferences-desktop-keyboard
-  Created:              2017-11-02
 </pre>
 <p>
 You can see all the command line options using <code>--help</code>:
 </p>
+<hr/>
+
+<h2>GNOME Software</h2>
+<p>
+  GNOME Software is an application store designed to make installing, removing
+  and updating both easy and beautiful.
+  It is available for Linux and used by millions of people on RHEL &ge; 7.4,
+  Fedora &ge; 22, Ubuntu &ge; 16.04 and Debian &ge; 9.
+</p>
+<p>
+  When required, metadata files are automatically downloaded from the LVFS and
+  submitted into fwupd over D-Bus.
+  If there are updates that need applying then they are downloaded and the user
+  is notified and the update details are shown.
+  The user has to explicitly agree to the firmware update action before the update is performed.
+</p>
+
+<figure class="text-center">
+  <img src="img/gnome-software1.png" class="figure-img img-fluid rounded" alt="gnome-software updates panel">
+  <figcaption class="figure-caption">New versions of GNOME Software will show and auto-download updates automatically.</figcaption>
+</figure>
 
 <h2>Using the D-Bus API</h2>
 <p>
@@ -68,50 +82,27 @@ You can see all the command line options using <code>--help</code>:
   This exports an interface that can be queried from any language with
   a D-Bus binding such as C, Python or Java.
 </p>
-<a href="img/dbus.png"><img alt="d-feet screenshot" src="img/dbus.png"/></a>
 <pre class="prettyprint">
 $ $ gdbus call --system --dest org.freedesktop.fwupd --object-path / --method org.freedesktop.fwupd.GetDevices 
-({'ro__sys_devices_pci0000_00_0000_00_1d_0_usb2_2_1_2_1_4_2_1_4_1_0':
+({'5ad59b26d556e226f9e5e1ca13e4b717fe19802c':
   'CHug-usb:00:01:04:04':
-   {'Guid': <'84f40464-9272-4ef7-9399-cd95f12da696'>,
-    'DisplayName': <'ColorHugALS'>,
-    'Provider': <'ColorHug'>,
-    'Version': <'4.0.0'>,
-    'Flags': <uint64 6>}},)
+   {'Guid': &lt;'84f40464-9272-4ef7-9399-cd95f12da696'&gt;,
+    'DisplayName': &lt;'ColorHugALS'&gt;,
+    'Version': &lt;'4.0.0'&gt;,
+    'Flags': &lt;uint64 6&gt;}},)
 </pre>
 
-<h2>Security</h2>
-<p>
-  By default, any users are able to update firmware for removable hardware.
-  The logic here is that if the hardware can be removed, it can easily be moved to
-  a device that the user already has root access on, and asking for authentication
-  would just be security theatre.
-</p>
-<p>
-  For non-removable devices, e.g. UEFI firmware, admin users are able to update
-  trusted firmware without the root password.
-  By default, we already let admin user and root update glibc and the kernel
-  without additional authentication, and these would be a much easier target.
-  The firmware updates and metadata are signed either with GPG or a PKCS-7
-  certificate.
-</p>
-
-<h2>User Interaction</h2>
-<p>
-  No user interaction should be required when actually applying updates.
-  Making it prohibited means we can do the upgrade with a graphical
-  splash screen, without having to deal with locales or input methods.
-</p>
-
-<h2>Trusted Keys</h2>
-<p>
-  Installing a public key to <code>/etc/pki/fwupd</code> allows firmware signed with a
-  matching private key to be recognized as trusted, which may require less
-  authentication to install than for untrusted files.
-  By default trusted firmware can be upgraded (but not downgraded)
-  without the user or administrator password.
-  Only very few keys are installed by default.
-</p>
+<div class="card mb-3">
+  <h3 class="card-header list-group-item-info">Do I always need the root password to update?</h3>
+  <div class="card-body">
+    <p class="card-text">
+      By default, any users are able to update signed firmware for removable hardware.
+      The logic here is that if the hardware can be removed, it can easily be moved to
+      a different device that the attacker owns.
+      For non-removable devices only admin users are able to update signed firmware.
+    </p>
+  </div>
+</div>
 
 </div> <!-- container -->
 {% endblock %}
