@@ -8,7 +8,6 @@ from __future__ import print_function
 
 import os
 import datetime
-import math
 
 from flask import session, request, flash, url_for, redirect, render_template
 from flask import send_from_directory, abort, Response, g
@@ -23,7 +22,7 @@ from .models import Firmware, DownloadKind, UserCapability, Requirement, Compone
 from .models import User, Analytic, Client, Event, Useragent, _get_datestr_from_datetime
 from .hash import _qa_hash, _password_hash, _addr_hash
 from .util import _get_client_address, _get_settings
-from .util import _error_internal, _error_permission_denied
+from .util import _error_permission_denied
 
 def _user_agent_safe_for_requirement(user_agent):
 
@@ -235,8 +234,8 @@ def logout():
     return redirect(url_for('.index'))
 
 @app.route('/lvfs/eventlog')
-@app.route('/lvfs/eventlog/<start>')
-@app.route('/lvfs/eventlog/<start>/<length>')
+@app.route('/lvfs/eventlog/<int:start>')
+@app.route('/lvfs/eventlog/<int:start>/<int:length>')
 @login_required
 def eventlog(start=0, length=20):
     """
@@ -252,7 +251,10 @@ def eventlog(start=0, length=20):
     else:
         eventlog_len = _execute_count_star(db.session.query(Event).\
                             filter(Event.group_id == g.user.group_id))
-    nr_pages = int(math.ceil(eventlog_len / float(length)))
+
+    # limit this to keep the UI sane
+    if eventlog_len / length > 20:
+        eventlog_len = length * 20
 
     # table contents
     if g.user.check_capability(UserCapability.Admin):
@@ -264,20 +266,8 @@ def eventlog(start=0, length=20):
                         filter(Event.group_id == g.user.group_id).\
                         order_by(Event.id.desc()).\
                         offset(start).limit(length).all()
-    if len(events) == 0:
-        return _error_internal('No event log available!')
-
-    # limit this to keep the UI sane
-    if nr_pages > 20:
-        nr_pages = 20
-
-    html = ''
-    for i in range(nr_pages):
-        if int(start) == i * int(length):
-            html += '%i ' % (i + 1)
-        else:
-            html += '<a href="/lvfs/eventlog/%i/%s">%i</a> ' % (i * int(length), int(length), i + 1)
-    return render_template('eventlog.html', events=events, pagination_footer=html)
+    return render_template('eventlog.html', events=events,
+                           start=start, page_length=length, total_length=eventlog_len)
 
 @app.route('/lvfs/profile')
 @login_required
