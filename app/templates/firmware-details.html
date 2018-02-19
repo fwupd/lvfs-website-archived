@@ -8,33 +8,33 @@
 <table class="table">
   <tr class="row">
     <th class="col-sm-4 align-middle">Filename</th>
-    <td class="col-sm-4 align-middle"><a href="/downloads/{{fw.filename}}">{{orig_filename}}</a></td>
-    <td class="col-sm-4 text-right">
+    <td class="col-sm-6 align-middle"><a href="/downloads/{{fw.filename}}">{{orig_filename}}</a></td>
+    <td class="col-sm-2 text-right">
 {% if fw.target != 'stable' or g.user.is_qa %}
-      <button type="button" class="btn btn-danger" data-toggle="modal" data-target="#deleteModal">Delete</button>
+      <button type="button" class="btn btn-block btn-danger" data-toggle="modal" data-target="#deleteModal">Delete</button>
 {% endif %}
     </td>
   </tr>
   <tr class="row">
     <th class="col-sm-4 align-middle">Current Target</th>
-    <td class="col-sm-4 align-middle">{{fw.target}}</td>
-    <td class="col-sm-4 align-middle text-right">
+    <td class="col-sm-6 align-middle">{{fw.target}}</td>
+    <td class="col-sm-2 align-middle text-right">
 {% if g.user.is_qa %}
 {% if fw.target == 'private' %}
       <form method="get" action="/lvfs/firmware/{{fw.firmware_id}}/promote/embargo">
-        <button class="btn btn-primary">&#8594; Embargo</button>
+        <button class="btn btn-block btn-primary">&#8594; Embargo</button>
       </form>
 {% endif %}
 {% if fw.target == 'embargo' %}
-      <a class="btn btn-secondary" href="/lvfs/firmware/{{fw.firmware_id}}/promote/private" role="button">&#8592; Private</a>
-      <a class="btn btn-primary" href="/lvfs/firmware/{{fw.firmware_id}}/promote/testing" role="button">&#8594; Testing</a>
+      <a class="btn btn-block btn-secondary" href="/lvfs/firmware/{{fw.firmware_id}}/promote/private" role="button">&#8592; Private</a>
+      <a class="btn btn-block btn-primary" href="/lvfs/firmware/{{fw.firmware_id}}/promote/testing" role="button">&#8594; Testing</a>
 {% endif %}
 {% if fw.target == 'testing' %}
-      <a class="btn btn-secondary" href="/lvfs/firmware/{{fw.firmware_id}}/promote/embargo" role="button">&#8592; Embargo</a>
-      <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#promoteStableModal">&#8594; Stable</button>
+      <a class="btn btn-block btn-secondary" href="/lvfs/firmware/{{fw.firmware_id}}/promote/embargo" role="button">&#8592; Embargo</a>
+      <button type="button" class="btn btn-block btn-primary" data-toggle="modal" data-target="#promoteStableModal">&#8594; Stable</button>
 {% endif %}
 {% if fw.target == 'stable' %}
-      <button type="button" class="btn btn-danger" data-toggle="modal" data-target="#demoteTestingModal">&#8592; Testing</button>
+      <button type="button" class="btn btn-block btn-danger" data-toggle="modal" data-target="#demoteTestingModal">&#8592; Testing</button>
 {% endif %}
 {% endif %}
     </td>
@@ -64,19 +64,19 @@
 {% endif %}
   <tr class="row">
     <th class="col-sm-4">Downloads</th>
-    <td class="col-sm-4">{{fw.download_cnt}}</td>
-    <td class="col-sm-4 text-right">
+    <td class="col-sm-6">{{fw.download_cnt}}</td>
+    <td class="col-sm-2 text-right">
 {% if g.user.check_capability('analyst') %}
-      <a class="btn btn-info" href="/lvfs/firmware/{{fw.firmware_id}}/analytics">Analytics</a>
+      <a class="btn btn-block btn-info" href="/lvfs/firmware/{{fw.firmware_id}}/analytics">Analytics</a>
 {% endif %}
     </td>
   </tr>
   <tr class="row">
     <th class="col-sm-4">Reports</th>
-    <td class="col-sm-4">👍 {{reports_success}} 👎 {{reports_failure}} 👋 {{reports_issue}}</td>
-    <td class="col-sm-4 text-right">
+    <td class="col-sm-6">👍 {{reports_success}} 👎 {{reports_failure}} 👋 {{reports_issue}}</td>
+    <td class="col-sm-2 text-right">
 {% if g.user.check_capability('analyst') %}
-      <a class="btn btn-info" href="/lvfs/firmware/{{fw.firmware_id}}/analytics/reports/2">View</a>
+      <a class="btn btn-block btn-info" href="/lvfs/firmware/{{fw.firmware_id}}/analytics/reports/2">View</a>
 {% endif %}
     </td>
   </tr>
@@ -86,19 +86,20 @@
 <table class="table">
   <tr class="row">
     <th class="col-sm-4">Name &amp; Version</th>
-    <th class="col-sm-8" colspan="2">Component ID</th>
+    <th class="col-sm-6">Component ID</th>
+    <th class="col-sm-2">&nbsp;</th>
   </tr>
 {% for md in fw.mds %}
   <tr class="row">
     <td class="col-sm-4">
       {{md.name}} {{md.version}}
     </td>
-    <td class="col-sm-4">
+    <td class="col-sm-6">
       <code>{{md.appstream_id}}</code>
     </td>
-    <td class="col-sm-4 text-right">
+    <td class="col-sm-2 text-right">
       <form method="get" action="/lvfs/component/{{md.component_id}}">
-        <button class="btn btn-info">Details</button>
+        <button class="btn btn-block btn-info">Details</button>
       </form>
     </td>
   </tr>

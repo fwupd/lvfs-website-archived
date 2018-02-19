@@ -19,8 +19,12 @@
     <main role="main" class="col-sm-9 ml-sm-auto col-md-10 pt-3">
       <h1>Create a new group</h1>
       <form method="post" action="/lvfs/group/add" class="form-inline">
-        <input class="form-control" type="text" size="20" name="group_id" placeholder="Group ID" required>
-        <input class="btn btn-primary" type="submit" value="Add">
+        <div class="input-group">
+          <input class="form-control" type="text" size="20" name="group_id" placeholder="Group ID" required>
+          <div class="input-group-append">
+            <input class="btn btn-primary" type="submit" value="Add">
+          </div>
+        </div>
       </form>
     </main>
   </div>

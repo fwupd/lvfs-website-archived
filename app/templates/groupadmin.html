@@ -31,11 +31,18 @@
   This restriction is optional and can be separated with comma:
 </p>
 <form method="post" action="/lvfs/group/{{q.group_id}}/modify_by_admin" class="form-horizontal">
-  <input type="text" size="80" name="vendor_ids" value="{{','.join(q.vendor_ids)}}">
-  <input type="submit" class="btn btn-primary" value="Modify">
+
+  <div class="input-group">
+    <input type="text" size="80" name="vendor_ids" value="{{','.join(q.vendor_ids)}}">
+    <div class="input-group-append">
+      <input type="submit" class="btn btn-primary" value="Modify">
+    </div>
+    <div class="input-group-append">
 {% if g.user.check_capability('admin') %}
-  <button type="button" class="btn btn-danger" data-toggle="modal" data-target="#deleteModal">Delete</button>
+      <button type="button" class="btn btn-danger" data-toggle="modal" data-target="#deleteModal">Delete</button>
 {% endif %}
+    </div>
+  </div>
 </form>
 
 </div> <!-- container -->
