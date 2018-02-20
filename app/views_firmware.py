@@ -18,7 +18,7 @@ from .db import _execute_count_star
 
 from .hash import _qa_hash
 from .metadata import _metadata_update_group, _metadata_update_targets
-from .models import UserCapability, Firmware, Report, Client
+from .models import UserCapability, Firmware, Report, Client, FirmwareEvent
 from .util import _error_internal, _error_permission_denied
 from .util import _get_chart_labels_months, _get_chart_labels_days
 
@@ -125,6 +125,8 @@ def firmware_delete(firmware_id):
         for gu in md.guids:
             db.session.delete(gu)
         db.session.delete(md)
+    for ev in fw.events:
+        db.session.delete(ev)
     db.session.delete(fw)
     db.session.commit()
 
@@ -184,6 +186,7 @@ def firmware_promote(firmware_id, target):
 
     # all okay
     fw.target = target
+    fw.events.append(FirmwareEvent(target, g.user.user_id))
     db.session.commit()
     flash('Moved firmware', 'info')
 

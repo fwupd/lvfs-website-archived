@@ -183,7 +183,6 @@ class LvfsTestCase(unittest.TestCase):
         rv = self.app.get('/lvfs/firmware/1/promote/stable',
                           follow_redirects=True)
         assert b'>stable<' in rv.data, rv.data
-        assert b'>testing<' not in rv.data, rv.data
 
         # check it's now in the devicelist as anon
         self.logout()

@@ -18,7 +18,7 @@ from flask_login import login_required
 
 from app import app, db, ploader
 
-from .models import Firmware, Component, Requirement, UserCapability, Guid, Group
+from .models import Firmware, Component, Requirement, UserCapability, Guid, Group, FirmwareEvent
 from .uploadedfile import UploadedFile, FileTooLarge, FileTooSmall, FileNotSupported, MetadataInvalid
 from .util import _get_client_address, _get_settings
 from .util import _error_internal, _error_permission_denied
@@ -196,6 +196,7 @@ def upload():
         fw.mds.append(md)
 
     # add to database
+    fw.events.append(FirmwareEvent(target, g.user.user_id))
     db.session.add(fw)
     db.session.commit()
     flash('Uploaded file %s to %s' % (ufile.filename_new, target), 'info')

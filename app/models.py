@@ -27,7 +27,8 @@ class User(db.Base):
 
     # database
     __tablename__ = 'users'
-    username = Column(String(40), primary_key=True, nullable=False, unique=True, default='')
+    user_id = Column(Integer, primary_key=True, unique=True, nullable=False)
+    username = Column(String(40), nullable=False, default='')
     password = Column(String(40), nullable=False, default='')
     display_name = Column(String(128))
     email = Column(String(255))
@@ -360,6 +361,31 @@ class Component(db.Base):
     def __repr__(self):
         return "Component object %s" % self.appstream_id
 
+class FirmwareEvent(db.Base):
+
+    # sqlalchemy metadata
+    __tablename__ = 'firmware_events'
+    firmware_event_id = Column(Integer, primary_key=True, unique=True, nullable=False)
+    firmware_id = Column(Integer, ForeignKey('firmware.firmware_id'), nullable=False)
+    user_id = Column(Integer, ForeignKey('users.user_id'), nullable=False)
+    timestamp = Column(DateTime, nullable=False, default=datetime.datetime.utcnow)
+    target = Column(Text)
+
+    # link back to parent
+    fw = relationship("Firmware", back_populates="events")
+
+    # link using foreign keys
+    user = relationship('User', foreign_keys=[user_id])
+
+    def __init__(self, target=None, user_id=0, timestamp=None):
+        """ Constructor for object """
+        self.target = target
+        self.user_id = user_id
+        self.timestamp = timestamp
+
+    def __repr__(self):
+        return "FirmwareEvent object %s" % self.firmware_event_id
+
 class Firmware(db.Base):
 
     # sqlalchemy metadata
@@ -378,6 +404,7 @@ class Firmware(db.Base):
 
     # include all Component objects
     mds = relationship("Component", back_populates="fw")
+    events = relationship("FirmwareEvent", back_populates="fw")
 
     def __init__(self):
         """ Constructor for object """
