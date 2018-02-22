@@ -11,7 +11,7 @@ from flask_login import login_required
 
 from app import app, db
 
-from .models import Firmware, Report, Issue, UserCapability
+from .models import Firmware, Report, ReportAttribute, Issue, UserCapability
 from .util import _error_internal, _error_permission_denied
 
 @app.route('/lvfs/report/<report_id>')
@@ -19,10 +19,10 @@ from .util import _error_internal, _error_permission_denied
 def report_view(report_id):
     if not g.user.check_capability(UserCapability.Admin):
         return _error_permission_denied('Unable to view report')
-    rprt = db.session.query(Report).filter(Report.id == report_id).first()
+    rprt = db.session.query(Report).filter(Report.report_id == report_id).first()
     if not rprt:
         return _error_permission_denied('Report does not exist')
-    return Response(response=rprt.json,
+    return Response(response=str(rprt.to_kvs()),
                     status=400, \
                     mimetype="application/json")
 
@@ -31,9 +31,11 @@ def report_view(report_id):
 def report_delete(report_id):
     if not g.user.check_capability(UserCapability.Admin):
         return _error_permission_denied('Unable to view report')
-    report = db.session.query(Report).filter(Report.id == report_id).first()
+    report = db.session.query(Report).filter(Report.report_id == report_id).first()
     if not report:
         return _error_internal('No report found!')
+    for e in report.attributes:
+        db.session.delete(e)
     db.session.delete(report)
     db.session.commit()
     flash('Deleted report', 'info')
@@ -116,54 +118,57 @@ def firmware_report():
                 return json_error('invalid data, expected %s' % key)
             if report[key] is None:
                 return json_error('missing data, expected %s' % key)
-        checksum = report['Checksum']
-        report_metadata = report['Metadata']
+
+        # flattern the report including the per-machine and per-report metadata
+        data = metadata
+        for key in report:
+            # don't store some data
+            if key in ['Created', 'Modified', 'BootTime', 'UpdateState',
+                       'DeviceId', 'UpdateState', 'DeviceId', 'Checksum']:
+                continue
+            if key == 'Metadata':
+                md = report[key]
+                for md_key in md:
+                    data[md_key] = md[md_key]
+                continue
+            data[key] = unicode(report[key]).encode('ascii', 'ignore')
 
         # try to find the checksum_upload (which might not exist on this server)
-        fw = db.session.query(Firmware).filter(Firmware.checksum_signed == checksum).first()
+        fw = db.session.query(Firmware).filter(Firmware.checksum_signed == report['Checksum']).first()
         if not fw:
-            msgs.append('%s did not match any known firmware archive' % checksum)
+            msgs.append('%s did not match any known firmware archive' % report['Checksum'])
             continue
-
-        # copy shared metadata and dump to JSON
-        for key in metadata:
-            if key in report_metadata:
-                continue
-            report_metadata[key] = metadata[key]
-        json_raw = json.dumps(report, sort_keys=True,
-                              indent=2, separators=(',', ': '))
 
         # find any matching report
         issue_id = 0
         if report['UpdateState'] == 3:
-            issue_data = report_metadata
-            issue_data['MachineId'] = item['MachineId']
-            for key in ['VersionNew', 'VersionOld', 'Plugin', 'UpdateError', 'Guid']:
-                if key in report:
-                    issue_data[key] = report[key]
-            issue = _find_issue_for_report_data(issue_data, fw)
+            issue = _find_issue_for_report_data(data, fw)
             if issue:
                 issue_id = issue.issue_id
                 msgs.append('The failure is a known issue')
                 uris.append(issue.url)
 
         # update any old report
-        report_old = db.session.query(Report).\
-                        filter(Report.checksum == checksum).\
+        r = db.session.query(Report).\
+                        filter(Report.checksum == report['Checksum']).\
                         filter(Report.machine_id == machine_id).first()
-        if report_old:
-            msgs.append('%s replaces old report' % checksum)
-            report_old.state = report['UpdateState']
-            report_old.json = json_raw
-            continue
+        if r:
+            msgs.append('%s replaces old report' % report['Checksum'])
+            r.state = report['UpdateState']
+            for e in r.attributes:
+                db.session.delete(e)
+        else:
+            # save a new report in the database
+            r = Report(machine_id=machine_id,
+                       firmware_id=fw.firmware_id,
+                       issue_id=issue_id,
+                       state=report['UpdateState'],
+                       checksum=report['Checksum'])
 
-        # save a new report in the database
-        db.session.add(Report(machine_id=machine_id,
-                              firmware_id=fw.firmware_id,
-                              issue_id=issue_id,
-                              state=report['UpdateState'],
-                              checksum=checksum,
-                              json_raw=json_raw))
+        # save all the report entries
+        for key in data:
+            r.attributes.append(ReportAttribute(key=key, value=data[key]))
+        db.session.add(r)
 
     # all done
     db.session.commit()

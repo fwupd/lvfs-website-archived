@@ -594,7 +594,7 @@ class LvfsTestCase(unittest.TestCase):
 
         # check the saved report
         rv = self.app.get('/lvfs/report/1')
-        assert b'"UpdateState": 2' in rv.data, rv.data
+        assert b'UpdateState=2' in rv.data, rv.data
 
         # check the report appeared on the telemetry page
         rv = self.app.get('/lvfs/telemetry')
