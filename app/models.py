@@ -517,40 +517,75 @@ def _get_flat_dict_from_json(txt):
             for key2 in items2:
                 data[key2] = items2[key2]
             continue
-        data[key] = items[key]
+        data[key] = unicode(items[key]).encode('ascii', 'ignore')
     return data
+
+class ReportAttribute(db.Base):
+    __tablename__ = 'report_attributes'
+    report_attribute_id = Column(Integer, primary_key=True, nullable=False, unique=True)
+    report_id = Column(Integer, ForeignKey('reports.report_id'), nullable=False)
+    key = Column(Text)
+    value = Column(Text)
+
+    # link back to parent
+    report = relationship("Report", back_populates="attributes")
+
+    def __init__(self, report_id=0, key=None, value=None):
+        """ Constructor for object """
+        self.report_id = report_id
+        self.key = key
+        self.value = value
+
+    def __repr__(self):
+        return "ReportAttribute object %s=%s" % (self.key, self.value)
 
 class Report(db.Base):
 
     # sqlalchemy metadata
     __tablename__ = 'reports'
-    id = Column(Integer, primary_key=True, nullable=False, unique=True)
+    report_id = Column(Integer, primary_key=True, nullable=False, unique=True)
     timestamp = Column(DateTime, nullable=False, default=datetime.datetime.utcnow)
     state = Column(Integer, default=0)
-    json = Column(Text)
+    unsed_json = Column('json', Text)
     machine_id = Column(String(64), nullable=False)
     firmware_id = Column(Integer, ForeignKey('firmware.firmware_id'), nullable=False)
-    checksum = Column(String(64), nullable=False)
+    checksum = Column(String(64), nullable=False) #fixme remove?
     issue_id = Column(Integer, default=0)
 
     # link using foreign keys
     fw = relationship('Firmware', foreign_keys=[firmware_id])
+    attributes = relationship("ReportAttribute", back_populates="report")
 
-    def __init__(self, firmware_id, machine_id=None, state=0, checksum=None, json_raw=None, issue_id=0):
+    def __init__(self, firmware_id, machine_id=None, state=0, checksum=None, issue_id=0):
         """ Constructor for object """
         self.timestamp = None
         self.state = state
-        self.json = json_raw
         self.machine_id = machine_id
         self.firmware_id = firmware_id
         self.issue_id = issue_id
         self.checksum = checksum
 
     def to_flat_dict(self):
-        return _get_flat_dict_from_json(self.json)
+        data = {}
+        if self.state:
+            data['UpdateState'] = self.state
+        if self.machine_id:
+            data['MachineId'] = self.machine_id
+        if self.firmware_id:
+            data['FirmwareId'] = self.firmware_id
+        for attr in self.attributes:
+            data[attr.key] = attr.value
+        return data
+
+    def to_kvs(self):
+        flat_dict = self.to_flat_dict()
+        kv_array = []
+        for key in flat_dict:
+            kv_array.append('%s=%s' % (key, flat_dict[key]))
+        return ', '.join(kv_array)
 
     def __repr__(self):
-        return "Report object %s" % self.id
+        return "Report object %s" % self.report_id
 
 class Setting(db.Base):
 

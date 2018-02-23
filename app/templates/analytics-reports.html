@@ -31,16 +31,15 @@
 <table class="table">
   <tr class="row">
     <th class="col-sm-2">Timestamp</th>
-    <th class="col-sm-2">State</th>
+    <th class="col-sm-1">State</th>
     <th class="col-sm-2">Machine</th>
-    <th class="col-sm-2">Checksum</th>
-    <th class="col-sm-2">Firmware</th>
+    <th class="col-sm-5">Firmware</th>
     <th class="col-sm-2">&nbsp;</th>
   </tr>
 {% for r in reports %}
   <tr class="row">
     <td class="col-sm-2">{{r.timestamp}}</td>
-    <td class="col-sm-2">
+    <td class="col-sm-1">
 {% if r.state == 0 %}
       <p class="text-warning">Unknown</p>
 {% elif r.state == 1 %}
@@ -58,17 +57,16 @@
 {% endif %}
     </td>
     <td class="col-sm-2"><code>{{r.machine_id|truncate(13, False, '…')}}</code></td>
-    <td class="col-sm-2"><code>{{r.checksum|truncate(13, False, '…')}}</code></td>
-    <td class="col-sm-2">
+    <td class="col-sm-5">
 {% if r.firmware_id %}
-      <a href="/lvfs/firmware/{{r.firmware_id}}"><code>{{r.fw.checksum_upload|truncate(13, False, '…')}}</code></a></td>
+      <a href="/lvfs/firmware/{{r.firmware_id}}"><code>{{r.fw.filename[41:]}}</code></a></td>
 {% else %}
       <p class="text-danger">Not known!</p>
 {% endif %}
     </td>
     <td class="col-sm-2 text-right">
-      <a class="btn btn-danger" href="/lvfs/report/{{r.id}}/delete">Delete</a>
-      <a class="btn btn-info" href="/lvfs/report/{{r.id}}">Details</a>
+      <a class="btn btn-danger" href="/lvfs/report/{{r.report_id}}/delete">Delete</a>
+      <a class="btn btn-info" href="/lvfs/report/{{r.report_id}}">Details</a>
     </td>
   </tr>
 {% endfor %}
