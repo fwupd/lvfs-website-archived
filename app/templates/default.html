@@ -93,11 +93,7 @@
             </div>
           </li>
 {% else %}
-        <form method="POST" class="form-inline" action="/lvfs/login">
-          <input class="form-control mr-sm-2" type="text" name="username" placeholder="Username" aria-label="Username" required>
-          <input class="form-control mr-sm-2" type="password" name="password" placeholder="Password" aria-label="Password" required>
-          <button class="btn my-2 my-sm-0" type="submit">Login</button>
-        </form>
+        <button type="button" class="btn btn-outline-light" data-toggle="modal" data-target="#loginModal">Login</button>
 {% endif %}
         </ul>
       </div>
@@ -113,6 +109,47 @@
 {% endfor %}
 
 {% block content %}{% endblock %}
+
+{% if not session['username'] %}
+<!-- modal dialog -->
+<div class="modal" id="loginModal" tabindex="-1" role="dialog" aria-labelledby="loginModalLabel" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="loginModalLabel">Do you really need to log in to the LVFS?</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <form method="post" action="/lvfs/login">
+        <div class="modal-body">
+          <p>
+            <a class="font-weight-bold" href="/lvfs/devicelist">
+              No account is required to download firmware.
+            </a>
+          </p>
+          <p>
+            Accounts are only used by hardware vendors when uploading new firmware.
+            If you have an account please log in below:
+          </p>
+          <div class="form-group">
+            <label for="group_id">Username:</label>
+            <input class="form-control" type="text" name="username" placeholder="Username" aria-label="Username" required>
+          </div>
+          <div class="form-group">
+            <label for="group_id">Password:</label>
+            <input class="form-control" type="password" name="password" placeholder="Password" aria-label="Password" required>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+          <button class="btn btn-primary" type="submit">Login</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endif %}
 
     <hr>
     <div class="container">
