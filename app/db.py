@@ -93,6 +93,26 @@ class Database(object):
                     user_id = users[e.username].user_id
                     fws_checksum[checksum].events.append(FirmwareEvent(spl[4], user_id, e.timestamp))
             setting.value = 22
+            self.session.commit()
+            return
+
+        if int(setting.value) == 22:
+            print('Creating Keyword table')
+            self.Base.metadata.tables['keywords'].create(bind=self.engine, checkfirst=True)
+            setting.value = 23
+            self.session.commit()
+            return
+        if int(setting.value) == 23:
+            print('Creating Keyword table')
+            for fw in self.session.query(Firmware).all():
+                for md in fw.mds:
+                    if md.developer_name:
+                        md.add_keywords_from_string(md.developer_name, priority=10)
+                    if md.name:
+                        md.add_keywords_from_string(md.name, priority=3)
+                    if md.summary:
+                        md.add_keywords_from_string(md.summary, priority=1)
+            setting.value = 24
             print('Committing transaction')
             self.session.commit()
             return

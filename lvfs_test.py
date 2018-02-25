@@ -107,7 +107,7 @@ class LvfsTestCase(unittest.TestCase):
         rv = self._upload('contrib/hughski-colorhug2-2.0.3.cab', target)
         assert b'Uploaded file' in rv.data, rv.data
         assert b'com.hughski.ColorHug2.firmware' in rv.data, rv.data
-        assert b'e133637179fa7c37d7a36657c7e302edce3d0fce' in rv.data, rv.data
+        assert b'7514fc4b0e1a306337de78c58f10e9e68f791de2' in rv.data, rv.data
 
     def test_login_logout(self):
 
@@ -136,12 +136,12 @@ class LvfsTestCase(unittest.TestCase):
         self.login()
         rv = self._upload('contrib/hughski-colorhug2-2.0.3.cab', 'private')
         assert b'com.hughski.ColorHug2.firmware' in rv.data, rv.data
-        assert b'e133637179fa7c37d7a36657c7e302edce3d0fce' in rv.data, rv.data
+        assert b'7514fc4b0e1a306337de78c58f10e9e68f791de2' in rv.data, rv.data
 
         # download
-        rv = self.app.get('/downloads/e133637179fa7c37d7a36657c7e302edce3d0fce-hughski-colorhug2-2.0.3.cab')
+        rv = self.app.get('/downloads/7514fc4b0e1a306337de78c58f10e9e68f791de2-hughski-colorhug2-2.0.3.cab')
         assert rv.status_code == 200, rv.status_code
-        assert len(rv.data) == 10942, len(rv.data)
+        assert len(rv.data) == 10974, len(rv.data)
 
         # check analytics works
         uris = ['/lvfs/firmware/1/analytics',
@@ -191,14 +191,14 @@ class LvfsTestCase(unittest.TestCase):
         self.login()
 
         # download it
-        rv = self.app.get('/downloads/e133637179fa7c37d7a36657c7e302edce3d0fce-hughski-colorhug2-2.0.3.cab')
+        rv = self.app.get('/downloads/7514fc4b0e1a306337de78c58f10e9e68f791de2-hughski-colorhug2-2.0.3.cab')
         assert rv.status_code == 200, rv.status_code
 
         # test deleting the firmware
         self.delete_firmware()
 
         # download missing file
-        rv = self.app.get('/downloads/e133637179fa7c37d7a36657c7e302edce3d0fce-hughski-colorhug2-2.0.3.cab')
+        rv = self.app.get('/downloads/7514fc4b0e1a306337de78c58f10e9e68f791de2-hughski-colorhug2-2.0.3.cab')
         assert rv.status_code == 404, rv.status_code
 
     def test_user_delete_wrong_user(self):
@@ -255,7 +255,7 @@ class LvfsTestCase(unittest.TestCase):
         self.login('alice')
         self.upload('embargo')
         rv = self.app.get('/lvfs/firmware/1')
-        assert b'/downloads/e133637179fa7c37d7a36657c7e302edce3d0fce' in rv.data, rv.data
+        assert b'/downloads/7514fc4b0e1a306337de78c58f10e9e68f791de2' in rv.data, rv.data
         rv = self.app.get('/lvfs/firmware')
         assert b'/lvfs/firmware/1' in rv.data, rv.data
         rv = self.app.get('/lvfs/firmware/1/analytics/clients')
@@ -277,7 +277,7 @@ class LvfsTestCase(unittest.TestCase):
         # clara can see all firmwares, but can't promote them
         self.login('clara')
         rv = self.app.get('/lvfs/firmware/1')
-        assert b'/downloads/e133637179fa7c37d7a36657c7e302edce3d0fce' in rv.data, rv.data
+        assert b'/downloads/7514fc4b0e1a306337de78c58f10e9e68f791de2' in rv.data, rv.data
         rv = self.app.get('/lvfs/firmware')
         assert b'/lvfs/firmware/1' in rv.data, rv.data
         rv = self.app.get('/lvfs/firmware/1/analytics/clients')
@@ -290,7 +290,7 @@ class LvfsTestCase(unittest.TestCase):
         # mario can see things from both users and promote
         self.login('mario')
         rv = self.app.get('/lvfs/firmware/1')
-        assert b'/downloads/e133637179fa7c37d7a36657c7e302edce3d0fce' in rv.data, rv.data
+        assert b'/downloads/7514fc4b0e1a306337de78c58f10e9e68f791de2' in rv.data, rv.data
         rv = self.app.get('/lvfs/firmware')
         assert b'/lvfs/firmware/1' in rv.data, rv.data
         rv = self.app.get('/lvfs/firmware/1/analytics/clients')
@@ -525,7 +525,7 @@ class LvfsTestCase(unittest.TestCase):
         assert b'Moved firmware' in rv.data, rv.data
         assert b'>private<' in rv.data, rv.data
 
-    def _report(self, updatestate=2, distro_id='fedora', checksum='93496305fe2c9997aa7a3e3cbb8b96b9a0c1d325'):
+    def _report(self, updatestate=2, distro_id='fedora', checksum='3f1b8ec0fa8ee323d1934a0256037c8100175755'):
         return self.app.post('/lvfs/firmware/report', data=
                              '{'
                              '  "ReportVersion" : 2,'
@@ -540,7 +540,7 @@ class LvfsTestCase(unittest.TestCase):
                              '      "Checksum" : "%s",'
                              '      "UpdateState" : %i,'
                              '      "UpdateError" : "UEFI firmware update failed: failed to make /boot/efi/EFI/arch/fw: No such file or directory",'
-                             '      "Guid" : "e133637179fa7c37d7a36657c7e302edce3d0fce",'
+                             '      "Guid" : "7514fc4b0e1a306337de78c58f10e9e68f791de2",'
                              '      "Plugin" : "colorhug",'
                              '      "VersionOld" : "2.0.0",'
                              '      "VersionNew" : "2.0.3",'
@@ -714,6 +714,62 @@ class LvfsTestCase(unittest.TestCase):
         ), follow_redirects=True)
         assert b'name="version" value="1.0.4' not in rv.data, rv.data
         assert b'Deleted requirement' in rv.data, rv.data
+
+    def test_keywords(self):
+
+        # upload file with keywords
+        self.login()
+        self.upload()
+
+        # check keywords were copied out from the .metainfo.xml file
+        rv = self.app.get('/lvfs/component/1/keywords')
+        assert b'>alice<' in rv.data, rv.data
+        assert b'>bob<' in rv.data, rv.data
+
+        # add another set of keywords
+        rv = self.app.post('/lvfs/component/keyword/add', data=dict(
+            component_id='1',
+            value='Clara Dave',
+        ), follow_redirects=True)
+        assert b'Added keywords' in rv.data, rv.data
+        assert b'>clara<' in rv.data, rv.data
+        assert b'>dave<' in rv.data, rv.data
+
+        # delete one of the added keywords
+        rv = self.app.get('/lvfs/component/keyword/5/delete', follow_redirects=True)
+        assert b'Removed keyword' in rv.data, rv.data
+        assert b'>alice<' in rv.data, rv.data
+        assert b'>colorimeter<' not in rv.data, rv.data
+
+    def test_anon_search(self):
+
+        # upload file with keywords
+        self.login()
+        self.upload(target='testing')
+        self.logout()
+
+        # search for something that does not exist
+        rv = self.app.get('/lvfs/search?value=Edward')
+        assert b'No results found for' in rv.data, rv.data
+
+        # search for one defined keyword
+        rv = self.app.get('/lvfs/search?value=Alice')
+        assert b'ColorHug2 Device Update' in rv.data, rv.data
+
+        # search for a keyword and a name match
+        rv = self.app.get('/lvfs/search?value=Alice+Edward+ColorHug2')
+        assert b'ColorHug2 Device Update' in rv.data, rv.data
+
+    def test_anon_search_not_promoted(self):
+
+        # upload file with keywords
+        self.login()
+        self.upload(target='embargo')
+        self.logout()
+
+        # search for something that does not exist
+        rv = self.app.get('/lvfs/search?value=alice')
+        assert b'No results found for' in rv.data, rv.data
 
     def test_metadata_rebuild(self):
 
@@ -923,17 +979,17 @@ class LvfsTestCase(unittest.TestCase):
         self.upload()
 
         # download with a new version of fwupd
-        rv = self.app.get('/downloads/e133637179fa7c37d7a36657c7e302edce3d0fce-hughski-colorhug2-2.0.3.cab',
+        rv = self.app.get('/downloads/7514fc4b0e1a306337de78c58f10e9e68f791de2-hughski-colorhug2-2.0.3.cab',
                           environ_base={'HTTP_USER_AGENT': 'fwupd/1.0.5'})
         assert rv.status_code == 200, rv.status_code
 
         # download with an old gnome-software and a new fwupd
-        rv = self.app.get('/downloads/e133637179fa7c37d7a36657c7e302edce3d0fce-hughski-colorhug2-2.0.3.cab',
+        rv = self.app.get('/downloads/7514fc4b0e1a306337de78c58f10e9e68f791de2-hughski-colorhug2-2.0.3.cab',
                           environ_base={'HTTP_USER_AGENT': 'gnome-software/3.20.5 fwupd/1.0.5'})
         assert rv.status_code == 200, rv.status_code
 
         # download with an old version of fwupd
-        rv = self.app.get('/downloads/e133637179fa7c37d7a36657c7e302edce3d0fce-hughski-colorhug2-2.0.3.cab',
+        rv = self.app.get('/downloads/7514fc4b0e1a306337de78c58f10e9e68f791de2-hughski-colorhug2-2.0.3.cab',
                           environ_base={'HTTP_USER_AGENT': 'fwupd/0.7.9999'})
         assert rv.status_code == 412, rv.status_code
         assert b'fwupd version too old' in rv.data, rv.data

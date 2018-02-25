@@ -9,7 +9,7 @@ from flask_login import login_required
 
 from app import app, db
 
-from .models import Requirement, Component
+from .models import Requirement, Component, Keyword, Firmware
 from .util import _error_internal, _error_permission_denied
 
 def _validate_guid(guid):
@@ -28,6 +28,29 @@ def _validate_guid(guid):
     if len(split[4]) != 12:
         return False
     return True
+
+@app.route('/lvfs/component/<int:component_id>/all')
+def firmware_component_all(component_id):
+
+    # get firmware component
+    md = db.session.query(Component).filter(Component.component_id == component_id).first()
+    if not md:
+        return _error_internal('No component matched!')
+
+    # get all the firmwares that target this component
+    fws = []
+    for fw in db.session.query(Firmware).\
+                    order_by(Firmware.timestamp.desc()).all():
+        if not fw.target in ['stable', 'testing']:
+            continue
+        if not fw.mds:
+            continue
+        for md_tmp in fw.mds:
+            if md_tmp.appstream_id != md.appstream_id:
+                continue
+            fws.append(fw)
+            break
+    return render_template('device.html', fws=fws)
 
 @app.route('/lvfs/component/<int:component_id>')
 @app.route('/lvfs/component/<int:component_id>/<page>')
@@ -146,3 +169,65 @@ def firmware_requirement_add():
     return redirect(url_for('.firmware_component_show',
                             component_id=md.component_id,
                             page='requires'))
+
+@app.route('/lvfs/component/keyword/<keyword_id>/delete')
+@login_required
+def firmware_keyword_delete(keyword_id):
+
+    # get firmware component
+    kw = db.session.query(Keyword).filter(Keyword.keyword_id == keyword_id).first()
+    if not kw:
+        return _error_internal('No keyword matched!')
+
+    # get the firmware for the keyword
+    md = kw.md
+    if not md:
+        return _error_internal('No metadata matched!')
+    fw = md.fw
+    if not fw:
+        return _error_internal('No firmware matched!')
+
+    # we can only modify our own firmware, unless admin
+    if not g.user.check_for_firmware(fw):
+        return _error_permission_denied('Unable to modify other vendor firmware')
+
+    # remove chid
+    db.session.delete(kw)
+    db.session.commit()
+
+    # log
+    flash('Removed keyword %s' % kw.value, 'info')
+    return redirect(url_for('.firmware_component_show',
+                            component_id=md.component_id,
+                            page='keywords'))
+
+@app.route('/lvfs/component/keyword/add', methods=['POST'])
+@login_required
+def firmware_keyword_add():
+    """ Adds one or more keywords to the existing component """
+
+    # check we have data
+    for key in ['component_id', 'value']:
+        if key not in request.form or not request.form[key]:
+            return _error_internal('No %s specified!' % key)
+
+    # get firmware component
+    md = db.session.query(Component).\
+            filter(Component.component_id == request.form['component_id']).first()
+    if not md:
+        return _error_internal('No component matched!')
+    fw = md.fw
+    if not fw:
+        return _error_internal('No firmware matched!')
+
+    # we can only modify our own firmware, unless admin
+    if not g.user.check_for_firmware(fw):
+        return _error_permission_denied('Unable to modify other vendor firmware')
+
+    # add keyword
+    md.add_keywords_from_string(request.form['value'])
+    db.session.commit()
+    flash('Added keywords', 'info')
+    return redirect(url_for('.firmware_component_show',
+                            component_id=md.component_id,
+                            page='keywords'))

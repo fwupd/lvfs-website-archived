@@ -33,6 +33,14 @@
         For information about what vendors have been contacted about the LVFS,
         please see the <a href="/vendorlist">vendor engagement list</a>.
       </p>
+      <form method="GET" class="form-inline mb-3" action="/lvfs/search">
+        <div class="input-group">
+          <input type="text" class="form-control" aria-label="search" name="value" required>
+          <div class="input-group-append">
+            <button class="input-group-text" type="submit">Search</button>
+          </div>
+        </div>
+      </form>
       <p>
         If your device is listed but missing a firmware update that you see on the
         vendor website, please file an issue against the <a href="https://github.com/hughsie/lvfs-website/issues">LVFS website</a>.

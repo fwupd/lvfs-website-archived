@@ -92,3 +92,4 @@ from app import views_settings
 from app import views_analytics
 from app import views_upload
 from app import views_issue
+from app import views_search

@@ -296,6 +296,61 @@ class Guid(db.Base):
     def __repr__(self):
         return "Guid object %s" % self.guid_id
 
+class Keyword(db.Base):
+
+    # sqlalchemy metadata
+    __tablename__ = 'keywords'
+    keyword_id = Column(Integer, primary_key=True, unique=True, nullable=False)
+    component_id = Column(Integer, ForeignKey('components.component_id'), nullable=False)
+    priority = Column(Integer, default=0)
+    value = Column(Text)
+
+    # link back to parent
+    md = relationship("Component", back_populates="keywords")
+
+    def __init__(self, value, priority=0):
+        """ Constructor for object """
+        self.value = value
+        self.priority = priority
+
+def _is_keyword_valid(value):
+    if not len(value):
+        return False
+    if value.find('.') != -1:
+        return False
+    if value in ['a',
+                 'bios',
+                 'company',
+                 'corporation',
+                 'development',
+                 'device',
+                 'firmware',
+                 'for',
+                 'limited',
+                 'system',
+                 'the',
+                 'update']:
+        return False
+    return True
+
+def _sanitize_keyword(value):
+    for rpl in ['(', ')', '[', ']']:
+        value = value.replace(rpl, '')
+    return value.strip().lower()
+
+def _split_search_string(value):
+    for delim in ['/', ',']:
+        value = value.replace(delim, ' ')
+    keywords = []
+    for word in value.split(' '):
+        keyword = _sanitize_keyword(word)
+        if not _is_keyword_valid(keyword):
+            continue
+        if keyword in keywords:
+            continue
+        keywords.append(keyword)
+    return keywords
+
 class Component(db.Base):
 
     # sqlalchemy metadata
@@ -327,6 +382,7 @@ class Component(db.Base):
     # include all Component objects
     requirements = relationship("Requirement", back_populates="md")
     guids = relationship("Guid", back_populates="md", lazy='joined')
+    keywords = relationship("Keyword", back_populates="md")
 
     def __init__(self):
         """ Constructor for object """
@@ -349,6 +405,15 @@ class Component(db.Base):
         self.release_urgency = None
         self.screenshot_url = None
         self.screenshot_caption = None
+
+    def add_keywords_from_string(self, value, priority=0):
+        existing_keywords = {}
+        for kw in self.keywords:
+            existing_keywords[kw.value] = kw
+        for keyword in _split_search_string(value):
+            if keyword in existing_keywords:
+                continue
+            self.keywords.append(Keyword(keyword, priority))
 
     def find_req(self, kind=None, value=None):
         """ Find a Requirement from the kind and/or value """
