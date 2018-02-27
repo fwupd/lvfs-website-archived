@@ -156,6 +156,18 @@ def upload():
         md.url_homepage = component.get_url_item(AppStreamGlib.UrlKind.HOMEPAGE)
         md.description = component.get_description()
 
+        # add manually added keywords
+        for keyword in component.get_keywords():
+            md.add_keywords_from_string(keyword, priority=5)
+
+        # add from the provided free text
+        if md.developer_name:
+            md.add_keywords_from_string(md.developer_name, priority=10)
+        if md.name:
+            md.add_keywords_from_string(md.name, priority=3)
+        if md.summary:
+            md.add_keywords_from_string(md.summary, priority=1)
+
         # from the provide
         for prov in component.get_provides():
             if prov.get_kind() != AppStreamGlib.ProvideKind.FIRMWARE_FLASHED:

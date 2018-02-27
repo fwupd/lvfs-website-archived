@@ -121,6 +121,8 @@ def firmware_delete(firmware_id):
 
     # delete from database
     for md in fw.mds:
+        for kw in md.keywords:
+            db.session.delete(kw)
         for rq in md.requirements:
             db.session.delete(rq)
         for gu in md.guids:
