@@ -90,12 +90,13 @@ def firmware_modify(firmware_id):
             md.release_urgency = request.form['urgency']
         if 'description' in request.form:
             txt = request.form['description']
-            if txt.find('<p>') == -1:
-                txt = AppStreamGlib.markup_import(txt, AppStreamGlib.MarkupConvertFormat.SIMPLE)
-            try:
-                AppStreamGlib.markup_validate(txt)
-            except GLib.Error as e: # pylint: disable=catching-non-exception
-                return _error_internal("Failed to parse %s: %s" % (txt, str(e)))
+            if txt:
+                if txt.find('<p>') == -1:
+                    txt = AppStreamGlib.markup_import(txt, AppStreamGlib.MarkupConvertFormat.SIMPLE)
+                try:
+                    AppStreamGlib.markup_validate(txt)
+                except GLib.Error as e: # pylint: disable=catching-non-exception
+                    return _error_internal("Failed to parse %s: %s" % (txt, str(e)))
             md.release_description = txt
 
     # modify
@@ -239,9 +240,18 @@ def firmware_show(firmware_id):
             else:
                 reports_failure += 1
 
+    # does the firmware have any warnings
+    vetos = []
+    for md in fw.mds:
+        if md.release_urgency == 'unknown':
+            vetos.append('no-release-urgency')
+        if not md.release_description or len(md.release_description) < 12:
+            vetos.append('no-release-description')
+
     return render_template('firmware-details.html',
                            fw=fw,
                            orig_filename='-'.join(fw.filename.split('-')[1:]),
+                           vetos=vetos,
                            embargo_url=embargo_url,
                            reports_success=reports_success,
                            reports_issue=reports_issue,

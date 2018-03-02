@@ -3,8 +3,60 @@
 
 {% block content %}
 <div class="container mt-3">
-<h1>Firmware Details</h1>
 
+<!-- veto information -->
+{% if fw.target == 'testing' and 'no-release-urgency' in vetos %}
+<div class="card mb-3">
+  <h3 class="card-header list-group-item-warning">
+    More information soon required!
+  </h3>
+  <div class="card-body">
+    <p class="card-text">
+      All components should have an appropriate update urgency before a
+      firmware is moved to stable.
+      You can do this for each component on this firmware by clicking <b>Details</b>
+      &raquo; <b>Update Details</b> and setting an urgency from the dropdown.
+    </p>
+    <p class="card-text">
+      For future firmware uploads, this can be set automatically using
+      <code>&lt;release urgency="high"&gt;</code> in the
+      <a href="/metainfo"><code>.metainfo.xml</code></a> file.
+    </p>
+    <p class="card-text">
+      From 1<sup>st</sup> September 2018 it will not be possible to move firmware
+      files to stable that do not have an urgency value.
+    </p>
+  </div>
+</div>
+{% elif fw.target == 'testing' and 'no-release-description' in vetos %}
+<div class="card mb-3">
+  <h3 class="card-header list-group-item-warning">
+    More information soon required!
+  </h3>
+  <div class="card-body">
+    <p class="card-text">
+      All components should have a suitable update description before a
+      firmware is moved to stable.
+      You can do this for each component on this firmware by clicking <b>Details</b>
+      &raquo; <b>Update Details</b> and writing some content that is shown to users.
+      Writing good quality release notes are really important as some users may be
+      worried about an update that does not explain what it fixes.
+    </p>
+    <p class="card-text">
+      For future firmware uploads, this can be set automatically using this
+      in the <a href="/metainfo"><code>.metainfo.xml</code></a> file:<br/>
+      <code>&lt;release&gt;&lt;description&gt;&lt;p&gt;Release note
+      text&lt;/p&gt;&lt;/description&gt;&lt;/release&gt;</code>
+    </p>
+    <p class="card-text">
+      From 1<sup>st</sup> September 2018 it will not be possible to move firmware
+      files to stable that do not have an update description.
+    </p>
+  </div>
+</div>
+{% endif %}
+
+<h1>Firmware Details</h1>
 <table class="table">
   <tr class="row">
     <th class="col-sm-4 align-middle">Filename</th>
