@@ -13,6 +13,7 @@ RUN yum -y install \
 	python2-gnupg \
 	python2-pylint \
 	python-blinker \
+	python-humanize \
 	python-requests \
 	python-sqlalchemy \
 	python-flask \

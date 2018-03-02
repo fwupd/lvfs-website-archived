@@ -8,6 +8,7 @@ from __future__ import print_function
 
 import os
 import datetime
+import humanize
 
 from flask import session, request, flash, url_for, redirect, render_template
 from flask import send_from_directory, abort, Response, g
@@ -129,6 +130,9 @@ def utility_processor():
             return 'n/a'
         return datetime.datetime.fromtimestamp(tmp).strftime('%Y-%m-%d %H:%M:%S')
 
+    def format_timedelta_approx(tmp):
+        return humanize.naturaltime(tmp)
+
     def format_size(num, suffix='B'):
         if not isinstance(num, int) and not isinstance(num, long):
             return "???%s???" % num
@@ -143,6 +147,7 @@ def utility_processor():
 
     return dict(format_size=format_size,
                 format_qa_hash=format_qa_hash,
+                format_timedelta_approx=format_timedelta_approx,
                 format_timestamp=format_timestamp)
 
 @lm.unauthorized_handler

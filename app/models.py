@@ -486,6 +486,12 @@ class Firmware(db.Base):
     # link using foreign keys
     vendor = relationship('Vendor', foreign_keys=[vendor_id])
 
+    @property
+    def target_duration(self):
+        if not self.events:
+            return 0
+        return datetime.datetime.utcnow() - self.events[-1].timestamp
+
     def __init__(self):
         """ Constructor for object """
         self.addr = None

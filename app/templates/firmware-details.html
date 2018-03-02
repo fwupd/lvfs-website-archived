@@ -17,7 +17,12 @@
   </tr>
   <tr class="row">
     <th class="col-sm-4 align-middle">Current Target</th>
-    <td class="col-sm-6 align-middle">{{fw.target}}</td>
+    <td class="col-sm-6 align-middle">
+      {{fw.target}}
+{% if fw.target_duration.total_seconds() > 5 %}
+      (moved {{format_timedelta_approx(fw.target_duration)}})
+{% endif %}
+    </td>
     <td class="col-sm-2 align-middle text-right">
       <button type="button" class="btn btn-block btn-info" data-toggle="modal" data-target="#historyModal">History</button>
 {% if g.user.is_qa %}
