@@ -212,6 +212,16 @@ class UploadedFile(object):
         if not release_default:
             raise MetadataInvalid('The metadata file did not provide any releases.')
 
+        # ensure the update desciption does not refer to a file in the archive
+        release_description = release_default.get_description()
+        if release_description:
+            for word in release_description.split(' '):
+                if word.find('.') == -1: # any word without a dot is not a fn
+                    continue
+                cfs = _archive_get_files_from_glob(self._src_arc, word)
+                if len(cfs):
+                    raise MetadataInvalid('The release description should not reference other files.')
+
         # fix up hex value
         release_version = release_default.get_version()
         if release_version.startswith('0x'):

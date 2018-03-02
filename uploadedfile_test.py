@@ -20,7 +20,7 @@ from app.pluginloader import Pluginloader, PluginBase
 def _get_valid_firmware():
     return 'fubar'.ljust(1024)
 
-def _get_valid_metainfo():
+def _get_valid_metainfo(release_description='This stable release fixes bugs'):
     return """
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- Copyright 2015 Richard Hughes <richard@hughsie.com> -->
@@ -38,11 +38,11 @@ def _get_valid_metainfo():
   <developer_name>Hughski Limited</developer_name>
   <releases>
     <release version="3.0.2" timestamp="1424116753">
-      <description><p>This stable release fixes bugs</p></description>
+      <description><p>%s</p></description>
     </release>
   </releases>
 </component>
-"""
+""" % release_description
 
 def _archive_to_contents(arc):
     ostream = Gio.MemoryOutputStream.new_resizable()
@@ -137,6 +137,17 @@ class TestStringMethods(unittest.TestCase):
         arc2 = ufile.get_repacked_cabinet()
         self.assertIsNotNone(_archive_get_files_from_glob(arc2, 'firmware.bin'))
         self.assertIsNotNone(_archive_get_files_from_glob(arc2, 'firmware.metainfo.xml'))
+
+    # update description references another file
+    def test_release_mentions_file(self):
+        arc = GCab.Cabinet.new()
+        _archive_add(arc, 'firmware.bin', _get_valid_firmware())
+        _archive_add(arc, 'README.txt', _get_valid_firmware())
+        _archive_add(arc, 'firmware.metainfo.xml',
+                     _get_valid_metainfo(release_description='See README.txt for details.'))
+        with self.assertRaises(MetadataInvalid):
+            ufile = UploadedFile()
+            ufile.parse('foo.cab', _archive_to_contents(arc))
 
     # archive .cab with path with forward-slashes
     def test_valid_path(self):
