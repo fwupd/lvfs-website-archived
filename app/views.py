@@ -214,9 +214,16 @@ def new_account():
 def login():
     """ A login screen to allow access to the LVFS main page """
     # auth check
+    used_deprecated_username = False
     user = db.session.query(User).\
-            filter(User.username == request.form['username']).\
+            filter(User.email == request.form['username']).\
             filter(User.password == _password_hash(request.form['password'])).first()
+    if not user:
+        # fallback, but not forever
+        user = db.session.query(User).\
+                filter(User.username == request.form['username']).\
+                filter(User.password == _password_hash(request.form['password'])).first()
+        used_deprecated_username = True
     if not user:
         flash('Failed to log in: Incorrect username or password for %s' % request.form['username'], 'danger')
         return redirect(url_for('.index'))
@@ -227,7 +234,12 @@ def login():
     # success
     login_user(user, remember=False)
     g.user = user
-    flash('Logged in', 'info')
+    if used_deprecated_username:
+        # show the user something to remind them
+        flash(u'Logged in — but from 1st September 2018 you will be required to '
+              'use your email address of %s instead of %s.' % (user.email, user.username), 'warning')
+    else:
+        flash('Logged in', 'info')
     return redirect(url_for('.index'))
 
 @app.route('/lvfs/logout')
