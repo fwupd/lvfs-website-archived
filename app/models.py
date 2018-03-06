@@ -31,7 +31,7 @@ class User(db.Base):
     username = Column(String(40), nullable=False, default='')
     password = Column(String(40), nullable=False, default='')
     display_name = Column(String(128))
-    email = Column(String(255))
+    email = Column(String(255), nullable=False)
     vendor_id = Column(Integer, ForeignKey('vendors.vendor_id'), nullable=False)
     is_enabled = Column(Boolean, default=False)
     is_qa = Column(Boolean, default=False)
