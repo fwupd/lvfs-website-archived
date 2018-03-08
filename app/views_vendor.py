@@ -117,6 +117,22 @@ def vendor_users(vendor_id):
         return _error_permission_denied('Unable to edit vendor as non-admin')
     return render_template('vendor-users.html', v=vendor)
 
+@app.route('/lvfs/vendor/<int:vendor_id>/oauth')
+@login_required
+def vendor_oauth(vendor_id):
+    """ Allows changing a vendor [ADMIN ONLY] """
+
+    # check exists
+    vendor = db.session.query(Vendor).filter(Vendor.vendor_id == vendor_id).first()
+    if not vendor:
+        flash('Failed to get vendor details: No a vendor with that group ID', 'warning')
+        return redirect(url_for('.vendor_list'), 302)
+
+    # security check
+    if not g.user.check_for_vendor(vendor):
+        return _error_permission_denied('Unable to edit vendor as non-admin')
+    return render_template('vendor-oauth.html', v=vendor)
+
 @app.route('/lvfs/vendor/<int:vendor_id>/restriction/add', methods=['POST'])
 @login_required
 def vendor_restriction_add(vendor_id):
@@ -186,6 +202,8 @@ def vendor_modify_by_admin(vendor_id):
                 'is_fwupd_supported',
                 'is_account_holder',
                 'is_uploading',
+                'oauth_unknown_user',
+                'oauth_domain_glob',
                 'comments',
                 'keywords']:
         if key in request.form:

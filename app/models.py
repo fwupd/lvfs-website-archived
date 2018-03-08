@@ -220,6 +220,8 @@ class Vendor(db.Base):
     comments = Column(String(255), nullable=False, default='')
     icon = Column(Text, default=None)
     keywords = Column(Text, default=None)
+    oauth_unknown_user = Column(Text, default=None)
+    oauth_domain_glob = Column(Text, default=None)
 
     # magically get the users in this vendor group
     users = relationship("User", back_populates="vendor")

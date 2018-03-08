@@ -8,6 +8,7 @@ from __future__ import print_function
 
 import os
 import datetime
+import fnmatch
 import humanize
 
 from flask import request, flash, url_for, redirect, render_template
@@ -20,11 +21,11 @@ from app import app, db, lm, ploader
 from .db import _execute_count_star
 from .pluginloader import PluginError
 
-from .models import Firmware, DownloadKind, UserCapability, Requirement, Component
+from .models import Firmware, DownloadKind, UserCapability, Requirement, Component, Vendor
 from .models import User, Analytic, Client, Event, Useragent, _get_datestr_from_datetime
 from .hash import _qa_hash, _password_hash, _addr_hash
 from .util import _get_client_address, _get_settings
-from .util import _error_permission_denied, _event_log
+from .util import _error_permission_denied, _event_log, _error_internal
 
 def _user_agent_safe_for_requirement(user_agent):
 
@@ -261,6 +262,29 @@ def login_oauth(plugin_id):
     except PluginError as e:
         return _error_permission_denied(str(e))
 
+def _perhaps_create_oauth_user_for_vendor(username):
+
+    # in most cases this is what is returned
+    user = None
+
+    # does this username match any globs specified by the vendor
+    for v in db.session.query(Vendor).filter(Vendor.oauth_domain_glob != None).all():
+        if not fnmatch.fnmatch(username.lower(), v.oauth_domain_glob):
+            continue
+        if v.oauth_unknown_user == 'create':
+            user = User(username, vendor_id=v.vendor_id, auth_type='oauth')
+            break
+        if v.oauth_unknown_user == 'disabled':
+            user = User(username, vendor_id=v.vendor_id)
+            break
+
+    # save to database
+    if user:
+        db.session.add(user)
+        db.session.commit()
+        _event_log('Auto created user of type %s for vendor %s' % (user.auth_type, user.vendor.group_id))
+    return user
+
 @app.route('/lvfs/login/authorized/<plugin_id>')
 def login_oauth_authorized(plugin_id):
 
@@ -274,12 +298,17 @@ def login_oauth_authorized(plugin_id):
         data = p.oauth_get_data()
         _event_log('OAuth returned: %s' % str(data))
         if 'userPrincipalName' not in data:
-            raise PluginError('No userPrincipalName in profile')
+            return _error_internal('No userPrincipalName in profile')
     except PluginError as e:
         return _error_permission_denied(str(e))
 
     # auth check
+    created_account = False
     user = db.session.query(User).filter(User.username == data['userPrincipalName']).first()
+    if not user:
+        user = _perhaps_create_oauth_user_for_vendor(data['userPrincipalName'])
+        if user:
+            created_account = True
     if not user:
         flash('Failed to log in: no user for %s' % data['userPrincipalName'], 'danger')
         return redirect(url_for('.index'))
@@ -288,9 +317,6 @@ def login_oauth_authorized(plugin_id):
         return redirect(url_for('.index'))
     if user.auth_type != 'oauth':
         flash('Failed to log in: Only some accounts can log in using OAuth', 'danger')
-        return redirect(url_for('.index'))
-    if user.password:
-        flash('Failed to log in: Only accounts with no local password can log in using OAuth', 'danger')
         return redirect(url_for('.index'))
 
     # sync the display name
@@ -302,7 +328,10 @@ def login_oauth_authorized(plugin_id):
     # success
     login_user(user, remember=False)
     g.user = user
-    flash('Logged in', 'info')
+    if created_account:
+        flash('Logged in, and created account', 'info')
+    else:
+        flash('Logged in', 'info')
     return redirect(url_for('.index'))
 
 @app.route('/lvfs/logout')
