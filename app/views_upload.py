@@ -145,6 +145,10 @@ def upload():
     if ufile.version_display:
         fw.version_display = ufile.version_display
 
+    # this allows an OEM to hide the direct download link on the LVFS
+    if 'LVFS::InhibitDownload' in ufile.metadata:
+        fw.inhibit_download = True
+
     # create child metadata object for the component
     for component in ufile.get_components():
         md = Component()

@@ -80,6 +80,19 @@ An example <code>metainfo.xml</code> file looks like this:
   the firmware is published to stable channel.
 </p>
 
+<h2>Restricting direct downloads</h2>
+<p>
+  If you'd rather not have users downloading the .cab archive directly you
+  can opt to hide the direct download links in the LVFS search results.
+  To do this, add this to the metainfo file:
+</p>
+<pre>
+  &lt;!-- most OEMs do not need to do this... --&gt;
+  &lt;custom&gt;
+    &lt;value key="LVFS::InhibitDownload"/&gt;
+  &lt;/custom&gt;
+</pre>
+
 <h2>Style Guide</h2>
 
 <table class="table">

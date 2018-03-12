@@ -505,6 +505,7 @@ class Firmware(db.Base):
     target = Column(String(255), nullable=False)
     checksum_signed = Column(String(40), nullable=False)
     user_id = Column(Integer, ForeignKey('users.user_id'), nullable=False)
+    inhibit_download = Column(Boolean, default=False)
 
     # include all Component objects
     mds = relationship("Component", back_populates="fw", lazy='joined')

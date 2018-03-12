@@ -60,7 +60,12 @@
 <table class="table">
   <tr class="row">
     <th class="col-sm-4 align-middle">Filename</th>
-    <td class="col-sm-6 align-middle"><a href="/downloads/{{fw.filename}}">{{orig_filename}}</a></td>
+    <td class="col-sm-6 align-middle">
+      <a href="/downloads/{{fw.filename}}">{{orig_filename}}</a>
+{% if fw.inhibit_download %}
+      <span class="text-muted">(direct link for download not available for end-users)</span>
+{% endif %}
+    </td>
     <td class="col-sm-2 text-right">
 {% if fw.target != 'stable' or g.user.is_qa %}
       <button type="button" class="btn btn-block btn-danger" data-toggle="modal" data-target="#deleteModal">Delete</button>

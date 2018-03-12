@@ -41,6 +41,10 @@ def _get_valid_metainfo(release_description='This stable release fixes bugs'):
       <description><p>%s</p></description>
     </release>
   </releases>
+  <custom>
+    <value key="foo">bar</value>
+    <value key="LVFS::InhibitDownload"/>
+  </custom>
 </component>
 """ % release_description
 
@@ -137,6 +141,18 @@ class TestStringMethods(unittest.TestCase):
         arc2 = ufile.get_repacked_cabinet()
         self.assertIsNotNone(_archive_get_files_from_glob(arc2, 'firmware.bin'))
         self.assertIsNotNone(_archive_get_files_from_glob(arc2, 'firmware.metainfo.xml'))
+
+    # valid metadata
+    def test_metadata(self):
+        arc = GCab.Cabinet.new()
+        _archive_add(arc, 'firmware.bin', _get_valid_firmware())
+        _archive_add(arc, 'firmware.metainfo.xml', _get_valid_metainfo())
+        ufile = UploadedFile()
+        ufile.parse('foo.cab', _archive_to_contents(arc))
+        self.assertTrue('foo' in ufile.metadata)
+        self.assertTrue('LVFS::InhibitDownload' in ufile.metadata)
+        self.assertTrue(ufile.metadata['foo'] == 'bar')
+        self.assertFalse('NotGoingToExist' in ufile.metadata)
 
     # update description references another file
     def test_release_mentions_file(self):

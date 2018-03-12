@@ -50,7 +50,18 @@
   </tr>
   <tr class="row">
     <th class="col-sm-2">Filename</th>
-    <td class="col-sm-10"><a href="/downloads/{{fw.filename}}">{{fw.filename}}</a></td>
+    <td class="col-sm-10">
+{% if fw.inhibit_download %}
+      <p class="text-muted">
+        The OEM that uploaded this firmware has chosen to disable downloads of
+        the firmware when using a web browser.
+        End users should use a client such as fwupdmgr to download and deploy
+        the firmware.
+      </p>
+{% else %}
+      <a href="/downloads/{{fw.filename}}">{{fw.filename}}</a>
+{% endif %}
+    </td>
   </tr>
   <tr class="row">
     <th class="col-sm-2">Description</th>
