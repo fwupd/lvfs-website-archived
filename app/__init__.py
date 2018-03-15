@@ -11,6 +11,7 @@ import sqlalchemy
 
 from flask import Flask, flash, render_template, message_flashed, request, Response, g
 from flask_login import LoginManager
+from flask_migrate import Migrate
 from flask_oauthlib.client import OAuth
 from flask_sqlalchemy import SQLAlchemy
 from werkzeug.local import LocalProxy
@@ -18,7 +19,7 @@ from werkzeug.local import LocalProxy
 from .response import SecureResponse
 from .pluginloader import Pluginloader
 from .util import _error_internal, _event_log
-from .dbutils import drop_db, init_db, modify_db
+from .dbutils import drop_db, init_db
 
 app = Flask(__name__)
 if os.path.exists('app/custom.cfg'):
@@ -33,6 +34,8 @@ oauth = OAuth(app)
 
 db = SQLAlchemy(app)
 
+migrate = Migrate(app, db)
+
 @app.cli.command('initdb')
 def initdb_command():
     init_db(db)
@@ -40,10 +43,6 @@ def initdb_command():
 @app.cli.command('dropdb')
 def dropdb_command():
     drop_db(db)
-
-@app.cli.command('modifydb')
-def modifydb_command():
-    modify_db(db)
 
 def flash_save_eventlog(unused_sender, message, category, **unused_extra):
     is_important = False

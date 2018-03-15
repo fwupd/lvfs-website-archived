@@ -10,6 +10,7 @@ RUN yum -y install \
 	MySQL-python \
 	python2-boto3 \
 	python2-flask-login \
+	python2-flask-migrate \
 	python2-gnupg \
 	python2-pylint \
 	python-blinker \
