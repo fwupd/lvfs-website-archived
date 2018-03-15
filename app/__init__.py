@@ -11,13 +11,15 @@ import sqlalchemy
 
 from flask import Flask, flash, render_template, message_flashed, request, Response, g
 from flask_login import LoginManager
+from flask_migrate import Migrate
 from flask_oauthlib.client import OAuth
+from flask_sqlalchemy import SQLAlchemy
 from werkzeug.local import LocalProxy
 
-from .db import Database
 from .response import SecureResponse
 from .pluginloader import Pluginloader
 from .util import _error_internal, _event_log
+from .dbutils import drop_db, init_db
 
 app = Flask(__name__)
 if os.path.exists('app/custom.cfg'):
@@ -30,20 +32,17 @@ if 'LVFS_CUSTOM_SETTINGS' in os.environ:
 
 oauth = OAuth(app)
 
-db = Database()
-db.init_app(app)
+db = SQLAlchemy(app)
+
+migrate = Migrate(app, db)
 
 @app.cli.command('initdb')
 def initdb_command():
-    db.init_db()
+    init_db(db)
 
 @app.cli.command('dropdb')
 def dropdb_command():
-    db.drop_db()
-
-@app.cli.command('modifydb')
-def modifydb_command():
-    db.modify_db()
+    drop_db(db)
 
 def flash_save_eventlog(unused_sender, message, category, **unused_extra):
     is_important = False

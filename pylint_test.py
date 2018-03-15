@@ -25,6 +25,8 @@ def main():
     # run pylint on each file, any failure is globally fatal
     rc = 0
     for fn in sorted(filenames):
+        if fn.find('migrations/') != -1:
+            continue
         argv = ['/usr/bin/pylint-2', '--rcfile=contrib/pylintrc', fn]
         print('Checking %s' % fn)
         ps = subprocess.Popen(argv, env=env_safe)

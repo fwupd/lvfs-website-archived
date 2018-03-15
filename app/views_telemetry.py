@@ -13,7 +13,7 @@ from sqlalchemy.orm import joinedload
 
 from app import app, db
 
-from .db import _execute_count_star
+from .dbutils import _execute_count_star
 from .models import Firmware, Client, UserCapability
 from .util import _error_permission_denied
 
