@@ -13,7 +13,7 @@ from flask_login import login_required
 
 from app import app, db
 
-from .models import UserCapability, DownloadKind, Analytic, Client, Report, Useragent, SearchEvent
+from .models import UserCapability, Analytic, Client, Report, Useragent, SearchEvent
 from .models import _get_datestr_from_datetime, _split_search_string
 from .util import _error_permission_denied
 from .util import _get_chart_labels_months, _get_chart_labels_days
@@ -34,7 +34,6 @@ def analytics_month():
     for _ in range(30):
         datestr = _get_datestr_from_datetime(now)
         analytic = db.session.query(Analytic).\
-                        filter(Analytic.kind == DownloadKind.FIRMWARE).\
                         filter(Analytic.datestr == datestr).\
                         first()
         if analytic:
@@ -66,7 +65,6 @@ def analytics_year():
         now -= datetime.timedelta(days=30)
         datestrnew = _get_datestr_from_datetime(now)
         analytics = db.session.query(Analytic).\
-                        filter(Analytic.kind == DownloadKind.FIRMWARE).\
                         filter(Analytic.datestr < datestrold).\
                         filter(Analytic.datestr > datestrnew).\
                         all()

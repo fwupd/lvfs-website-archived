@@ -20,7 +20,7 @@ from app import app, db, lm, ploader
 from .dbutils import _execute_count_star
 from .pluginloader import PluginError
 
-from .models import Firmware, DownloadKind, UserCapability, Requirement, Component
+from .models import Firmware, UserCapability, Requirement, Component
 from .models import User, Analytic, Client, Event, Useragent, _get_datestr_from_datetime
 from .hash import _qa_hash, _password_hash, _addr_hash
 from .util import _get_client_address, _get_settings
@@ -88,13 +88,12 @@ def serveStaticResource(resource):
         # either update the analytics counter, or create one for that day
         datestr = _get_datestr_from_datetime(datetime.date.today())
         analytic = db.session.query(Analytic).\
-                        filter(Analytic.kind == DownloadKind.FIRMWARE).\
                         filter(Analytic.datestr == datestr).\
                         first()
         if analytic:
             analytic.cnt += 1
         else:
-            db.session.add(Analytic(DownloadKind.FIRMWARE, datestr))
+            db.session.add(Analytic(datestr))
 
         # update the user-agent counter
         if user_agent:

@@ -749,17 +749,15 @@ class Analytic(db.Model):
     # sqlalchemy metadata
     __tablename__ = 'analytics'
     datestr = Column(Integer, primary_key=True, default=0)
-    kind = Column(Integer, primary_key=True, default=0)
     cnt = Column(Integer, default=1)
 
-    def __init__(self, kind, datestr=0):
+    def __init__(self, datestr=0):
         """ Constructor for object """
-        self.kind = kind
         self.cnt = 1
         self.datestr = datestr
 
     def __repr__(self):
-        return "Analytic object %i:%s" % (self.kind, self.datestr)
+        return "Analytic object %s" % self.datestr
 
 class Useragent(db.Model):
 
@@ -801,8 +799,3 @@ class SearchEvent(db.Model):
 
     def __repr__(self):
         return "SearchEvent object %s" % self.search_event_id
-
-class DownloadKind(object):
-    METADATA = 0
-    FIRMWARE = 1
-    SIGNING = 2
