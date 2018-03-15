@@ -29,10 +29,10 @@ class User(db.Model):
     # database
     __tablename__ = 'users'
     user_id = Column(Integer, primary_key=True, unique=True, nullable=False)
-    username = Column(String(40), nullable=False)
-    username_old = Column(String(255))
+    username = Column(Text, nullable=False)
+    username_old = Column(Text, default=None)
     password = Column(Text, default=None)
-    display_name = Column(String(128))
+    display_name = Column(Text, default=None)
     vendor_id = Column(Integer, ForeignKey('vendors.vendor_id'), nullable=False)
     auth_type = Column(Text, default='disabled')
     unused_is_enabled = Column('is_enabled', Boolean, default=False)
@@ -191,7 +191,7 @@ class Restriction(db.Model):
     __tablename__ = 'restrictions'
     restriction_id = Column(Integer, primary_key=True, unique=True, nullable=False)
     vendor_id = Column(Integer, ForeignKey('vendors.vendor_id'), nullable=False)
-    value = Column(Text)
+    value = Column(Text, nullable=False)
 
     # link back to parent
     vendor = relationship("Vendor", back_populates="restrictions")
@@ -208,16 +208,16 @@ class Vendor(db.Model):
     # sqlalchemy metadata
     __tablename__ = 'vendors'
     vendor_id = Column(Integer, primary_key=True, unique=True)
-    group_id = Column(String(40), nullable=False, default='')
-    display_name = Column(String(128), nullable=False, default='')
-    plugins = Column(String(128), nullable=False, default='')
-    description = Column(String(255), nullable=False, default='')
+    group_id = Column(Text, nullable=False, default='')
+    display_name = Column(Text, nullable=False, default='')
+    plugins = Column(Text, nullable=False, default='')
+    description = Column(Text, nullable=False, default='')
     visible = Column(Boolean, default=False)
     visible_for_search = Column(Boolean, default=False)
     is_fwupd_supported = Column(String(16), nullable=False, default='no')
     is_account_holder = Column(String(16), nullable=False, default='no')
     is_uploading = Column(String(16), nullable=False, default='no')
-    comments = Column(String(255), nullable=False, default='')
+    comments = Column(Text, nullable=False, default='')
     icon = Column(Text, default=None)
     keywords = Column(Text, default=None)
 
@@ -267,9 +267,9 @@ class Event(db.Model):
     user_id = Column(Integer, ForeignKey('users.user_id'), nullable=False)
     vendor_id = Column(Integer, ForeignKey('vendors.vendor_id'), nullable=False)
     address = Column('addr', String(40), nullable=False)
-    message = Column(Text)
+    message = Column(Text, default=None)
     is_important = Column(Integer, default=0)
-    request = Column(Text)
+    request = Column(Text, default=None)
 
     # link using foreign keys
     vendor = relationship('Vendor', foreign_keys=[vendor_id])
@@ -295,9 +295,9 @@ class Requirement(db.Model):
     requirement_id = Column(Integer, primary_key=True, unique=True)
     component_id = Column(Integer, ForeignKey('components.component_id'), nullable=False)
     kind = Column(Text, nullable=False)
-    value = Column(Text)
-    compare = Column(Text)
-    version = Column(Text)
+    value = Column(Text, nullable=False)
+    compare = Column(Text, default=None)
+    version = Column(Text, default=None)
 
     # link back to parent
     md = relationship("Component", back_populates="requirements")
@@ -319,7 +319,7 @@ class Guid(db.Model):
     __tablename__ = 'guids'
     guid_id = Column(Integer, primary_key=True, unique=True, nullable=False)
     component_id = Column(Integer, ForeignKey('components.component_id'), nullable=False)
-    value = Column(Text)
+    value = Column(Text, nullable=False)
 
     # link back to parent
     md = relationship("Component", back_populates="guids")
@@ -340,7 +340,7 @@ class Keyword(db.Model):
     keyword_id = Column(Integer, primary_key=True, unique=True, nullable=False)
     component_id = Column(Integer, ForeignKey('components.component_id'), nullable=False)
     priority = Column(Integer, default=0)
-    value = Column(Text)
+    value = Column(Text, nullable=False)
 
     # link back to parent
     md = relationship("Component", back_populates="keywords")
@@ -395,23 +395,23 @@ class Component(db.Model):
     component_id = Column(Integer, primary_key=True, unique=True, nullable=False)
     firmware_id = Column(Integer, ForeignKey('firmware.firmware_id'), nullable=False)
     checksum_contents = Column(String(40), nullable=False)
-    appstream_id = Column(Text)
-    name = Column(Text)
-    summary = Column(Text)
-    description = Column(Text)
-    release_description = Column(Text)
-    url_homepage = Column(Text)
-    metadata_license = Column(Text)
-    project_license = Column(Text)
-    developer_name = Column(Text)
-    filename_contents = Column(Text)
+    appstream_id = Column(Text, nullable=False)
+    name = Column(Text, default=None)
+    summary = Column(Text, default=None)
+    description = Column(Text, default=None)
+    release_description = Column(Text, default=None)
+    url_homepage = Column(Text, default=None)
+    metadata_license = Column(Text, default=None)
+    project_license = Column(Text, default=None)
+    developer_name = Column(Text, default=None)
+    filename_contents = Column(Text, nullable=False)
     release_timestamp = Column(Integer, default=0)
-    version = Column(String(255))
+    version = Column(Text, nullable=False)
     release_installed_size = Column(Integer, default=0)
     release_download_size = Column(Integer, default=0)
-    release_urgency = Column(String(16))
-    screenshot_url = Column(Text)
-    screenshot_caption = Column(Text)
+    release_urgency = Column(Text, default=None)
+    screenshot_url = Column(Text, default=None)
+    screenshot_caption = Column(Text, default=None)
 
     # link back to parent
     fw = relationship("Firmware", back_populates="mds", lazy='joined')
@@ -473,7 +473,7 @@ class FirmwareEvent(db.Model):
     firmware_id = Column(Integer, ForeignKey('firmware.firmware_id'), nullable=False)
     user_id = Column(Integer, ForeignKey('users.user_id'), nullable=False)
     timestamp = Column(DateTime, nullable=False, default=datetime.datetime.utcnow)
-    target = Column(Text)
+    target = Column(Text, nullable=False)
 
     # link back to parent
     fw = relationship("Firmware", back_populates="events")
@@ -498,11 +498,11 @@ class Firmware(db.Model):
     vendor_id = Column(Integer, ForeignKey('vendors.vendor_id'), nullable=False)
     addr = Column(String(40), nullable=False)
     timestamp = Column(DateTime, nullable=False, default=datetime.datetime.utcnow)
-    filename = Column(String(255), nullable=False)
+    filename = Column(Text, nullable=False)
     download_cnt = Column(Integer, default=0)
     checksum_upload = Column(String(40), nullable=False)
-    version_display = Column(String(255), nullable=True, default=None)
-    target = Column(String(255), nullable=False)
+    version_display = Column(Text, nullable=True, default=None)
+    target = Column(Text, nullable=False)
     checksum_signed = Column(String(40), nullable=False)
     user_id = Column(Integer, ForeignKey('users.user_id'), nullable=False)
     inhibit_download = Column(Boolean, default=False)
@@ -546,7 +546,7 @@ class Client(db.Model):
     timestamp = Column(DateTime, nullable=False, default=datetime.datetime.utcnow)
     addr = Column(String(40), nullable=False)
     firmware_id = Column(Integer, ForeignKey('firmware.firmware_id'), nullable=False)
-    user_agent = Column(String(256), default=None)
+    user_agent = Column(Text, default=None)
 
     # link using foreign keys
     fw = relationship('Firmware', foreign_keys=[firmware_id])
@@ -567,8 +567,8 @@ class Condition(db.Model):
     __tablename__ = 'conditions'
     condition_id = Column(Integer, primary_key=True, nullable=False, unique=True)
     issue_id = Column(Integer, ForeignKey('issues.issue_id'), nullable=False)
-    key = Column(Text)
-    value = Column(Text)
+    key = Column(Text, nullable=False)
+    value = Column(Text, nullable=False)
     compare = Column(Text, default='eq', nullable=False)
 
     # link back to parent
@@ -618,11 +618,11 @@ class Issue(db.Model):
     # sqlalchemy metadata
     __tablename__ = 'issues'
     issue_id = Column(Integer, primary_key=True, nullable=False, unique=True)
-    priority = Column(Integer)
+    priority = Column(Integer, default=0)
     enabled = Column(Boolean, default=False)
     vendor_id = Column(Integer, ForeignKey('vendors.vendor_id'), nullable=False)
     url = Column(Text, default='')
-    name = Column(Text)
+    name = Column(Text, default=None)
     description = Column(Text, default='')
     conditions = relationship("Condition", back_populates="issue")
 
@@ -656,8 +656,8 @@ class ReportAttribute(db.Model):
     __tablename__ = 'report_attributes'
     report_attribute_id = Column(Integer, primary_key=True, nullable=False, unique=True)
     report_id = Column(Integer, ForeignKey('reports.report_id'), nullable=False)
-    key = Column(Text)
-    value = Column(Text)
+    key = Column(Text, nullable=False)
+    value = Column(Text, default=None)
 
     # link back to parent
     report = relationship("Report", back_populates="attributes")
@@ -787,9 +787,9 @@ class SearchEvent(db.Model):
     search_event_id = Column(Integer, primary_key=True, unique=True, nullable=False)
     timestamp = Column(DateTime, nullable=False, default=datetime.datetime.utcnow)
     addr = Column(String(40), nullable=False)
-    value = Column(Text)
-    count = Column(Integer)
-    method = Column(Text)
+    value = Column(Text, nullable=False)
+    count = Column(Integer, default=0)
+    method = Column(Text, default=None)
 
     def __init__(self, value, addr=None, timestamp=None, count=0, method=None):
         """ Constructor for object """
