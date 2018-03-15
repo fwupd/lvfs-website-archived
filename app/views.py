@@ -17,7 +17,7 @@ from flask_login import login_required, login_user, logout_user
 from gi.repository import AppStreamGlib
 
 from app import app, db, lm, ploader
-from .db import _execute_count_star
+from .dbutils import _execute_count_star
 from .pluginloader import PluginError
 
 from .models import Firmware, DownloadKind, UserCapability, Requirement, Component

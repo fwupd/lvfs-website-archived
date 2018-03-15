@@ -17,6 +17,7 @@ RUN yum -y install \
 	python-requests \
 	python-sqlalchemy \
 	python-flask \
+	python-flask-sqlalchemy \
 	python-flask-wft
 RUN yum -y install https://kojipkgs.fedoraproject.org//packages/libappstream-glib/0.7.7/1.fc27/x86_64/libappstream-glib-0.7.7-1.fc27.x86_64.rpm
 RUN yum -y install https://kojipkgs.fedoraproject.org//packages/gcab/1.1/1.fc27/x86_64/libgcab1-1.1-1.fc27.x86_64.rpm

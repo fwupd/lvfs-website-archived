@@ -15,7 +15,7 @@ from gi.repository import AppStreamGlib
 from gi.repository import GLib
 
 from app import app, db
-from .db import _execute_count_star
+from .dbutils import _execute_count_star
 
 from .hash import _qa_hash
 from .metadata import _metadata_update_group, _metadata_update_targets

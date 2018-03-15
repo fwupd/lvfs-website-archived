@@ -24,7 +24,7 @@ class LvfsTestCase(unittest.TestCase):
         self.cfg_filename = '/tmp/foo.cfg'
         cfgfile = open(self.cfg_filename, 'w')
         cfgfile.write('\n'.join([
-            "DATABASE = '%s'" % self.db_uri,
+            "SQLALCHEMY_DATABASE_URI = '%s'" % self.db_uri,
             "DOWNLOAD_DIR = '/tmp'",
             ]))
         cfgfile.close()
@@ -33,10 +33,11 @@ class LvfsTestCase(unittest.TestCase):
         # create instance
         import app as lvfs
         from app import db
+        from app.dbutils import drop_db, init_db
         self.app = lvfs.app.test_client()
         with lvfs.app.app_context():
-            db.drop_db()
-            db.init_db()
+            drop_db(db)
+            init_db(db)
 
         # ensure the plugins settings are set up
         self.login()

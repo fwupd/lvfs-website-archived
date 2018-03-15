@@ -24,7 +24,7 @@ class UserCapability(object):
     Analyst = 'analyst'
     User = 'user'
 
-class User(db.Base):
+class User(db.Model):
 
     # database
     __tablename__ = 'users'
@@ -185,7 +185,7 @@ class User(db.Base):
     def __repr__(self):
         return "User object %s" % self.username
 
-class Restriction(db.Base):
+class Restriction(db.Model):
 
     # sqlalchemy metadata
     __tablename__ = 'restrictions'
@@ -203,7 +203,7 @@ class Restriction(db.Base):
     def __repr__(self):
         return "Restriction object %s" % self.restriction_id
 
-class Vendor(db.Base):
+class Vendor(db.Model):
 
     # sqlalchemy metadata
     __tablename__ = 'vendors'
@@ -258,7 +258,7 @@ class Vendor(db.Base):
     def __repr__(self):
         return "Vendor object %s" % self.group_id
 
-class Event(db.Base):
+class Event(db.Model):
 
     # sqlalchemy metadata
     __tablename__ = 'event_log'
@@ -288,7 +288,7 @@ class Event(db.Base):
     def __repr__(self):
         return "Event object %s" % self.message
 
-class Requirement(db.Base):
+class Requirement(db.Model):
 
     # sqlalchemy metadata
     __tablename__ = 'requirements'
@@ -313,7 +313,7 @@ class Requirement(db.Base):
     def __repr__(self):
         return "Requirement object %s/%s/%s/%s" % (self.kind, self.value, self.compare, self.version)
 
-class Guid(db.Base):
+class Guid(db.Model):
 
     # sqlalchemy metadata
     __tablename__ = 'guids'
@@ -333,7 +333,7 @@ class Guid(db.Base):
     def __repr__(self):
         return "Guid object %s" % self.guid_id
 
-class Keyword(db.Base):
+class Keyword(db.Model):
 
     # sqlalchemy metadata
     __tablename__ = 'keywords'
@@ -388,7 +388,7 @@ def _split_search_string(value):
         keywords.append(keyword)
     return keywords
 
-class Component(db.Base):
+class Component(db.Model):
 
     # sqlalchemy metadata
     __tablename__ = 'components'
@@ -465,7 +465,7 @@ class Component(db.Base):
     def __repr__(self):
         return "Component object %s" % self.appstream_id
 
-class FirmwareEvent(db.Base):
+class FirmwareEvent(db.Model):
 
     # sqlalchemy metadata
     __tablename__ = 'firmware_events'
@@ -490,7 +490,7 @@ class FirmwareEvent(db.Base):
     def __repr__(self):
         return "FirmwareEvent object %s" % self.firmware_event_id
 
-class Firmware(db.Base):
+class Firmware(db.Model):
 
     # sqlalchemy metadata
     __tablename__ = 'firmware'
@@ -538,7 +538,7 @@ class Firmware(db.Base):
     def __repr__(self):
         return "Firmware object %s" % self.checksum_upload
 
-class Client(db.Base):
+class Client(db.Model):
 
     # sqlalchemy metadata
     __tablename__ = 'clients'
@@ -561,7 +561,7 @@ class Client(db.Base):
     def __repr__(self):
         return "Client object %s" % self.id
 
-class Condition(db.Base):
+class Condition(db.Model):
 
     # sqlalchemy metadata
     __tablename__ = 'conditions'
@@ -613,7 +613,7 @@ class Condition(db.Base):
     def __repr__(self):
         return "Condition object %s %s %s" % (self.key, self.compare, self.value)
 
-class Issue(db.Base):
+class Issue(db.Model):
 
     # sqlalchemy metadata
     __tablename__ = 'issues'
@@ -652,7 +652,7 @@ class Issue(db.Base):
     def __repr__(self):
         return "Issue object %s" % self.url
 
-class ReportAttribute(db.Base):
+class ReportAttribute(db.Model):
     __tablename__ = 'report_attributes'
     report_attribute_id = Column(Integer, primary_key=True, nullable=False, unique=True)
     report_id = Column(Integer, ForeignKey('reports.report_id'), nullable=False)
@@ -671,7 +671,7 @@ class ReportAttribute(db.Base):
     def __repr__(self):
         return "ReportAttribute object %s=%s" % (self.key, self.value)
 
-class Report(db.Base):
+class Report(db.Model):
 
     # sqlalchemy metadata
     __tablename__ = 'reports'
@@ -726,7 +726,7 @@ class Report(db.Base):
     def __repr__(self):
         return "Report object %s" % self.report_id
 
-class Setting(db.Base):
+class Setting(db.Model):
 
     # sqlalchemy metadata
     __tablename__ = 'settings'
@@ -744,7 +744,7 @@ class Setting(db.Base):
 def _get_datestr_from_datetime(when):
     return int("%04i%02i%02i" % (when.year, when.month, when.day))
 
-class Analytic(db.Base):
+class Analytic(db.Model):
 
     # sqlalchemy metadata
     __tablename__ = 'analytics'
@@ -761,7 +761,7 @@ class Analytic(db.Base):
     def __repr__(self):
         return "Analytic object %i:%s" % (self.kind, self.datestr)
 
-class Useragent(db.Base):
+class Useragent(db.Model):
 
     # sqlalchemy metadata
     __tablename__ = 'useragents'
@@ -780,7 +780,7 @@ class Useragent(db.Base):
         return "Useragent object %i:%s" % (self.kind, self.datestr)
 
 
-class SearchEvent(db.Base):
+class SearchEvent(db.Model):
 
     # sqlalchemy metadata
     __tablename__ = 'search_events'
