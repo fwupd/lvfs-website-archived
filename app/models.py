@@ -46,7 +46,7 @@ class User(db.Base):
     vendor = relationship('Vendor', foreign_keys=[vendor_id])
 
     def __init__(self, username, password=None, display_name=None,
-                 vendor_id=None, auth_type=True, is_analyst=False, is_qa=False,
+                 vendor_id=None, auth_type='disabled', is_analyst=False, is_qa=False,
                  is_admin=False, is_vendor_manager=False):
         """ Constructor for object """
         self.username = username

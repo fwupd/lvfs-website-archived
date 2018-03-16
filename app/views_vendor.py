@@ -300,6 +300,7 @@ def vendor_user_add(vendor_id):
     # add user
     user = User(username=request.form['username'],
                 display_name=request.form['display_name'],
+                auth_type='disabled',
                 vendor_id=vendor.vendor_id)
     db.session.add(user)
     db.session.commit()
