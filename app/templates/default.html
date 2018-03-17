@@ -133,8 +133,13 @@
           </p>
           <p>
             Accounts are only used by hardware vendors when uploading new firmware.
-            If you have an account please log in below:
           </p>
+          <a class="btn btn-secondary btn-block" href="/lvfs/login/auth-azure">
+            <img class="mr-1" src="/img/microsoft_logo_btn.png"/>
+            <b>Log in with Azure AD</b>
+          </a>
+          <hr/>
+          <p class="text-secondary">If you have a local account please log in below:</p>
           <div class="form-group">
             <label for="group_id">Email Address:</label>
             <input class="form-control" type="text" name="username" placeholder="email@address" aria-label="Username" required>
@@ -143,21 +148,11 @@
             <label for="group_id">Password:</label>
             <input class="form-control" type="password" name="password" placeholder="Password" aria-label="Password" required>
           </div>
-          <hr/>
-          <p class="text-muted">
-            Some users are required to login using an OAuth provider:
-          </p>
-          <div class="container">
-          <p class="text-muted">
-            <a href="/lvfs/login/auth-azure">
-              <img src="/img/microsoft_logo.svg" alt="microsoft logo" height="32"/>
-            </a>
-          </p>
-          </div>
         </div>
         <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
-          <button class="btn btn-primary" type="submit">Login</button>
+          <button class="btn btn-primary btn-block" type="submit">
+            <b>Log in using local account</b>
+          </button>
         </div>
       </form>
     </div>
