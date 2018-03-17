@@ -211,6 +211,22 @@ def new_account():
     """ New account page for prospective vendors """
     return render_template('new-account.html')
 
+def _create_user_for_oauth_username(username):
+    """ If any oauth wildcard match, create a *un-committed* User object """
+
+    # does this username match any globs specified by the vendor
+    user = None
+    for v in db.session.query(Vendor).filter(Vendor.oauth_domain_glob != None).all():
+        if not fnmatch.fnmatch(username.lower(), v.oauth_domain_glob):
+            continue
+        if v.oauth_unknown_user == 'create':
+            user = User(username, vendor_id=v.vendor_id, auth_type='oauth')
+            break
+        if v.oauth_unknown_user == 'disabled':
+            user = User(username, vendor_id=v.vendor_id)
+            break
+    return user
+
 @app.route('/lvfs/login', methods=['POST'])
 def login():
     """ A login screen to allow access to the LVFS main page """
@@ -225,6 +241,9 @@ def login():
                 filter(User.username_old == request.form['username']).\
                 filter(User.password == _password_hash(request.form['password'])).first()
         used_deprecated_username = True
+    if not user:
+        # user is NOT added to the database
+        user = _create_user_for_oauth_username(request.form['username'])
     if not user:
         flash('Failed to log in: Incorrect username or password for %s' % request.form['username'], 'danger')
         return redirect(url_for('.index'))
@@ -261,29 +280,6 @@ def login_oauth(plugin_id):
     except PluginError as e:
         return _error_permission_denied(str(e))
 
-def _perhaps_create_oauth_user_for_vendor(username):
-
-    # in most cases this is what is returned
-    user = None
-
-    # does this username match any globs specified by the vendor
-    for v in db.session.query(Vendor).filter(Vendor.oauth_domain_glob != None).all():
-        if not fnmatch.fnmatch(username.lower(), v.oauth_domain_glob):
-            continue
-        if v.oauth_unknown_user == 'create':
-            user = User(username, vendor_id=v.vendor_id, auth_type='oauth')
-            break
-        if v.oauth_unknown_user == 'disabled':
-            user = User(username, vendor_id=v.vendor_id)
-            break
-
-    # save to database
-    if user:
-        db.session.add(user)
-        db.session.commit()
-        _event_log('Auto created user of type %s for vendor %s' % (user.auth_type, user.vendor.group_id))
-    return user
-
 @app.route('/lvfs/login/authorized/<plugin_id>')
 def login_oauth_authorized(plugin_id):
 
@@ -305,8 +301,11 @@ def login_oauth_authorized(plugin_id):
     created_account = False
     user = db.session.query(User).filter(User.username == data['userPrincipalName']).first()
     if not user:
-        user = _perhaps_create_oauth_user_for_vendor(data['userPrincipalName'])
+        user = _create_user_for_oauth_username(data['userPrincipalName'])
         if user:
+            db.session.add(user)
+            db.session.commit()
+            _event_log('Auto created user of type %s for vendor %s' % (user.auth_type, user.vendor.group_id))
             created_account = True
     if not user:
         flash('Failed to log in: no user for %s' % data['userPrincipalName'], 'danger')
