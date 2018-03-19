@@ -108,18 +108,18 @@ class UploadedFile(object):
         self._components = []
         self._data_size = 0
         self._ploader = ploader
-        self._src_arc = None
+        self._source_cfarchive = None
         self._version_inf = None
 
     def _load_archive(self, filename, data):
         try:
             if filename.endswith('.cab'):
                 istream = Gio.MemoryInputStream.new_from_bytes(GLib.Bytes.new(data))
-                self._src_arc = GCab.Cabinet.new()
-                self._src_arc.load(istream)
-                self._src_arc.extract(None)
+                self._source_cfarchive = GCab.Cabinet.new()
+                self._source_cfarchive.load(istream)
+                self._source_cfarchive.extract(None)
             else:
-                self._src_arc = _repackage_archive(filename, data)
+                self._source_cfarchive = _repackage_archive(filename, data)
         except NotImplementedError as e:
             raise FileNotSupported('Invalid file type: %s' % str(e))
 
@@ -169,7 +169,7 @@ class UploadedFile(object):
 
     def _verify_infs(self):
 
-        for cf in _archive_get_files_from_glob(self._src_arc, '*.inf'):
+        for cf in _archive_get_files_from_glob(self._source_cfarchive, '*.inf'):
             contents = cf.get_bytes().get_data().decode('utf-8', 'ignore')
             self._verify_inf(contents)
 
@@ -219,7 +219,7 @@ class UploadedFile(object):
             for word in release_description.split(' '):
                 if word.find('.') == -1: # any word without a dot is not a fn
                     continue
-                cfs = _archive_get_files_from_glob(self._src_arc, word)
+                cfs = _archive_get_files_from_glob(self._source_cfarchive, word)
                 if len(cfs):
                     raise MetadataInvalid('The release description should not reference other files.')
 
@@ -263,7 +263,7 @@ class UploadedFile(object):
         cf_name_safe = cf.get_name().replace('\\', '/')
         dirname = os.path.dirname(cf_name_safe)
         firmware_filename = os.path.join(dirname, csum.get_filename())
-        cfs = _archive_get_files_from_glob(self._src_arc, firmware_filename)
+        cfs = _archive_get_files_from_glob(self._source_cfarchive, firmware_filename)
         if not cfs:
             raise MetadataInvalid('No %s found in the archive' % firmware_filename)
 
@@ -288,7 +288,7 @@ class UploadedFile(object):
     def _load_metainfos(self):
 
         # check metainfo exists
-        cfs = _archive_get_files_from_glob(self._src_arc, '*.metainfo.xml')
+        cfs = _archive_get_files_from_glob(self._source_cfarchive, '*.metainfo.xml')
         if len(cfs) == 0:
             raise MetadataInvalid('The firmware file had no .metadata.xml files')
 
@@ -318,15 +318,13 @@ class UploadedFile(object):
         # load metainfo files
         self._load_metainfos()
 
-        # allow plugins to copy any extra files from the source archive
-        if self._ploader:
-            for cffolder in self._src_arc.get_folders():
-                for cffile in cffolder.get_files():
-                    self._ploader.archive_copy(self._repacked_cfarchive, cffile)
-
     def get_components(self):
         """ gets all detected AppStream components """
         return self._components
+
+    def get_source_cabinet(self):
+        """ gets the source archive with all files """
+        return self._source_cfarchive
 
     def get_repacked_cabinet(self):
         """ gets the filtered archive with only the defined files """

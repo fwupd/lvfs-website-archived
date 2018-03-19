@@ -118,6 +118,11 @@ def upload():
                               'supported %s' % (md.appstream_id, old_guid), 'danger')
                         return redirect(request.url)
 
+    # allow plugins to copy any extra files from the source archive
+    for cffolder in ufile.get_source_cabinet().get_folders():
+        for cffile in cffolder.get_files():
+            ploader.archive_copy(ufile.get_repacked_cabinet(), cffile)
+
     # allow plugins to add files
     ploader.archive_finalize(ufile.get_repacked_cabinet(),
                              _get_plugin_metadata_for_uploaded_file(ufile))
