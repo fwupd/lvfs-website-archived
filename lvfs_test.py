@@ -11,6 +11,7 @@ from __future__ import print_function
 import os
 import unittest
 import tempfile
+import subprocess
 
 class LvfsTestCase(unittest.TestCase):
 
@@ -246,6 +247,31 @@ class LvfsTestCase(unittest.TestCase):
                           follow_redirects=True)
         assert b'Firmware deleted' not in rv.data, rv.data
         assert b'Insufficient permissions to delete firmware' in rv.data, rv.data
+
+    def test_cron_metadata(self):
+
+        # verify all metadata is in good shape
+        self.login()
+        rv = self.app.get('/lvfs/metadata')
+        assert b'>Dirty<' not in rv.data, rv.data
+
+        # upload file, dirtying the admin-embargo remote
+        self.upload('embargo')
+        rv = self.app.get('/lvfs/metadata')
+        assert b'>Dirty<' in rv.data, rv.data
+
+        # run the cron job manually
+        env = {}
+        env['LVFS_CUSTOM_SETTINGS'] = self.cfg_filename
+        ps = subprocess.Popen(['./cron.py', 'metadata'], env=env,
+                              stdout=subprocess.PIPE,
+                              stderr=subprocess.PIPE)
+        stdout, _ = ps.communicate()
+        assert 'Updating: embargo-admin' in stdout, stdout
+
+        # verify all metadata is in good shape
+        rv = self.app.get('/lvfs/metadata')
+        assert b'>Dirty<' not in rv.data, rv.data
 
     def test_user_only_view_own_firmware(self):
 
@@ -772,7 +798,7 @@ class LvfsTestCase(unittest.TestCase):
         self.logout()
         self.login()
         rv = self.app.get('/lvfs/metadata/rebuild', follow_redirects=True)
-        assert b'Metadata rebuilt successfully' in rv.data, rv.data
+        assert b'Metadata will be rebuilt soon' in rv.data, rv.data
 
         # check the remote is generated
         rv = self.app.get('/lvfs/metadata/testgroup')

@@ -38,6 +38,7 @@ def init_db(db):
         vendor = Vendor('admin')
         vendor.display_name = u'Acme Corp.'
         vendor.description = u'A fake vendor used for testing firmware'
+        vendor.is_account_holder = 'yes'
         vendor.remote_id = remote.remote_id
         db.session.add(vendor)
         db.session.commit()

@@ -17,18 +17,21 @@
   <tr>
     <th>Description</th>
     <th>Public</th>
+    <th>State</th>
     <th>URL</th>
     <th>Custom Remote</th>
   </tr>
   <tr>
     <td>Stable</td>
     <td><b>Yes</b></td>
+    <td><b>{{ 'Dirty' if remotes['stable'].is_dirty else 'OK' }}</b></td>
     <td><a href="/downloads/firmware.xml.gz">firmware.xml.gz</td>
     <td class="text-muted">not required</td>
   </tr>
   <tr>
     <td>Testing</td>
     <td><b>Yes</b></td>
+    <td><b>{{ 'Dirty' if remotes['testing'].is_dirty else 'OK' }}</b></td>
     <td><a href="/downloads/firmware-testing.xml.gz">firmware-testing.xml.gz</td>
     <td class="text-muted">not required</td>
   </tr>
@@ -36,6 +39,7 @@
   <tr>
     <td>Embargoed for &lsquo;{{v.group_id}}&rsquo;</td>
     <td><b>No</b></td>
+    <td><b>{{ 'Dirty' if remotes['embargo-' + v.group_id].is_dirty else 'OK' }}</b></td>
     <td><a href="/downloads/{{ 'firmware-%s.xml.gz' % format_qa_hash(v.group_id) }}">{{ 'firmware-%s...xml.gz' % format_qa_hash(v.group_id)[0:8] }}</td>
     <td><code><a href="/lvfs/metadata/{{v.group_id}}">{{v.group_id}}-embargo.conf</a></code></td>
   </tr>

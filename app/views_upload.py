@@ -20,11 +20,10 @@ from flask_login import login_required
 
 from app import app, db, ploader
 
-from .models import Firmware, Component, Requirement, UserCapability, Guid, FirmwareEvent, Vendor, Remote
+from .models import Firmware, Component, Requirement, Guid, FirmwareEvent, Vendor, Remote
 from .uploadedfile import UploadedFile, FileTooLarge, FileTooSmall, FileNotSupported, MetadataInvalid
 from .util import _get_client_address, _get_settings
-from .util import _error_internal, _error_permission_denied
-from .metadata import _metadata_update_group, _metadata_update_targets, _metadata_update_pulp
+from .util import _error_internal
 
 def _get_plugin_metadata_for_uploaded_file(ufile):
     settings = _get_settings()
@@ -58,11 +57,6 @@ def upload():
         return _error_internal('No file')
     if request.form['target'] not in ['private', 'embargo', 'testing']:
         return _error_internal('Target not valid')
-
-    # can the user upload directly to stable
-    if request.form['target'] in ['testing']:
-        if not g.user.check_capability(UserCapability.QA):
-            return _error_permission_denied('Unable to upload to this target as not QA user')
 
     # find remote, creating if required
     remote_name = request.form['target']
@@ -229,13 +223,9 @@ def upload():
     db.session.commit()
     flash('Uploaded file %s to %s' % (ufile.filename_new, target), 'info')
 
-    # ensure up to date
+    # invalidate
     if target == 'embargo':
-        _metadata_update_group(fw.vendor.group_id)
-    if target == 'stable':
-        _metadata_update_targets(['stable', 'testing'])
-        _metadata_update_pulp()
-    elif target == 'testing':
-        _metadata_update_targets(['testing'])
+        remote.is_dirty = True
+        db.session.commit()
 
     return redirect(url_for('.firmware_show', firmware_id=fw.firmware_id))

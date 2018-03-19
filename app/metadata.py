@@ -133,26 +133,6 @@ def _generate_metadata_kind(filename, fws, firmware_baseuri=''):
     # inform the plugin loader
     ploader.file_modified(filename)
 
-def _metadata_update_group(group_id):
-    """ updates metadata for a specific group_id """
-
-    # get all firmwares in this group
-    settings = _get_settings()
-    fws = db.session.query(Firmware).all()
-    fws_filtered = []
-    for fw in fws:
-        if fw.remote.name == 'private':
-            continue
-        if fw.vendor.group_id != group_id:
-            continue
-        fws_filtered.append(fw)
-
-    # create metadata file for the embargoed firmware
-    filename = 'firmware-%s.xml.gz' % _qa_hash(group_id)
-    _generate_metadata_kind(filename,
-                            fws_filtered,
-                            firmware_baseuri=settings['firmware_baseuri'])
-
 def _metadata_update_targets(targets):
     """ updates metadata for a specific target """
     fws = db.session.query(Firmware).all()
@@ -171,6 +151,10 @@ def _metadata_update_targets(targets):
                                     firmware_baseuri=settings['firmware_baseuri'])
         elif target == 'testing':
             _generate_metadata_kind('firmware-testing.xml.gz',
+                                    fws_filtered,
+                                    firmware_baseuri=settings['firmware_baseuri'])
+        elif target.startswith('embargo-'):
+            _generate_metadata_kind('firmware-%s.xml.gz' % _qa_hash(target[8:]),
                                     fws_filtered,
                                     firmware_baseuri=settings['firmware_baseuri'])
 

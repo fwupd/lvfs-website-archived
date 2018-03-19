@@ -16,6 +16,7 @@ from sqlalchemy import Column, Integer, String, Text, Boolean, DateTime, Foreign
 from sqlalchemy.orm import relationship
 
 from app import db
+from .hash import _qa_hash
 
 class UserCapability(object):
     Admin = 'admin'
@@ -491,6 +492,17 @@ class Remote(db.Model):
     remote_id = Column(Integer, primary_key=True, unique=True, nullable=False)
     name = Column(Text, nullable=False)
     is_public = Column(Boolean, default=False)
+    is_dirty = Column(Boolean, default=False)
+
+    @property
+    def filename(self):
+        if self.name == 'private':
+            return None
+        if self.name == 'stable':
+            return 'firmware.xml.gz'
+        if self.name == 'testing':
+            return 'firmware-testing.xml.gz'
+        return 'firmware-%s.xml.gz' % _qa_hash(self.name[8:])
 
     def __repr__(self):
         return "Remote object %s [%s]" % (self.remote_id, self.name)

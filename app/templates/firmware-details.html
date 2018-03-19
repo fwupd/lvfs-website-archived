@@ -75,9 +75,15 @@
   <tr class="row">
     <th class="col-sm-4 align-middle">Current Target</th>
     <td class="col-sm-6 align-middle">
-      {{fw.remote.name}}
+{% if fw.remote.is_dirty %}
+      <div class="alert alert-warning" role="alert">
+        The <code>{{fw.remote.name}}</code> metadata is waiting to be signed.
+      </div>
+{% else %}
+      <code>{{fw.remote.name}}</code>
 {% if fw.target_duration.total_seconds() > 5 %}
       (moved {{format_timedelta_approx(fw.target_duration)}})
+{% endif %}
 {% endif %}
     </td>
     <td class="col-sm-2 align-middle text-right">

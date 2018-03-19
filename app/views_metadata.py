@@ -10,8 +10,7 @@ from flask_login import login_required
 from app import app, db
 
 from .hash import _qa_hash
-from .metadata import _metadata_update_group, _metadata_update_targets, _metadata_update_pulp
-from .models import UserCapability, Vendor
+from .models import UserCapability, Vendor, Remote
 from .util import _error_internal, _error_permission_denied
 
 @login_required
@@ -54,7 +53,10 @@ def metadata_view():
             vendors.append(vendor)
     else:
         vendors.append(g.user.vendor)
-    return render_template('metadata.html', vendors=vendors)
+    remotes = {}
+    for r in db.session.query(Remote).all():
+        remotes[r.name] = r
+    return render_template('metadata.html', vendors=vendors, remotes=remotes)
 
 @app.route('/lvfs/metadata/rebuild')
 @login_required
@@ -68,10 +70,10 @@ def metadata_rebuild():
         return _error_permission_denied('Only admin is allowed to force-rebuild metadata')
 
     # update metadata
+    for r in db.session.query(Remote).filter(Remote.is_public).all():
+        r.is_dirty = True
     for vendor in db.session.query(Vendor).\
                     filter(Vendor.is_account_holder != 'no').all():
-        _metadata_update_group(vendor.group_id)
-    _metadata_update_targets(['stable', 'testing'])
-    _metadata_update_pulp()
-    flash('Metadata rebuilt successfully', 'info')
+        vendor.remote.is_dirty = True
+    flash('Metadata will be rebuilt soon', 'info')
     return redirect(url_for('.metadata_view'))

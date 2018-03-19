@@ -18,7 +18,6 @@ from app import app, db
 from .dbutils import _execute_count_star
 
 from .hash import _qa_hash
-from .metadata import _metadata_update_group, _metadata_update_targets
 from .models import UserCapability, Firmware, Report, Client, FirmwareEvent, Remote
 from .util import _error_internal, _error_permission_denied
 from .util import _get_chart_labels_months, _get_chart_labels_days
@@ -120,9 +119,8 @@ def firmware_delete(firmware_id):
     if not g.user.is_qa and fw.remote.name == 'stable':
         return _error_permission_denied('Unable to delete stable firmware as not QA')
 
-    # save so we can rebuild metadata after the firmware has been deleted
-    group_id = fw.vendor.group_id
-    remote_name = fw.remote.name
+    # generate next cron run
+    fw.remote.is_dirty = True
 
     # delete from database
     for md in fw.mds:
@@ -144,13 +142,6 @@ def firmware_delete(firmware_id):
     path = os.path.join(app.config['DOWNLOAD_DIR'], fw.filename)
     if os.path.exists(path):
         os.remove(path)
-
-    # update everything
-    _metadata_update_group(group_id)
-    if remote_name == 'stable':
-        _metadata_update_targets(targets=['stable', 'testing'])
-    elif remote_name == 'testing':
-        _metadata_update_targets(targets=['testing'])
 
     flash('Firmware deleted', 'info')
     return redirect(url_for('.firmware'))
@@ -202,21 +193,16 @@ def firmware_promote(firmware_id, target):
         flash('Cannot move firmware: Firmware already in that target', 'info')
         return redirect(url_for('.firmware_show', firmware_id=firmware_id))
 
+    # invalidate both the remote it came from and the one it's going to
+    remote.is_dirty = True
+    fw.remote.is_dirty = True
+
     # all okay
     fw.remote_id = remote.remote_id
-    fw.events.append(FirmwareEvent(target, g.user.user_id))
+    fw.events.append(FirmwareEvent(fw.remote_id, g.user.user_id))
     db.session.commit()
     flash('Moved firmware', 'info')
 
-    # update everything
-    _metadata_update_group(fw.vendor.group_id)
-    targets = []
-    if target == 'stable' or fw.remote.name == 'stable':
-        targets.append('stable')
-    if target == 'testing' or fw.remote.name == 'testing':
-        targets.append('testing')
-    if len(targets) > 0:
-        _metadata_update_targets(targets)
     return redirect(url_for('.firmware_show', firmware_id=firmware_id))
 
 @app.route('/lvfs/firmware/<int:firmware_id>')
