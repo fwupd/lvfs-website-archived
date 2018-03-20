@@ -5,7 +5,7 @@
 <div class="container mt-3">
 
 <!-- veto information -->
-{% if fw.remote.name == 'testing' and 'no-release-urgency' in vetos %}
+{% if fw.remote.name != 'stable' and 'no-release-urgency' in vetos %}
 <div class="card mb-3">
   <h3 class="card-header list-group-item-warning">
     More information soon required!
@@ -28,7 +28,7 @@
     </p>
   </div>
 </div>
-{% elif fw.remote.name == 'testing' and 'no-release-description' in vetos %}
+{% elif fw.remote.name != 'stable' and 'no-release-description' in vetos %}
 <div class="card mb-3">
   <h3 class="card-header list-group-item-warning">
     More information soon required!
@@ -90,19 +90,18 @@
       <button type="button" class="btn btn-block btn-info" data-toggle="modal" data-target="#historyModal">History</button>
 {% if g.user.is_qa and 'unsigned' not in vetos %}
 {% if fw.remote.name == 'private' %}
-      <form method="get" action="/lvfs/firmware/{{fw.firmware_id}}/promote/embargo">
-        <button class="btn btn-block btn-primary">&#8594; Embargo</button>
-      </form>
-{% endif %}
-{% if fw.remote.name.startswith('embargo') %}
+      <a class="btn btn-block btn-primary" href="/lvfs/firmware/{{fw.firmware_id}}/promote/embargo" role="button">&#8594; Embargo</a>
+      <a class="btn btn-block btn-primary" href="/lvfs/firmware/{{fw.firmware_id}}/promote/testing" role="button">&#8594; Testing</a>
+      <button type="button" class="btn btn-block btn-primary" data-toggle="modal" data-target="#promoteStableModal">&#8594; Stable</button>
+{% elif fw.remote.name.startswith('embargo') %}
       <a class="btn btn-block btn-secondary" href="/lvfs/firmware/{{fw.firmware_id}}/promote/private" role="button">&#8592; Private</a>
       <a class="btn btn-block btn-primary" href="/lvfs/firmware/{{fw.firmware_id}}/promote/testing" role="button">&#8594; Testing</a>
-{% endif %}
-{% if fw.remote.name == 'testing' %}
+      <button type="button" class="btn btn-block btn-primary" data-toggle="modal" data-target="#promoteStableModal">&#8594; Stable</button>
+{% elif fw.remote.name == 'testing' %}
+      <a class="btn btn-block btn-secondary" href="/lvfs/firmware/{{fw.firmware_id}}/promote/private" role="button">&#8592; Private</a>
       <a class="btn btn-block btn-secondary" href="/lvfs/firmware/{{fw.firmware_id}}/promote/embargo" role="button">&#8592; Embargo</a>
       <button type="button" class="btn btn-block btn-primary" data-toggle="modal" data-target="#promoteStableModal">&#8594; Stable</button>
-{% endif %}
-{% if fw.remote.name == 'stable' %}
+{% elif fw.remote.name == 'stable' %}
       <button type="button" class="btn btn-block btn-danger" data-toggle="modal" data-target="#demoteTestingModal">&#8592; Testing</button>
 {% endif %}
 {% endif %}
