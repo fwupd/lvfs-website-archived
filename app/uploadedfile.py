@@ -90,7 +90,7 @@ def _repackage_archive(filename, buf, tmpdir=None):
 
 class UploadedFile(object):
 
-    def __init__(self, ploader=None):
+    def __init__(self):
         """ default public attributes """
 
         self.checksum_upload = None
@@ -107,7 +107,6 @@ class UploadedFile(object):
         # private
         self._components = []
         self._data_size = 0
-        self._ploader = ploader
         self._source_cfarchive = None
         self._version_inf = None
 
@@ -269,10 +268,6 @@ class UploadedFile(object):
 
         # add to the archive
         self._add_cf_to_repacked_folder(cfs[0])
-
-        # allow plugins to sign files in the archive too
-        if self._ploader:
-            self._ploader.archive_sign(self._repacked_cfarchive, cfs[0])
 
         contents = cfs[0].get_bytes().get_data()
         csum.set_kind(GLib.ChecksumType.SHA1)

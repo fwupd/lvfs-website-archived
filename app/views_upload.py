@@ -72,7 +72,7 @@ def upload():
     if not fileitem:
         return _error_internal('No file object')
     try:
-        ufile = UploadedFile(ploader)
+        ufile = UploadedFile()
         ufile.parse(os.path.basename(fileitem.filename), fileitem.read())
     except (FileTooLarge, FileTooSmall, FileNotSupported, MetadataInvalid) as e:
         flash('Failed to upload file: ' + str(e), 'danger')

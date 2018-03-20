@@ -553,6 +553,7 @@ class Firmware(db.Model):
     checksum_signed = Column(String(40), nullable=False)
     user_id = Column(Integer, ForeignKey('users.user_id'), nullable=False)
     inhibit_download = Column(Boolean, default=False)
+    signed_timestamp = Column(DateTime, default=None)
 
     # include all Component objects
     mds = relationship("Component", back_populates="fw", lazy='joined')

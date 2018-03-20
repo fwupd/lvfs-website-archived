@@ -29,6 +29,10 @@ def _get_basename_safe(fn):
     """ gets the file basename, also with win32-style backslashes """
     return os.path.basename(fn.replace('\\', '/'))
 
+def _get_dirname_safe(fn):
+    """ gets the file dirname, also with win32-style backslashes """
+    return os.path.dirname(fn.replace('\\', '/'))
+
 def _archive_get_files_from_glob(arc, glob):
     arr = []
     for cffolder in arc.get_folders():

@@ -144,6 +144,8 @@ def _metadata_update_targets(targets):
                 continue
             if fw.remote.name != target:
                 continue
+            if not fw.signed_timestamp:
+                continue
             fws_filtered.append(fw)
         if target == 'stable':
             _generate_metadata_kind('firmware.xml.gz',

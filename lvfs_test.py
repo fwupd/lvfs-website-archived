@@ -273,6 +273,29 @@ class LvfsTestCase(unittest.TestCase):
         rv = self.app.get('/lvfs/metadata')
         assert b'>Dirty<' not in rv.data, rv.data
 
+    def test_cron_firmware(self):
+
+        # upload file, which will be unsigned
+        self.login()
+        self.upload()
+        rv = self.app.get('/lvfs/firmware/1')
+        assert b'waiting to be signed' in rv.data, rv.data
+        assert b'>Signed<' not in rv.data, rv.data
+
+        # run the cron job manually
+        env = {}
+        env['LVFS_CUSTOM_SETTINGS'] = self.cfg_filename
+        ps = subprocess.Popen(['./cron.py', 'firmware'], env=env,
+                              stdout=subprocess.PIPE,
+                              stderr=subprocess.PIPE)
+        stdout, _ = ps.communicate()
+        assert 'Signing: /tmp/7514fc4b0e1a306337de78c58f10e9e68f791de2-hughski-colorhug2-2.0.3.cab' in stdout, stdout
+
+        # verify the firmware is now signed
+        rv = self.app.get('/lvfs/firmware/1')
+        assert b'waiting to be signed' not in rv.data, rv.data
+        assert b'>Signed<' in rv.data, rv.data
+
     def test_user_only_view_own_firmware(self):
 
         # create User:alice, User:bob, Analyst:clara, and QA:mario

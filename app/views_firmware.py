@@ -239,6 +239,8 @@ def firmware_show(firmware_id):
 
     # does the firmware have any warnings
     vetos = []
+    if not fw.signed_timestamp:
+        vetos.append('unsigned')
     for md in fw.mds:
         if md.release_urgency == 'unknown':
             vetos.append('no-release-urgency')

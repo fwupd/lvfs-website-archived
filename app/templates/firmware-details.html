@@ -88,7 +88,7 @@
     </td>
     <td class="col-sm-2 align-middle text-right">
       <button type="button" class="btn btn-block btn-info" data-toggle="modal" data-target="#historyModal">History</button>
-{% if g.user.is_qa %}
+{% if g.user.is_qa and 'unsigned' not in vetos %}
 {% if fw.remote.name == 'private' %}
       <form method="get" action="/lvfs/firmware/{{fw.firmware_id}}/promote/embargo">
         <button class="btn btn-block btn-primary">&#8594; Embargo</button>
@@ -112,6 +112,12 @@
     <th class="col-sm-4">Submitted</th>
     <td class="col-sm-8" colspan="2">{{fw.timestamp}}</td>
   </tr>
+{% if fw.signed_timestamp %}
+  <tr class="row">
+    <th class="col-sm-4">Signed</th>
+    <td class="col-sm-8" colspan="2">{{fw.signed_timestamp}}</td>
+  </tr>
+{% endif %}
   <tr class="row">
     <th class="col-sm-4">Vendor ID</th>
     <td class="col-sm-8" colspan="2"><a href="{{embargo_url}}">{{fw.vendor.group_id}}</a></td>
@@ -150,6 +156,24 @@
     </td>
   </tr>
 </table>
+
+{% if 'unsigned' in vetos %}
+<div class="card mb-3">
+  <h3 class="card-header list-group-item-info">
+    This firmware is waiting to be signed.
+  </h3>
+  <div class="card-body">
+    <p class="card-text">
+      Signing a firmware file on the LVFS normally only takes 5 minutes unless
+      something has gone wrong.
+    </p>
+    <p class="card-text">
+      You can refresh this page to find out when the firmware has been signed,
+      and then you will be able to move the firmware to stable or testing.
+    </p>
+  </div>
+</div>
+{% endif %}
 
 <h2>Firmware Components</h2>
 <table class="table">
