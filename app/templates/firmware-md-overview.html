@@ -1,35 +1,25 @@
 {% extends "default.html" %}
 {% block title %}Firmware Component Details{% endblock %}
 
+{% block nav %}{% include 'firmware-md-nav.html' %}{% endblock %}
+
 {% block content %}
-<div class="container mt-3">
-
-<nav>
-  <ul class="nav nav-tabs">
-    <li class="nav-item">
-      <a class="nav-link active" href="/lvfs/component/{{md.component_id}}">Overview</a>
-    </li>
-    <li class="nav-item">
-      <a class="nav-link" href="/lvfs/component/{{md.component_id}}/update">Update Details</a>
-    </li>
-    <li class="nav-item">
-      <a class="nav-link" href="/lvfs/component/{{md.component_id}}/requires">Requirements</a>
-    </li>
-    <li class="nav-item">
-      <a class="nav-link" href="/lvfs/component/{{md.component_id}}/keywords">Search Keywords</a>
-    </li>
-  </ul>
-</nav>
-
-<div class="container mt-3">
-
-<h3>{{md.name}} {{md.version}} Details</h3>
-<p>{{md.summary}}</p>
-
 <table class="table">
-  <tr class="row">
+  <tr class="row table-borderless">
     <th class="col-sm-3">ID</th>
     <td class="col-sm-9"><code>{{md.appstream_id}}</code></td>
+  </tr>
+  <tr class="row">
+    <th class="col-sm-3">Name</th>
+    <td class="col-sm-9"><code>{{md.name}}</code></td>
+  </tr>
+  <tr class="row">
+    <th class="col-sm-3">Summary</th>
+    <td class="col-sm-9"><code>{{md.summary}}</code></td>
+  </tr>
+  <tr class="row">
+    <th class="col-sm-3">Version</th>
+    <td class="col-sm-9"><code>{{md.version}}</code></td>
   </tr>
 {% for guid in md.guids %}
   <tr class="row">
@@ -38,8 +28,12 @@
   </tr>
 {% endfor %}
   <tr class="row">
-    <th class="col-sm-3">Size</th>
-    <td class="col-sm-9">{{format_size(md.release_download_size)}} download, {{format_size(md.release_installed_size)}} installed</td>
+    <th class="col-sm-3">Download Size</th>
+    <td class="col-sm-9">{{format_size(md.release_download_size)}}</td>
+  </tr>
+  <tr class="row">
+    <th class="col-sm-3">Installed Size</th>
+    <td class="col-sm-9">{{format_size(md.release_installed_size)}}</td>
   </tr>
 {% if md.screenshot_url %}
   <tr class="row">
@@ -62,8 +56,6 @@
   </tr>
 {% endif %}
 </table>
-<a class="btn btn-info" href="/lvfs/firmware/{{fw.firmware_id}}" role="button">&laquo; Back to firmware file</a>
-</div>
-
-</div> <!-- container -->
 {% endblock %}
+
+{% block breadcrumb %}{% include 'firmware-md-breadcrumb.html' %}{% endblock %}

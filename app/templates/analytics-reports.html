@@ -1,41 +1,11 @@
 {% extends "default.html" %}
 {% block title %}Analytics{% endblock %}
 
+{% block nav %}{% include 'analytics-nav.html' %}{% endblock %}
+
 {% block content %}
-<div class="container mt-3">
-
-<nav>
-  <ul class="nav nav-tabs">
-    <li class="nav-item">
-      <a class="nav-link" href="/lvfs/analytics/month">Past Month</a>
-    </li>
-    <li class="nav-item">
-      <a class="nav-link" href="/lvfs/analytics/year">Past Year</a>
-    </li>
-    <li class="nav-item">
-      <a class="nav-link" href="/lvfs/analytics/user_agent">User Agents</a>
-    </li>
-    <li class="nav-item">
-      <a class="nav-link" href="/lvfs/analytics/clients">Downloads</a>
-    </li>
-    <li class="nav-item">
-      <a class="nav-link active" href="/lvfs/analytics/reports">Reports</a>
-    </li>
-    <li class="nav-item">
-      <a class="nav-link" href="/lvfs/analytics/search_history">Recent Searches</a>
-    </li>
-    <li class="nav-item">
-      <a class="nav-link" href="/lvfs/analytics/search_stats">Popular Searches</a>
-    </li>
-  </ul>
-</nav>
-
-<div class="container mt-3">
-
-<h2>Recent Reports</h2>
-
 <table class="table">
-  <tr class="row">
+  <tr class="row table-borderless">
     <th class="col-sm-2">Timestamp</th>
     <th class="col-sm-1">State</th>
     <th class="col-sm-2">Machine</th>
@@ -77,8 +47,4 @@
   </tr>
 {% endfor %}
 </table>
-
-</div>
-
-</div> <!-- container -->
 {% endblock %}

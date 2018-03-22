@@ -2,13 +2,10 @@
 {% block title %}Devices{% endblock %}
 
 {% block content %}
-<div class="container mt-3">
 <h1>Devices</h1>
 {% for device in devices %}
 <li><a href="/lvfs/device/{{device}}">{{device}}</a></li>
 {% else %}
 <p>No devices to show!</p>
 {% endfor %}
-
-</div> <!-- container -->
 {% endblock %}

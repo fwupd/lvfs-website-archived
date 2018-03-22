@@ -1,0 +1,39 @@
+<nav>
+  <ul class="nav nav-tabs">
+    <li class="nav-item">
+      <a class="nav-link {% if request.url_rule.endpoint == 'firmware_show' %}active{% endif %}" href="/lvfs/firmware/{{fw.firmware_id}}">Details</a>
+    </li>
+    <li class="nav-item">
+      <a class="nav-link {% if request.url_rule.endpoint == 'firmware_components' %}active{% endif %}" href="/lvfs/firmware/{{fw.firmware_id}}/components">Components</a>
+    </li>
+    <li class="nav-item">
+      <a class="nav-link {% if request.url_rule.endpoint == 'firmware_history' %}active{% endif %}" href="/lvfs/firmware/{{fw.firmware_id}}/history">History</a>
+    </li>
+{% if fw.problems|length > 0 %}
+    <li class="nav-item">
+      <a class="nav-link {% if request.url_rule.endpoint == 'firmware_problems' %}active{% endif %}" href="/lvfs/firmware/{{fw.firmware_id}}/problems">Problems ({{fw.problems|length}})</a>
+    </li>
+{% endif %}
+{% if g.user.check_capability('analyst') %}
+{% if fw.download_cnt > 0 %}
+    <li class="nav-item">
+      <a class="nav-link {% if request.url_rule.endpoint == 'firmware_analytics_clients' %}active{% endif %}" href="/lvfs/firmware/{{fw.firmware_id}}/analytics/clients">Recent Downloads</a>
+    </li>
+    <li class="nav-item">
+      <a class="nav-link {% if request.url_rule.endpoint == 'firmware_analytics_year' %}active{% endif %}" href="/lvfs/firmware/{{fw.firmware_id}}/analytics/year">Past Year</a>
+    </li>
+    <li class="nav-item">
+      <a class="nav-link {% if request.url_rule.endpoint == 'firmware_analytics_month' %}active{% endif %}" href="/lvfs/firmware/{{fw.firmware_id}}/analytics/month">Past Month</a>
+    </li>
+{% endif %}
+{% if fw.reports|length > 0 %}
+    <li class="nav-item">
+      <a class="nav-link {% if request.url_rule.endpoint == 'firmware_analytics_reports' and state == 2 %}active{% endif %}" href="/lvfs/firmware/{{fw.firmware_id}}/analytics/reports/2">👍 Reports</a>
+    </li>
+    <li class="nav-item">
+      <a class="nav-link {% if request.url_rule.endpoint == 'firmware_analytics_reports' and state == 3 %}active{% endif %}" href="/lvfs/firmware/{{fw.firmware_id}}/analytics/reports/3">👎 Reports</a>
+    </li>
+  </ul>
+{% endif %}
+{% endif %}
+</nav>

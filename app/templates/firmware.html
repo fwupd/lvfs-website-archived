@@ -2,7 +2,6 @@
 {% block title %}Firmware{% endblock %}
 
 {% block content %}
-<div class="container mt-3">
 <h1>Existing Firmware</h1>
 
 {% if fw_by_name|length == 0 %}
@@ -54,6 +53,4 @@
 {% endfor %}
 
 {% endif %}
-
-</div> <!-- container -->
 {% endblock %}

@@ -1,0 +1,86 @@
+{% extends "default.html" %}
+{% block title %}Firmware Problems{% endblock %}
+
+{% block nav %}
+{% include 'firmware-nav.html' %}
+{% endblock %}
+
+{% block content %}
+<table class="table">
+  <tr class="row table-borderless">
+    <th class="col-sm-3">Name</th>
+    <th class="col-sm-9">Description</th>
+  </tr>
+{% if 'no-release-urgency' in fw.problems %}
+  <tr class="row">
+    <td class="col-sm-3">
+      <img src="/img/dialog-warning.png"/>
+      No update urgency
+    </td>
+    <td class="col-sm-9">
+      <p class="card-text">
+        All components should have an appropriate update urgency before a
+        firmware is moved to stable.
+        You can do this for each component on this firmware by clicking <b>Components</b> &raquo; <b>Details</b>
+        &raquo; <b>Update Details</b> and setting an urgency from the dropdown.
+      </p>
+      <p class="card-text">
+        For future firmware uploads, this can be set automatically using
+        <code>&lt;release urgency="high"&gt;</code> in the
+        <a href="/metainfo"><code>.metainfo.xml</code></a> file.
+      </p>
+      <p class="card-text">
+        From 1<sup>st</sup> September 2018 it will not be possible to move firmware
+        files to stable that do not have an urgency value.
+      </p>
+    </td>
+  </tr>
+{% endif %}
+{% if 'no-release-description' in fw.problems %}
+  <tr class="row">
+    <td class="col-sm-3">
+      <img src="/img/dialog-warning.png"/>
+      No update description
+    </td>
+    <td class="col-sm-9">
+      <p class="card-text">
+        All components should have a suitable update description before a
+        firmware is moved to stable.
+        You can do this for each component on this firmware by clicking <b>Components</b> &raquo; <b>Details</b>
+        &raquo; <b>Update Details</b> and writing some content that is shown to users.
+        Writing good quality release notes are really important as some users may be
+        worried about an update that does not explain what it fixes.
+      </p>
+      <p class="card-text">
+        For future firmware uploads, this can be set automatically using this
+        in the <a href="/metainfo"><code>.metainfo.xml</code></a> file:<br/>
+        <code>&lt;release&gt;&lt;description&gt;&lt;p&gt;Release note
+        text&lt;/p&gt;&lt;/description&gt;&lt;/release&gt;</code>
+      </p>
+      <p class="card-text">
+        From 1<sup>st</sup> September 2018 it will not be possible to move firmware
+        files to stable that do not have an update description.
+      </p>
+    </td>
+  </tr>
+{% endif %}
+{% if 'unsigned' in fw.problems %}
+  <tr class="row">
+    <td class="col-sm-3">
+      <img src="/img/task-due.png"/>
+      Firmware is unsigned
+    </td>
+    <td class="col-sm-9">
+      <p class="card-text">
+        Signing a firmware file on the LVFS is automatic and will be completed in
+        {{format_timedelta_approx(fw.scheduled_signing)}}.
+        You can refresh this page to find out when the firmware has been signed.
+      </p>
+    </td>
+  </tr>
+{% endif %}
+</table>
+
+{% endblock %}
+
+{% block breadcrumb %}{% include 'firmware-breadcrumb.html' %}{% endblock %}

@@ -1,37 +1,11 @@
 {% extends "default.html" %}
 {% block title %}Vendor Details{% endblock %}
 
+{% block nav %}{% include 'vendor-nav.html' %}{% endblock %}
+
 {% block content %}
-<div class="container mt-3">
-
-<nav>
-  <ul class="nav nav-tabs">
-{% if g.user.check_capability('admin') %}
-    <li class="nav-item">
-      <a class="nav-link" href="/lvfs/vendor/{{v.vendor_id}}/details">Details</a>
-    </li>
-{% endif %}
-    <li class="nav-item">
-      <a class="nav-link active" href="/lvfs/vendor/{{v.vendor_id}}/users">Users</a>
-    </li>
-{% if g.user.check_capability('admin') %}
-    <li class="nav-item">
-      <a class="nav-link" href="/lvfs/vendor/{{v.vendor_id}}/oauth">OAuth</a>
-    </li>
-    <li class="nav-item">
-      <a class="nav-link" href="/lvfs/vendor/{{v.vendor_id}}/restrictions">Restrictions</a>
-    </li>
-{% endif %}
-  </ul>
-</nav>
-
-<div class="container mt-3">
-<h1 class="mt-3">Members of group ‘{{v.group_id}}’</h1>
-<p>
-  Vendors can have multiple users assigned.
-</p>
 <table class="table">
-  <tr class="row">
+  <tr class="row table-borderless">
     <th class="col-sm-4">Username</th>
     <th class="col-sm-3">Display Name</th>
     <th class="col-sm-3">Attributes</th>
@@ -74,7 +48,4 @@
   </tr>
   </form>
 </table>
-</div>
-
-</div> <!-- container -->
 {% endblock %}

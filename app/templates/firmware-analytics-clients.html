@@ -1,35 +1,11 @@
 {% extends "default.html" %}
 {% block title %}Firmware Details{% endblock %}
 
+{% block nav %}{% include 'firmware-nav.html' %}{% endblock %}
+
 {% block content %}
-<div class="container mt-3">
-
-<nav>
-  <ul class="nav nav-tabs">
-    <li class="nav-item">
-      <a class="nav-link active" href="/lvfs/firmware/{{fw.firmware_id}}/analytics/clients">Downloads</a>
-    </li>
-    <li class="nav-item">
-      <a class="nav-link" href="/lvfs/firmware/{{fw.firmware_id}}/analytics/year">Past Year</a>
-    </li>
-    <li class="nav-item">
-      <a class="nav-link" href="/lvfs/firmware/{{fw.firmware_id}}/analytics/month">Past Month</a>
-    </li>
-    <li class="nav-item">
-      <a class="nav-link" href="/lvfs/firmware/{{fw.firmware_id}}/analytics/reports/2">👍 Reports</a>
-    </li>
-    <li class="nav-item">
-      <a class="nav-link" href="/lvfs/firmware/{{fw.firmware_id}}/analytics/reports/3">👎 Reports</a>
-    </li>
-  </ul>
-</nav>
-
-<div class="container mt-3">
-
-<h2>Recent Activity</h2>
-
 <table class="table">
-  <tr class="row">
+  <tr class="row table-borderless">
     <th class="col-sm-2">Timestamp</th>
     <th class="col-sm-2">Address</th>
     <th class="col-sm-8">User Agent</th>
@@ -43,8 +19,6 @@
 {% endfor %}
 </table>
 
-<a class="btn btn-info" href="/lvfs/firmware/{{fw.firmware_id}}" role="button">&laquo; Back to firmware file</a>
-
-
-</div> <!-- container -->
 {% endblock %}
+
+{% block breadcrumb %}{% include 'firmware-breadcrumb.html' %}{% endblock %}

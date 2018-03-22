@@ -1,0 +1,20 @@
+<nav>
+  <ul class="nav nav-tabs">
+{% if g.user.check_capability('admin') %}
+    <li class="nav-item">
+      <a class="nav-link {% if request.url_rule.endpoint == 'vendor_details' %}active{% endif %}" href="/lvfs/vendor/{{v.vendor_id}}/details">Details</a>
+    </li>
+{% endif %}
+    <li class="nav-item">
+      <a class="nav-link {% if request.url_rule.endpoint == 'vendor_users' %}active{% endif %}" href="/lvfs/vendor/{{v.vendor_id}}/users">Users</a>
+    </li>
+{% if g.user.check_capability('admin') %}
+    <li class="nav-item">
+      <a class="nav-link {% if request.url_rule.endpoint == 'vendor_oauth' %}active{% endif %}" href="/lvfs/vendor/{{v.vendor_id}}/oauth">OAuth</a>
+    </li>
+    <li class="nav-item">
+      <a class="nav-link {% if request.url_rule.endpoint == 'vendor_restrictions' %}active{% endif %}" href="/lvfs/vendor/{{v.vendor_id}}/restrictions">Restrictions</a>
+    </li>
+{% endif %}
+  </ul>
+</nav>

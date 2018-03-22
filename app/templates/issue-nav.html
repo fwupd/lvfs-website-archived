@@ -1,0 +1,13 @@
+<nav>
+  <ul class="nav nav-tabs">
+    <li class="nav-item">
+      <a class="nav-link {% if request.url_rule.endpoint == 'issue_details' %}active{% endif %}" href="/lvfs/issue/{{issue.issue_id}}/details">Details</a>
+    </li>
+    <li class="nav-item">
+      <a class="nav-link {% if request.url_rule.endpoint == 'issue_conditions' %}active{% endif %}" href="/lvfs/issue/{{issue.issue_id}}/conditions">Conditions</a>
+    </li>
+    <li class="nav-item">
+      <a class="nav-link {% if request.url_rule.endpoint == 'issue_reports' %}active{% endif %}" href="/lvfs/issue/{{issue.issue_id}}/reports">Matching Reports</a>
+    </li>
+  </ul>
+</nav>

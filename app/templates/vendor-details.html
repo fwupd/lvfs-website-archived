@@ -1,28 +1,9 @@
 {% extends "default.html" %}
 {% block title %}Vendor Details{% endblock %}
 
+{% block nav %}{% include 'vendor-nav.html' %}{% endblock %}
+
 {% block content %}
-<div class="container mt-3">
-
-<nav>
-  <ul class="nav nav-tabs">
-    <li class="nav-item">
-      <a class="nav-link active" href="/lvfs/vendor/{{v.vendor_id}}/details">Details</a>
-    </li>
-    <li class="nav-item">
-      <a class="nav-link" href="/lvfs/vendor/{{v.vendor_id}}/users">Users</a>
-    </li>
-    <li class="nav-item">
-      <a class="nav-link" href="/lvfs/vendor/{{v.vendor_id}}/oauth">OAuth</a>
-    </li>
-    <li class="nav-item">
-      <a class="nav-link" href="/lvfs/vendor/{{v.vendor_id}}/restrictions">Restrictions</a>
-    </li>
-  </ul>
-</nav>
-
-<div class="container mt-3">
-<h1>Vendor ‘{{v.group_id}}’</h1>
 {% if v.icon %}
 <img class="img-thumbnail" src="/uploads/{{v.icon}}" width=128 height="128"/>
 {% else %}
@@ -130,6 +111,4 @@
     </div>
   </div>
 </div>
-
-</div> <!-- container -->
 {% endblock %}

@@ -1,43 +1,13 @@
 {% extends "default.html" %}
 {% block title %}Analytics{% endblock %}
 
-{% block content %}
-<div class="container mt-3">
+{% block nav %}{% include 'analytics-nav.html' %}{% endblock %}
 
+{% block content %}
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.7.1/Chart.js" integrity="sha256-t3+U9BqykoMN9cqZmJ5Z53TvPv4V7S9AmjUcIWNNyxo=" crossorigin="anonymous"></script>
 <script>
 Chart.defaults.global.animation = false;
 </script>
-
-<nav>
-  <ul class="nav nav-tabs">
-    <li class="nav-item">
-      <a class="nav-link active" href="/lvfs/analytics/month">Past Month</a>
-    </li>
-    <li class="nav-item">
-      <a class="nav-link" href="/lvfs/analytics/year">Past Year</a>
-    </li>
-    <li class="nav-item">
-      <a class="nav-link" href="/lvfs/analytics/user_agent">User Agents</a>
-    </li>
-    <li class="nav-item">
-      <a class="nav-link" href="/lvfs/analytics/clients">Downloads</a>
-    </li>
-    <li class="nav-item">
-      <a class="nav-link" href="/lvfs/analytics/reports">Reports</a>
-    </li>
-    <li class="nav-item">
-      <a class="nav-link" href="/lvfs/analytics/search_history">Recent Searches</a>
-    </li>
-    <li class="nav-item">
-      <a class="nav-link" href="/lvfs/analytics/search_stats">Popular Searches</a>
-    </li>
-  </ul>
-</nav>
-
-<div class="container mt-3">
-
-<h2>Firmware Downloads</h2>
 <canvas id="metadataChartMonthsDays" width="1000" height="600"></canvas>
 <script>
 var ctx = document.getElementById("metadataChartMonthsDays").getContext("2d");
@@ -64,8 +34,4 @@ new Chart(ctx, {
 });
 
 </script>
-
-</div>
-
-</div> <!-- container -->
 {% endblock %}

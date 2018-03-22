@@ -2,10 +2,7 @@
 {% block title %}Home{% endblock %}
 
 {% block content %}
-<div class="container mt-3">
 <h1>Modify Local User</h1>
-
-<div class="container">
   <form class="form" method="post" action="/lvfs/user/{{g.user.user_id}}/modify">
     <div class="form-group row">
       <label for="name" class="col-sm-2 col-form-label">Display Name</label>
@@ -35,7 +32,4 @@
       </div>
     </div>
   </form>
-</div>
-
-</div> <!-- container -->
 {% endblock %}

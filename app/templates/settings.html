@@ -1,9 +1,7 @@
 {% extends "default.html" %}
 {% block title %}Settings{% endblock %}
 
-{% block content %}
-<div class="container mt-3">
-
+{% block nav %}
 <nav>
   <ul class="nav nav-tabs">
 {% for plugin in plugins %}
@@ -18,8 +16,9 @@
 {% endfor %}
   </ul>
 </nav>
+{% endblock %}
 
-<div class="container mt-3">
+{% block content %}
   <form class="form" method="post" action="/lvfs/settings/modify/{{plugin_id}}">
 
 {% for plugin in plugins %}
@@ -51,7 +50,4 @@
       </div>
     </div>
   </form>
-</div>
-
-</div> <!-- container -->
 {% endblock %}

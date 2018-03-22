@@ -71,7 +71,7 @@ def firmware_component_show(component_id, page='overview'):
         return _error_permission_denied('Unable to view other vendor firmware')
 
     return render_template('firmware-md-' + page + '.html',
-                           md=md, fw=fw)
+                           md=md, fw=fw, page=page)
 
 @app.route('/lvfs/component/requirement/delete/<requirement_id>')
 @login_required

@@ -1,37 +1,14 @@
 {% extends "default.html" %}
 {% block title %}Firmware Details{% endblock %}
 
-{% block content %}
-<div class="container mt-3">
+{% block nav %}{% include 'firmware-nav.html' %}{% endblock %}
 
+{% block content %}
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.7.1/Chart.js" integrity="sha256-t3+U9BqykoMN9cqZmJ5Z53TvPv4V7S9AmjUcIWNNyxo=" crossorigin="anonymous"></script>
 <script>
 Chart.defaults.global.animation = false;
 </script>
 
-<nav>
-  <ul class="nav nav-tabs">
-    <li class="nav-item">
-      <a class="nav-link" href="/lvfs/firmware/{{fw.firmware_id}}/analytics/clients">Downloads</a>
-    </li>
-    <li class="nav-item">
-      <a class="nav-link active" href="/lvfs/firmware/{{fw.firmware_id}}/analytics/year">Past Year</a>
-    </li>
-    <li class="nav-item">
-      <a class="nav-link" href="/lvfs/firmware/{{fw.firmware_id}}/analytics/month">Past Month</a>
-    </li>
-    <li class="nav-item">
-      <a class="nav-link" href="/lvfs/firmware/{{fw.firmware_id}}/analytics/reports/2">👍 Reports</a>
-    </li>
-    <li class="nav-item">
-      <a class="nav-link" href="/lvfs/firmware/{{fw.firmware_id}}/analytics/reports/3">👎 Reports</a>
-    </li>
-  </ul>
-</nav>
-
-<div class="container mt-3">
-
-<h2>User Downloads</h2>
 <canvas id="metadataChartMonths" width="1000" height="600"></canvas>
 <script>
 var ctx = document.getElementById("metadataChartMonths").getContext("2d");
@@ -56,10 +33,7 @@ new Chart(ctx, {
     }
 });
 </script>
-</div>
 
-<a class="btn btn-info" href="/lvfs/firmware/{{fw.firmware_id}}" role="button">&laquo; Back to firmware file</a>
-
-
-</div> <!-- container -->
 {% endblock %}
+
+{% block breadcrumb %}{% include 'firmware-breadcrumb.html' %}{% endblock %}

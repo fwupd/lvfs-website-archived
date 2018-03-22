@@ -141,7 +141,7 @@ def utility_processor():
         return datetime.datetime.fromtimestamp(tmp).strftime('%Y-%m-%d %H:%M:%S')
 
     def format_timedelta_approx(tmp):
-        return humanize.naturaltime(tmp)
+        return humanize.naturaltime(tmp).replace(' from now', '')
 
     def format_size(num, suffix='B'):
         if not isinstance(num, int) and not isinstance(num, long):

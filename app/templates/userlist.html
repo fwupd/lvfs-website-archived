@@ -2,46 +2,48 @@
 {% block title %}User List{% endblock %}
 
 {% block content %}
-
-<div class="container-fluid">
-  <div class="row">
+<h1>Userlist</h1>
 {% if users|length > 0 %}
-    <nav class="col-sm-3 col-md-2 d-none d-sm-block bg-light sidebar">
-      <ul class="nav nav-pills flex-column mt-3">
+<table class="table">
+  <tr class="row table-borderless">
+    <th class="col-sm-5">Vendor</th>
+    <th class="col-sm-5">Username</th>
+    <th class="col-sm-2">&nbsp;</th>
+  </tr>
 {% for u in users %}
-        <li class="nav-item">
-          <a class="nav-link" href="/lvfs/user/{{u.user_id}}/admin">{{u.username}}</a>
-        </li>
+  <tr class="row">
+    <td class="col-sm-5">{{u.vendor.group_id}}</td>
+    <td class="col-sm-5">{{u.username}}</td>
+    <td class="col-sm-2">
+      <a class="btn btn-info btn-block" href="/lvfs/user/{{u.user_id}}/admin">Details</a>
+    </td>
+  </tr>
 {% endfor %}
-      </ul>
-    </nav>
+</table>
 {% endif %}
-    <main role="main" class="col-sm-9 ml-sm-auto col-md-10 pt-3">
-      <h1>Create a new user</h1>
-      <form method="post" action="/lvfs/user/add" class="form">
-        <div class="form-group">
-          <label for="username">Username:</label>
-          <input type="email" class="form-control" name="username" required>
-        </div>
-        <div class="form-group">
-          <label for="password_new">Password:</label>
-          <input type="password" class="form-control" name="password_new" required>
-          <p class="text-secondary">
-            A good password consists of upper and lower case with numbers.
-          </p>
-        </div>
-        <div class="form-group">
-          <label for="name">Display Name:</label>
-          <input type="text" class="form-control" name="display_name" required>
-        </div>
-        <div class="form-group">
-          <label for="group_id">Group:</label>
-          <input type="text" class="form-control" name="group_id" required>
-        </div>
-        <input class="btn btn-primary" type="submit" value="Add">
-      </form>
-    </main>
+
+<h1>Create a new user</h1>
+<form method="post" action="/lvfs/user/add" class="form">
+  <div class="form-group">
+    <label for="username">Username:</label>
+    <input type="email" class="form-control" name="username" required>
   </div>
-</div>
+  <div class="form-group">
+    <label for="password_new">Password:</label>
+    <input type="password" class="form-control" name="password_new" required>
+    <p class="text-secondary">
+      A good password consists of upper and lower case with numbers.
+    </p>
+  </div>
+  <div class="form-group">
+    <label for="name">Display Name:</label>
+    <input type="text" class="form-control" name="display_name" required>
+  </div>
+  <div class="form-group">
+    <label for="group_id">Group:</label>
+    <input type="text" class="form-control" name="group_id" required>
+  </div>
+  <input class="btn btn-primary" type="submit" value="Add">
+</form>
 
 {% endblock %}

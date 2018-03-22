@@ -1,24 +1,9 @@
 {% extends "default.html" %}
 {% block title %}Issue Details{% endblock %}
 
+{% block nav %}{% include 'issue-nav.html' %}{% endblock %}
+
 {% block content %}
-<div class="container mt-3">
-
-<nav>
-  <ul class="nav nav-tabs">
-    <li class="nav-item">
-      <a class="nav-link active" href="/lvfs/issue/{{issue.issue_id}}/details">Details</a>
-    </li>
-    <li class="nav-item">
-      <a class="nav-link" href="/lvfs/issue/{{issue.issue_id}}/conditions">Conditions</a>
-    </li>
-    <li class="nav-item">
-      <a class="nav-link" href="/lvfs/issue/{{issue.issue_id}}/reports">Matching Reports</a>
-    </li>
-  </ul>
-</nav>
-
-<div class="container mt-3">
 <h2>Issue Details</h2>
 <form method="post" action="/lvfs/issue/{{issue.issue_id}}/modify">
   <div class="form-group">
@@ -48,11 +33,6 @@
   <button type="button" class="btn btn-danger" data-toggle="modal" data-target="#deleteModal">Delete</button>
 {% endif %}
 </form>
-</div>
-
-<a class="btn btn-info mt-3" href="/lvfs/issue/all" role="button">&laquo; Back to issues</a>
-
-</div> <!-- container -->
 
 <!-- modal dialog -->
 <div class="modal" id="deleteModal" tabindex="-1" role="dialog" aria-labelledby="deleteModalLabel" aria-hidden="true">
@@ -75,4 +55,13 @@
   </div>
 </div>
 
+{% endblock %}
+
+{% block breadcrumb %}
+<nav aria-label="breadcrumb">
+  <ol class="breadcrumb mt-3">
+    <li class="breadcrumb-item"><a href="/lvfs/issue/all">Issues</a></li>
+    <li class="breadcrumb-item active" aria-current="page">Issue #{{issue.issue_id}}</li>
+  </ol>
+</nav>
 {% endblock %}

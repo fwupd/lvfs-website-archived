@@ -2,51 +2,42 @@
 {% block title %}Device List{% endblock %}
 
 {% block content %}
-
-<div class="container-fluid">
-  <div class="row">
-{% if vendors|length > 0 %}
-    <nav class="col-sm-3 col-md-2 d-none d-sm-block bg-light sidebar">
-      <ul class="nav nav-pills flex-column mt-3">
-{% for vendor in vendors %}
-        <span class="text-muted">{{vendor}}</span>
-{% for md in mds_by_vendor[vendor] %}
-        <li class="nav-item">
-          <a class="nav-link" href="/lvfs/device/{{md.guids[0].value}}">{{md.name}}</a>
-        </li>
-{% endfor %}
-{% endfor %}
-      </ul>
-    </nav>
-{% endif %}
-    <main role="main" class="col-sm-9 ml-sm-auto col-md-10 pt-3">
-      <h1>Devices using LVFS for firmware updates</h1>
-      <p>
-        This list shows all the updates that have been pushed to the stable metadata.
-        This is a very incomplete list as a lot of the devices in the LVFS
-        have not yet been released publicly and the firmware updates are in a
-        secret embargoed state.
-      </p>
-      <p>
-        This list is automatically generated and will be updated when new firmware
-        is added or devices are released to the public.
-        For information about what vendors have been contacted about the LVFS,
-        please see the <a href="/vendorlist">vendor engagement list</a>.
-      </p>
-      <form method="GET" class="form-inline mb-3" action="/lvfs/search">
-        <div class="input-group">
-          <input type="text" class="form-control" aria-label="search" name="value" required>
-          <div class="input-group-append">
-            <button class="input-group-text" type="submit">Search</button>
-          </div>
-        </div>
-      </form>
-      <p>
-        If your device is listed but missing a firmware update that you see on the
-        vendor website, please file an issue against the <a href="https://github.com/hughsie/lvfs-website/issues">LVFS website</a>.
-      </p>
-    </main>
+<h1>Devices using LVFS for firmware updates</h1>
+<p>
+  This list shows all the updates that have been pushed to the stable metadata.
+  This is a very incomplete list as a lot of the devices in the LVFS
+  have not yet been released publicly and the firmware updates are in a
+  secret embargoed state.
+</p>
+<p>
+  This list is automatically generated and will be updated when new firmware
+  is added or devices are released to the public.
+  For information about what vendors have been contacted about the LVFS,
+  please see the <a href="/vendorlist">vendor engagement list</a>.
+</p>
+<form method="GET" class="form-inline mb-3" action="/lvfs/search">
+  <div class="input-group">
+    <input type="text" class="form-control" aria-label="search" name="value" required>
+    <div class="input-group-append">
+      <button class="input-group-text" type="submit">Search</button>
+    </div>
   </div>
+</form>
+<p>
+  If your device is listed but missing a firmware update that you see on the
+  vendor website, please file an issue against the <a href="https://github.com/hughsie/lvfs-website/issues">LVFS website</a>.
+</p>
 
-</div> <!-- container -->
+<h2>Current List of Supported Devices</h2>
+{% if vendors|length > 0 %}
+{% for vendor in vendors %}
+<h3>{{vendor}}</h3>
+<ul>
+{% for md in mds_by_vendor[vendor] %}
+  <li><a class="nav-link" href="/lvfs/device/{{md.guids[0].value}}">{{md.name}}</a></li>
+{% endfor %}
+</ul>
+{% endfor %}
+{% endif %}
+
 {% endblock %}

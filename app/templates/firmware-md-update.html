@@ -1,25 +1,9 @@
 {% extends "default.html" %}
 {% block title %}Firmware Component Details{% endblock %}
 
-{% block content %}
-<div class="container mt-3">
+{% block nav %}{% include 'firmware-md-nav.html' %}{% endblock %}
 
-<nav>
-  <ul class="nav nav-tabs">
-    <li class="nav-item">
-      <a class="nav-link" href="/lvfs/component/{{md.component_id}}">Overview</a>
-    </li>
-    <li class="nav-item">
-      <a class="nav-link active" href="/lvfs/component/{{md.component_id}}/update">Update Details</a>
-    </li>
-    <li class="nav-item">
-      <a class="nav-link" href="/lvfs/component/{{md.component_id}}/requires">Requirements</a>
-    </li>
-    <li class="nav-item">
-      <a class="nav-link" href="/lvfs/component/{{md.component_id}}/keywords">Search Keywords</a>
-    </li>
-  </ul>
-</nav>
+{% block content %}
 
 {% if not g.user.check_capability('qa') %}
 <table class="table">
@@ -32,44 +16,40 @@
 
 {% else %}
 
-<div class="container mt-3">
-  <h3>Update Metadata</h3>
 {% if fw.remote.name == 'stable' %}
-  <div class="alert alert-danger mt-1" role="alert">
-    This firmware has <strong>already been pushed to stable</strong>.
-    The admin user has to manually rebuild the metadata to propagate changes.
-  </div>
-{% else %}
-  <div class="alert alert-info mt-1" role="alert">
-    Changing this information will <strong>only</strong> modify the metadata when the
-    firmware changes state, e.g. from <em>testing</em> to <em>stable</em>.
-  </div>
-{% endif %}
-  <form method="post" action="/lvfs/firmware/{{fw.firmware_id}}/modify">
-    <div class="form-group">
-      <label for="urgency">Urgency</label>
-      <select class="form-control" id="urgency" name="urgency" required>
-        <option value="unknown" {{ 'selected' if md.release_urgency == 'unknown' }}>Unknown</option>
-        <option value="low" {{ 'selected' if md.release_urgency == 'low' }}>Low</option>
-        <option value="medium" {{ 'selected' if md.release_urgency == 'medium' }}>Medium</option>
-        <option value="high" {{ 'selected' if md.release_urgency == 'high' }}>High</option>
-        <option value="critical" {{ 'selected' if md.release_urgency == 'critical' }}>Critical</option>
-      </select>
-    </div>
-    <div class="form-group">
-      <label for="description">Description</label>
-      <textarea class="form-control" name="description" id="description" cols="100" rows="5">{{md.release_description|safe if md.release_description}}</textarea>
-      <p class="text-secondary">Unformatted text will be automatically converted to
-        <a href="http://www.freedesktop.org/software/appstream/docs/chap-Metadata.html#tag-description">
-        AppStream XML description markup</a>.
-      </p>
-    </div>
-    <a class="btn btn-info" href="/lvfs/firmware/{{fw.firmware_id}}" role="button">&laquo; Back to firmware file</a>
-    <input class="btn btn-primary" type="submit" value="Save"/>
-  </form>
+<div class="alert alert-danger mt-1" role="alert">
+  This firmware has <strong>already been pushed to stable</strong>.
+  The admin user has to manually rebuild the metadata to propagate changes.
 </div>
+{% else %}
+<div class="alert alert-info mt-1" role="alert">
+  Changing this information will <strong>only</strong> modify the metadata when the
+  firmware changes state, e.g. from <em>testing</em> to <em>stable</em>.
+</div>
+{% endif %}
+<form method="post" action="/lvfs/firmware/{{fw.firmware_id}}/modify">
+  <div class="form-group">
+    <label for="urgency">Urgency</label>
+    <select class="form-control" id="urgency" name="urgency" required>
+      <option value="unknown" {{ 'selected' if md.release_urgency == 'unknown' }}>Unknown</option>
+      <option value="low" {{ 'selected' if md.release_urgency == 'low' }}>Low</option>
+      <option value="medium" {{ 'selected' if md.release_urgency == 'medium' }}>Medium</option>
+      <option value="high" {{ 'selected' if md.release_urgency == 'high' }}>High</option>
+      <option value="critical" {{ 'selected' if md.release_urgency == 'critical' }}>Critical</option>
+    </select>
+  </div>
+  <div class="form-group">
+    <label for="description">Description</label>
+    <textarea class="form-control" name="description" id="description" cols="100" rows="5">{{md.release_description|safe if md.release_description}}</textarea>
+    <p class="text-secondary">Unformatted text will be automatically converted to
+      <a href="http://www.freedesktop.org/software/appstream/docs/chap-Metadata.html#tag-description">
+      AppStream XML description markup</a>.
+    </p>
+  </div>
+  <input class="btn btn-primary" type="submit" value="Save"/>
+</form>
 
 {% endif %}
-
-</div> <!-- container -->
 {% endblock %}
+
+{% block breadcrumb %}{% include 'firmware-md-breadcrumb.html' %}{% endblock %}

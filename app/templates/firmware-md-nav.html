@@ -1,0 +1,16 @@
+<nav>
+  <ul class="nav nav-tabs">
+    <li class="nav-item">
+      <a class="nav-link {% if page == 'overview' %}active{% endif %}" href="/lvfs/component/{{md.component_id}}">Overview</a>
+    </li>
+    <li class="nav-item">
+      <a class="nav-link {% if page == 'update' %}active{% endif %}" href="/lvfs/component/{{md.component_id}}/update">Update Details</a>
+    </li>
+    <li class="nav-item">
+      <a class="nav-link {% if page == 'requires' %}active{% endif %}" href="/lvfs/component/{{md.component_id}}/requires">Requirements</a>
+    </li>
+    <li class="nav-item">
+      <a class="nav-link {% if page == 'keywords' %}active{% endif %}" href="/lvfs/component/{{md.component_id}}/keywords">Search Keywords</a>
+    </li>
+  </ul>
+</nav>

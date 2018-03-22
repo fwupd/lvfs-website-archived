@@ -12,3 +12,8 @@ input[type=checkbox] {
 	width: 1.5em;
 	height: 1.5em;
 }
+
+.table-borderless td,
+.table-borderless th {
+    border: 0;
+}

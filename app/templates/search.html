@@ -2,8 +2,6 @@
 {% block title %}Search Results{% endblock %}
 
 {% block content %}
-<div class="container mt-3">
-
 <form method="GET" class="form-inline justify-content-center" action="/lvfs/search">
   <div class="input-group">
     <input type="text" class="form-control" aria-label="search" name="value" required>
@@ -12,8 +10,6 @@
     </div>
   </div>
 </form>
-
-<div class="container mt-4">
 
 {% if search_size < 0 %}
 <p class="text-muted">Search for firmware or hardware vendors&hellip;</p>
@@ -103,6 +99,4 @@
   </div>
 </div>
 {% endif %}
-
-</div> <!-- container -->
 {% endblock %}

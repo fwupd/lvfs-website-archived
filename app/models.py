@@ -504,6 +504,12 @@ class Remote(db.Model):
             return 'firmware-testing.xml.gz'
         return 'firmware-%s.xml.gz' % _qa_hash(self.name[8:])
 
+    @property
+    def scheduled_signing(self):
+        now = datetime.datetime.now()
+        secs = ((30 - (now.minute % 30)) * 60) + (60 - now.second)
+        return datetime.datetime.now() + datetime.timedelta(seconds=secs)
+
     def __repr__(self):
         return "Remote object %s [%s]" % (self.remote_id, self.name)
 
@@ -571,6 +577,25 @@ class Firmware(db.Model):
         if not self.events:
             return 0
         return datetime.datetime.utcnow() - self.events[-1].timestamp
+
+    @property
+    def scheduled_signing(self):
+        now = datetime.datetime.now()
+        secs = ((5 - (now.minute % 5)) * 60) + (60 - now.second)
+        return datetime.datetime.now() + datetime.timedelta(seconds=secs)
+
+    @property
+    def problems(self):
+        # does the firmware have any warnings
+        problems = []
+        if not self.signed_timestamp:
+            problems.append('unsigned')
+        for md in self.mds:
+            if md.release_urgency == 'unknown':
+                problems.append('no-release-urgency')
+            if not md.release_description or len(md.release_description) < 12:
+                problems.append('no-release-description')
+        return list(set(problems))
 
     def __init__(self):
         """ Constructor for object """

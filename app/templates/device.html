@@ -2,7 +2,6 @@
 {% block title %}Device{% endblock %}
 
 {% block content %}
-<div class="container mt-3">
 <h1>Device Details</h1>
 
 {% if fws|length == 0 %}
@@ -83,6 +82,4 @@
 {% block footer %}
 {% if g.user is not defined %}
 <p><a href="/lvfs/devicelist">Back to the device list</a></p>
-{% endif %}
-</div> <!-- container -->
-{% endblock %}
+{% endif %}{% endblock %}

@@ -1,41 +1,9 @@
 {% extends "default.html" %}
 {% block title %}Firmware Details{% endblock %}
 
+{% block nav %}{% include 'firmware-nav.html' %}{% endblock %}
+
 {% block content %}
-<div class="container mt-3">
-
-<nav>
-  <ul class="nav nav-tabs">
-    <li class="nav-item">
-      <a class="nav-link" href="/lvfs/firmware/{{fw.firmware_id}}/analytics/clients">Downloads</a>
-    </li>
-    <li class="nav-item">
-      <a class="nav-link" href="/lvfs/firmware/{{fw.firmware_id}}/analytics/year">Past Year</a>
-    </li>
-    <li class="nav-item">
-      <a class="nav-link" href="/lvfs/firmware/{{fw.firmware_id}}/analytics/month">Past Month</a>
-    </li>
-    <li class="nav-item">
-{% if state == 2 %}
-      <a class="nav-link active" href="/lvfs/firmware/{{fw.firmware_id}}/analytics/reports/2">👍 Reports</a>
-{% else %}
-      <a class="nav-link" href="/lvfs/firmware/{{fw.firmware_id}}/analytics/reports/2">👍 Reports</a>
-{% endif %}
-    </li>
-    <li class="nav-item">
-{% if state == 3 %}
-      <a class="nav-link active" href="/lvfs/firmware/{{fw.firmware_id}}/analytics/reports/3">👎 Reports</a>
-{% else %}
-      <a class="nav-link" href="/lvfs/firmware/{{fw.firmware_id}}/analytics/reports/3">👎 Reports</a>
-{% endif %}
-    </li>
-  </ul>
-</nav>
-
-<div class="container mt-3">
-
-<h2>Recent</h2>
-
 {% if reports|length > 0 %}
 <table class="table">
   <tr class="row">
@@ -82,8 +50,6 @@
 
 {% endif %}
 
-<a class="btn btn-info" href="/lvfs/firmware/{{fw.firmware_id}}" role="button">&laquo; Back to firmware file</a>
-
-
-</div> <!-- container -->
 {% endblock %}
+
+{% block breadcrumb %}{% include 'firmware-breadcrumb.html' %}{% endblock %}

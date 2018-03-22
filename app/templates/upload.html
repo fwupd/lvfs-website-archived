@@ -2,8 +2,6 @@
 {% block title %}Upload{% endblock %}
 
 {% block content %}
-<div class="container mt-3">
-
 {% if vendor_ids|length > 0 %}
 <h2>Restrictions</h2>
 <p>
@@ -78,31 +76,27 @@
   </li>
 </ul>
 
-<div class="container">
-  <form action="/lvfs/upload" method="post" enctype="multipart/form-data" class="form">
-    <div class="form-group row">
-      <label for="target" class="col-sm-2 col-form-label">Remote</label>
-      <div class="col-sm-10">
-        <select class="form-control" name="target" required>
-          <option value="private">Private (secret)</option>
-          <option value="embargo">Embargoed (available to all members of the {{g.user.vendor.group_id}} group)</option>
-        </select>
-      </div>
+<form action="/lvfs/upload" method="post" enctype="multipart/form-data" class="form">
+  <div class="form-group row">
+    <label for="target" class="col-sm-2 col-form-label">Remote</label>
+    <div class="col-sm-10">
+      <select class="form-control" name="target" required>
+        <option value="private">Private (secret)</option>
+        <option value="embargo">Embargoed (available to all members of the {{g.user.vendor.group_id}} group)</option>
+      </select>
     </div>
-    <div class="form-group row">
-      <label for="file" class="col-sm-2 col-form-label">Firmware file</label>
-      <div class="col-sm-10">
-        <input class="form-control" type="file" name="file" required/>
-      </div>
+  </div>
+  <div class="form-group row">
+    <label for="file" class="col-sm-2 col-form-label">Firmware file</label>
+    <div class="col-sm-10">
+      <input class="form-control" type="file" name="file" required/>
     </div>
-    <div class="form-group row">
-      <p class="col-sm-2">&nbsp;</p>
-      <div class="col-sm-10">
-        <input type="submit" class="btn btn-primary btn-large" class="btn btn-primary btn-large" value="Upload"/>
-      </div>
+  </div>
+  <div class="form-group row">
+    <p class="col-sm-2">&nbsp;</p>
+    <div class="col-sm-10">
+      <input type="submit" class="btn btn-primary btn-large" class="btn btn-primary btn-large" value="Upload"/>
     </div>
-  </form>
-</div>
-
-</div> <!-- container -->
+  </div>
+</form>
 {% endblock %}

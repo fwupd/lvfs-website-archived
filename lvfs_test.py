@@ -110,7 +110,6 @@ class LvfsTestCase(unittest.TestCase):
     def upload(self, target='private'):
         rv = self._upload('contrib/hughski-colorhug2-2.0.3.cab', target)
         assert b'Uploaded file' in rv.data, rv.data
-        assert b'com.hughski.ColorHug2.firmware' in rv.data, rv.data
         assert b'7514fc4b0e1a306337de78c58f10e9e68f791de2' in rv.data, rv.data
 
     def test_login_logout(self):
@@ -142,8 +141,9 @@ class LvfsTestCase(unittest.TestCase):
         # upload firmware
         self.login()
         rv = self._upload('contrib/hughski-colorhug2-2.0.3.cab', 'private')
-        assert b'com.hughski.ColorHug2.firmware' in rv.data, rv.data
         assert b'7514fc4b0e1a306337de78c58f10e9e68f791de2' in rv.data, rv.data
+        rv = self.app.get('/lvfs/firmware/1/components')
+        assert b'com.hughski.ColorHug2.firmware' in rv.data, rv.data
 
         # download
         rv = self.app.get('/downloads/7514fc4b0e1a306337de78c58f10e9e68f791de2-hughski-colorhug2-2.0.3.cab')
@@ -253,12 +253,12 @@ class LvfsTestCase(unittest.TestCase):
         # verify all metadata is in good shape
         self.login()
         rv = self.app.get('/lvfs/metadata')
-        assert b'>Dirty<' not in rv.data, rv.data
+        assert b'Will be signed in' not in rv.data, rv.data
 
         # upload file, dirtying the admin-embargo remote
         self.upload('embargo')
         rv = self.app.get('/lvfs/metadata')
-        assert b'>Dirty<' in rv.data, rv.data
+        assert b'Will be signed in' in rv.data, rv.data
 
         # run the cron job manually
         env = {}
@@ -271,16 +271,17 @@ class LvfsTestCase(unittest.TestCase):
 
         # verify all metadata is in good shape
         rv = self.app.get('/lvfs/metadata')
-        assert b'>Dirty<' not in rv.data, rv.data
+        assert b'Will be signed in' not in rv.data, rv.data
 
     def test_cron_firmware(self):
 
         # upload file, which will be unsigned
         self.login()
-        self.upload()
+        self.upload('embargo')
         rv = self.app.get('/lvfs/firmware/1')
-        assert b'waiting to be signed' in rv.data, rv.data
         assert b'>Signed<' not in rv.data, rv.data
+        rv = self.app.get('/lvfs/firmware/1/problems')
+        assert b'Firmware is unsigned' in rv.data, rv.data
 
         # run the cron job manually
         env = {}
@@ -293,8 +294,9 @@ class LvfsTestCase(unittest.TestCase):
 
         # verify the firmware is now signed
         rv = self.app.get('/lvfs/firmware/1')
-        assert b'waiting to be signed' not in rv.data, rv.data
         assert b'>Signed<' in rv.data, rv.data
+        rv = self.app.get('/lvfs/firmware/1/problems')
+        assert b'Firmware is unsigned' not in rv.data, rv.data
 
     def test_user_only_view_own_firmware(self):
 
@@ -336,7 +338,7 @@ class LvfsTestCase(unittest.TestCase):
         rv = self.app.get('/lvfs/firmware')
         assert b'/lvfs/firmware/1' in rv.data, rv.data
         rv = self.app.get('/lvfs/firmware/1/analytics/clients')
-        assert b'Recent Activity' in rv.data, rv.data
+        assert b'User Agent' in rv.data, rv.data
         rv = self.app.get('/lvfs/firmware/1/promote/testing',
                           follow_redirects=True)
         assert b'Permission denied: No QA access' in rv.data, rv.data
@@ -349,7 +351,7 @@ class LvfsTestCase(unittest.TestCase):
         rv = self.app.get('/lvfs/firmware')
         assert b'/lvfs/firmware/1' in rv.data, rv.data
         rv = self.app.get('/lvfs/firmware/1/analytics/clients')
-        assert b'Recent Activity' in rv.data, rv.data
+        assert b'User Agent' in rv.data, rv.data
         rv = self.app.get('/lvfs/firmware/1/promote/testing',
                           follow_redirects=True)
         assert b'>testing<' in rv.data, rv.data
@@ -821,7 +823,7 @@ class LvfsTestCase(unittest.TestCase):
         self.logout()
         self.login()
         rv = self.app.get('/lvfs/metadata/rebuild', follow_redirects=True)
-        assert b'Metadata will be rebuilt soon' in rv.data, rv.data
+        assert b'Metadata will be rebuilt' in rv.data, rv.data
 
         # check the remote is generated
         rv = self.app.get('/lvfs/metadata/testgroup')

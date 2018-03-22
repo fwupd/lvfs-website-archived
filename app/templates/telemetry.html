@@ -1,9 +1,7 @@
 {% extends "default.html" %}
 {% block title %}Telemetry{% endblock %}
 
-{% block content %}
-<div class="container mt-3">
-
+{% block nav %}
 <nav>
   <ul class="nav nav-tabs">
     <div><h3></h3></div>
@@ -18,9 +16,9 @@
     </li>
   </ul>
 </nav>
+{% endblock %}
 
-<div class="container mt-3">
-
+{% block content %}
 {% if show_duplicate_warning %}
 <div class="alert alert-info" role="alert">
   Some archives contains firmware for more than one machine. These have been marked with <sup>★</sup>.
@@ -91,9 +89,4 @@
     <td class="col-sm-1"><b>{{total_issue}}</b></td>
   </tr>
 </table>
-</div>
-
-</div>
-
-</div> <!-- container -->
 {% endblock %}

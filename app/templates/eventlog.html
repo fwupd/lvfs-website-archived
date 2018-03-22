@@ -2,16 +2,8 @@
 {% block title %}Event Log{% endblock %}
 
 {% block content %}
-<div class="container mt-3">
-<h1>Event Log</h1>
-{% if g.user.username == 'admin' %}
-<p>This list shows all events for all users.</p>
-{% else %}
-<p>This list shows all events for the {{g.user.vendor.group_id}} QA group.</p>
-{% endif %}
-
 <table class="table">
-  <tr class="row">
+  <tr class="row table-borderless">
     <th class="col-sm-2">Timestamp</th>
     <th class="col-sm-2">Address</th>
     <th class="col-sm-3">User</th>
@@ -58,6 +50,4 @@
     <a class="page-link" href="/lvfs/eventlog/{{start+page_length}}/{{page_length}}">Next</a>
   </li>
 </ul>
-
-</div> <!-- container -->
 {% endblock %}

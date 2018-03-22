@@ -4,6 +4,8 @@
 # Copyright (C) 2017-2018 Richard Hughes <richard@hughsie.com>
 # Licensed under the GNU General Public License Version 2
 
+import humanize
+
 from flask import render_template, g, make_response, flash, redirect, url_for
 from flask_login import login_required
 
@@ -70,10 +72,14 @@ def metadata_rebuild():
         return _error_permission_denied('Only admin is allowed to force-rebuild metadata')
 
     # update metadata
+    scheduled_signing = None
     for r in db.session.query(Remote).filter(Remote.is_public).all():
         r.is_dirty = True
+        if not scheduled_signing:
+            scheduled_signing = r.scheduled_signing
     for vendor in db.session.query(Vendor).\
                     filter(Vendor.is_account_holder != 'no').all():
         vendor.remote.is_dirty = True
-    flash('Metadata will be rebuilt soon', 'info')
+    if scheduled_signing:
+        flash('Metadata will be rebuilt %s' % humanize.naturaltime(scheduled_signing), 'info')
     return redirect(url_for('.metadata_view'))

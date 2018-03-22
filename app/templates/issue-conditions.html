@@ -1,30 +1,15 @@
 {% extends "default.html" %}
 {% block title %}Issue Details{% endblock %}
 
+{% block nav %}{% include 'issue-nav.html' %}{% endblock %}
+
 {% block content %}
-<div class="container mt-3">
-
-<nav>
-  <ul class="nav nav-tabs">
-    <li class="nav-item">
-      <a class="nav-link" href="/lvfs/issue/{{issue.issue_id}}/details">Details</a>
-    </li>
-    <li class="nav-item">
-      <a class="nav-link active" href="/lvfs/issue/{{issue.issue_id}}/conditions">Conditions</a>
-    </li>
-    <li class="nav-item">
-      <a class="nav-link" href="/lvfs/issue/{{issue.issue_id}}/reports">Matching Reports</a>
-    </li>
-  </ul>
-</nav>
-
-<div class="container mt-3">
 <h2>Issue Conditions</h2>
 <table class="table">
   <tr class="row">
-    <th class="col-sm-4">Key</th>
+    <th class="col-sm-3">Key</th>
     <th class="col-sm-2">Compare</th>
-    <th class="col-sm-4">Value</th>
+    <th class="col-sm-5">Value</th>
     <th class="col-sm-2">&nbsp;</th>
   </tr>
 {% if issue.conditions|length == 0 %}
@@ -35,7 +20,7 @@
 {% else %}
 {% for condition in issue.conditions|sort(attribute='relative_cost') %}
   <tr class="row">
-    <td class="col-sm-4"><code>{{condition.key}}</code></td>
+    <td class="col-sm-3"><code>{{condition.key}}</code></td>
     <td class="col-sm-2">
 {% if condition.compare == 'eq' %}
       <code>=</code>
@@ -55,12 +40,12 @@
       Comparison invalid!
 {% endif %}
     </td>
-    <td class="col-sm-4">
-      <code>{{condition.value|truncate(40, False, '…')}}</code>
+    <td class="col-sm-5">
+      <code>{{condition.value|truncate(50, False, '…')}}</code>
     </td>
     <td class="col-sm-2">
 {% if g.user.check_for_issue(issue) %}
-      <a class="btn btn-danger" href="/lvfs/issue/{{issue.issue_id}}/condition/{{condition.condition_id}}/delete" role="button">Delete</a>
+      <a class="btn btn-block btn-danger" href="/lvfs/issue/{{issue.issue_id}}/condition/{{condition.condition_id}}/delete" role="button">Delete</a>
 {% endif %}
     </td>
   </tr>
@@ -69,7 +54,7 @@
 {% if g.user.check_for_issue(issue) %}
   <tr class="row">
     <form method="post" action="/lvfs/issue/{{issue.issue_id}}/condition/add">
-    <td class="col-sm-4">
+    <td class="col-sm-3">
       <input type="text" class="form-control" name="key" value="" placeholder="Key..." required>
     </td>
     <td class="col-sm-2">
@@ -83,19 +68,23 @@
         <option value="regex">Regex</option>
       </select>
     </td>
-    <td class="col-sm-4">
+    <td class="col-sm-5">
       <input type="text" class="form-control" name="value" value="" placeholder="Value..." required>
     </td>
     <td class="col-sm-2">
-      <input type="submit" class="btn btn-primary" class="submit" value="Add">
+      <input type="submit" class="btn btn-block btn-primary" class="submit" value="Add">
     </td>
     </form>
   </tr>
 {% endif %}
 </table>
-</div>
+{% endblock %}
 
-<a class="btn btn-info" href="/lvfs/issue/all" role="button">&laquo; Back to issues</a>
-
-</div> <!-- container -->
+{% block breadcrumb %}
+<nav aria-label="breadcrumb">
+  <ol class="breadcrumb mt-3">
+    <li class="breadcrumb-item"><a href="/lvfs/issue/all">Issues</a></li>
+    <li class="breadcrumb-item active" aria-current="page">Issue #{{issue.issue_id}}</li>
+  </ol>
+</nav>
 {% endblock %}

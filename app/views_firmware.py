@@ -205,6 +205,54 @@ def firmware_promote(firmware_id, target):
 
     return redirect(url_for('.firmware_show', firmware_id=firmware_id))
 
+@app.route('/lvfs/firmware/<int:firmware_id>/components')
+@login_required
+def firmware_components(firmware_id):
+
+    # get details about the firmware
+    fw = db.session.query(Firmware).\
+            filter(Firmware.firmware_id == firmware_id).first()
+    if not fw:
+        return _error_internal('No firmware matched!')
+
+    # we can only view our own firmware, unless admin
+    if not g.user.check_for_firmware(fw, readonly=True):
+        return _error_permission_denied('Insufficient permissions to view components')
+
+    return render_template('firmware-components.html', fw=fw)
+
+@app.route('/lvfs/firmware/<int:firmware_id>/problems')
+@login_required
+def firmware_problems(firmware_id):
+
+    # get details about the firmware
+    fw = db.session.query(Firmware).\
+            filter(Firmware.firmware_id == firmware_id).first()
+    if not fw:
+        return _error_internal('No firmware matched!')
+
+    # we can only view our own firmware, unless admin
+    if not g.user.check_for_firmware(fw, readonly=True):
+        return _error_permission_denied('Insufficient permissions to view components')
+
+    return render_template('firmware-problems.html', fw=fw)
+
+@app.route('/lvfs/firmware/<int:firmware_id>/history')
+@login_required
+def firmware_history(firmware_id):
+
+    # get details about the firmware
+    fw = db.session.query(Firmware).\
+            filter(Firmware.firmware_id == firmware_id).first()
+    if not fw:
+        return _error_internal('No firmware matched!')
+
+    # we can only view our own firmware, unless admin
+    if not g.user.check_for_firmware(fw, readonly=True):
+        return _error_permission_denied('Insufficient permissions to view components')
+
+    return render_template('firmware-history.html', fw=fw)
+
 @app.route('/lvfs/firmware/<int:firmware_id>')
 @login_required
 def firmware_show(firmware_id):
@@ -237,20 +285,8 @@ def firmware_show(firmware_id):
             else:
                 reports_failure += 1
 
-    # does the firmware have any warnings
-    vetos = []
-    if not fw.signed_timestamp:
-        vetos.append('unsigned')
-    for md in fw.mds:
-        if md.release_urgency == 'unknown':
-            vetos.append('no-release-urgency')
-        if not md.release_description or len(md.release_description) < 12:
-            vetos.append('no-release-description')
-
     return render_template('firmware-details.html',
                            fw=fw,
-                           orig_filename='-'.join(fw.filename.split('-')[1:]),
-                           vetos=vetos,
                            embargo_url=embargo_url,
                            reports_success=reports_success,
                            reports_issue=reports_issue,

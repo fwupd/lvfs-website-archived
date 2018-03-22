@@ -2,7 +2,6 @@
 {% block title %}Issues{% endblock %}
 
 {% block content %}
-<div class="container mt-3">
 <h1>Known Issues</h1>
 
 {% if issues|length == 0 %}
@@ -12,7 +11,6 @@
 
 {% else %}
 
-<div class="container">
 <table class="table">
   <tr class="row">
     <th class="col-sm-3">Name</th>
@@ -46,12 +44,11 @@
 {% endif %}
 {% endif %}
     </td>
-    <td class="col-sm-2">{{issue.group_id}}</td>
-    <td class="col-sm-1"><a class="btn btn-info" href="/lvfs/issue/{{issue.issue_id}}/details" role="button">Details &raquo;</a></td>
+    <td class="col-sm-1">{{issue.group_id}}</td>
+    <td class="col-sm-2"><a class="btn btn-info btn-block" href="/lvfs/issue/{{issue.issue_id}}/details" role="button">Details &raquo;</a></td>
   </tr>
 {% endfor %}
 </table>
-</div>
 
 {% endif %}
 
@@ -59,9 +56,15 @@
 
 <h2>Create a new issue</h2>
 <form method="post" action="/lvfs/issue/add" class="form-inline">
-  <input class="form-control" type="text" size="100" name="url" placeholder="Issue URL" required>
-  <input class="btn btn-primary" type="submit" value="Add">
+  <div class="table">
+    <div class="row">
+      <div class="col-sm-10">
+        <input class="form-control" type="text" size="100" name="url" placeholder="Issue URL" required>
+      </div>
+      <div class="col-sm-2">
+        <input class="btn btn-primary btn-block" type="submit" value="Add">
+      </div>
+    </div>
+  </div>
 </form>
-
-</div> <!-- container -->
 {% endblock %}
