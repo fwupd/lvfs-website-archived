@@ -86,6 +86,9 @@
 {% if g.user.check_capability('vendor-manager') %}
               <a class="dropdown-item" href="/lvfs/vendor/{{g.user.vendor_id}}/users">Vendor</a>
 {% endif %}
+{% if g.user.check_capability('admin') %}
+              <a class="dropdown-item" href="/lvfs/agreement/list">Agreements</a>
+{% endif %}
 {% if g.user.check_capability('qa') %}
               <a class="dropdown-item" href="/lvfs/eventlog">Events</a>
 {% endif %}

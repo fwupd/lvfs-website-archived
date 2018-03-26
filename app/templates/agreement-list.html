@@ -1,0 +1,35 @@
+{% extends "default.html" %}
+{% block title %}Agreement List{% endblock %}
+
+{% block content %}
+<h1>Agreement List</h1>
+{% if agreements|length > 0 %}
+<table class="table">
+  <tr class="row table-borderless">
+    <th class="col-sm-2">Created</th>
+    <th class="col-sm-1">Version</th>
+    <th class="col-sm-7">Text</th>
+    <th class="col-sm-2">&nbsp;</th>
+  </tr>
+{% for u in agreements|sort(attribute='created',reverse=True) %}
+  <tr class="row">
+    <td class="col-sm-2">{{u.created}}</td>
+    <td class="col-sm-1">{{u.version}}</td>
+    <td class="col-sm-7">{{u.text|truncate(300, False, '…')}}</td>
+    <td class="col-sm-2">
+      <a class="btn btn-info btn-block" href="/lvfs/agreement/{{u.agreement_id}}/modify">Details</a>
+    </td>
+  </tr>
+{% endfor %}
+  <tr class="row">
+    <td class="col-sm-2"></td>
+    <td class="col-sm-1"></td>
+    <td class="col-sm-7"></td>
+    <td class="col-sm-2">
+      <a class="btn btn-info btn-block" href="/lvfs/agreement/create">Create</a>
+    </td>
+  </tr>
+</table>
+{% endif %}
+
+{% endblock %}

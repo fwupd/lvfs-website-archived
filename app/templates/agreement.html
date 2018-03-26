@@ -1,0 +1,14 @@
+{% extends "default.html" %}
+{% block title %}Legal Agreement{% endblock %}
+
+{% block content %}
+
+<h2>Legal Agreement</h2>
+{{agreement.text|safe}}
+<p class="text-muted">Version {{agreement.version}}</p>
+<div class="text-center">
+  <a class="btn btn-primary btn-lg" href="/lvfs/agreement/{{agreement.agreement_id}}/accept">Agree</a>
+  <a class="btn btn-danger btn-lg" href="/lvfs/agreement/{{agreement.agreement_id}}/decline">Decline</a>
+</div>
+
+{% endblock %}

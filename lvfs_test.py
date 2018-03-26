@@ -4,7 +4,7 @@
 # Copyright (C) 2018 Richard Hughes <richard@hughsie.com>
 # Licensed under the GNU General Public License Version 2
 #
-# pylint: disable=fixme,too-many-public-methods,line-too-long
+# pylint: disable=fixme,too-many-public-methods,line-too-long,too-many-lines
 
 from __future__ import print_function
 
@@ -42,6 +42,8 @@ class LvfsTestCase(unittest.TestCase):
         # ensure the plugins settings are set up
         self.login()
         self.app.get('/lvfs/settings_create')
+        self.app.get('/lvfs/agreement/create')
+        self.app.get('/lvfs/agreement/1/accept')
         self.logout()
 
     def tearDown(self):
@@ -59,10 +61,13 @@ class LvfsTestCase(unittest.TestCase):
     def _logout(self):
         return self.app.get('/lvfs/logout', follow_redirects=True)
 
-    def login(self, username='sign-test@fwupd.org', password='Pa$$w0rd'):
+    def login(self, username='sign-test@fwupd.org', password='Pa$$w0rd', accept_agreement=True):
         rv = self._login(username, password)
         assert b'/lvfs/upload' in rv.data, rv.data
         assert b'Incorrect username or password' not in rv.data, rv.data
+        if accept_agreement and username != 'sign-test@fwupd.org':
+            rv = self.app.get('/lvfs/agreement/1/accept', follow_redirects=True)
+            assert b'Recorded acceptance of the agreement' in rv.data, rv.data
 
     def logout(self):
         rv = self._logout()
@@ -1042,6 +1047,59 @@ class LvfsTestCase(unittest.TestCase):
                           environ_base={'HTTP_USER_AGENT': 'fwupd/0.7.9999'})
         assert rv.status_code == 412, rv.status_code
         assert b'fwupd version too old' in rv.data, rv.data
+
+    def test_agreement_upload_not_signed(self):
+
+        # add a user and try to upload firmware without signing the agreement
+        self.login()
+        self.add_user('testuser@fwupd.org')
+        self.logout()
+        self.login('testuser@fwupd.org', accept_agreement=False)
+        rv = self._upload('contrib/hughski-colorhug2-2.0.3.cab', 'private')
+        assert b'User has not signed legal agreement' in rv.data, rv.data
+
+    def test_agreement_decline(self):
+
+        # add a user and try to upload firmware without signing the agreement
+        self.login()
+        self.add_user('testuser@fwupd.org')
+        self.logout()
+        self.login('testuser@fwupd.org')
+        rv = self.app.get('/lvfs/agreement/1/decline', follow_redirects=True)
+        assert b'Recorded decline of the agreement' in rv.data, rv.data
+        rv = self._upload('contrib/hughski-colorhug2-2.0.3.cab', 'private')
+        assert b'User has not signed legal agreement' in rv.data, rv.data
+
+    def test_agreement_list_modify_add_delete(self):
+
+        # get the default one
+        self.login()
+        rv = self.app.get('/lvfs/agreement/list')
+        assert b'New agreement text' in rv.data, rv.data
+
+        # modify the agreement
+        rv = self.app.post('/lvfs/agreement/1/modify', data=dict(
+            version=12345,
+            text=u'DONOTSIGN',
+        ), follow_redirects=True)
+        assert b'Modified agreement' in rv.data, rv.data
+        assert b'12345' in rv.data, rv.data
+        assert b'DONOTSIGN' in rv.data, rv.data
+        rv = self.app.get('/lvfs/agreement/list')
+        assert b'12345' in rv.data, rv.data
+        assert b'DONOTSIGN' in rv.data, rv.data
+
+        # create a new one
+        rv = self.app.get('/lvfs/agreement/create', follow_redirects=True)
+        assert b'Created agreement' in rv.data, rv.data
+        rv = self.app.get('/lvfs/agreement/list')
+        assert b'New agreement text' in rv.data, rv.data
+
+        # delete the original one
+        rv = self.app.get('/lvfs/agreement/1/delete', follow_redirects=True)
+        assert b'Deleted agreement' in rv.data, rv.data
+        rv = self.app.get('/lvfs/agreement/list')
+        assert b'DONOTSIGN' not in rv.data, rv.data
 
 if __name__ == '__main__':
     unittest.main()

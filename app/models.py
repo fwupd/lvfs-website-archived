@@ -25,6 +25,17 @@ class UserCapability(object):
     Analyst = 'analyst'
     User = 'user'
 
+class Agreement(db.Model):
+
+    # database
+    __tablename__ = 'agreements'
+    __table_args__ = {'mysql_character_set': 'utf8mb4'}
+
+    agreement_id = Column(Integer, primary_key=True, unique=True, nullable=False)
+    created = Column(DateTime, nullable=False, default=datetime.datetime.utcnow)
+    version = Column(Integer, nullable=False)
+    text = Column(Unicode, default=None)
+
 class User(db.Model):
 
     # database
@@ -44,9 +55,11 @@ class User(db.Model):
     is_analyst = Column(Boolean, default=False)
     is_vendor_manager = Column(Boolean, default=False)
     is_admin = Column(Boolean, default=False)
+    agreement_id = Column(Integer, ForeignKey('agreements.agreement_id'))
 
     # link using foreign keys
     vendor = relationship('Vendor', foreign_keys=[vendor_id])
+    agreement = relationship('Agreement', foreign_keys=[agreement_id])
 
     def __init__(self, username, password=None, display_name=None,
                  vendor_id=None, auth_type='disabled', is_analyst=False, is_qa=False,
@@ -192,6 +205,8 @@ class Restriction(db.Model):
 
     # sqlalchemy metadata
     __tablename__ = 'restrictions'
+    __table_args__ = {'mysql_character_set': 'utf8mb4'}
+
     restriction_id = Column(Integer, primary_key=True, unique=True, nullable=False)
     vendor_id = Column(Integer, ForeignKey('vendors.vendor_id'), nullable=False)
     value = Column(Text, nullable=False)

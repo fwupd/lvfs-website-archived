@@ -20,10 +20,10 @@ from flask_login import login_required
 
 from app import app, db, ploader
 
-from .models import Firmware, Component, Requirement, Guid, FirmwareEvent, Vendor, Remote
+from .models import Firmware, Component, Requirement, Guid, FirmwareEvent, Vendor, Remote, Agreement
 from .uploadedfile import UploadedFile, FileTooLarge, FileTooSmall, FileNotSupported, MetadataInvalid
 from .util import _get_client_address, _get_settings
-from .util import _error_internal
+from .util import _error_internal, _error_permission_denied
 
 def _get_plugin_metadata_for_uploaded_file(ufile):
     settings = _get_settings()
@@ -34,6 +34,23 @@ def _get_plugin_metadata_for_uploaded_file(ufile):
     metadata['$FIRMWARE_BASEURI$'] = settings['firmware_baseuri']
     return metadata
 
+def _user_can_upload(user):
+
+    # never signed anything
+    if not user.agreement:
+        return False
+
+    # is it up to date?
+    agreement = db.session.query(Agreement).\
+                    order_by(Agreement.version.desc()).first()
+    if not agreement:
+        return False
+    if user.agreement.version < agreement.version:
+        return False
+
+    # works for us
+    return True
+
 @app.route('/lvfs/upload', methods=['GET', 'POST'])
 @login_required
 def upload():
@@ -43,12 +60,18 @@ def upload():
     if request.method != 'POST':
         if not hasattr(g, 'user'):
             return redirect(url_for('.index'))
+        if not _user_can_upload(g.user):
+            return redirect(url_for('.agreement_show'))
         vendor_ids = []
         vendor = db.session.query(Vendor).filter(Vendor.vendor_id == g.user.vendor_id).first()
         if vendor:
             for res in vendor.restrictions:
                 vendor_ids.append(res.value)
         return render_template('upload.html', vendor_ids=vendor_ids)
+
+    # verify the user can upload
+    if not _user_can_upload(g.user):
+        return _error_permission_denied('User has not signed legal agreement')
 
     # not correct parameters
     if not 'target' in request.form:

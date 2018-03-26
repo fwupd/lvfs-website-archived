@@ -21,61 +21,10 @@
 </p>
 {% endif %}
 
-<h2>Add New Firmware</h2>
-<p>By uploading a firmware file you must agree that:</p>
-<ul>
-  <li>
-    You give the Linux Vendor Firmware System permission to redistribute the
-    files uploaded to the service, both by mirroring the content internally to
-    the current (and future) cloud providers and directly to unauthenticated end
-    users.
-  </li>
-  <li>
-    You have full permission and authority to upload the files to the LVFS and
-    are legally permitted to distribute the firmware in this way.
-  </li>
-  <li>
-    You understand the files that in the testing and stable channels are going
-    to be downloaded and installed by users, possibly automatically and without
-    user interaction.
-  </li>
-  <li>
-    You understand that users with the vendor-specific embargo token will also
-    have access to the firmware in the embargoed state.
-  </li>
-  <li>
-    You understand that the uploaded firmware archive will be unpacked, the
-    firmware binary will be signed by the LVFS GPG key and the cabinet will be
-    packed with only the files listed in the MetaInfo file.
-  </li>
-  <li>
-    You understand that functionality provided the LVFS may go away at any time
-    and without any notice, and that we provide no kind of uptime guarantee for
-    any part of the service.
-  </li>
-  <li>
-    You agree that the files uploaded have been tested on all applicable
-    hardware to the best of your ability, and no user interaction is required
-    before or after the update has completed.
-  </li>
-  <li>
-    You understand that people running this service cannot be held accountable
-    in any way if the firmware damages the end-users machine.
-  </li>
-  <li>
-    You will not allow users to share access the LVFS without permission and
-    that the user account(s) will use strong passwords.
-  </li>
-  <li>
-    You agree that all firmware uploaded will not be malicious e.g. be a virus
-    or to exploit or examine security issues.
-  </li>
-  <li>
-    You agree we will notify the LVFS administrators if the LVFS vendor account
-    is no longer required.
-  </li>
-</ul>
-
+<h2>Upload Firmware</h2>
+<p>
+  Uploading firmware is covered by <a href="/lvfs/agreement">our legal agreement</a>.
+</p>
 <form action="/lvfs/upload" method="post" enctype="multipart/form-data" class="form">
   <div class="form-group row">
     <label for="target" class="col-sm-2 col-form-label">Remote</label>
