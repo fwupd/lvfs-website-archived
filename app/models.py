@@ -12,8 +12,9 @@ import re
 
 from gi.repository import AppStreamGlib
 
-from sqlalchemy import Column, Integer, String, Text, Boolean, DateTime, ForeignKey
+from sqlalchemy import Column, Integer, String, Text, Boolean, DateTime, ForeignKey, Index
 from sqlalchemy.orm import relationship
+from sqlalchemy.dialects import mysql
 
 from app import db
 
@@ -28,10 +29,13 @@ class User(db.Model):
 
     # database
     __tablename__ = 'users'
-    user_id = Column(Integer, primary_key=True, unique=True, nullable=False)
-    username = Column(Text, nullable=False)
+    __table_args__ = (
+        Index("idx_username_password", "username", "password"),
+        )
+    user_id = Column(Integer, primary_key=True)
+    username = Column(String(80), nullable=False)
     username_old = Column(Text, default=None)
-    password = Column(Text, default=None)
+    password = Column(mysql.BINARY(40), default=None)
     display_name = Column(Text, default=None)
     vendor_id = Column(Integer, ForeignKey('vendors.vendor_id'), nullable=False)
     auth_type = Column(Text, default='disabled')
