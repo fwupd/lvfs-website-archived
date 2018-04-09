@@ -45,6 +45,8 @@ def device_guid(guid):
     fws = []
     for fw in db.session.query(Firmware).\
                     order_by(Firmware.timestamp.desc()).all():
+        if fw.is_deleted:
+            continue
         if not fw.mds:
             continue
         for md in fw.mds:

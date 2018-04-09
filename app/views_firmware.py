@@ -6,6 +6,7 @@
 
 import os
 import datetime
+import shutil
 
 from flask import request, url_for, redirect, render_template, flash, g
 from flask_login import login_required
@@ -40,6 +41,8 @@ def firmware(show_all=False):
         if not g.user.check_for_firmware(fw, readonly=True):
             continue
         if len(fw.mds) == 0:
+            continue
+        if not show_all and fw.is_deleted:
             continue
         name = fw.mds[0].developer_name + ' ' + fw.mds[0].name
         if not name in names:
@@ -103,6 +106,37 @@ def firmware_modify(firmware_id):
     flash('Update text updated', 'info')
     return redirect(url_for('.firmware_show', firmware_id=firmware_id))
 
+@app.route('/lvfs/firmware/<int:firmware_id>/undelete')
+@login_required
+def firmware_undelete(firmware_id):
+    """ Undelete a firmware entry and also restore the file from disk """
+
+    # check firmware exists in database
+    fw = db.session.query(Firmware).filter(Firmware.firmware_id == firmware_id).first()
+    if not fw:
+        return _error_internal("No firmware file with ID %s exists" % firmware_id)
+    if not g.user.check_for_firmware(fw):
+        return _error_permission_denied('Insufficient permissions to undelete firmware')
+
+    # find private remote
+    remote = db.session.query(Remote).filter(Remote.name == 'private').first()
+    if not remote:
+        return _error_internal('No private remote')
+
+    # move file back to the right place
+    path = os.path.join(app.config['RESTORE_DIR'], fw.filename)
+    if os.path.exists(path):
+        path_new = os.path.join(app.config['DOWNLOAD_DIR'], fw.filename)
+        shutil.move(path, path_new)
+
+    # put back to the private state
+    fw.remote_id = remote.remote_id
+    fw.events.append(FirmwareEvent(fw.remote_id, g.user.user_id))
+    db.session.commit()
+
+    flash('Firmware undeleted', 'info')
+    return redirect(url_for('.firmware'))
+
 @app.route('/lvfs/firmware/<int:firmware_id>/delete')
 @login_required
 def firmware_delete(firmware_id):
@@ -119,29 +153,24 @@ def firmware_delete(firmware_id):
     if not g.user.is_qa and fw.remote.name == 'stable':
         return _error_permission_denied('Unable to delete stable firmware as not QA')
 
+    # find private remote
+    remote = db.session.query(Remote).filter(Remote.name == 'deleted').first()
+    if not remote:
+        return _error_internal('No deleted remote')
+
+    # move file so it's no longer downloadable
+    path = os.path.join(app.config['DOWNLOAD_DIR'], fw.filename)
+    if os.path.exists(path):
+        path_new = os.path.join(app.config['RESTORE_DIR'], fw.filename)
+        shutil.move(path, path_new)
+
     # generate next cron run
     fw.remote.is_dirty = True
 
-    # delete from database
-    for md in fw.mds:
-        for kw in md.keywords:
-            db.session.delete(kw)
-        for rq in md.requirements:
-            db.session.delete(rq)
-        for gu in md.guids:
-            db.session.delete(gu)
-        db.session.delete(md)
-    for ev in fw.events:
-        db.session.delete(ev)
-    for cl in fw.clients:
-        db.session.delete(cl)
-    db.session.delete(fw)
+    # mark as invalid
+    fw.remote_id = remote.remote_id
+    fw.events.append(FirmwareEvent(fw.remote_id, g.user.user_id))
     db.session.commit()
-
-    # delete file
-    path = os.path.join(app.config['DOWNLOAD_DIR'], fw.filename)
-    if os.path.exists(path):
-        os.remove(path)
 
     flash('Firmware deleted', 'info')
     return redirect(url_for('.firmware'))

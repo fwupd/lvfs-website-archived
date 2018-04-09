@@ -79,6 +79,20 @@
     </td>
   </tr>
 {% endif %}
+{% if 'deleted' in fw.problems %}
+  <tr class="row">
+    <td class="col-sm-3">
+      <img src="/img/emblem-readonly.png"/>
+      Firmware has been deleted
+    </td>
+    <td class="col-sm-9">
+      <p class="card-text">
+        Once a file has been deleted on the LVFS it must be undeleted before it
+        can be moved to a different target.
+      </p>
+    </td>
+  </tr>
+{% endif %}
 </table>
 
 {% endblock %}

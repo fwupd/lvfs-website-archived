@@ -16,7 +16,7 @@
 {% endif %}
     </td>
     <td class="col-sm-2 text-right">
-{% if fw.remote.name != 'stable' or g.user.is_qa %}
+{% if not fw.is_deleted and (fw.remote.name != 'stable' or g.user.is_qa) %}
       <button type="button" class="btn btn-block btn-danger" data-toggle="modal" data-target="#deleteModal">Delete</button>
 {% endif %}
     </td>
@@ -37,7 +37,9 @@
     </td>
     <td class="col-sm-2 align-middle text-right">
 {% if g.user.is_qa %}
-{% if fw.remote.name == 'private' %}
+{% if fw.is_deleted %}
+      <a class="btn btn-block btn-danger" href="/lvfs/firmware/{{fw.firmware_id}}/undelete" role="button">Undelete</a>
+{% elif fw.remote.name == 'private' %}
       <a class="btn btn-block btn-primary" href="/lvfs/firmware/{{fw.firmware_id}}/promote/embargo" role="button">&#8594; Embargo</a>
       <a class="btn btn-block btn-primary" href="/lvfs/firmware/{{fw.firmware_id}}/promote/testing" role="button">&#8594; Testing</a>
       <button type="button" class="btn btn-block btn-primary" data-toggle="modal" data-target="#promoteStableModal">&#8594; Stable</button>
@@ -137,9 +139,6 @@
           <li class="confirm">
             Anyone using old metadata and trying to download the firmware will
             get a &lsquo;404: File not found&rsquo; warning.
-          </li>
-          <li class="confirm">
-            Any statistics for how many times the update was downloaded are also deleted.
           </li>
         </ul>
       </div>

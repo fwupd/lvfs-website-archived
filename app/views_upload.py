@@ -117,6 +117,8 @@ def upload():
         release_default = component.get_release_default()
         release_version = release_default.get_version()
         for fw in fws:
+            if fw.is_deleted:
+                continue
             for md in fw.mds:
                 for guid in md.guids:
                     if guid.value == provides_value and md.version == release_version:
@@ -132,6 +134,8 @@ def upload():
                 continue
             new_guids.append(prov.get_value())
         for fw in fws:
+            if fw.is_deleted:
+                continue
             for md in fw.mds:
                 if md.appstream_id != component.get_id():
                     continue

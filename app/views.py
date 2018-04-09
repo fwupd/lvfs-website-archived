@@ -71,6 +71,8 @@ def serveStaticResource(resource):
                 filter(Firmware.filename == os.path.basename(resource)).first()
         if not fw:
             abort(404)
+        if fw.is_deleted:
+            abort(410)
 
         # check the user agent isn't in the blocklist for this firmware
         for md in fw.mds:

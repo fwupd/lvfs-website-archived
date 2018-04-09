@@ -26,6 +26,7 @@ class LvfsTestCase(unittest.TestCase):
         cfgfile = open(self.cfg_filename, 'w')
         cfgfile.write('\n'.join([
             "SQLALCHEMY_DATABASE_URI = '%s'" % self.db_uri,
+            "RESTORE_DIR = '/tmp'",
             "DOWNLOAD_DIR = '/tmp'",
             ]))
         cfgfile.close()
@@ -211,7 +212,15 @@ class LvfsTestCase(unittest.TestCase):
 
         # download missing file
         rv = self.app.get('/downloads/7514fc4b0e1a306337de78c58f10e9e68f791de2-hughski-colorhug2-2.0.3.cab')
-        assert rv.status_code == 404, rv.status_code
+        assert rv.status_code == 410, rv.status_code
+
+        # re-upload the same file
+        rv = self._upload('contrib/hughski-colorhug2-2.0.3.cab', 'private')
+        assert b'Failed to upload file: A file with hash' in rv.data, rv.data
+
+        # undelete it
+        rv = self.app.get('/lvfs/firmware/1/undelete', follow_redirects=True)
+        assert b'Firmware undeleted' in rv.data, rv.data
 
     def test_user_delete_wrong_user(self):
 

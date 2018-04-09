@@ -596,6 +596,10 @@ class Firmware(db.Model):
         return datetime.datetime.utcnow() - self.events[-1].timestamp
 
     @property
+    def is_deleted(self):
+        return self.remote.name == 'deleted'
+
+    @property
     def scheduled_signing(self):
         now = datetime.datetime.now()
         secs = ((5 - (now.minute % 5)) * 60) + (60 - now.second)
@@ -605,6 +609,8 @@ class Firmware(db.Model):
     def problems(self):
         # does the firmware have any warnings
         problems = []
+        if self.is_deleted:
+            problems.append('deleted')
         if not self.signed_timestamp:
             problems.append('unsigned')
         for md in self.mds:

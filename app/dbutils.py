@@ -30,6 +30,7 @@ def init_db(db):
         db.session.add(Remote(name='stable', is_public=True))
         db.session.add(Remote(name='testing', is_public=True))
         db.session.add(Remote(name='private'))
+        db.session.add(Remote(name='deleted'))
         db.session.commit()
     if not db.session.query(User).filter(User.username == 'admin').first():
         remote = Remote(name='embargo-admin')

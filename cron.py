@@ -36,6 +36,8 @@ def _regenerate_and_sign_metadata():
     for r in db.session.query(Remote).all():
         if r.name == 'private':
             continue
+        if r.name == 'deleted':
+            continue
         if r.is_dirty:
             remotes.append(r)
             remote_names.append(r.name)
@@ -142,14 +144,13 @@ def _regenerate_and_sign_firmware():
 
     # sign each firmware in each file
     for fw in fws:
+        if fw.is_deleted:
+            continue
         _sign_fw(fw)
+        _event_log('Signed firmware %s' % fw.firmware_id)
 
     # drop caches in other sessions
     db.session.expire_all()
-
-    # log what we did
-    for fw in fws:
-        _event_log('Signed firmware %s' % fw.firmware_id)
 
 if __name__ == '__main__':
 
