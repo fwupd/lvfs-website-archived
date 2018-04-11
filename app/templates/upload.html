@@ -26,6 +26,9 @@
   Uploading firmware is covered by <a href="/lvfs/agreement">our legal agreement</a>.
 </p>
 <form action="/lvfs/upload" method="post" enctype="multipart/form-data" class="form">
+{% if g.user.vendor.is_embargo_default %}
+  <input type="hidden" name="target" value="embargo">
+{% else %}
   <div class="form-group row">
     <label for="target" class="col-sm-2 col-form-label">Remote</label>
     <div class="col-sm-10">
@@ -35,6 +38,7 @@
       </select>
     </div>
   </div>
+{% endif %}
   <div class="form-group row">
     <label for="file" class="col-sm-2 col-form-label">Firmware file</label>
     <div class="col-sm-10">

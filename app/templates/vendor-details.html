@@ -47,6 +47,13 @@
     </select>
   </div>
   <div class="form-group">
+    <label for="email">Is embargo the default upload target:</label>
+    <select class="form-control" name="is_embargo_default">
+      <option value="0" {{ 'selected' if v.is_embargo_default == 0 }}>No</option>
+      <option value="1" {{ 'selected' if v.is_embargo_default == 1 }}>Yes</option>
+    </select>
+  </div>
+  <div class="form-group">
     <label for="email">Supported in fwupd:</label>
     <select class="form-control" name="is_fwupd_supported">
       <option value="no" {{ 'selected' if v.is_fwupd_supported == 'no' }}>No</option>

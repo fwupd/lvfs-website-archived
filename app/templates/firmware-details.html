@@ -44,7 +44,9 @@
       <a class="btn btn-block btn-primary" href="/lvfs/firmware/{{fw.firmware_id}}/promote/testing" role="button">&#8594; Testing</a>
       <button type="button" class="btn btn-block btn-primary" data-toggle="modal" data-target="#promoteStableModal">&#8594; Stable</button>
 {% elif fw.remote.name.startswith('embargo') %}
+{% if not fw.vendor.is_embargo_default %}
       <a class="btn btn-block btn-secondary" href="/lvfs/firmware/{{fw.firmware_id}}/promote/private" role="button">&#8592; Private</a>
+{% endif %}
       <a class="btn btn-block btn-primary" href="/lvfs/firmware/{{fw.firmware_id}}/promote/testing" role="button">&#8594; Testing</a>
       <button type="button" class="btn btn-block btn-primary" data-toggle="modal" data-target="#promoteStableModal">&#8594; Stable</button>
 {% elif fw.remote.name == 'testing' %}

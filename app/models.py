@@ -234,6 +234,7 @@ class Vendor(db.Model):
     description = Column(Unicode, default=None)
     visible = Column(Boolean, default=False)
     visible_for_search = Column(Boolean, default=False)
+    is_embargo_default = Column(Boolean, default=False)
     is_fwupd_supported = Column(String(16), nullable=False, default='no')
     is_account_holder = Column(String(16), nullable=False, default='no')
     is_uploading = Column(String(16), nullable=False, default='no')
