@@ -559,6 +559,21 @@ class FirmwareEvent(db.Model):
     def __repr__(self):
         return "FirmwareEvent object %s" % self.firmware_event_id
 
+class FirmwareLimit(db.Model):
+
+    # sqlalchemy metadata
+    __tablename__ = 'firmware_limits'
+    __table_args__ = {'mysql_character_set': 'utf8mb4'}
+
+    firmware_limit_id = Column(Integer, primary_key=True, unique=True, nullable=False)
+    firmware_id = Column(Integer, ForeignKey('firmware.firmware_id'), nullable=False)
+    value = Column(Integer, nullable=False)
+    user_agent_glob = Column(Text, default=None)
+    response = Column(Text, default=None)
+
+    # link back to parent
+    fw = relationship("Firmware", back_populates="limits")
+
 class Firmware(db.Model):
 
     # sqlalchemy metadata
@@ -584,6 +599,7 @@ class Firmware(db.Model):
     events = relationship("FirmwareEvent", back_populates="fw")
     reports = relationship("Report", back_populates="fw")
     clients = relationship("Client", back_populates="fw")
+    limits = relationship("FirmwareLimit", back_populates="fw")
 
     # link using foreign keys
     vendor = relationship('Vendor', foreign_keys=[vendor_id])

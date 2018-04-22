@@ -262,6 +262,61 @@ class LvfsTestCase(unittest.TestCase):
         assert b'Firmware deleted' not in rv.data, rv.data
         assert b'Insufficient permissions to delete firmware' in rv.data, rv.data
 
+    def test_firmware_limits(self):
+
+        # upload firmware
+        self.login()
+        self.upload()
+
+        # check no limits set
+        rv = self.app.get('/lvfs/firmware/1/limits',
+                          follow_redirects=True)
+        assert rv.status_code == 200, rv.status_code
+        assert b'ETOOSLOW' not in rv.data, rv.data
+
+        # set download limit of 2
+        rv = self.app.post('/lvfs/firmware/limit/add', data=dict(
+            firmware_id='1',
+            value='2',
+            user_agent_glob='fwupd/*',
+            response='ETOOSLOW',
+        ), follow_redirects=True)
+        assert b'ETOOSLOW' in rv.data, rv.data
+        assert b'Added limit' in rv.data, rv.data
+
+        # download twice, both, success
+        for _ in range(2):
+            rv = self.app.get('/downloads/7514fc4b0e1a306337de78c58f10e9e68f791de2-hughski-colorhug2-2.0.3.cab',
+                              environ_base={'HTTP_USER_AGENT': 'fwupd/1.1.1'})
+            assert rv.status_code == 200, rv.status_code
+
+        # download, fail
+        rv = self.app.get('/downloads/7514fc4b0e1a306337de78c58f10e9e68f791de2-hughski-colorhug2-2.0.3.cab',
+                          environ_base={'HTTP_USER_AGENT': 'fwupd/1.1.1'})
+        assert rv.status_code == 429, rv.status_code
+        assert rv.data == 'ETOOSLOW', rv.data
+
+        # download not matching glob, success
+        rv = self.app.get('/downloads/7514fc4b0e1a306337de78c58f10e9e68f791de2-hughski-colorhug2-2.0.3.cab',
+                          environ_base={'HTTP_USER_AGENT': 'wget/1.2.3'})
+        assert rv.status_code == 200, rv.status_code
+
+        # delete download limit
+        rv = self.app.get('/lvfs/firmware/limit/1/delete',
+                          follow_redirects=True)
+        assert b'Deleted limit' in rv.data, rv.data
+
+        # check no limits set
+        rv = self.app.get('/lvfs/firmware/1/limits',
+                          follow_redirects=True)
+        assert rv.status_code == 200, rv.status_code
+        assert b'ETOOSLOW' not in rv.data, rv.data
+
+        # download, success
+        rv = self.app.get('/downloads/7514fc4b0e1a306337de78c58f10e9e68f791de2-hughski-colorhug2-2.0.3.cab',
+                          environ_base={'HTTP_USER_AGENT': 'fwupd/1.1.1'})
+        assert rv.status_code == 200, rv.status_code
+
     def test_cron_metadata(self):
 
         # verify all metadata is in good shape

@@ -86,6 +86,23 @@ def serveStaticResource(resource):
                                 status=412,
                                 mimetype="text/plain")
 
+        # check any firmware download limits
+        for fl in fw.limits:
+            if not fl.user_agent_glob or fnmatch.fnmatch(user_agent, fl.user_agent_glob):
+                yesterday = datetime.date.today() - datetime.timedelta(1)
+                cnt = _execute_count_star(db.session.query(Client).\
+                            filter(Client.firmware_id == fw.firmware_id).\
+                            filter(Client.timestamp >= yesterday))
+                if cnt >= fl.value:
+                    response = fl.response
+                    if not response:
+                        response = 'Too Many Requests'
+                    resp = Response(response=response,
+                                    status=429,
+                                    mimetype='text/plain')
+                    resp.headers['Retry-After'] = '86400'
+                    return resp
+
         # this is cached for easy access on the firmware details page
         fw.download_cnt += 1
 

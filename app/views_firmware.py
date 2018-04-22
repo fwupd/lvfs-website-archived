@@ -19,7 +19,7 @@ from app import app, db
 from .dbutils import _execute_count_star
 
 from .hash import _qa_hash
-from .models import UserCapability, Firmware, Report, Client, FirmwareEvent, Remote
+from .models import UserCapability, Firmware, Report, Client, FirmwareEvent, FirmwareLimit, Remote
 from .util import _error_internal, _error_permission_denied
 from .util import _get_chart_labels_months, _get_chart_labels_days
 
@@ -249,6 +249,65 @@ def firmware_components(firmware_id):
         return _error_permission_denied('Insufficient permissions to view components')
 
     return render_template('firmware-components.html', fw=fw)
+
+@app.route('/lvfs/firmware/<int:firmware_id>/limits')
+@login_required
+def firmware_limits(firmware_id):
+
+    # get details about the firmware
+    fw = db.session.query(Firmware).\
+            filter(Firmware.firmware_id == firmware_id).first()
+    if not fw:
+        return _error_internal('No firmware matched!')
+
+    # we can only view our own firmware, unless admin
+    if not g.user.check_for_firmware(fw, readonly=True):
+        return _error_permission_denied('Insufficient permissions to view limits')
+
+    return render_template('firmware-limits.html', fw=fw)
+
+@app.route('/lvfs/firmware/limit/<int:firmware_limit_id>/delete')
+@login_required
+def firmware_limit_delete(firmware_limit_id):
+
+    # get details about the firmware
+    fl = db.session.query(FirmwareLimit).\
+            filter(FirmwareLimit.firmware_limit_id == firmware_limit_id).first()
+    if not fl:
+        return _error_internal('No firmware limit matched!')
+
+    # we can only delete our own firmware limits, unless admin
+    if not g.user.check_for_firmware(fl.fw, readonly=False):
+        return _error_permission_denied('Insufficient permissions to delete limits')
+
+    firmware_id = fl.firmware_id
+    db.session.delete(fl)
+    db.session.commit()
+    flash('Deleted limit', 'info')
+    return redirect(url_for('.firmware_limits', firmware_id=firmware_id))
+
+@app.route('/lvfs/firmware/limit/add', methods=['POST'])
+@login_required
+def firmware_limit_add():
+
+    # permission check
+    if not g.user.check_capability(UserCapability.QA):
+        return _error_permission_denied('Unable to add restriction')
+
+    # ensure has enough data
+    for key in ['value', 'firmware_id']:
+        if key not in request.form:
+            return _error_internal('No %s form data found!', key)
+
+    # add restriction
+    fl = FirmwareLimit(firmware_id=request.form['firmware_id'],
+                       value=request.form['value'],
+                       user_agent_glob=request.form['user_agent_glob'],
+                       response=request.form['response'])
+    db.session.add(fl)
+    db.session.commit()
+    flash('Added limit', 'info')
+    return redirect(url_for('.firmware_limits', firmware_id=fl.firmware_id))
 
 @app.route('/lvfs/firmware/<int:firmware_id>/problems')
 @login_required
