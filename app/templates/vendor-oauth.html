@@ -24,10 +24,10 @@
     </select>
   </div>
   <div class="form-group">
-    <label for="email">Domains to match:</label>
+    <label for="email">Domains to match for authentication:</label>
     <input type="text" class="form-control" name="oauth_domain_glob"
           value="{{ v.oauth_domain_glob if v.oauth_domain_glob }}"
-          placeholder="*.domain.com" required>
+          placeholder="*.domain.com,*.domain2.com" required>
   </div>
   <input type="submit" class="btn btn-primary btn-large" class="submit" value="Modify">
 </form>

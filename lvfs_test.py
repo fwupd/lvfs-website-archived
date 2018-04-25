@@ -89,19 +89,21 @@ class LvfsTestCase(unittest.TestCase):
         ), follow_redirects=True)
 
     def add_user(self, username='testuser@fwupd.org', group_id='testgroup',
-                 password='Pa$$w0rd', is_qa=False, is_analyst=False):
+                 password='Pa$$w0rd', is_qa=False, is_analyst=False, is_vendor_manager=False):
         rv = self._add_user(username, group_id, password)
         assert b'Added user' in rv.data, rv.data
         user_id_idx = rv.data.find('Added user ')
         assert user_id_idx != -1, rv.data
         user_id = int(rv.data[user_id_idx+11:user_id_idx+12])
         assert user_id != 0, rv.data
-        if is_qa or is_analyst:
+        if is_qa or is_analyst or is_vendor_manager:
             data = {'auth_type': 'local'}
             if is_qa:
                 data['is_qa'] = '1'
             if is_analyst:
                 data['is_analyst'] = '1'
+            if is_vendor_manager:
+                data['is_vendor_manager'] = '1'
             rv = self.app.post('/lvfs/user/%i/modify_by_admin' % user_id,
                                data=data, follow_redirects=True)
             assert b'Updated profile' in rv.data, rv.data
@@ -567,6 +569,53 @@ class LvfsTestCase(unittest.TestCase):
         assert b'Deleted user' in rv.data, rv.data
         rv = self.app.get('/lvfs/userlist')
         assert b'testuser@fwupd.org' not in rv.data, rv.data
+
+    def test_manager_users(self):
+
+        # create a new vendor
+        self.login()
+        rv = self.app.post('/lvfs/vendor/add', data=dict(group_id='testvendor'),
+                           follow_redirects=True)
+        assert b'Added vendor' in rv.data, rv.data
+
+        # set the username glob
+        rv = self.app.post('/lvfs/vendor/2/modify_by_admin', data=dict(
+            username_glob='*@testvendor.com,*@anothervendor.com',
+        ), follow_redirects=True)
+        assert b'Updated vendor' in rv.data, rv.data
+
+        # create a manager user
+        self.add_user('alice@testvendor.com', group_id='testvendor', is_vendor_manager=True)
+
+        # log in as the manager
+        self.logout()
+        self.login('alice@testvendor.com')
+
+        # try to add new user to new vendor with non-matching domain (fail)
+        rv = self.app.post('/lvfs/vendor/2/user/add', data=dict(
+            username='bob@hotmail.com',
+            display_name=u'Generic Name',
+        ), follow_redirects=True)
+        assert b'Email address does not match account policy' in rv.data, rv.data
+
+        # add new user with matching domain
+        rv = self.app.post('/lvfs/vendor/2/user/add', data=dict(
+            username='clara@testvendor.com',
+            display_name=u'Generic Name',
+        ), follow_redirects=True)
+        assert b'Added user' in rv.data, rv.data
+
+        # change the new user to allow a local login
+        rv = self.app.post('/lvfs/user/4/modify_by_admin', data=dict(
+            auth_type='local',
+            password='Pa$$w0rd',
+            is_vendor_manager=True,
+        ), follow_redirects=True)
+        assert b'Updated profile' in rv.data, rv.data
+
+        # log in as the new user
+        self.logout()
+        self.login('clara@testvendor.com')
 
     def test_promote_as_user(self):
 

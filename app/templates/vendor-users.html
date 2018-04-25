@@ -41,7 +41,7 @@
 {% endfor %}
   <form method="post" action="/lvfs/vendor/{{v.vendor_id}}/user/add" class="form">
   <tr class="row">
-    <td class="col-sm-4"><input type="email" class="form-control" name="username" placeholder="email@address" required></td>
+    <td class="col-sm-4"><input type="email" class="form-control" name="username" placeholder="{{v.username_glob}}" required></td>
     <td class="col-sm-3"><input type="text" class="form-control" name="display_name" placeholder="Display Name (optional)"></td>
     <td class="col-sm-3">&nbsp;</td>
     <td class="col-sm-2"><input class="btn btn-block btn-primary" type="submit" value="Add"></td>

@@ -29,6 +29,11 @@
     <input type="text" class="form-control" name="keywords" value="{{ v.keywords if v.keywords }}">
   </div>
   <div class="form-group">
+    <label for="display_name">New username account policy:</label>
+    <input type="text" class="form-control" name="username_glob" placeholder="*@domain.com"
+           value="{{ v.username_glob if v.username_glob }}">
+  </div>
+  <div class="form-group">
     <label for="email">Description:</label>
     <input type="text" class="form-control" name="description" value="{{v.description}}" required>
   </div>

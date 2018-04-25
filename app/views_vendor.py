@@ -5,6 +5,7 @@
 # Licensed under the GNU General Public License Version 2
 
 import os
+from glob import fnmatch
 
 from flask import request, flash, url_for, redirect, render_template, g
 from flask_login import login_required
@@ -207,6 +208,7 @@ def vendor_modify_by_admin(vendor_id):
                 'oauth_unknown_user',
                 'oauth_domain_glob',
                 'comments',
+                'username_glob',
                 'keywords']:
         if key in request.form:
             setattr(vendor, key, request.form[key])
@@ -274,6 +276,12 @@ def vendor_user_disable(vendor_id, user_id):
     db.session.commit()
     return redirect(url_for('.vendor_users', vendor_id=vendor_id))
 
+def _verify_username_vendor_glob(username, username_glob):
+    for tmp in username_glob.split(','):
+        if fnmatch.fnmatch(username, tmp):
+            return True
+    return False
+
 @app.route('/lvfs/vendor/<int:vendor_id>/user/add', methods=['POST'])
 @login_required
 def vendor_user_add(vendor_id):
@@ -302,6 +310,19 @@ def vendor_user_add(vendor_id):
     if not _email_check(request.form['username']):
         flash('Failed to add user: Invalid email address', 'warning')
         return redirect(url_for('.user_list'), 302)
+
+    # verify the username matches the allowed vendor glob
+    if not g.user.is_admin:
+        if not vendor.username_glob:
+            flash('Failed to add user: '
+                  'Admin has not set the account policy for this vendor',
+                  'warning')
+        if not _verify_username_vendor_glob(request.form['username'].lower(),
+                                            vendor.username_glob):
+            flash('Failed to add user: '
+                  'Email address does not match account policy %s' % vendor.username_glob,
+                  'warning')
+            return redirect(url_for('.vendor_users', vendor_id=vendor_id), 302)
 
     # add user
     user = User(username=request.form['username'],
