@@ -107,6 +107,8 @@ def _generate_metadata_kind(filename, fws, firmware_baseuri=''):
 
             # add manual firmware or fwupd version requires
             for rq in md.requirements:
+                if rq.kind == 'hardware':
+                    continue
                 req = AppStreamGlib.Require.new()
                 req.set_kind(AppStreamGlib.Require.kind_from_string(rq.kind))
                 if rq.value:
@@ -115,6 +117,17 @@ def _generate_metadata_kind(filename, fws, firmware_baseuri=''):
                     req.set_compare(AppStreamGlib.Require.compare_from_string(rq.compare))
                 if rq.version:
                     req.set_version(rq.version)
+                component.add_require(req)
+
+            # add hardware requirements
+            rq_hws = []
+            for rq in md.requirements:
+                if rq.kind == 'hardware':
+                    rq_hws.append(rq.value)
+            if rq_hws:
+                req = AppStreamGlib.Require.new()
+                req.set_kind(AppStreamGlib.RequireKind.HARDWARE)
+                req.set_value('|'.join(rq_hws))
                 component.add_require(req)
 
             # add component
