@@ -11,7 +11,7 @@ from flask_login import login_required
 
 from app import app, db
 
-from .models import Keyword, Vendor, UserCapability, SearchEvent, _split_search_string
+from .models import Guid, Keyword, Vendor, UserCapability, SearchEvent, _split_search_string
 from .hash import _addr_hash
 from .util import _get_client_address, _error_internal, _error_permission_denied
 
@@ -94,6 +94,14 @@ def search(max_results=19):
         kws[keyword] = db.session.query(Keyword).\
                             filter(Keyword.value == keyword).\
                             order_by(Keyword.keyword_id.desc()).all()
+
+    # add GUIDs
+    for keyword in search_keywords:
+        guids = db.session.query(Guid).\
+                        filter(Guid.value == keyword).\
+                        order_by(Guid.guid_id.desc()).all()
+        for guid in guids:
+            kws[keyword] = [Keyword(keyword, priority=20, md=guid.md)]
 
     # get any vendor information
     vendors = []

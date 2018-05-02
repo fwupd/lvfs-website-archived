@@ -380,10 +380,11 @@ class Keyword(db.Model):
     # link back to parent
     md = relationship("Component", back_populates="keywords")
 
-    def __init__(self, value, priority=0):
+    def __init__(self, value, priority=0, md=None):
         """ Constructor for object """
         self.value = value
         self.priority = priority
+        self.md = md
 
 def _is_keyword_valid(value):
     if not len(value):
