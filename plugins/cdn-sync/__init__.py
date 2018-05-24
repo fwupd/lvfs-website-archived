@@ -22,7 +22,7 @@ class Plugin(PluginBase):
         return ['sign-gpg']
 
     def name(self):
-        return 'CDN'
+        return 'CDN Sync'
 
     def summary(self):
         return 'Sync files to an S3-compatible content delivery network.'
@@ -36,7 +36,7 @@ class Plugin(PluginBase):
         s.append(PluginSettingText('cdn_sync_username', 'Username', 'aws_access_key_id'))
         s.append(PluginSettingText('cdn_sync_password', 'Password', 'aws_secret_access_key'))
         s.append(PluginSettingText('cdn_sync_files', 'File Whitelist',
-                                   'firmware.xml.gz,firmware.xml.gz.asc,"'
+                                   'firmware.xml.gz,firmware.xml.gz.asc,'
                                    'firmware-testing.xml.gz,firmware-testing.xml.gz.asc'))
         return s
 
