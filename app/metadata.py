@@ -11,7 +11,7 @@ from gi.repository import AppStreamGlib
 from gi.repository import Gio
 from gi.repository import GLib
 
-from app import app, db, ploader
+from app import app, db
 
 from .hash import _qa_hash
 from .models import Firmware, Vendor
@@ -142,9 +142,6 @@ def _generate_metadata_kind(filename, fws, firmware_baseuri=''):
                   AppStreamGlib.NodeToXmlFlags.ADD_HEADER |
                   AppStreamGlib.NodeToXmlFlags.FORMAT_INDENT |
                   AppStreamGlib.NodeToXmlFlags.FORMAT_MULTILINE)
-
-    # inform the plugin loader
-    ploader.file_modified(filename)
 
 def _metadata_update_targets(targets):
     """ updates metadata for a specific target """
