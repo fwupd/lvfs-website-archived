@@ -68,3 +68,9 @@ Use the secure GPG key (with the long secret password).
     gpg2 --homedir=/var/www/lvfs/.gnupg --edit-key 4538BAC2
       gpg> passwd
       gpg> quit
+
+## Generating metadata for pre-signed firmware ##
+
+If the firmware is already signed with a PKCS-7 or GPG signature and is going
+to be shipped out-of-band from the usual LVFS workflow then `local.py` can be
+used to generate metadata for `/usr/share/fwupd/remotes.d/vendor/firmware/`.
