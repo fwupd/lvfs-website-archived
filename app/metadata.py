@@ -134,10 +134,6 @@ def _generate_metadata_kind(filename, fws, firmware_baseuri=''):
             store.add_app(component)
 
     # dump to file
-    download_dir = app.config['DOWNLOAD_DIR']
-    if not os.path.exists(download_dir):
-        os.mkdir(download_dir)
-    filename = os.path.join(download_dir, filename)
     store.to_file(Gio.file_new_for_path(filename),
                   AppStreamGlib.NodeToXmlFlags.ADD_HEADER |
                   AppStreamGlib.NodeToXmlFlags.FORMAT_INDENT |
@@ -147,6 +143,12 @@ def _metadata_update_targets(targets):
     """ updates metadata for a specific target """
     fws = db.session.query(Firmware).all()
     settings = _get_settings()
+
+    # set destination path from app config
+    download_dir = app.config['DOWNLOAD_DIR']
+    if not os.path.exists(download_dir):
+        os.mkdir(download_dir)
+
     for target in targets:
         fws_filtered = []
         for fw in fws:
@@ -158,15 +160,15 @@ def _metadata_update_targets(targets):
                 continue
             fws_filtered.append(fw)
         if target == 'stable':
-            _generate_metadata_kind('firmware.xml.gz',
+            _generate_metadata_kind(os.path.join(download_dir, 'firmware.xml.gz'),
                                     fws_filtered,
                                     firmware_baseuri=settings['firmware_baseuri'])
         elif target == 'testing':
-            _generate_metadata_kind('firmware-testing.xml.gz',
+            _generate_metadata_kind(os.path.join(download_dir, 'firmware-testing.xml.gz'),
                                     fws_filtered,
                                     firmware_baseuri=settings['firmware_baseuri'])
         elif target.startswith('embargo-'):
-            _generate_metadata_kind('firmware-%s.xml.gz' % _qa_hash(target[8:]),
+            _generate_metadata_kind(os.path.join(download_dir, 'firmware-%s.xml.gz' % _qa_hash(target[8:])),
                                     fws_filtered,
                                     firmware_baseuri=settings['firmware_baseuri'])
 
