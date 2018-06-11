@@ -51,6 +51,84 @@ def _user_can_upload(user):
     # works for us
     return True
 
+def _create_fw_from_uploaded_file(ufile):
+
+    # create empty firmware
+    fw = Firmware()
+    fw.filename = ufile.filename_new
+    fw.checksum_upload = ufile.checksum_upload
+    if ufile.version_display:
+        fw.version_display = ufile.version_display
+
+    # this allows an OEM to hide the direct download link on the LVFS
+    if 'LVFS::InhibitDownload' in ufile.metadata:
+        fw.inhibit_download = True
+
+    # create child metadata object for the components
+    for component in ufile.get_components():
+        md = Component()
+        md.appstream_id = component.get_id()
+        md.name = unicode(component.get_name())
+        md.summary = unicode(component.get_comment())
+        md.developer_name = unicode(component.get_developer_name())
+        md.metadata_license = component.get_metadata_license()
+        md.project_license = component.get_project_license()
+        md.url_homepage = unicode(component.get_url_item(AppStreamGlib.UrlKind.HOMEPAGE))
+        md.description = unicode(component.get_description())
+
+        # add manually added keywords
+        for keyword in component.get_keywords():
+            md.add_keywords_from_string(unicode(keyword), priority=5)
+
+        # add from the provided free text
+        if md.developer_name:
+            md.add_keywords_from_string(md.developer_name, priority=10)
+        if md.name:
+            md.add_keywords_from_string(md.name, priority=3)
+        if md.summary:
+            md.add_keywords_from_string(md.summary, priority=1)
+
+        # from the provide
+        for prov in component.get_provides():
+            if prov.get_kind() != AppStreamGlib.ProvideKind.FIRMWARE_FLASHED:
+                continue
+            md.guids.append(Guid(md.component_id, prov.get_value()))
+
+        # from the release
+        rel = component.get_release_default()
+        md.version = rel.get_version()
+        md.release_description = unicode(rel.get_description())
+        md.release_timestamp = rel.get_timestamp()
+        md.release_installed_size = rel.get_size(AppStreamGlib.SizeKind.INSTALLED)
+        md.release_download_size = rel.get_size(AppStreamGlib.SizeKind.DOWNLOAD)
+        md.release_urgency = AppStreamGlib.urgency_kind_to_string(rel.get_urgency())
+
+        # from requires
+        for req in component.get_requires():
+            rq = Requirement(md.component_id,
+                             AppStreamGlib.Require.kind_to_string(req.get_kind()),
+                             req.get_value(),
+                             AppStreamGlib.Require.compare_to_string(req.get_compare()),
+                             req.get_version())
+            md.requirements.append(rq)
+
+        # from the first screenshot
+        if len(component.get_screenshots()) > 0:
+            ss = component.get_screenshots()[0]
+            md.screenshot_caption = ss.get_caption(None)
+            if len(ss.get_images()) > 0:
+                im = ss.get_images()[0]
+                md.screenshot_url = unicode(im.get_url())
+
+        # from the content checksum
+        csum = rel.get_checksum_by_target(AppStreamGlib.ChecksumTarget.CONTENT)
+        md.checksum_contents = csum.get_value()
+        md.filename_contents = csum.get_filename()
+
+        fw.mds.append(md)
+
+    return fw
+
 @app.route('/lvfs/upload', methods=['GET', 'POST'])
 @login_required
 def upload():
@@ -168,83 +246,12 @@ def upload():
 
     # create parent firmware object
     target = request.form['target']
-    fw = Firmware()
+    fw = _create_fw_from_uploaded_file(ufile)
     fw.vendor_id = g.user.vendor_id
     fw.user_id = g.user.user_id
     fw.addr = _get_client_address()
-    fw.filename = ufile.filename_new
-    fw.checksum_upload = ufile.checksum_upload
     fw.remote_id = remote.remote_id
     fw.checksum_signed = hashlib.sha1(cab_data).hexdigest()
-    if ufile.version_display:
-        fw.version_display = ufile.version_display
-
-    # this allows an OEM to hide the direct download link on the LVFS
-    if 'LVFS::InhibitDownload' in ufile.metadata:
-        fw.inhibit_download = True
-
-    # create child metadata object for the component
-    for component in ufile.get_components():
-        md = Component()
-        md.appstream_id = component.get_id()
-        md.name = unicode(component.get_name())
-        md.summary = unicode(component.get_comment())
-        md.developer_name = unicode(component.get_developer_name())
-        md.metadata_license = component.get_metadata_license()
-        md.project_license = component.get_project_license()
-        md.url_homepage = unicode(component.get_url_item(AppStreamGlib.UrlKind.HOMEPAGE))
-        md.description = unicode(component.get_description())
-
-        # add manually added keywords
-        for keyword in component.get_keywords():
-            md.add_keywords_from_string(unicode(keyword), priority=5)
-
-        # add from the provided free text
-        if md.developer_name:
-            md.add_keywords_from_string(md.developer_name, priority=10)
-        if md.name:
-            md.add_keywords_from_string(md.name, priority=3)
-        if md.summary:
-            md.add_keywords_from_string(md.summary, priority=1)
-
-        # from the provide
-        for prov in component.get_provides():
-            if prov.get_kind() != AppStreamGlib.ProvideKind.FIRMWARE_FLASHED:
-                continue
-            md.guids.append(Guid(md.component_id, prov.get_value()))
-
-        # from the release
-        rel = component.get_release_default()
-        md.version = rel.get_version()
-        md.release_description = unicode(rel.get_description())
-        md.release_timestamp = rel.get_timestamp()
-        md.release_installed_size = rel.get_size(AppStreamGlib.SizeKind.INSTALLED)
-        md.release_download_size = rel.get_size(AppStreamGlib.SizeKind.DOWNLOAD)
-        md.release_urgency = AppStreamGlib.urgency_kind_to_string(rel.get_urgency())
-
-        # from requires
-        for req in component.get_requires():
-            rq = Requirement(md.component_id,
-                             AppStreamGlib.Require.kind_to_string(req.get_kind()),
-                             req.get_value(),
-                             AppStreamGlib.Require.compare_to_string(req.get_compare()),
-                             req.get_version())
-            md.requirements.append(rq)
-
-        # from the first screenshot
-        if len(component.get_screenshots()) > 0:
-            ss = component.get_screenshots()[0]
-            md.screenshot_caption = ss.get_caption(None)
-            if len(ss.get_images()) > 0:
-                im = ss.get_images()[0]
-                md.screenshot_url = unicode(im.get_url())
-
-        # from the content checksum
-        csum = rel.get_checksum_by_target(AppStreamGlib.ChecksumTarget.CONTENT)
-        md.checksum_contents = csum.get_value()
-        md.filename_contents = csum.get_filename()
-
-        fw.mds.append(md)
 
     # add to database
     fw.events.append(FirmwareEvent(remote.remote_id, g.user.user_id))
