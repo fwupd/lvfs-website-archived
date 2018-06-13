@@ -451,6 +451,7 @@ class Component(db.Model):
     screenshot_url = Column(Unicode, default=None)
     screenshot_caption = Column(Unicode, default=None)
     inhibit_download = Column(Boolean, default=False)
+    version_format = Column(String(10), default=None) # usually 'triplet' or 'quad'
 
     # link back to parent
     fw = relationship("Firmware", back_populates="mds", lazy='joined')

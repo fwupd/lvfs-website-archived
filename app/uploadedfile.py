@@ -258,6 +258,12 @@ class UploadedFile(object):
         if req:
             raise MetadataInvalid('Firmware cannot specify vendor-id')
 
+        # check the version format
+        version_format = component.get_metadata_item('LVFS::VersionFormat')
+        if version_format:
+            if version_format not in ['triplet', 'quad']:
+                raise MetadataInvalid('LVFS::VersionFormat can only be triplet or quad')
+
         # does the firmware require a specific fwupd version?
         req = component.get_require_by_value(AppStreamGlib.RequireKind.ID,
                                              'org.freedesktop.fwupd')

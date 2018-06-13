@@ -133,6 +133,8 @@ def _generate_metadata_kind(filename, fws, firmware_baseuri=''):
             # add any shared metadata
             if md.inhibit_download:
                 component.add_metadata('LVFS::InhibitDownload')
+            if md.version_format:
+                component.add_metadata('LVFS::VersionFormat', md.version_format)
 
             # add component
             store.add_app(component)

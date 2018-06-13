@@ -126,6 +126,10 @@ def _create_fw_from_uploaded_file(ufile):
         if 'LVFS::InhibitDownload' in metadata:
             md.inhibit_download = True
 
+        # allows OEM to change the triplet (AA.BB.CCDD) to quad (AA.BB.CC.DD)
+        if 'LVFS::VersionFormat' in metadata:
+            md.version_format = metadata['LVFS::VersionFormat']
+
         fw.mds.append(md)
 
     return fw
