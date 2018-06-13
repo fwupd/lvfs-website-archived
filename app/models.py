@@ -245,6 +245,7 @@ class Vendor(db.Model):
     oauth_domain_glob = Column(Text, default=None)
     remote_id = Column(Integer, ForeignKey('remotes.remote_id'), nullable=False)
     username_glob = Column(Text, default=None)
+    version_format = Column(String(10), default=None) # usually 'triplet' or 'quad'
 
     # magically get the users in this vendor group
     users = relationship("User", back_populates="vendor")
@@ -482,6 +483,28 @@ class Component(db.Model):
         self.release_urgency = None
         self.screenshot_url = None
         self.screenshot_caption = None
+
+    @property
+    def version_format_with_vendor_fallback(self):
+        if self.version_format:
+            return self.version_format
+        if self.fw.vendor.version_format:
+            return self.fw.vendor.version_format
+        return None
+
+    @property
+    def version_display(self):
+        if self.version.isdigit():
+            v = int(self.version)
+            if self.version_format_with_vendor_fallback == 'quad':
+                return '%02i.%02i.%02i.%02i' % ((v & 0xff000000) >> 24,
+                                                (v & 0x00ff0000) >> 16,
+                                                (v & 0x0000ff00) >> 8,
+                                                v & 0x000000ff)
+            return '%02i.%02i.%04i' % ((v & 0xff000000) >> 24,
+                                       (v & 0x00ff0000) >> 16,
+                                       v & 0x0000ffff)
+        return self.version
 
     def add_keywords_from_string(self, value, priority=0):
         existing_keywords = {}

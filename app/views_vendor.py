@@ -209,6 +209,7 @@ def vendor_modify_by_admin(vendor_id):
                 'oauth_domain_glob',
                 'comments',
                 'username_glob',
+                'version_format',
                 'keywords']:
         if key in request.form:
             setattr(vendor, key, request.form[key])
