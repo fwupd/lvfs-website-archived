@@ -134,6 +134,16 @@ def _create_fw_from_uploaded_file(ufile):
 
     return fw
 
+def _filter_fw_by_guid_version(fws, provides_value, release_version):
+    for fw in fws:
+        if fw.is_deleted:
+            continue
+        for md in fw.mds:
+            for guid in md.guids:
+                if guid.value == provides_value and md.version == release_version:
+                    return fw
+    return None
+
 @app.route('/lvfs/upload', methods=['GET', 'POST'])
 @login_required
 def upload():
@@ -195,19 +205,25 @@ def upload():
 
     # check the guid and version does not already exist
     fws = db.session.query(Firmware).all()
+    fws_already_exist = []
     for component in ufile.get_components():
         provides_value = component.get_provides()[0].get_value()
         release_default = component.get_release_default()
         release_version = release_default.get_version()
-        for fw in fws:
-            if fw.is_deleted:
-                continue
+        fw = _filter_fw_by_guid_version(fws, provides_value, release_version)
+        if fw:
+            fws_already_exist.append(fw)
+
+    # all the components existed, so build an error out of all the versions
+    if len(fws_already_exist) == len(ufile.get_components()):
+        versions_for_display = []
+        for fw in fws_already_exist:
             for md in fw.mds:
-                for guid in md.guids:
-                    if guid.value == provides_value and md.version == release_version:
-                        flash('Failed to upload file: A firmware file for '
-                              'version %s already exists' % release_version, 'danger')
-                        return redirect('/lvfs/firmware/%s' % fw.firmware_id)
+                if not md.version_display in versions_for_display:
+                    versions_for_display.append(md.version_display)
+        flash('Failed to upload file: A firmware file for this device with '
+              'version %s already exists' % ','.join(versions_for_display), 'danger')
+        return redirect('/lvfs/firmware/%s' % fw.firmware_id)
 
     # check if the file dropped a GUID previously supported
     for component in ufile.get_components():
