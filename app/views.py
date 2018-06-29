@@ -271,18 +271,19 @@ def _create_user_for_oauth_username(username):
 def login():
     """ A login screen to allow access to the LVFS main page """
     # auth check
-    used_deprecated_username = False
     user = db.session.query(User).\
             filter(User.username == request.form['username']).\
             filter(User.password == _password_hash(request.form['password'])).first()
     if not user:
-        # fallback, but not forever
-        user = db.session.query(User).\
-                filter(User.username_old == request.form['username']).\
-                filter(User.password == _password_hash(request.form['password'])).first()
-        used_deprecated_username = True
-    if not user:
-        # user is NOT added to the database
+        # check to see if the user used the fallback name
+        user_old = db.session.query(User).\
+                        filter(User.username_old == request.form['username']).\
+                        filter(User.password == _password_hash(request.form['password'])).first()
+        if user_old:
+            flash(u'You have to use %s as the username for this user' % user_old.username, 'danger')
+            return redirect(url_for('.index'))
+
+        # check OAuth, user is NOT added to the database
         user = _create_user_for_oauth_username(request.form['username'])
     if not user:
         flash('Failed to log in: Incorrect username or password for %s' % request.form['username'], 'danger')
@@ -301,12 +302,7 @@ def login():
     # success
     login_user(user, remember=False)
     g.user = user
-    if used_deprecated_username:
-        # show the user something to remind them
-        flash(u'Logged in — but from 1st September 2018 you will be required to '
-              'use %s instead of %s.' % (user.username, user.username_old), 'warning')
-    else:
-        flash('Logged in', 'info')
+    flash('Logged in', 'info')
 
     # set the access time
     user.atime = datetime.datetime.utcnow()
