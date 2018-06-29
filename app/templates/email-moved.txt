@@ -1,0 +1,9 @@
+Dear {{ user.display_name }},
+
+Your group membership on the Linux Vendor Firmware Service has been changed from {{old_vendor.group_id}} to {{user.vendor.group_id}} by {{g.user.display_name}} <{{ g.user.username }}>.{% if reparent %} Any firmware you have uploaded will automatically be transferred to the new group.{% endif %}
+
+If you are using {{old_vendor.group_id}}-embargo.conf for end-to-end testing then you will need to download a new config from {{ url_for('.metadata_remote', group_id=user.vendor.group_id, _external=True) }} and save it to /etc/fwupd/remotes.d
+
+Regards,
+
+The LVFS admins
