@@ -144,14 +144,23 @@ def user_modify_by_admin(user_id):
         user.password = _password_hash(request.form['password'])
 
     # reparent any uploaded firmware
+    is_dirty = False
     reparent = True if 'reparent' in request.form else False
     if old_vendor.vendor_id != user.vendor_id and reparent:
         for fw in db.session.query(Firmware).\
                     filter(Firmware.user_id == user.user_id).all():
             fw.vendor_id = user.vendor_id
+            if fw.remote.name.startswith('embargo'):
+                is_dirty = True
 
     user.mtime = datetime.datetime.utcnow()
     db.session.commit()
+
+    # mark both remotes as dirty
+    if is_dirty:
+        user.vendor.remote.is_dirty = True
+        old_vendor.remote.is_dirty = True
+        db.session.commit()
 
     # send email
     if old_vendor.vendor_id != user.vendor_id:
