@@ -1,0 +1,38 @@
+{% extends "default.html" %}
+{% block title %}Vendor Affiliation{% endblock %}
+
+{% block nav %}
+{% include 'firmware-nav.html' %}
+{% endblock %}
+
+{% block content %}
+<h2 class="mt-3">Vendor Affiliation</h2>
+
+<p>
+  Care must be taken changing the assigned vendor of firmware as it gives the
+  owner the ablity to change the target and even delete the firmware.
+</p>
+
+<form action="/lvfs/firmware/{{fw.firmware_id}}/affiliation/change" method="post" enctype="multipart/form-data" class="form">
+  <div class="form-group row">
+    <label for="target" class="col-sm-2 col-form-label">Controlling vendor</label>
+    <div class="col-sm-10">
+      <select class="form-control" name="vendor_id" required>
+{% for v in vendors %}
+        <option value="{{v.vendor_id}}" {{ 'selected' if v.vendor_id == fw.vendor_id }}>{{v.display_name}}</option>
+{% endfor %}
+      </select>
+    </div>
+  </div>
+  <div class="form-group row">
+    <p class="col-sm-2">&nbsp;</p>
+    <div class="col-sm-10">
+      <input type="submit" class="btn btn-danger btn-large" value="Change"/>
+    </div>
+  </div>
+</form>
+
+
+{% endblock %}
+
+{% block breadcrumb %}{% include 'firmware-breadcrumb.html' %}{% endblock %}

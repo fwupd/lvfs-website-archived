@@ -19,7 +19,7 @@ from app import app, db
 from .dbutils import _execute_count_star
 
 from .hash import _qa_hash
-from .models import UserCapability, Firmware, Report, Client, FirmwareEvent, FirmwareLimit, Remote
+from .models import UserCapability, Firmware, Report, Client, FirmwareEvent, FirmwareLimit, Remote, Vendor
 from .util import _error_internal, _error_permission_denied
 from .util import _get_chart_labels_months, _get_chart_labels_days
 
@@ -308,6 +308,65 @@ def firmware_limit_add():
     db.session.commit()
     flash('Added limit', 'info')
     return redirect(url_for('.firmware_limits', firmware_id=fl.firmware_id))
+
+
+@app.route('/lvfs/firmware/<int:firmware_id>/affiliation')
+@login_required
+def firmware_affiliation(firmware_id):
+
+    # get details about the firmware
+    fw = db.session.query(Firmware).\
+            filter(Firmware.firmware_id == firmware_id).first()
+    if not fw:
+        return _error_internal('No firmware matched!')
+
+    # security check
+    if not g.user.check_capability(UserCapability.Admin):
+        return _error_permission_denied('Insufficient permissions to view firmware affiliations')
+
+    # add other vendors
+    vendors = []
+    for v in db.session.query(Vendor).order_by(Vendor.display_name).all():
+        if v.is_account_holder != 'yes':
+            continue
+        #if not vendor.get_affiliation_by_odm_id(v.vendor_id):
+        #    continue
+        vendors.append(v)
+
+    return render_template('firmware-affiliation.html', fw=fw, vendors=vendors)
+
+@app.route('/lvfs/firmware/<int:firmware_id>/affiliation/change', methods=['POST'])
+@login_required
+def firmware_affiliation_change(firmware_id):
+    """ Changes the assigned vendor ID for the firmware """
+
+    # find firmware
+    fw = db.session.query(Firmware).filter(Firmware.firmware_id == firmware_id).first()
+    if not fw:
+        return _error_internal("No firmware %s" % firmware_id)
+
+    # security check
+    if not g.user.check_capability(UserCapability.Admin):
+        return _error_permission_denied('Insufficient permissions to modify firmware')
+
+    # change the vendor
+    if 'vendor_id' not in request.form:
+        return _error_internal('No vendor ID specified')
+
+    vendor_id = int(request.form['vendor_id'])
+    old_vendor = fw.vendor
+    fw.vendor_id = vendor_id
+    db.session.commit()
+
+    # do we need to regenerate remotes?
+    if fw.vendor.remote.name.startswith('embargo'):
+        fw.vendor.remote.is_dirty = True
+        old_vendor.remote.is_dirty = True
+        fw.remote_id = fw.vendor.remote.remote_id
+        db.session.commit()
+
+    flash('Changed firmware vendor', 'info')
+    return redirect(url_for('.firmware_affiliation', firmware_id=fw.firmware_id))
 
 @app.route('/lvfs/firmware/<int:firmware_id>/problems')
 @login_required

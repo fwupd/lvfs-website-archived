@@ -506,6 +506,11 @@ class LvfsTestCase(unittest.TestCase):
         rv = self.app.get('/lvfs/vendorlist')
         assert b'testvendor' not in rv.data, rv.data
 
+    def add_vendor(self, group_id):
+        rv = self.app.post('/lvfs/vendor/add', data=dict(group_id=group_id),
+                           follow_redirects=True)
+        assert b'Added vendor' in rv.data, rv.data
+
     def test_users(self):
 
         # login then add invalid users
@@ -866,6 +871,43 @@ class LvfsTestCase(unittest.TestCase):
         ), follow_redirects=True)
         assert b'name="version" value="1.0.4' not in rv.data, rv.data
         assert b'Deleted requirement' in rv.data, rv.data
+
+    def test_affiliation_change_as_admin(self):
+
+        # add oem and odm
+        self.login()
+        self.add_vendor('oem')  # 2
+        self.add_user('alice@oem.com', 'oem')
+        rv = self.app.post('/lvfs/vendor/2/modify_by_admin', data=dict(
+            is_account_holder='yes',
+        ), follow_redirects=True)
+        assert b'Updated vendor' in rv.data, rv.data
+        self.add_vendor('odm')  # 3
+        self.add_user('bob@odm.com', 'odm')
+        rv = self.app.post('/lvfs/vendor/3/modify_by_admin', data=dict(
+            is_account_holder='yes',
+        ), follow_redirects=True)
+        assert b'Updated vendor' in rv.data, rv.data
+        self.logout()
+
+        # bob uploads to the ODM vendor
+        self.login('bob@odm.com')
+        self.upload(target='embargo')
+        self.logout()
+
+        # change the ownership to 'oem' as admin (no affiliation required)
+        self.login()
+        rv = self.app.get('/lvfs/firmware/1/affiliation')
+        assert b'option value="3" selected' in rv.data, rv.data
+        rv = self.app.post('/lvfs/firmware/1/affiliation/change', data=dict(
+            vendor_id='2',
+        ), follow_redirects=True)
+        assert b'Changed firmware vendor' in rv.data, rv.data
+        rv = self.app.get('/lvfs/firmware/1/affiliation')
+        assert b'option value="2" selected' in rv.data, rv.data
+        rv = self.app.get('/lvfs/firmware/1')
+        assert b'>embargo-oem<' in rv.data, rv.data
+        assert b'>embargo-odm<' not in rv.data, rv.data
 
     def test_keywords(self):
 
