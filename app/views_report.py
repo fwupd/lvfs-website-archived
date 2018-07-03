@@ -6,7 +6,7 @@
 
 import json
 
-from flask import request, url_for, redirect, flash, Response, g
+from flask import request, url_for, redirect, flash, Response
 from flask_login import login_required
 
 from app import app, db
@@ -17,25 +17,25 @@ from .util import _error_internal, _error_permission_denied
 @app.route('/lvfs/report/<report_id>')
 @login_required
 def report_view(report_id):
-    # security check
-    if not g.user.check_acl('@admin'):
-        return _error_permission_denied('Unable to view report')
-    rprt = db.session.query(Report).filter(Report.report_id == report_id).first()
-    if not rprt:
+    report = db.session.query(Report).filter(Report.report_id == report_id).first()
+    if not report:
         return _error_permission_denied('Report does not exist')
-    return Response(response=str(rprt.to_kvs()),
+    # security check
+    if not report.check_acl('@view'):
+        return _error_permission_denied('Unable to view report')
+    return Response(response=str(report.to_kvs()),
                     status=400, \
                     mimetype="application/json")
 
 @app.route('/lvfs/report/<report_id>/delete')
 @login_required
 def report_delete(report_id):
-    # security check
-    if not g.user.check_acl('@admin'):
-        return _error_permission_denied('Unable to view report')
     report = db.session.query(Report).filter(Report.report_id == report_id).first()
     if not report:
         return _error_internal('No report found!')
+    # security check
+    if not report.check_acl('@delete'):
+        return _error_permission_denied('Unable to delete report')
     for e in report.attributes:
         db.session.delete(e)
     db.session.delete(report)

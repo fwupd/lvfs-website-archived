@@ -979,6 +979,27 @@ class Report(db.Model):
             kv_array.append('%s=%s' % (key, flat_dict[key]))
         return ', '.join(sorted(kv_array))
 
+    def check_acl(self, action, user=None):
+
+        # fall back
+        if not user:
+            user = g.user
+        if user.is_admin:
+            return True
+
+        # depends on the action requested
+        if action == '@delete':
+            # only admin
+            return False
+        elif action == '@view':
+            # QA user can modify any issues matching vendor_id
+            if user.is_qa and user.vendor_id == self.fw.vendor_id:
+                return True
+            return False
+
+        # user specified the wrong thing
+        raise NotImplementedError('unknown security check action: %s:%s' % (self, action))
+
     def __repr__(self):
         return "Report object %s" % self.report_id
 
