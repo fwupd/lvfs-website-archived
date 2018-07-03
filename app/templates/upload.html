@@ -26,11 +26,26 @@
   Uploading firmware is covered by <a href="/lvfs/agreement">our legal agreement</a>.
 </p>
 <form action="/lvfs/upload" method="post" enctype="multipart/form-data" class="form">
+{% if affiliations|length %}
+  <div class="form-group row">
+    <label for="target" class="col-sm-2 col-form-label">Upload for vendor</label>
+    <div class="col-sm-10">
+      <select class="form-control pt-0 pb-0 pl-0 pr-0" name="vendor_id" size="{{affiliations|length+1}}" required>
+        <option class="pt-2 pb-2 pl-2" value="{{g.user.vendor.vendor_id}}">{{g.user.vendor.display_name}}</option>
+{% for r in affiliations %}
+        <option class="pt-2 pb-2 pl-2" value="{{r.vendor.vendor_id}}">{{r.vendor.display_name}}</option>
+{% endfor %}
+      </select>
+    </div>
+  </div>
+{% else %}
+  <input type="hidden" name="vendor_id" value="{{g.user.vendor_id}}">
+{% endif %}
 {% if g.user.vendor.is_embargo_default %}
   <input type="hidden" name="target" value="embargo">
 {% else %}
   <div class="form-group row">
-    <label for="target" class="col-sm-2 col-form-label">Remote</label>
+    <label for="target" class="col-sm-2 col-form-label">Upload to remote</label>
     <div class="col-sm-10">
       <select class="form-control pt-0 pb-0 pl-0 pr-0" name="target" size="2" required>
         <option class="pt-2 pb-2 pl-2" value="private">Private (secret)</option>

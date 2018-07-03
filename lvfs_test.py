@@ -109,15 +109,18 @@ class LvfsTestCase(unittest.TestCase):
                                data=data, follow_redirects=True)
             assert b'Updated profile' in rv.data, rv.data
 
-    def _upload(self, filename, target):
+    def _upload(self, filename='contrib/hughski-colorhug2-2.0.3.cab', target='private', vendor_id=None):
         fd = open(filename, 'rb')
-        return self.app.post('/lvfs/upload', data={
+        data = {
             'target': target,
             'file': (fd, filename)
-        }, follow_redirects=True)
+        }
+        if vendor_id:
+            data['vendor_id'] = vendor_id
+        return self.app.post('/lvfs/upload', data=data, follow_redirects=True)
 
-    def upload(self, target='private'):
-        rv = self._upload('contrib/hughski-colorhug2-2.0.3.cab', target)
+    def upload(self, target='private', vendor_id=None, filename='contrib/hughski-colorhug2-2.0.3.cab'):
+        rv = self._upload(filename, target, vendor_id)
         assert b'Uploaded file' in rv.data, rv.data
         assert b'7514fc4b0e1a306337de78c58f10e9e68f791de2' in rv.data, rv.data
 
@@ -510,6 +513,39 @@ class LvfsTestCase(unittest.TestCase):
         rv = self.app.post('/lvfs/vendor/add', data=dict(group_id=group_id),
                            follow_redirects=True)
         assert b'Added vendor' in rv.data, rv.data
+
+    def test_vendor_split_with_reparent(self):
+
+        # add vendor1 and user, then upload firmware
+        self.login()
+        self.add_vendor('acme')
+        self.add_user('alice@acme.com', 'acme')
+        self.logout()
+        self.login('alice@acme.com')
+        self.upload()
+        self.logout()
+
+        # add vendor2 and move user to that
+        self.login()
+        self.add_vendor('odm')
+        rv = self.app.post('/lvfs/user/3/modify_by_admin', data=dict(
+            vendor_id='3',
+            reparent='1',
+        ), follow_redirects=True)
+        assert b'Updated profile' in rv.data, rv.data
+        rv = self.app.get('/lvfs/userlist')
+        assert b'>odm<' in rv.data, rv.data
+        assert b'>acme<' not in rv.data, rv.data
+
+        # ensure firmware is reparented
+        rv = self.app.get('/lvfs/firmware/1')
+        assert b'odm</a>' in rv.data, rv.data
+        self.logout()
+
+        # ensure user can still view firmware
+        self.login('alice@acme.com', accept_agreement=False)
+        rv = self.app.get('/lvfs/firmware')
+        assert b'Hughski Limited ColorHug2 Device Update' in rv.data, rv.data
 
     def test_users(self):
 
@@ -908,6 +944,111 @@ class LvfsTestCase(unittest.TestCase):
         rv = self.app.get('/lvfs/firmware/1')
         assert b'>embargo-oem<' in rv.data, rv.data
         assert b'>embargo-odm<' not in rv.data, rv.data
+
+    def add_affiliation(self, vendor_id_oem, vendor_id_odm):
+        rv = self.app.post('/lvfs/vendor/%u/affiliation/add' % vendor_id_oem, data=dict(
+            vendor_id_odm=vendor_id_odm,
+        ), follow_redirects=True)
+        assert b'Added affiliation' in rv.data, rv.data
+
+    def test_affiliations(self):
+
+        self.login()
+        self.add_vendor('oem')  # 2
+        self.add_user('alice@oem.com', 'oem')
+        self.add_vendor('odm')  # 3
+        self.add_user('bob@odm.com', 'odm')
+        self.add_vendor('another-unrelated-oem')  # 4
+
+        # no affiliations
+        rv = self.app.get('/lvfs/vendor/2/affiliations')
+        assert b'No existing affiliations exist' in rv.data, rv.data
+
+        # add affiliation (as admin)
+        self.add_affiliation(2, 3)
+        rv = self.app.get('/lvfs/vendor/2/affiliations')
+        assert b'>None<' in rv.data, rv.data
+
+        # add duplicate (as admin)
+        rv = self.app.post('/lvfs/vendor/2/affiliation/add', data=dict(
+            vendor_id_odm='3',
+        ), follow_redirects=True)
+        assert b'Already a affiliation with that ODM' in rv.data, rv.data
+        self.logout()
+
+        # test uploading as the ODM to a vendor_id that does not exist
+        self.login('bob@odm.com')
+        rv = self._upload(vendor_id=999)
+        assert b'Specified vendor ID not found' in rv.data, rv.data
+
+        # test uploading as the ODM to a vendor_id without an affiliation
+        rv = self._upload(vendor_id=4)
+        assert b'Failed to upload file for vendor: Permission denied' in rv.data, rv.data
+
+        # test uploading to a OEM account we have an affiliation with
+        self.upload(vendor_id=2)
+
+        # check bob can see the firmware he uploaded
+        rv = self.app.get('/lvfs/firmware/1')
+        assert b'/downloads/7514fc4b0e1a306337de78c58f10e9e68f791de2' in rv.data, rv.data
+        rv = self.app.get('/lvfs/firmware')
+        assert b'Hughski Limited ColorHug2 Device Update' in rv.data, rv.data
+
+        # check bob can change the update description and severity
+        rv = self.app.post('/lvfs/firmware/1/modify', data=dict(
+            urgency='critical',
+            description=u'Not enough cats!',
+        ), follow_redirects=True)
+        assert b'Update text updated' in rv.data, rv.data
+
+        # check bob can move the firmware to the embargo remote for the *OEM*
+        rv = self.app.get('/lvfs/firmware/1/promote/embargo',
+                          follow_redirects=True)
+        assert b'Moved firmware' in rv.data, rv.data
+        assert b'>embargo-oem<' in rv.data, rv.data
+        assert b'>embargo-odm<' not in rv.data, rv.data
+
+        # check bob can't move the firmware to stable
+        rv = self.app.get('/lvfs/firmware/1/promote/stable',
+                          follow_redirects=True)
+        assert b'Unable to promote as not QA' in rv.data, rv.data
+        self.logout()
+
+        # remove affiliation as admin
+        self.login()
+        rv = self.app.get('/lvfs/vendor/2/affiliation/1/delete', follow_redirects=True)
+        assert b'Deleted affiliation' in rv.data, rv.data
+        rv = self.app.get('/lvfs/vendor/2/affiliations')
+        assert b'No existing affiliations exist' in rv.data, rv.data
+
+    def test_affiliated_qa_user_cannot_promote(self):
+
+        # add two different OEM vendors, and a shared ODM
+        self.login()
+        self.add_vendor('oem1')  # 2
+        self.add_vendor('oem2')  # 3
+        self.add_vendor('odm')   # 4
+        self.add_affiliation(2, 4)
+        self.add_affiliation(3, 4)
+
+        # add alice@odm.com to vendor odm as a QA user and bob as a normal user
+        self.add_user('alice@odm.com', 'odm', is_qa=True)
+        self.add_user('bob@odm.com', 'odm')
+        self.logout()
+
+        # bob uploads foo.cab on behalf of vendor oem1 (vendor_id = oem1, user_id=bob)
+        self.login('bob@odm.com')
+        self.upload(vendor_id=2)
+        self.logout()
+
+        # check alice can't see or promote the irmware uploaded by bob
+        self.login('alice@odm.com')
+        rv = self.app.get('/lvfs/firmware',
+                          follow_redirects=True)
+        assert b'No firmware has been uploaded' in rv.data, rv.data
+        rv = self.app.get('/lvfs/firmware/1/promote/testing',
+                          follow_redirects=True)
+        assert b'Permission denied: No QA access to 1' in rv.data, rv.data
 
     def test_keywords(self):
 

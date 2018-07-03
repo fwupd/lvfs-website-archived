@@ -72,6 +72,9 @@
   <input type="hidden" name="send_email" value="1">
 {% endif %}
   <input type="submit" class="btn btn-primary btn-large" class="submit" value="Modify">
+{% if g.user.check_capability('admin') and u.group_id != 'admin' %}
+  <button type="button" class="btn btn-warning" data-toggle="modal" data-target="#moveModal">Change Vendor</button>
+{% endif %}
   <a class="btn btn-danger" href="/lvfs/user/{{u.user_id}}/reset_by_admin">Reset Password</a>
 {% if g.user.check_capability('admin') and u.group_id != 'admin' %}
   <button type="button" class="btn btn-danger" data-toggle="modal" data-target="#deleteModal">Delete</button>
@@ -115,6 +118,62 @@
       </div>
     </div>
   </div>
+</div>
+
+<!-- modal dialog -->
+<div class="modal" id="moveModal" tabindex="-1" role="dialog" aria-labelledby="moveModalLabel" aria-hidden="true">
+<form method="post" action="/lvfs/user/{{u.user_id}}/modify_by_admin">
+{% if u.is_qa %}
+  <input type="hidden" name="is_qa" value="1">
+{% endif %}
+{% if u.is_analyst %}
+  <input type="hidden" name="is_analyst" value="1">
+{% endif %}
+{% if u.is_vendor_manager %}
+  <input type="hidden" name="is_vendor_manager" value="1">
+{% endif %}
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="moveModalLabel">Really Move User?</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <p>
+          Moving a user from one vendor should be done carefully.
+        </p>
+        <div class="form-group">
+          <label for="auth_type">New Vendor:</label>
+          <select class="form-control" name="vendor_id">
+{% for v in possible_vendors %}
+            <option value="{{v.vendor_id}}" {{ 'selected' if v.vendor_id == u.vendor_id }}>
+              {{v.display_name}}
+            </option>
+{% endfor %}
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="reparent">
+            <input class="checkbox" type="checkbox" name="reparent" value="1" checked />
+            Move firmware uploaded by the user to the new group
+          </label>
+        </div>
+        <div class="form-group">
+          <label for="send_email">
+            <input class="checkbox" type="checkbox" name="send_email" value="1" checked />
+            Notify the user about the account change
+          </label>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+        <input type="submit" class="btn btn-primary btn-danger" class="submit" value="Move">
+      </div>
+    </div>
+  </div>
+</form>
 </div>
 
 {% endblock %}

@@ -15,7 +15,7 @@ from app import app, db
 
 from .emails import send_email
 from .util import _error_permission_denied, _error_internal, _email_check
-from .models import UserCapability, Vendor, Restriction, User, Remote
+from .models import UserCapability, Vendor, Restriction, User, Remote, Affiliation
 from .hash import _password_hash
 from .util import _generate_password
 
@@ -350,3 +350,82 @@ def vendor_user_add(vendor_id):
     # done!
     flash('Added user %i' % user.user_id, 'info')
     return redirect(url_for('.vendor_users', vendor_id=vendor_id), 302)
+
+@app.route('/lvfs/vendor/<int:vendor_id>/affiliations')
+@login_required
+def vendor_affiliations(vendor_id):
+    """ Allows changing vendor affiliations [ADMIN ONLY] """
+
+    # check exists
+    vendor = db.session.query(Vendor).filter(Vendor.vendor_id == vendor_id).first()
+    if not vendor:
+        flash('Failed to get vendor details: No a vendor with that group ID', 'warning')
+        return redirect(url_for('.vendor_list'), 302)
+
+    # security check
+    if not g.user.check_capability(UserCapability.Admin):
+        return _error_permission_denied('Unable to edit vendor as non-admin')
+
+    # add other vendors
+    vendors = []
+    for v in db.session.query(Vendor).order_by(Vendor.display_name).all():
+        if v.vendor_id == vendor_id:
+            continue
+        if v.is_uploading != 'yes':
+            continue
+        if vendor.get_affiliation_by_odm_id(v.vendor_id):
+            continue
+        vendors.append(v)
+    return render_template('vendor-affiliations.html', v=vendor, other_vendors=vendors)
+
+@app.route('/lvfs/vendor/<int:vendor_id>/affiliation/add', methods=['POST'])
+@login_required
+def vendor_affiliation_add(vendor_id):
+    """ Allows changing a vendor [ADMIN ONLY] """
+
+    # security check
+    if not g.user.check_capability(UserCapability.Admin):
+        return _error_permission_denied('Unable to edit vendor as non-admin')
+
+    # check exists
+    vendor = db.session.query(Vendor).filter(Vendor.vendor_id == vendor_id).first()
+    if not vendor:
+        flash('Failed to add affiliate: No a vendor with that group ID', 'warning')
+        return redirect(url_for('.vendor_affiliations', vendor_id=vendor_id), 302)
+    if not 'vendor_id_odm' in request.form:
+        return _error_internal('No value')
+
+    # check if it already exists
+    vendor_id_odm = int(request.form['vendor_id_odm'])
+    for rel in vendor.affiliations:
+        if rel.vendor_id_odm == vendor_id_odm:
+            flash('Failed to add affiliate: Already a affiliation with that ODM', 'warning')
+            return redirect(url_for('.vendor_affiliations', vendor_id=vendor_id), 302)
+
+    # add a new ODM -> OEM affiliation
+    vendor.affiliations.append(Affiliation(vendor_id, vendor_id_odm))
+    db.session.commit()
+    flash('Added affiliation', 'info')
+    return redirect(url_for('.vendor_affiliations', vendor_id=vendor_id), 302)
+
+@app.route('/lvfs/vendor/<int:vendor_id>/affiliation/<int:affiliation_id>/delete')
+@login_required
+def vendor_affiliation_delete(vendor_id, affiliation_id):
+    """ Allows changing a vendor [ADMIN ONLY] """
+
+    # security check
+    if not g.user.check_capability(UserCapability.Admin):
+        return _error_permission_denied('Unable to edit vendor as non-admin')
+
+    # check exists
+    vendor = db.session.query(Vendor).filter(Vendor.vendor_id == vendor_id).first()
+    if not vendor:
+        flash('Failed to get vendor details: No a vendor with that group ID', 'warning')
+        return redirect(url_for('.vendor_list'), 302)
+    for res in vendor.affiliations:
+        if res.affiliation_id == affiliation_id:
+            db.session.delete(res)
+            db.session.commit()
+            break
+    flash('Deleted affiliation', 'info')
+    return redirect(url_for('.vendor_affiliations', vendor_id=vendor_id), 302)

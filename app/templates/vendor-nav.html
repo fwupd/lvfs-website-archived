@@ -15,6 +15,9 @@
     <li class="nav-item">
       <a class="nav-link {% if request.url_rule.endpoint == 'vendor_restrictions' %}active{% endif %}" href="/lvfs/vendor/{{v.vendor_id}}/restrictions">Restrictions</a>
     </li>
+    <li class="nav-item">
+      <a class="nav-link {% if request.url_rule.endpoint == 'vendor_affiliations' %}active{% endif %}" href="/lvfs/vendor/{{v.vendor_id}}/affiliations">Affiliates</a>
+    </li>
 {% endif %}
   </ul>
 </nav>

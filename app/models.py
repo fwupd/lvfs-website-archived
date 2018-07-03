@@ -121,10 +121,14 @@ class User(db.Model):
         if self.vendor_id == fw.vendor_id and self.user_id == fw.user_id:
             return True
 
+        # User was the person that uploaded this
+        if self.user_id == fw.user_id:
+            return True
+
         # something else
         return False
 
-    def check_for_vendor(self, vendor):
+    def check_for_vendor(self, vendor, allow_affiliates=False):
 
         # disabled accounts can never see firmware
         if not self.auth_type:
@@ -137,6 +141,13 @@ class User(db.Model):
         # manager user can modify any firmware matching vendor_id
         if self.is_vendor_manager and self.vendor_id == vendor.vendor_id:
             return True
+
+        # allow access for some actions for vendor affiliates
+        if allow_affiliates:
+            if self.vendor_id == vendor.vendor_id:
+                return True
+            if vendor.get_affiliation_by_odm_id(self.vendor_id):
+                return True
 
         # something else
         return False
@@ -224,6 +235,28 @@ class Restriction(db.Model):
     def __repr__(self):
         return "Restriction object %s" % self.restriction_id
 
+class Affiliation(db.Model):
+
+    # database
+    __tablename__ = 'affiliations'
+    __table_args__ = {'mysql_character_set': 'utf8mb4'}
+
+    affiliation_id = Column(Integer, primary_key=True, unique=True, nullable=False)
+    timestamp = Column(DateTime, nullable=False, default=datetime.datetime.utcnow)
+    vendor_id = Column(Integer, ForeignKey('vendors.vendor_id'), nullable=False)
+    vendor_id_odm = Column(Integer, ForeignKey('vendors.vendor_id'), nullable=False)
+
+    # link using foreign keys
+    vendor = relationship("Vendor", foreign_keys=[vendor_id], back_populates="affiliations")
+    vendor_odm = relationship("Vendor", foreign_keys=[vendor_id_odm])
+
+    def __init__(self, vendor_id, vendor_id_odm):
+        self.vendor_id = vendor_id
+        self.vendor_id_odm = vendor_id_odm
+
+    def __repr__(self):
+        return "Affiliation object %s" % self.affiliation_id
+
 class Vendor(db.Model):
 
     # sqlalchemy metadata
@@ -253,6 +286,9 @@ class Vendor(db.Model):
     # magically get the users in this vendor group
     users = relationship("User", back_populates="vendor")
     restrictions = relationship("Restriction", back_populates="vendor")
+    affiliations = relationship("Affiliation",
+                                foreign_keys=[Affiliation.vendor_id],
+                                back_populates="vendor")
 
     # link using foreign keys
     remote = relationship('Remote', foreign_keys=[remote_id])
@@ -287,6 +323,12 @@ class Vendor(db.Model):
         if self.is_uploading == 'na':
             val += 0x1
         return val
+
+    def get_affiliation_by_odm_id(self, vendor_id_odm):
+        for rel in self.affiliations:
+            if rel.vendor_id_odm == vendor_id_odm:
+                return rel
+        return None
 
     def __repr__(self):
         return "Vendor object %s" % self.group_id

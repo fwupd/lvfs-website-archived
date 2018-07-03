@@ -20,7 +20,8 @@ from flask_login import login_required
 
 from app import app, db, ploader
 
-from .models import Firmware, Component, Requirement, Guid, FirmwareEvent, Vendor, Remote, Agreement
+from .models import Firmware, Component, Requirement, Guid, FirmwareEvent
+from .models import Vendor, Remote, Agreement, Affiliation
 from .uploadedfile import UploadedFile, FileTooLarge, FileTooSmall, FileNotSupported, MetadataInvalid
 from .util import _get_client_address, _get_settings
 from .util import _error_internal, _error_permission_denied
@@ -160,11 +161,34 @@ def upload():
         if vendor:
             for res in vendor.restrictions:
                 vendor_ids.append(res.value)
-        return render_template('upload.html', vendor_ids=vendor_ids)
+        affiliations = db.session.query(Affiliation).\
+                        filter(Affiliation.vendor_id_odm == g.user.vendor_id).all()
+        return render_template('upload.html', vendor_ids=vendor_ids, affiliations=affiliations)
 
     # verify the user can upload
     if not _user_can_upload(g.user):
         return _error_permission_denied('User has not signed legal agreement')
+
+    # used a custom vendor_id
+    if 'vendor_id' in request.form:
+        try:
+            vendor_id = int(request.form['vendor_id'])
+        except ValueError as e:
+            flash('Failed to upload file: Specified vendor ID %s invalid' % request.form['vendor_id'], 'warning')
+            return redirect('/lvfs/upload')
+        vendor = db.session.query(Vendor).filter(Vendor.vendor_id == vendor_id).first()
+        if not vendor:
+            flash('Failed to upload file: Specified vendor ID not found', 'warning')
+            return redirect('/lvfs/upload')
+    else:
+        vendor = g.user.vendor
+
+    # ensure the user has access to this vendor
+    if not g.user.check_for_vendor(vendor, allow_affiliates=True):
+        flash('Failed to upload file for vendor: Permission denied: '
+              'User with vendor %s cannot upload to vendor %s' %
+              (g.user.vendor.group_id, vendor.group_id), 'warning')
+        return redirect('/lvfs/upload')
 
     # not correct parameters
     if not 'target' in request.form:
@@ -177,7 +201,7 @@ def upload():
     # find remote, creating if required
     remote_name = request.form['target']
     if remote_name == 'embargo':
-        remote = g.user.vendor.remote
+        remote = vendor.remote
     else:
         remote = db.session.query(Remote).filter(Remote.name == remote_name).first()
     if not remote:
@@ -268,7 +292,7 @@ def upload():
     # create parent firmware object
     target = request.form['target']
     fw = _create_fw_from_uploaded_file(ufile)
-    fw.vendor_id = g.user.vendor_id
+    fw.vendor_id = vendor.vendor_id
     fw.user_id = g.user.user_id
     fw.addr = _get_client_address()
     fw.remote_id = remote.remote_id

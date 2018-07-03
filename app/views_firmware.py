@@ -211,7 +211,7 @@ def firmware_promote(firmware_id, target):
 
     # set new remote
     if target == 'embargo':
-        remote = g.user.vendor.remote
+        remote = fw.vendor.remote
     else:
         remote = db.session.query(Remote).filter(Remote.name == target).first()
     if not remote:
@@ -359,10 +359,11 @@ def firmware_affiliation_change(firmware_id):
     db.session.commit()
 
     # do we need to regenerate remotes?
-    if fw.vendor.remote.name.startswith('embargo'):
+    if fw.remote.name.startswith('embargo'):
         fw.vendor.remote.is_dirty = True
         old_vendor.remote.is_dirty = True
         fw.remote_id = fw.vendor.remote.remote_id
+        fw.events.append(FirmwareEvent(fw.remote_id, g.user.user_id))
         db.session.commit()
 
     flash('Changed firmware vendor', 'info')

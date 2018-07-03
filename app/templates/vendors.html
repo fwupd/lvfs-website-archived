@@ -77,4 +77,32 @@
     </p>
   </div>
 </div>
+
+<h1>Working with ODMs</h1>
+<p>
+  There are some OEMs where the ODM will be the entity responsible for
+  uploading the firmware to the LVFS.
+  The per-device QA can either be done by the OEM or the ODM as required.
+</p>
+<p>
+  The LVFS administrator can mark other vendors as <em>affiliates</em> of
+  other vendors.
+  This gives the ODM permission to upload firmware that is <em>owned</em> by the
+  OEM on the LVFS, and would appear in the OEM embargoed metadata.
+  The ODM can update the description and delete the firmware, but the OEM QA
+  team is responsible for moving the firmware to testing or stable.
+</p>
+<p>
+  The ODM vendor account also doesn't have to appear in the
+  <a href="/devicelist">search results</a> or the <a href="/vendorlist">vendor list</a>,
+  allowing it to remain hidden to all users except the OEM.
+</p>
+<p>
+  This also means if an ODM builds firmware for two different OEMs, they also
+  have to specify which vendor should <em>own</em> the firmware at upload
+  time.
+  The ODM is able to manage their user accounts directly, either using local
+  accounts with passwords, or using an OAuth provider.
+</p>
+
 {% endblock %}

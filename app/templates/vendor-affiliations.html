@@ -1,0 +1,51 @@
+{% extends "default.html" %}
+{% block title %}Vendor Affiliations{% endblock %}
+
+{% block nav %}{% include 'vendor-nav.html' %}{% endblock %}
+
+{% block content %}
+<div class="alert alert-warning mt-1" role="alert">
+  Be <b>very careful</b> using this feature as ODMs will be able to upload to
+  OEM embargo targets, and OEMs will be able to delete ODM firmware.
+</div>
+
+<table class="table">
+{% if v.affiliations|length == 0 %}
+  <tr class="row table-borderless">
+    <td class="col-sm-12"><p class="text-muted">No existing affiliations exist.</p></td>
+  </tr>
+</p>
+{% else %}
+  <tr class="row table-borderless">
+    <th class="col-sm-10">ODMs acting on behalf of {{v.display_name}}</th>
+    <th class="col-sm-2">&nbsp;</th>
+  </tr>
+{% for r in v.affiliations %}
+  <tr class="row">
+    <td class="col-sm-10"><a href="/lvfs/vendor/{{r.vendor_odm.vendor_id}}">{{r.vendor_odm.display_name}}</a></td>
+    <td class="col-sm-2">
+      <a class="btn btn-block btn-danger" href="/lvfs/vendor/{{v.vendor_id}}/affiliation/{{r.affiliation_id}}/delete" role="button">Remove</a>
+    </td>
+  </tr>
+{% endfor %}
+{% endif %}
+  <tr class="row table-borderless">
+    <form method="post" action="/lvfs/vendor/{{v.vendor_id}}/affiliation/add">
+    <td class="col-sm-10">
+      <select class="form-control" name="vendor_id_odm">
+{% for ov in other_vendors %}
+        <option value="{{ov.vendor_id}}" required>
+          {{ov.display_name}}
+        </option>
+{% endfor %}
+      </select>
+    </td>
+    <td class="col-sm-2">
+      <input type="submit" class="btn btn-block btn-primary" class="submit" value="Add">
+    </td>
+    </form>
+  </tr>
+</table>
+
+
+{% endblock %}

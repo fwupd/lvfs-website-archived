@@ -13,7 +13,7 @@ from app import app, db
 
 from .emails import send_email
 from .util import _error_internal, _error_permission_denied, _email_check, _generate_password
-from .models import UserCapability, User, Vendor, Remote
+from .models import UserCapability, User, Vendor, Remote, Firmware, Event, FirmwareEvent
 from .hash import _password_hash
 
 def _password_check(value):
@@ -126,9 +126,12 @@ def user_modify_by_admin(user_id):
     # security check
     if not g.user.check_for_vendor(user.vendor):
         return _error_permission_denied('Unable to modify user as non-admin')
+    if not g.user.check_capability(UserCapability.Admin) and 'vendor_id' in request.form:
+        return _error_permission_denied('Unable to modify group for user as non-admin')
 
     # set each optional thing in turn
-    for key in ['display_name', 'username', 'username_old', 'auth_type']:
+    old_vendor = user.vendor
+    for key in ['display_name', 'username', 'username_old', 'auth_type', 'vendor_id']:
         if key in request.form:
             value = request.form[key]
             if value == '':
@@ -143,15 +146,52 @@ def user_modify_by_admin(user_id):
     if 'password' in request.form and request.form['password']:
         user.password = _password_hash(request.form['password'])
 
-    # send email
-    if 'send_email' in request.form:
-        send_email("[LVFS] Your account has been updated",
-                   user.username,
-                   render_template('email-modify.txt', user=user))
-
     user.mtime = datetime.datetime.utcnow()
     db.session.commit()
-    flash('Updated profile', 'info')
+
+    # reparent any uploaded firmware
+    is_dirty = False
+    reparent = True if 'reparent' in request.form else False
+    if old_vendor.vendor_id != user.vendor_id and reparent:
+        for fw in db.session.query(Firmware).\
+                    filter(Firmware.user_id == user.user_id).all():
+            fw.vendor_id = user.vendor_id
+            if fw.remote.name.startswith('embargo'):
+                is_dirty = True
+            fw.remote_id = user.vendor.remote.remote_id
+        for ev in db.session.query(FirmwareEvent).\
+                    filter(FirmwareEvent.user_id == user.user_id).all():
+            ev.remote_id = user.vendor.remote.remote_id
+
+    # fix event log
+    if old_vendor.vendor_id != user.vendor_id:
+        for ev in db.session.query(Event).\
+                    filter(Event.user_id == user.user_id).all():
+            ev.vendor_id = user.vendor_id
+
+    # mark both remotes as dirty
+    if is_dirty:
+        user.vendor.remote.is_dirty = True
+        old_vendor.remote.is_dirty = True
+    db.session.commit()
+
+    # send email
+    if 'send_email' in request.form:
+        if old_vendor.vendor_id != user.vendor_id:
+            send_email("[LVFS] Your account has been moved",
+                       user.username,
+                       render_template('email-moved.txt',
+                                       user=user,
+                                       old_vendor=old_vendor,
+                                       reparent=reparent))
+        else:
+            send_email("[LVFS] Your account has been updated",
+                       user.username,
+                       render_template('email-modify.txt', user=user))
+        flash('Updated profile and sent a notification email to the user', 'info')
+    else:
+        flash('Updated profile', 'info')
+
     return redirect(url_for('.user_admin', user_id=user_id))
 
 @app.route('/lvfs/user/add', methods=['GET', 'POST'])
@@ -270,4 +310,11 @@ def user_admin(user_id):
     if not g.user.check_for_vendor(user.vendor):
         return _error_permission_denied('Unable to modify user for non-admin user')
 
-    return render_template('useradmin.html', u=user)
+    # get all the vendors with LVFS accounts
+    if g.user.check_capability(UserCapability.Admin):
+        vendors = db.session.query(Vendor).\
+                    filter(Vendor.is_account_holder == 'yes').\
+                    order_by(Vendor.display_name).all()
+    else:
+        vendors = []
+    return render_template('useradmin.html', u=user, possible_vendors=vendors)
