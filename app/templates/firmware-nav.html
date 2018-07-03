@@ -6,7 +6,7 @@
     <li class="nav-item">
       <a class="nav-link {% if request.url_rule.endpoint == 'firmware_components' %}active{% endif %}" href="/lvfs/firmware/{{fw.firmware_id}}/components">Components</a>
     </li>
-{% if g.user.check_capability('admin') %}
+{% if g.user.check_acl('@admin') %}
     <li class="nav-item">
       <a class="nav-link {% if request.url_rule.endpoint == 'firmware_affiliation' %}active{% endif %}" href="/lvfs/firmware/{{fw.firmware_id}}/affiliation">Vendor</a>
     </li>
@@ -19,12 +19,12 @@
       <a class="nav-link {% if request.url_rule.endpoint == 'firmware_problems' %}active{% endif %}" href="/lvfs/firmware/{{fw.firmware_id}}/problems">Problems ({{fw.problems|length}})</a>
     </li>
 {% endif %}
-{% if g.user.check_capability('qa') %}
+{% if fw.check_acl('@add-limit') or fw.check_acl('@remove-limit') %}
     <li class="nav-item">
       <a class="nav-link {% if request.url_rule.endpoint == 'firmware_limits' %}active{% endif %}" href="/lvfs/firmware/{{fw.firmware_id}}/limits">Limits</a>
     </li>
 {% endif %}
-{% if g.user.check_capability('analyst') %}
+{% if fw.check_acl('@view-analytics') %}
 {% if fw.download_cnt > 0 %}
     <li class="nav-item">
       <a class="nav-link {% if request.url_rule.endpoint == 'firmware_analytics_clients' %}active{% endif %}" href="/lvfs/firmware/{{fw.firmware_id}}/analytics/clients">Recent Downloads</a>

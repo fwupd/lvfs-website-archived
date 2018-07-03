@@ -5,7 +5,7 @@
 
 {% block content %}
 
-{% if not g.user.check_capability('qa') %}
+{% if not md.check_acl('@modify-updateinfo') %}
 <table class="table">
 {% if md.release_urgency %}
   <tr class="row table-borderless">

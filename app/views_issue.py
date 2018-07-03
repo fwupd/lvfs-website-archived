@@ -9,21 +9,21 @@ from flask_login import login_required
 
 from app import app, db
 
-from .models import Issue, Condition, Report, Firmware, UserCapability
+from .models import Issue, Condition, Report, Firmware
 from .util import _error_internal, _error_permission_denied
 
 @app.route('/lvfs/issue/all')
 @login_required
 def issue_all():
 
-    # permission check
-    if not g.user.check_capability(UserCapability.QA):
+    # security check
+    if not g.user.check_acl('@view-issues'):
         return _error_permission_denied('Unable to view issues')
 
     # only show issues with the correct group_id
     issues = []
     for issue in db.session.query(Issue).order_by(Issue.priority.desc()).all():
-        if g.user.check_for_issue(issue, readonly=True):
+        if issue.check_acl('@view'):
             issues.append(issue)
     return render_template('issue-list.html', issues=issues)
 
@@ -31,8 +31,8 @@ def issue_all():
 @login_required
 def issue_add():
 
-    # permission check
-    if not g.user.check_capability(UserCapability.QA):
+    # security check
+    if not Issue().check_acl('@create'):
         return _error_permission_denied('Unable to add report')
 
     # ensure has enough data
@@ -62,13 +62,13 @@ def issue_condition_add(issue_id):
         if key not in request.form:
             return _error_internal('No %s form data found!' % key)
 
-    # permission check
+    # security check
     issue = db.session.query(Issue).\
                 filter(Issue.issue_id == issue_id).first()
     if not issue:
         flash('No issue found', 'info')
         return redirect(url_for('.issue_conditions', issue_id=issue_id))
-    if not g.user.check_for_issue(issue):
+    if not issue.check_acl('@modify'):
         return _error_permission_denied('Unable to add condition to report')
 
     # already exists
@@ -98,8 +98,8 @@ def issue_condition_delete(issue_id, condition_id):
         flash('No issue found', 'info')
         return redirect(url_for('.issue_all'))
 
-    # permission check
-    if not g.user.check_for_issue(issue):
+    # security check
+    if not issue.check_acl('@modify'):
         return _error_permission_denied('Unable to delete condition from report')
 
     # get issue
@@ -128,8 +128,8 @@ def issue_delete(issue_id):
         flash('No issue found', 'info')
         return redirect(url_for('.issue_all'))
 
-    # permission check
-    if not g.user.check_for_issue(issue):
+    # security check
+    if not issue.check_acl('@modify'):
         return _error_permission_denied('Unable to delete report')
 
     # delete
@@ -158,7 +158,7 @@ def _issue_fix_report_failures(issue):
         # check we can apply changes to this firmware
         fw = db.session.query(Firmware).\
                 filter(Firmware.firmware_id == report.firmware_id).first()
-        if not g.user.check_for_firmware(fw):
+        if not fw.check_acl('@delete'):
             continue
 
         # fix issue ID so we look better in the analytics pages
@@ -183,8 +183,8 @@ def issue_modify(issue_id):
         flash('No issue found', 'info')
         return redirect(url_for('.issue_all'))
 
-    # permission check
-    if not g.user.check_for_issue(issue):
+    # security check
+    if not issue.check_acl('@modify'):
         return _error_permission_denied('Unable to modify report')
 
     # issue cannot be enabled if it has no conditions
@@ -222,8 +222,8 @@ def issue_details(issue_id):
         flash('No issue found', 'info')
         return redirect(url_for('.issue_all'))
 
-    # permission check
-    if not g.user.check_for_issue(issue, readonly=True):
+    # security check
+    if not issue.check_acl('@view'):
         return _error_permission_denied('Unable to view issue details')
 
     # show details
@@ -240,8 +240,8 @@ def issue_priority(issue_id, op):
         flash('No issue found', 'info')
         return redirect(url_for('.issue_all'))
 
-    # permission check
-    if not g.user.check_for_issue(issue):
+    # security check
+    if not issue.check_acl('@modify'):
         return _error_permission_denied('Unable to change issue priority')
 
     # change integer priority
@@ -267,8 +267,8 @@ def issue_reports(issue_id):
         flash('No issue found', 'info')
         return redirect(url_for('.issue_all'))
 
-    # permission check
-    if not g.user.check_for_issue(issue, readonly=True):
+    # security check
+    if not issue.check_acl('@view'):
         return _error_permission_denied('Unable to view issue reports')
 
     # check firmware details are available to this user, and check if it matches
@@ -285,7 +285,7 @@ def issue_reports(issue_id):
         if reports_cnt < 10:
             fw = db.session.query(Firmware).\
                     filter(Firmware.firmware_id == report.firmware_id).first()
-            if not g.user.check_for_firmware(fw, readonly=True):
+            if not fw.check_acl('@view'):
                 reports_hidden.append(report)
                 continue
             reports.append(report)
@@ -308,8 +308,8 @@ def issue_conditions(issue_id):
         flash('No issue found', 'info')
         return redirect(url_for('.issue_all'))
 
-    # permission check
-    if not g.user.check_for_issue(issue, readonly=True):
+    # security check
+    if not issue.check_acl('@view'):
         return _error_permission_denied('Unable to view issue conditions')
 
     # show details

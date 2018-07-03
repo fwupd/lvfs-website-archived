@@ -21,7 +21,7 @@
 <h1>Update History</h1>
 {% for fw in fws %}
 
-{% if (g.user is defined and g.user.check_capability('admin')) or fw.remote.is_public %}
+{% if (g.user is defined and g.user.check_acl('@admin')) or fw.remote.is_public %}
 {% if fw.version_display %}
 <h2 class="mt-3">Version {{fw.version_display}}:</h2>
 {% else %}

@@ -8,7 +8,7 @@
 <form method="post" action="/lvfs/issue/{{issue.issue_id}}/modify">
   <div class="form-group">
     <label for="group_id">URL:</label>
-    <input type="text" class="form-control" name="url" value="{{issue.url}}" required {{'disabled' if not g.user.check_for_issue(issue)}}>
+    <input type="text" class="form-control" name="url" value="{{issue.url}}" required {{'disabled' if not issue.check_acl('@modify')}}>
   </div>
   <div class="form-group">
     <label for="group_id">Group:</label>
@@ -16,19 +16,19 @@
   </div>
   <div class="form-group">
     <label for="group_id">Name:</label>
-    <input type="text" class="form-control" name="name" value="{{issue.name}}" required {{'disabled' if not g.user.check_for_issue(issue)}}>
+    <input type="text" class="form-control" name="name" value="{{issue.name}}" required {{'disabled' if not issue.check_acl('@modify')}}>
   </div>
   <div class="form-group">
     <label for="display_name">Description:</label>
-    <input type="text" class="form-control" name="description" value="{{issue.description}}" required {{'disabled' if not g.user.check_for_issue(issue)}}>
+    <input type="text" class="form-control" name="description" value="{{issue.description}}" required {{'disabled' if not issue.check_acl('@modify')}}>
   </div>
   <div class="form-group">
     <label for="enabled">
-      <input class="checkbox" type="checkbox" name="enabled" value="1" {{'checked' if issue.enabled}} {{'disabled' if not g.user.check_for_issue(issue)}}/>
+      <input class="checkbox" type="checkbox" name="enabled" value="1" {{'checked' if issue.enabled}} {{'disabled' if not issue.check_acl('@modify')}}/>
       Enabled
     </label>
   </div>
-{% if g.user.check_for_issue(issue) %}
+{% if issue.check_acl('@modify') %}
   <input type="submit" class="btn btn-primary btn-large" class="submit" value="Modify">
   <button type="button" class="btn btn-danger" data-toggle="modal" data-target="#deleteModal">Delete</button>
 {% endif %}

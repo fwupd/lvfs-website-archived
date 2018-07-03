@@ -13,7 +13,7 @@ from app import app, db
 
 from .emails import send_email
 from .util import _error_internal, _error_permission_denied, _email_check, _generate_password
-from .models import UserCapability, User, Vendor, Remote, Firmware, Event, FirmwareEvent
+from .models import User, Vendor, Remote, Firmware, Event, FirmwareEvent
 from .hash import _password_hash
 
 def _password_check(value):
@@ -95,7 +95,7 @@ def user_reset_by_admin(user_id):
         return _error_internal('No user with that user_id', 422)
 
     # security check
-    if not g.user.check_for_vendor(user.vendor):
+    if not user.vendor.check_acl('@manage-users'):
         return _error_permission_denied('Unable to modify user as non-admin')
 
     # password is stored hashed
@@ -124,9 +124,9 @@ def user_modify_by_admin(user_id):
         return _error_internal('No user with that user_id', 422)
 
     # security check
-    if not g.user.check_for_vendor(user.vendor):
+    if not user.vendor.check_acl('@manage-users'):
         return _error_permission_denied('Unable to modify user as non-admin')
-    if not g.user.check_capability(UserCapability.Admin) and 'vendor_id' in request.form:
+    if not g.user.check_acl('@admin') and 'vendor_id' in request.form:
         return _error_permission_denied('Unable to modify group for user as non-admin')
 
     # set each optional thing in turn
@@ -204,7 +204,7 @@ def user_add():
         return redirect(url_for('.profile'))
 
     # security check
-    if not g.user.check_capability(UserCapability.Admin):
+    if not g.user.check_acl('@admin'):
         return _error_permission_denied('Unable to add user as non-admin')
 
     if not 'username' in request.form:
@@ -265,7 +265,7 @@ def user_delete(user_id):
     """ Delete a user """
 
     # security check
-    if not g.user.check_capability(UserCapability.Admin):
+    if not g.user.check_acl('@admin'):
         return _error_permission_denied('Unable to remove user as not admin')
 
     # check whether exists in database
@@ -284,7 +284,7 @@ def user_list():
     """
     Show a list of all users
     """
-    if not g.user.check_capability(UserCapability.Admin):
+    if not g.user.check_acl('@admin'):
         return _error_permission_denied('Unable to show userlist for non-admin user')
     return render_template('userlist.html', users=db.session.query(User).all())
 
@@ -307,11 +307,11 @@ def user_admin(user_id):
         return redirect(url_for('.user_list'))
 
     # security check
-    if not g.user.check_for_vendor(user.vendor):
+    if not user.vendor.check_acl('@manage-users'):
         return _error_permission_denied('Unable to modify user for non-admin user')
 
     # get all the vendors with LVFS accounts
-    if g.user.check_capability(UserCapability.Admin):
+    if g.user.check_acl('@admin'):
         vendors = db.session.query(Vendor).\
                     filter(Vendor.is_account_holder == 'yes').\
                     order_by(Vendor.display_name).all()

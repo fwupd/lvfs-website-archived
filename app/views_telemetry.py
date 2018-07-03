@@ -14,7 +14,7 @@ from sqlalchemy.orm import joinedload
 from app import app, db
 
 from .dbutils import _execute_count_star
-from .models import Firmware, Client, UserCapability
+from .models import Firmware, Client
 from .util import _error_permission_denied
 
 def _get_split_names_for_firmware(fw):
@@ -37,7 +37,8 @@ def _get_split_names_for_firmware(fw):
 @app.route('/lvfs/telemetry/repair')
 @login_required
 def telemetry_repair():
-    if not g.user.check_capability(UserCapability.Admin):
+    # security check
+    if not g.user.check_acl('@admin'):
         return _error_permission_denied('Not admin user')
     for fw in db.session.query(Firmware).all():
         q = db.session.query(Client).filter(Client.firmware_id == fw.firmware_id)
@@ -55,7 +56,7 @@ def telemetry(age=0, sort_key='downloads', sort_direction='up'):
     """ Show firmware component information """
 
     # only Analyst users can view this data
-    if not g.user.check_capability(UserCapability.Analyst):
+    if not g.user.check_acl('@view-analytics'):
         return _error_permission_denied('Unable to view telemetry as not Analyst')
 
     # get data
@@ -69,7 +70,7 @@ def telemetry(age=0, sort_key='downloads', sort_direction='up'):
     for fw in db.session.query(Firmware).options(joinedload('reports')).all():
 
         # not allowed to view
-        if not g.user.check_capability(UserCapability.Admin) and fw.vendor.group_id != g.user.vendor.group_id:
+        if not g.user.check_acl('@admin') and fw.vendor.group_id != g.user.vendor.group_id:
             continue
         if len(fw.mds) == 0:
             continue

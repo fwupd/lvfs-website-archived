@@ -64,7 +64,7 @@
 </div>
 {% endif %}
 
-{% if g.user.check_capability('admin') %}
+{% if g.user.check_acl('@admin') %}
 <!-- admin only actions -->
 <h2>Actions</h2>
 <p>

@@ -9,7 +9,7 @@ from flask_login import login_required
 
 from app import app, db, ploader
 
-from .models import Setting, UserCapability
+from .models import Setting
 from .util import _event_log, _error_permission_denied, _get_settings
 
 @app.route('/lvfs/settings')
@@ -20,7 +20,7 @@ def settings_view(plugin_id='general'):
     Allows the admin to change details about the LVFS instance
     """
     # security check
-    if not g.user.check_capability(UserCapability.Admin):
+    if not g.user.check_acl('@admin'):
         return _error_permission_denied('Only admin is allowed to change settings')
     return render_template('settings.html',
                            settings=_get_settings(),
@@ -32,7 +32,7 @@ def settings_view(plugin_id='general'):
 def settings_create():
 
     # security check
-    if not g.user.check_capability(UserCapability.Admin):
+    if not g.user.check_acl('@admin'):
         return _error_permission_denied('Only admin is allowed to change settings')
 
     # create all the plugin default keys
@@ -55,7 +55,7 @@ def settings_modify(plugin_id='general'):
         return redirect(url_for('.settings_view', plugin_id=plugin_id))
 
     # security check
-    if not g.user.check_capability(UserCapability.Admin):
+    if not g.user.check_acl('@admin'):
         return _error_permission_denied('Unable to modify settings as non-admin')
 
     # save new values

@@ -22,7 +22,7 @@ from app import app, db, lm, ploader
 from .dbutils import _execute_count_star
 from .pluginloader import PluginError
 
-from .models import Firmware, UserCapability, Requirement, Component, Vendor
+from .models import Firmware, Requirement, Component, Vendor
 from .models import User, Analytic, Client, Event, Useragent, _get_datestr_from_datetime
 from .hash import _qa_hash, _password_hash, _addr_hash
 from .util import _get_client_address, _get_settings
@@ -385,11 +385,11 @@ def eventlog(start=0, length=20):
     Show an event log of user actions.
     """
     # security check
-    if not g.user.check_capability(UserCapability.QA):
+    if not g.user.check_acl('@view-eventlog'):
         return _error_permission_denied('Unable to show event log for non-QA user')
 
     # get the page selection correct
-    if g.user.check_capability('admin'):
+    if g.user.check_acl('@admin'):
         eventlog_len = _execute_count_star(db.session.query(Event))
     else:
         eventlog_len = _execute_count_star(db.session.query(Event).\
@@ -400,7 +400,7 @@ def eventlog(start=0, length=20):
         eventlog_len = length * 20
 
     # table contents
-    if g.user.check_capability(UserCapability.Admin):
+    if g.user.check_acl():
         events = db.session.query(Event).\
                         order_by(Event.id.desc()).\
                         offset(start).limit(length).all()
@@ -420,7 +420,7 @@ def profile():
     """
 
     # security check
-    if not g.user.check_capability(UserCapability.User):
+    if not g.user.check_acl('@view-profile'):
         return _error_permission_denied('Unable to view profile as account locked')
 
     return render_template('profile.html')

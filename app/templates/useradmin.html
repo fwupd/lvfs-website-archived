@@ -11,19 +11,19 @@
     <input type="text" class="form-control" name="display_name" value="{{u.display_name}}" required>
   </div>
 {% endif %}
-{% if g.user.check_capability('admin') %}
+{% if g.user.check_acl('@admin') %}
   <div class="form-group">
     <label for="display_name">Username:</label>
     <input type="text" class="form-control" name="username" value="{{u.username}}">
   </div>
 {% endif %}
-{% if g.user.check_capability('admin') and u.username_old %}
+{% if g.user.check_acl('@admin') and u.username_old %}
   <div class="form-group">
     <label for="display_name">Legacy Username:</label>
     <input type="text" class="form-control" name="username_old" value="{{u.username_old}}">
   </div>
 {% endif %}
-{% if g.user.check_capability('vendor-manager') %}
+{% if u.vendor.check_acl('@manage-users') %}
   <div class="form-group">
     <label for="auth_type">Account Type:</label>
     <select class="form-control" name="auth_type">
@@ -60,7 +60,7 @@
     </label>
   </div>
 {% endif %}
-{% if g.user.check_capability('admin') %}
+{% if g.user.check_acl('@admin') %}
   <hr/>
   <div class="form-group">
     <label for="is_qa">
@@ -72,11 +72,11 @@
   <input type="hidden" name="send_email" value="1">
 {% endif %}
   <input type="submit" class="btn btn-primary btn-large" class="submit" value="Modify">
-{% if g.user.check_capability('admin') and u.group_id != 'admin' %}
+{% if g.user.check_acl('@admin') and u.group_id != 'admin' %}
   <button type="button" class="btn btn-warning" data-toggle="modal" data-target="#moveModal">Change Vendor</button>
 {% endif %}
   <a class="btn btn-danger" href="/lvfs/user/{{u.user_id}}/reset_by_admin">Reset Password</a>
-{% if g.user.check_capability('admin') and u.group_id != 'admin' %}
+{% if g.user.check_acl('@admin') and u.group_id != 'admin' %}
   <button type="button" class="btn btn-danger" data-toggle="modal" data-target="#deleteModal">Delete</button>
 {% endif %}
 </form>

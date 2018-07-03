@@ -11,13 +11,14 @@ from flask_login import login_required
 
 from app import app, db
 
-from .models import Firmware, Report, ReportAttribute, Issue, UserCapability
+from .models import Firmware, Report, ReportAttribute, Issue
 from .util import _error_internal, _error_permission_denied
 
 @app.route('/lvfs/report/<report_id>')
 @login_required
 def report_view(report_id):
-    if not g.user.check_capability(UserCapability.Admin):
+    # security check
+    if not g.user.check_acl('@admin'):
         return _error_permission_denied('Unable to view report')
     rprt = db.session.query(Report).filter(Report.report_id == report_id).first()
     if not rprt:
@@ -29,7 +30,8 @@ def report_view(report_id):
 @app.route('/lvfs/report/<report_id>/delete')
 @login_required
 def report_delete(report_id):
-    if not g.user.check_capability(UserCapability.Admin):
+    # security check
+    if not g.user.check_acl('@admin'):
         return _error_permission_denied('Unable to view report')
     report = db.session.query(Report).filter(Report.report_id == report_id).first()
     if not report:

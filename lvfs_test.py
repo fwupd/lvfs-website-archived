@@ -518,8 +518,8 @@ class LvfsTestCase(unittest.TestCase):
 
         # add vendor1 and user, then upload firmware
         self.login()
-        self.add_vendor('acme')
-        self.add_user('alice@acme.com', 'acme')
+        self.add_vendor('acme') # 2
+        self.add_user('alice@acme.com', 'acme') # 3
         self.logout()
         self.login('alice@acme.com')
         self.upload()
@@ -527,7 +527,7 @@ class LvfsTestCase(unittest.TestCase):
 
         # add vendor2 and move user to that
         self.login()
-        self.add_vendor('odm')
+        self.add_vendor('odm') # 3
         rv = self.app.post('/lvfs/user/3/modify_by_admin', data=dict(
             vendor_id='3',
             reparent='1',
@@ -570,7 +570,7 @@ class LvfsTestCase(unittest.TestCase):
 
         # modify an existing user as the admin
         rv = self.app.post('/lvfs/user/3/modify_by_admin', data=dict(
-            auth_type='auth_type',
+            auth_type='local',
             is_qa='1',
             is_analyst='1',
             group_id='testgroup',
@@ -679,10 +679,10 @@ class LvfsTestCase(unittest.TestCase):
         assert b'>embargo-testgroup<' in rv.data, rv.data
         rv = self.app.get('/lvfs/firmware/1/promote/testing',
                           follow_redirects=True)
-        assert b'Unable to promote as not QA' in rv.data, rv.data
+        assert b'Permission denied' in rv.data, rv.data
         rv = self.app.get('/lvfs/firmware/1/promote/stable',
                           follow_redirects=True)
-        assert b'Unable to promote as not QA' in rv.data, rv.data
+        assert b'Permission denied' in rv.data, rv.data
 
         # demote back to private
         rv = self.app.get('/lvfs/firmware/1/promote/private',
@@ -1002,6 +1002,7 @@ class LvfsTestCase(unittest.TestCase):
         assert b'Update text updated' in rv.data, rv.data
 
         # check bob can move the firmware to the embargo remote for the *OEM*
+        assert b'/promote/embargo' in rv.data, rv.data
         rv = self.app.get('/lvfs/firmware/1/promote/embargo',
                           follow_redirects=True)
         assert b'Moved firmware' in rv.data, rv.data
@@ -1011,7 +1012,7 @@ class LvfsTestCase(unittest.TestCase):
         # check bob can't move the firmware to stable
         rv = self.app.get('/lvfs/firmware/1/promote/stable',
                           follow_redirects=True)
-        assert b'Unable to promote as not QA' in rv.data, rv.data
+        assert b'Permission denied' in rv.data, rv.data
         self.logout()
 
         # remove affiliation as admin

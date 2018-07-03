@@ -15,7 +15,7 @@ from app import app, db
 
 from .emails import send_email
 from .util import _error_permission_denied, _error_internal, _email_check
-from .models import UserCapability, Vendor, Restriction, User, Remote, Affiliation
+from .models import Vendor, Restriction, User, Remote, Affiliation
 from .hash import _password_hash
 from .util import _generate_password
 
@@ -47,7 +47,7 @@ def vendor_add():
         return redirect(url_for('.vendor_list'))
 
     # security check
-    if not g.user.check_capability(UserCapability.Admin):
+    if not g.user.check_acl('@admin'):
         return _error_permission_denied('Unable to add vendor as non-admin')
 
     if not 'group_id' in request.form:
@@ -70,7 +70,7 @@ def vendor_delete(vendor_id):
     """ Removes a vendor [ADMIN ONLY] """
 
     # security check
-    if not g.user.check_capability(UserCapability.Admin):
+    if not g.user.check_acl('@admin'):
         return _error_permission_denied('Unable to remove vendor as non-admin')
     vendor = db.session.query(Vendor).filter(Vendor.vendor_id == vendor_id).first()
     if not vendor:
@@ -89,7 +89,7 @@ def vendor_details(vendor_id):
     """ Allows changing a vendor [ADMIN ONLY] """
 
     # security check
-    if not g.user.check_capability(UserCapability.Admin):
+    if not g.user.check_acl('@admin'):
         return _error_permission_denied('Unable to edit vendor as non-admin')
     vendor = db.session.query(Vendor).filter(Vendor.vendor_id == vendor_id).first()
     if not vendor:
@@ -103,7 +103,7 @@ def vendor_restrictions(vendor_id):
     """ Allows changing a vendor [ADMIN ONLY] """
 
     # security check
-    if not g.user.check_capability(UserCapability.Admin):
+    if not g.user.check_acl('@admin'):
         return _error_permission_denied('Unable to edit vendor as non-admin')
     vendor = db.session.query(Vendor).filter(Vendor.vendor_id == vendor_id).first()
     if not vendor:
@@ -123,7 +123,7 @@ def vendor_users(vendor_id):
         return redirect(url_for('.vendor_list'), 302)
 
     # security check
-    if not g.user.check_for_vendor(vendor):
+    if not vendor.check_acl('@manage-users'):
         return _error_permission_denied('Unable to edit vendor as non-admin')
     return render_template('vendor-users.html', v=vendor)
 
@@ -139,7 +139,7 @@ def vendor_oauth(vendor_id):
         return redirect(url_for('.vendor_list'), 302)
 
     # security check
-    if not g.user.check_for_vendor(vendor):
+    if not vendor.check_acl('@modify-oauth'):
         return _error_permission_denied('Unable to edit vendor as non-admin')
     return render_template('vendor-oauth.html', v=vendor)
 
@@ -149,7 +149,7 @@ def vendor_restriction_add(vendor_id):
     """ Allows changing a vendor [ADMIN ONLY] """
 
     # security check
-    if not g.user.check_capability(UserCapability.Admin):
+    if not g.user.check_acl('@admin'):
         return _error_permission_denied('Unable to edit vendor as non-admin')
 
     # check exists
@@ -170,7 +170,7 @@ def vendor_restriction_delete(vendor_id, restriction_id):
     """ Allows changing a vendor [ADMIN ONLY] """
 
     # security check
-    if not g.user.check_capability(UserCapability.Admin):
+    if not g.user.check_acl('@admin'):
         return _error_permission_denied('Unable to edit vendor as non-admin')
 
     # check exists
@@ -196,7 +196,7 @@ def vendor_modify_by_admin(vendor_id):
         return redirect(url_for('.vendor_list'))
 
     # security check
-    if not g.user.check_capability(UserCapability.Admin):
+    if not g.user.check_acl('@admin'):
         return _error_permission_denied('Unable to modify vendor as non-admin')
 
     # save to database
@@ -232,7 +232,7 @@ def vendor_modify_by_admin(vendor_id):
 def vendor_upload(vendor_id):
 
     # security check
-    if not g.user.check_capability(UserCapability.Admin):
+    if not g.user.check_acl('@admin'):
         return _error_permission_denied('Unable to modify vendor as non-admin')
 
     # check exists
@@ -272,10 +272,8 @@ def vendor_user_disable(vendor_id, user_id):
         return redirect(url_for('.vendor_users', vendor_id=vendor_id))
 
     # security check
-    if not g.user.check_for_vendor(vendor):
+    if not vendor.check_acl('@manage-users'):
         return _error_permission_denied('Unable to delete user as non-admin')
-    if user.vendor_id != vendor.vendor_id:
-        return _error_permission_denied('Unable to delete user as wrong vendor')
 
     # erase password and set as 'disabled'
     user.password = None
@@ -301,7 +299,7 @@ def vendor_user_add(vendor_id):
         return redirect(url_for('.vendor_list'), 302)
 
     # security check
-    if not g.user.check_for_vendor(vendor):
+    if not vendor.check_acl('@manage-users'):
         return _error_permission_denied('Unable to modify vendor as non-admin')
 
     if not 'username' in request.form or not request.form['username']:
@@ -363,7 +361,7 @@ def vendor_affiliations(vendor_id):
         return redirect(url_for('.vendor_list'), 302)
 
     # security check
-    if not g.user.check_capability(UserCapability.Admin):
+    if not g.user.check_acl('@admin'):
         return _error_permission_denied('Unable to edit vendor as non-admin')
 
     # add other vendors
@@ -384,7 +382,7 @@ def vendor_affiliation_add(vendor_id):
     """ Allows changing a vendor [ADMIN ONLY] """
 
     # security check
-    if not g.user.check_capability(UserCapability.Admin):
+    if not g.user.check_acl('@admin'):
         return _error_permission_denied('Unable to edit vendor as non-admin')
 
     # check exists
@@ -414,7 +412,7 @@ def vendor_affiliation_delete(vendor_id, affiliation_id):
     """ Allows changing a vendor [ADMIN ONLY] """
 
     # security check
-    if not g.user.check_capability(UserCapability.Admin):
+    if not g.user.check_acl('@admin'):
         return _error_permission_denied('Unable to edit vendor as non-admin')
 
     # check exists

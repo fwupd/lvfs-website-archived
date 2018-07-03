@@ -31,7 +31,7 @@
     <td class="col-sm-5">{{issue.description}}</td>
     <td class="col-sm-1">
       <h3 class="text-center"><span class="badge badge-secondary">{{issue.priority}}</span></h3>
-{% if g.user.check_for_issue(issue) %}
+{% if issue.check_acl('@modify') %}
 {% if issue == issues[0] %}
       <a class="btn btn-sm btn-outline-dark btn-block" href="/lvfs/issue/{{issue.issue_id}}/priority/down">▼</a>
 {% elif issue == issues[issues|length-1] %}

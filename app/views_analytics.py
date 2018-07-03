@@ -13,7 +13,7 @@ from flask_login import login_required
 
 from app import app, db
 
-from .models import UserCapability, Analytic, Client, Report, Useragent, SearchEvent
+from .models import Analytic, Client, Report, Useragent, SearchEvent
 from .models import _get_datestr_from_datetime, _split_search_string
 from .util import _error_permission_denied
 from .util import _get_chart_labels_months, _get_chart_labels_days
@@ -25,7 +25,7 @@ def analytics_month():
     """ A analytics screen to show information about users """
 
     # security check
-    if not g.user.check_capability(UserCapability.Admin):
+    if not g.user.check_acl('@admin'):
         return _error_permission_denied('Unable to view analytics')
 
     # this is somewhat klunky
@@ -54,7 +54,7 @@ def analytics_year():
     """ A analytics screen to show information about users """
 
     # security check
-    if not g.user.check_capability(UserCapability.Admin):
+    if not g.user.check_acl('@admin'):
         return _error_permission_denied('Unable to view analytics')
 
     # this is somewhat klunky
@@ -99,7 +99,7 @@ def analytics_user_agents(timespan_days=30):
     """ A analytics screen to show information about users """
 
     # security check
-    if not g.user.check_capability(UserCapability.Admin):
+    if not g.user.check_acl('@admin'):
         return _error_permission_denied('Unable to view analytics')
 
     # get data for this time period
@@ -165,7 +165,7 @@ def analytics_clients():
     """ A analytics screen to show information about users """
 
     # security check
-    if not g.user.check_capability(UserCapability.Admin):
+    if not g.user.check_acl('@admin'):
         return _error_permission_denied('Unable to view analytics')
     clients = db.session.query(Client).\
                     order_by(Client.timestamp.desc()).\
@@ -178,7 +178,7 @@ def analytics_reports():
     """ A analytics screen to show information about users """
 
     # security check
-    if not g.user.check_capability(UserCapability.Admin):
+    if not g.user.check_acl('@admin'):
         return _error_permission_denied('Unable to view analytics')
     reports = db.session.query(Report).\
                     order_by(Report.timestamp.desc()).\
@@ -189,7 +189,7 @@ def analytics_reports():
 @login_required
 def analytics_search_history():
     # security check
-    if not g.user.check_capability(UserCapability.Admin):
+    if not g.user.check_acl('@admin'):
         return _error_permission_denied('Unable to view analytics')
     search_events = db.session.query(SearchEvent).\
                         order_by(SearchEvent.timestamp.desc()).\
@@ -203,7 +203,7 @@ def analytics_search_history():
 def analytics_search_stats(limit=20):
 
     # security check
-    if not g.user.check_capability(UserCapability.Admin):
+    if not g.user.check_acl('@admin'):
         return _error_permission_denied('Unable to view analytics')
 
     search_events = db.session.query(SearchEvent).\

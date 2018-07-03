@@ -44,14 +44,14 @@
       <code>{{condition.value|truncate(50, False, '…')}}</code>
     </td>
     <td class="col-sm-2">
-{% if g.user.check_for_issue(issue) %}
+{% if issue.check_acl('@modify') %}
       <a class="btn btn-block btn-danger" href="/lvfs/issue/{{issue.issue_id}}/condition/{{condition.condition_id}}/delete" role="button">Delete</a>
 {% endif %}
     </td>
   </tr>
 {% endfor %}
 {% endif %}
-{% if g.user.check_for_issue(issue) %}
+{% if issue.check_acl('@modify') %}
   <tr class="row">
     <form method="post" action="/lvfs/issue/{{issue.issue_id}}/condition/add">
     <td class="col-sm-3">

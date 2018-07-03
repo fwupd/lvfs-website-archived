@@ -5,6 +5,7 @@
 
 {% block content %}
 <h3>Device Software Versions</h3>
+{% if md.check_acl('@modify-requirements') %}
 {% if fw.remote.name == 'stable' %}
 <div class="alert alert-danger mt-1" role="alert">
   This firmware has <strong>already been pushed to stable</strong>.
@@ -15,6 +16,7 @@
   Changing this information will <strong>only</strong> modify the metadata when the
   firmware changes state, e.g. from <em>testing</em> to <em>stable</em>.
 </div>
+{% endif %}
 {% endif %}
 <form class="form-inline" action="/lvfs/component/requirement/add" method="POST" >
   <input type="hidden" name="component_id" value="{{md.component_id}}">
@@ -39,9 +41,11 @@
         </select>
         <input type="text" class="form-control" name="version" value="{{rq.version}}"/>
       </div>
+{% if md.check_acl('@modify-requirements') %}
       <div class="col-sm-2 text-right">
         <input type="submit" class="btn btn-secondary btn-block" value="Set"/>
       </div>
+{% endif %}
     </div>
   </div>
 </form>
@@ -69,9 +73,11 @@
         </select>
         <input type="text" class="form-control" name="version" value="{{rq.version}}"/>
       </div>
+{% if md.check_acl('@modify-requirements') %}
        <div class="col-sm-2 text-right">
         <input type="submit" class="btn btn-secondary btn-block" value="Set"/>
       </div>
+{% endif %}
     </div>
   </div>
 </form>
@@ -100,9 +106,11 @@
         </select>
         <input type="text" class="form-control" name="version" value="{{rq.version}}"/>
       </div>
+{% if md.check_acl('@modify-requirements') %}
       <div class="col-sm-2 text-right">
         <input type="submit" class="btn btn-secondary btn-block" value="Set"/>
       </div>
+{% endif %}
     </div>
   </div>
 </form>
@@ -121,6 +129,12 @@
   </tr>
 {% endif %}
 {% endfor %}
+{% if md.requirements|length == 0 %}
+  <p class="text-secondary">
+    No restrictions to a specific machine.
+  </p>
+{% endif %}
+{% if md.check_acl('@modify-requirements') %}
   <tr class="row table-borderless">
     <form class="form-inline" action="/lvfs/component/requirement/add" method="POST" >
       <td class="col-sm-10">
@@ -136,6 +150,7 @@
       </td>
     </form>
   </tr>
+{% endif %}
 </table>
 {% endblock %}
 

@@ -4,7 +4,7 @@
 # Copyright (C) 2017-2018 Richard Hughes <richard@hughsie.com>
 # Licensed under the GNU General Public License Version 2
 
-from flask import request, url_for, redirect, render_template, flash, g
+from flask import request, url_for, redirect, render_template, flash
 from flask_login import login_required
 
 from app import app, db
@@ -63,11 +63,11 @@ def firmware_component_show(component_id, page='overview'):
     if not md:
         return _error_internal('No component matched!')
 
-    # we can only view our own firmware, unless admin
+    # security check
     fw = md.fw
     if not fw:
         return _error_internal('No firmware matched!')
-    if not g.user.check_for_firmware(fw, readonly=True):
+    if not fw.check_acl('@view'):
         return _error_permission_denied('Unable to view other vendor firmware')
 
     return render_template('firmware-md-' + page + '.html',
@@ -86,12 +86,9 @@ def firmware_requirement_delete(requirement_id):
     md = rq.md
     if not md:
         return _error_internal('No metadata matched!')
-    fw = md.fw
-    if not fw:
-        return _error_internal('No firmware matched!')
 
-    # we can only modify our own firmware, unless admin
-    if not g.user.check_for_firmware(fw):
+    # security check
+    if not md.check_acl('@modify-requirements'):
         return _error_permission_denied('Unable to modify other vendor firmware')
 
     # remove chid
@@ -121,12 +118,9 @@ def firmware_requirement_add():
             filter(Component.component_id == request.form['component_id']).first()
     if not md:
         return _error_internal('No component matched!')
-    fw = md.fw
-    if not fw:
-        return _error_internal('No firmware matched!')
 
-    # we can only modify our own firmware, unless admin
-    if not g.user.check_for_firmware(fw):
+    # security check
+    if not md.check_acl('@modify-requirements'):
         return _error_permission_denied('Unable to modify other vendor firmware')
 
     # validate CHID is a valid GUID
@@ -183,12 +177,9 @@ def firmware_keyword_delete(keyword_id):
     md = kw.md
     if not md:
         return _error_internal('No metadata matched!')
-    fw = md.fw
-    if not fw:
-        return _error_internal('No firmware matched!')
 
-    # we can only modify our own firmware, unless admin
-    if not g.user.check_for_firmware(fw):
+    # security check
+    if not md.check_acl('@modify-keywords'):
         return _error_permission_denied('Unable to modify other vendor firmware')
 
     # remove chid
@@ -216,12 +207,9 @@ def firmware_keyword_add():
             filter(Component.component_id == request.form['component_id']).first()
     if not md:
         return _error_internal('No component matched!')
-    fw = md.fw
-    if not fw:
-        return _error_internal('No firmware matched!')
 
-    # we can only modify our own firmware, unless admin
-    if not g.user.check_for_firmware(fw):
+    # security check
+    if not md.check_acl('@modify-keywords'):
         return _error_permission_denied('Unable to modify other vendor firmware')
 
     # add keyword

@@ -19,7 +19,7 @@ from app import app, db
 from .dbutils import _execute_count_star
 
 from .hash import _qa_hash
-from .models import UserCapability, Firmware, Report, Client, FirmwareEvent, FirmwareLimit, Remote, Vendor
+from .models import Firmware, Report, Client, FirmwareEvent, FirmwareLimit, Remote, Vendor
 from .util import _error_internal, _error_permission_denied
 from .util import _get_chart_labels_months, _get_chart_labels_days
 
@@ -31,14 +31,14 @@ def firmware(show_all=False):
     """
 
     # check is valid
-    if not g.user.check_capability(UserCapability.User):
+    if not g.user.check_acl():
         return _error_permission_denied('Not a valid user')
 
     # group by the firmware name
     names = {}
     for fw in db.session.query(Firmware).\
                 order_by(Firmware.timestamp.desc()).all():
-        if not g.user.check_for_firmware(fw, readonly=True):
+        if not fw.check_acl('@view'):
             continue
         if len(fw.mds) == 0:
             continue
@@ -83,8 +83,11 @@ def firmware_modify(firmware_id):
     fw = db.session.query(Firmware).filter(Firmware.firmware_id == firmware_id).first()
     if not fw:
         return _error_internal("No firmware %s" % firmware_id)
-    if not g.user.check_for_firmware(fw):
-        return _error_permission_denied('Insufficient permissions to modify firmware')
+
+    # security check
+    for md in fw.mds:
+        if not md.check_acl('@modify-updateinfo'):
+            return _error_permission_denied('Insufficient permissions to modify firmware')
 
     # set new metadata values
     for md in fw.mds:
@@ -115,7 +118,9 @@ def firmware_undelete(firmware_id):
     fw = db.session.query(Firmware).filter(Firmware.firmware_id == firmware_id).first()
     if not fw:
         return _error_internal("No firmware file with ID %s exists" % firmware_id)
-    if not g.user.check_for_firmware(fw):
+
+    # security check
+    if not fw.check_acl('@undelete'):
         return _error_permission_denied('Insufficient permissions to undelete firmware')
 
     # find private remote
@@ -146,12 +151,10 @@ def firmware_delete(firmware_id):
     fw = db.session.query(Firmware).filter(Firmware.firmware_id == firmware_id).first()
     if not fw:
         return _error_internal("No firmware file with ID %s exists" % firmware_id)
-    if not g.user.check_for_firmware(fw):
-        return _error_permission_denied('Insufficient permissions to delete firmware')
 
-    # only QA users can delete once the firmware has gone stable
-    if not g.user.is_qa and fw.remote.name == 'stable':
-        return _error_permission_denied('Unable to delete stable firmware as not QA')
+    # security check
+    if not fw.check_acl('@delete'):
+        return _error_permission_denied('Insufficient permissions to delete firmware')
 
     # find private remote
     remote = db.session.query(Remote).filter(Remote.name == 'deleted').first()
@@ -191,23 +194,10 @@ def firmware_promote(firmware_id, target):
     fw = db.session.query(Firmware).filter(Firmware.firmware_id == firmware_id).first()
     if not fw:
         return _error_internal('No firmware matched!')
-    if not g.user.check_for_firmware(fw):
+
+    # security check
+    if not fw.check_acl('@promote-' + target):
         return _error_permission_denied("No QA access to %s" % fw.firmware_id)
-
-    # anything -> testing,stable = QA
-    if target in ['testing', 'stable']:
-        if not g.user.check_capability(UserCapability.QA):
-            return _error_permission_denied('Unable to promote as not QA')
-
-    # testing,stable -> anything = QA
-    elif fw.remote.name in ['testing', 'stable']:
-        if not g.user.check_capability(UserCapability.QA):
-            return _error_permission_denied('Unable to promote as not QA')
-
-    # private,embargo -> embargo,private = User
-    elif fw.remote.name in ['private', 'embargo'] and target in ['private', 'embargo']:
-        if not g.user.check_capability(UserCapability.User):
-            return _error_permission_denied('Unable to promote as not User')
 
     # set new remote
     if target == 'embargo':
@@ -244,8 +234,8 @@ def firmware_components(firmware_id):
     if not fw:
         return _error_internal('No firmware matched!')
 
-    # we can only view our own firmware, unless admin
-    if not g.user.check_for_firmware(fw, readonly=True):
+    # security check
+    if not fw.check_acl('@view'):
         return _error_permission_denied('Insufficient permissions to view components')
 
     return render_template('firmware-components.html', fw=fw)
@@ -260,8 +250,8 @@ def firmware_limits(firmware_id):
     if not fw:
         return _error_internal('No firmware matched!')
 
-    # we can only view our own firmware, unless admin
-    if not g.user.check_for_firmware(fw, readonly=True):
+    # security check
+    if not fw.check_acl('@view'):
         return _error_permission_denied('Insufficient permissions to view limits')
 
     return render_template('firmware-limits.html', fw=fw)
@@ -276,8 +266,8 @@ def firmware_limit_delete(firmware_limit_id):
     if not fl:
         return _error_internal('No firmware limit matched!')
 
-    # we can only delete our own firmware limits, unless admin
-    if not g.user.check_for_firmware(fl.fw, readonly=False):
+    # security check
+    if not fl.fw.check_acl('delete-limit'):
         return _error_permission_denied('Insufficient permissions to delete limits')
 
     firmware_id = fl.firmware_id
@@ -290,8 +280,14 @@ def firmware_limit_delete(firmware_limit_id):
 @login_required
 def firmware_limit_add():
 
-    # permission check
-    if not g.user.check_capability(UserCapability.QA):
+    # get details about the firmware
+    fw = db.session.query(Firmware).\
+            filter(Firmware.firmware_id == request.form['firmware_id']).first()
+    if not fw:
+        return _error_internal('No firmware matched!')
+
+    # security check
+    if not fw.check_acl('@add-limit'):
         return _error_permission_denied('Unable to add restriction')
 
     # ensure has enough data
@@ -321,7 +317,7 @@ def firmware_affiliation(firmware_id):
         return _error_internal('No firmware matched!')
 
     # security check
-    if not g.user.check_capability(UserCapability.Admin):
+    if not g.user.check_acl('@admin'):
         return _error_permission_denied('Insufficient permissions to view firmware affiliations')
 
     # add other vendors
@@ -346,7 +342,7 @@ def firmware_affiliation_change(firmware_id):
         return _error_internal("No firmware %s" % firmware_id)
 
     # security check
-    if not g.user.check_capability(UserCapability.Admin):
+    if not g.user.check_acl('@admin'):
         return _error_permission_denied('Insufficient permissions to modify firmware')
 
     # change the vendor
@@ -379,8 +375,8 @@ def firmware_problems(firmware_id):
     if not fw:
         return _error_internal('No firmware matched!')
 
-    # we can only view our own firmware, unless admin
-    if not g.user.check_for_firmware(fw, readonly=True):
+    # security check
+    if not fw.check_acl('@view'):
         return _error_permission_denied('Insufficient permissions to view components')
 
     return render_template('firmware-problems.html', fw=fw)
@@ -395,8 +391,8 @@ def firmware_history(firmware_id):
     if not fw:
         return _error_internal('No firmware matched!')
 
-    # we can only view our own firmware, unless admin
-    if not g.user.check_for_firmware(fw, readonly=True):
+    # security check
+    if not fw.check_acl('@view'):
         return _error_permission_denied('Insufficient permissions to view components')
 
     return render_template('firmware-history.html', fw=fw)
@@ -414,8 +410,8 @@ def firmware_show(firmware_id):
     if not fw:
         return _error_internal('No firmware matched!')
 
-    # we can only view our own firmware, unless admin
-    if not g.user.check_for_firmware(fw, readonly=True):
+    # security check
+    if not fw.check_acl('@view'):
         return _error_permission_denied('Insufficient permissions to view firmware')
 
     embargo_url = '/downloads/firmware-%s.xml.gz' % _qa_hash(fw.vendor.group_id)
@@ -461,17 +457,13 @@ def _get_stats_for_fw(size, interval, fw):
 def firmware_analytics_year(firmware_id):
     """ Show firmware analytics information """
 
-    # only analysts can see this data
-    if not g.user.check_capability(UserCapability.Analyst):
-        return _error_permission_denied('Insufficient permissions to view analytics')
-
     # get details about the firmware
     fw = db.session.query(Firmware).filter(Firmware.firmware_id == firmware_id).first()
     if not fw:
         return _error_internal('No firmware matched!')
 
-    # we can only view our own firmware, unless admin
-    if not g.user.check_for_firmware(fw, readonly=True):
+    # security check
+    if not fw.check_acl('@view-analytics'):
         return _error_permission_denied('Insufficient permissions to view analytics')
 
     data_fw = _get_stats_for_fw(12, 30, fw)
@@ -486,17 +478,13 @@ def firmware_analytics_year(firmware_id):
 def firmware_analytics_clients(firmware_id):
     """ Show firmware clients information """
 
-    # only analysts can see this data
-    if not g.user.check_capability(UserCapability.Analyst):
-        return _error_permission_denied('Insufficient permissions to view analytics')
-
     # get details about the firmware
     fw = db.session.query(Firmware).filter(Firmware.firmware_id == firmware_id).first()
     if not fw:
         return _error_internal('No firmware matched!')
 
-    # we can only view our own firmware, unless admin
-    if not g.user.check_for_firmware(fw, readonly=True):
+    # security check
+    if not fw.check_acl('@view-analytics'):
         return _error_permission_denied('Insufficient permissions to view analytics')
     clients = db.session.query(Client).filter(Client.firmware_id == fw.firmware_id).\
                 order_by(Client.id.desc()).limit(10).all()
@@ -510,17 +498,13 @@ def firmware_analytics_clients(firmware_id):
 def firmware_analytics_reports(firmware_id, state=None):
     """ Show firmware clients information """
 
-    # only analysts can see this data
-    if not g.user.check_capability(UserCapability.Analyst):
-        return _error_permission_denied('Insufficient permissions to view analytics')
-
     # get reports about the firmware
     fw = db.session.query(Firmware).filter(Firmware.firmware_id == firmware_id).first()
     if not fw:
         return _error_internal('No firmware matched!')
 
-    # we can only view our own firmware, unless admin
-    if not g.user.check_for_firmware(fw, readonly=True):
+    # security check
+    if not fw.check_acl('@view-analytics'):
         return _error_permission_denied('Insufficient permissions to view analytics')
     if state:
         reports = db.session.query(Report).\
@@ -539,17 +523,13 @@ def firmware_analytics_reports(firmware_id, state=None):
 def firmware_analytics_month(firmware_id):
     """ Show firmware analytics information """
 
-    # only analysts can see this data
-    if not g.user.check_capability(UserCapability.Analyst):
-        return _error_permission_denied('Insufficient permissions to view analytics')
-
     # get details about the firmware
     fw = db.session.query(Firmware).filter(Firmware.firmware_id == firmware_id).first()
     if not fw:
         return _error_internal('No firmware matched!')
 
-    # we can only view our own firmware, unless admin
-    if not g.user.check_for_firmware(fw, readonly=True):
+    # security check
+    if not fw.check_acl('@view-analytics'):
         return _error_permission_denied('Insufficient permissions to view analytics')
 
     data_fw = _get_stats_for_fw(30, 1, fw)

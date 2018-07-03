@@ -12,18 +12,13 @@ import re
 
 from gi.repository import AppStreamGlib
 
+from flask import g
+
 from sqlalchemy import Column, Integer, String, Text, Boolean, DateTime, ForeignKey, Unicode, Index
 from sqlalchemy.orm import relationship
 
 from app import db
 from .hash import _qa_hash
-
-class UserCapability(object):
-    Admin = 'admin'
-    VendorManager = 'vendor-manager'
-    QA = 'qa'
-    Analyst = 'analyst'
-    User = 'user'
 
 class Agreement(db.Model):
 
@@ -78,124 +73,28 @@ class User(db.Model):
         self.is_admin = is_admin
         self.is_vendor_manager = is_vendor_manager
 
-    def check_for_issue(self, issue, readonly=False):
+    def check_acl(self, action=None):
 
-        # disabled accounts can never see issues
-        if not self.auth_type:
-            return False
-
-        # anyone who is an admin can see everything
+        # anyone who is an admin can do everything
         if self.is_admin:
             return True
 
-        # any issues owned by admin can be viewed by a QA user
-        if self.is_qa and issue.vendor_id == 1 and readonly:
+        # this is just a check for 'is logged in'
+        if not action:
             return True
 
-        # QA user can modify any issues matching group_id
-        if self.is_qa and self.vendor_id == issue.vendor_id:
-            return True
-
-        # something else
-        return False
-
-    def check_for_firmware(self, fw, readonly=False):
-
-        # disabled accounts can never see firmware
-        if not self.auth_type:
+        # decide based on the action
+        if action == '@admin':
             return False
-
-        # anyone in the admin group can see everything
-        if self.is_admin:
-            return True
-
-        # QA user can modify any firmware matching vendor_id
-        if self.is_qa and self.vendor_id == fw.vendor_id:
-            return True
-
-        # Analyst user can view (but not modify) any firmware matching vendor_id
-        if readonly and self.is_analyst and self.vendor_id == fw.vendor_id:
-            return True
-
-        # User can see firmwares in the group owned by them
-        if self.vendor_id == fw.vendor_id and self.user_id == fw.user_id:
-            return True
-
-        # User was the person that uploaded this
-        if self.user_id == fw.user_id:
-            return True
-
-        # something else
-        return False
-
-    def check_for_vendor(self, vendor, allow_affiliates=False):
-
-        # disabled accounts can never see firmware
-        if not self.auth_type:
-            return False
-
-        # anyone in the admin group can see everything
-        if self.is_admin:
-            return True
-
-        # manager user can modify any firmware matching vendor_id
-        if self.is_vendor_manager and self.vendor_id == vendor.vendor_id:
-            return True
-
-        # allow access for some actions for vendor affiliates
-        if allow_affiliates:
-            if self.vendor_id == vendor.vendor_id:
-                return True
-            if vendor.get_affiliation_by_odm_id(self.vendor_id):
-                return True
-
-        # something else
-        return False
-
-    def check_capability(self, required_auth_level):
-
-        # user has been disabled for bad behaviour
-        if not self.auth_type:
-            return False
-
-        # admin only
-        if required_auth_level == UserCapability.Admin:
-            if self.is_admin:
+        elif action == '@view-profile':
+            return self.auth_type == 'local'
+        elif action == '@view-analytics':
+            if self.is_qa or self.is_analyst:
                 return True
             return False
-
-        # vendor manager only
-        if required_auth_level == UserCapability.VendorManager:
-            if self.is_admin:
-                return True
-            if self.is_vendor_manager:
-                return True
-            return False
-
-        # analysts only
-        if required_auth_level == UserCapability.Analyst:
-            if self.is_admin:
-                return True
-            if self.is_qa:
-                return True
-            if self.is_analyst:
-                return True
-            return False
-
-        # QA only
-        if required_auth_level == UserCapability.QA:
-            if self.is_admin:
-                return True
-            if self.is_qa:
-                return True
-            return False
-
-        # any action that just requires to be logged in
-        if required_auth_level == UserCapability.User:
-            return True
-
-        # something else
-        return False
+        elif action in ('@view-eventlog', '@view-issues'):
+            return self.is_qa
+        raise NotImplementedError('unknown security check type: %s' % self)
 
     @property
     def is_authenticated(self):
@@ -329,6 +228,34 @@ class Vendor(db.Model):
             if rel.vendor_id_odm == vendor_id_odm:
                 return rel
         return None
+
+    def check_acl(self, action, user=None):
+
+        # fall back
+        if not user:
+            user = g.user
+        if user.is_admin:
+            return True
+
+        # depends on the action requested
+        if action == '@upload':
+            # all members of a group can upload to that group
+            if user.vendor_id == self.vendor_id:
+                return True
+            # allow vendor affiliates too
+            if self.get_affiliation_by_odm_id(user.vendor_id):
+                return True
+            return False
+        elif action == '@manage-users':
+            # manager user can modify any users in his group
+            if user.is_vendor_manager and user.vendor_id == self.vendor_id:
+                return True
+            return False
+        elif action == '@modify-oauth':
+            return False
+
+        # user specified the wrong thing
+        raise NotImplementedError('unknown security check action: %s:%s' % (self, action))
 
     def __repr__(self):
         return "Vendor object %s" % self.group_id
@@ -570,6 +497,34 @@ class Component(db.Model):
             return rq
         return None
 
+    def check_acl(self, action, user=None):
+
+        # fall back
+        if not user:
+            user = g.user
+        if user.is_admin:
+            return True
+
+        # depends on the action requested
+        if action == '@modify-updateinfo':
+            if user.is_qa and user.vendor_id == self.fw.vendor_id:
+                return True
+            # is original file uploader, if not promoted
+            if user.user_id == self.fw.user_id:
+                if not self.fw.remote.is_public:
+                    return True
+            return False
+        elif action in ('@modify-keywords', '@modify-requirements'):
+            if user.is_qa and user.vendor_id == self.fw.vendor_id:
+                return True
+            if user.user_id == self.fw.user_id:
+                if not self.fw.remote.is_public:
+                    return True
+            return False
+
+        # user specified the wrong thing
+        raise NotImplementedError('unknown security check action: %s:%s' % (self, action))
+
     def __repr__(self):
         return "Component object %s" % self.appstream_id
 
@@ -727,6 +682,71 @@ class Firmware(db.Model):
         self.user_id = None         # user_id of the uploader
         self.mds = []
 
+    def check_acl(self, action, user=None):
+
+        # fall back
+        if not user:
+            user = g.user
+        if user.is_admin:
+            return True
+
+        # depends on the action requested
+        if action == '@delete':
+            if user.is_qa and user.vendor_id == self.vendor_id:
+                return True
+            if user.user_id == self.user_id:
+                if not self.remote.is_public:
+                    return True
+            return False
+        elif action == '@view':
+            if user.is_qa and user.vendor_id == self.vendor_id:
+                return True
+            # in analyst group for firmware owner
+            if user.is_analyst and user.vendor_id == self.vendor_id:
+                return True
+            if user.user_id == self.user_id:
+                return True
+            return False
+        elif action == '@view-analytics':
+            if not self.check_acl('@view', user):
+                return False
+            if user.is_qa or user.is_analyst:
+                return True
+            return False
+        elif action == '@undelete':
+            if user.is_qa and user.vendor_id == self.vendor_id:
+                return True
+            if user.user_id == self.user_id:
+                return True
+            return False
+        elif action.startswith('@promote-'):
+            if user.is_qa and user.vendor_id == self.vendor_id:
+                return True
+            # is original file uploader can move private<->embargo
+            if user.user_id == self.user_id:
+                old = self.remote.name
+                if old.startswith('embargo-'):
+                    old = 'embargo'
+                new = action[9:]
+                if new.startswith('embargo-'):
+                    new = 'embargo'
+                if old in ('private', 'embargo') and new in ('private', 'embargo'):
+                    return True
+            return False
+        elif action == '@add-limit':
+            if user.is_qa and user.vendor_id == self.vendor_id:
+                return True
+            if user.user_id == self.user_id:
+                return True
+            return False
+        elif action == '@remove-limit':
+            if user.is_qa and user.vendor_id == self.vendor_id:
+                return True
+            return False
+
+        # user specified the wrong thing
+        raise NotImplementedError('unknown security check action: %s:%s' % (self, action))
+
     def __repr__(self):
         return "Firmware object %s" % self.checksum_upload
 
@@ -846,6 +866,35 @@ class Issue(db.Model):
             if not condition.matches(data[condition.key]):
                 return False
         return True
+
+    def check_acl(self, action, user=None):
+
+        # fall back
+        if not user:
+            user = g.user
+        if user.is_admin:
+            return True
+
+        # depends on the action requested
+        if action == '@create':
+            # QA user can create issues
+            return user.is_qa
+        elif action == '@modify':
+            # QA user can modify any issues matching group_id
+            if user.is_qa and user.vendor_id == self.vendor_id:
+                return True
+            return False
+        elif action == '@view':
+            # QA user can modify any issues matching group_id
+            if user.is_qa and user.vendor_id == self.vendor_id:
+                return True
+            # any issues owned by admin can be viewed by a QA user
+            if user.is_qa and self.vendor_id == 1:
+                return True
+            return False
+
+        # user specified the wrong thing
+        raise NotImplementedError('unknown security check action: %s:%s' % (self, action))
 
     def __repr__(self):
         return "Issue object %s" % self.url

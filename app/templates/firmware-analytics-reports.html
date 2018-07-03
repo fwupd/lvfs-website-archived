@@ -34,7 +34,7 @@
     </td>
     <td class="col-sm-8"><code>{{r.to_kvs()}}</code></td>
     <td class="col-sm-1 text-right">
-{% if g.user.check_capability('admin') %}
+{% if g.user.check_acl('@admin') %}
       <a class="btn btn-danger" href="/lvfs/report/{{r.report_id}}/delete">Delete</a>
 {% endif %}
     </td>

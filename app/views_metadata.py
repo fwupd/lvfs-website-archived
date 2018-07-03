@@ -12,7 +12,7 @@ from flask_login import login_required
 from app import app, db
 
 from .hash import _qa_hash
-from .models import UserCapability, Vendor, Remote
+from .models import Vendor, Remote
 from .util import _error_internal, _error_permission_denied
 
 @login_required
@@ -49,7 +49,7 @@ def metadata_view():
 
     # show all embargo metadata URLs when admin user
     vendors = []
-    if g.user.check_capability(UserCapability.Admin):
+    if g.user.check_acl('@admin'):
         for vendor in db.session.query(Vendor).\
                         filter(Vendor.is_account_holder != 'no').all():
             vendors.append(vendor)
@@ -68,7 +68,7 @@ def metadata_rebuild():
     """
 
     # security check
-    if not g.user.check_capability(UserCapability.Admin):
+    if not g.user.check_acl('@admin'):
         return _error_permission_denied('Only admin is allowed to force-rebuild metadata')
 
     # update metadata

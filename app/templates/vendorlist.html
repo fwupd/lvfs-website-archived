@@ -16,7 +16,7 @@
     <th class="col-sm-3">fwupd support</th>
     <th class="col-sm-1">LVFS account</th>
     <th class="col-sm-1">Uploaded firmware</th>
-{% if g.user is defined and g.user.check_capability('admin') %}
+{% if g.user is defined and g.user.check_acl('@admin') %}
     <th class="col-sm-3">Comments</th>
     <th class="col-sm-1">&nbsp;</th>
 {% else %}
@@ -24,7 +24,7 @@
 {% endif %}
   </tr>
 {% for v in vendors %}
-{% if v.visible or (g.user is defined and g.user.check_capability('admin')) %}
+{% if v.visible or (g.user is defined and g.user.check_acl('@admin')) %}
   <tr class="row" id="{{v.group_id}}">
     <td class="col-sm-1">
 {% if v.icon %}
@@ -79,7 +79,7 @@
       n/a
     </td>
 {% endif %}
-{% if g.user is defined and g.user.check_capability('admin') %}
+{% if g.user is defined and g.user.check_acl('@admin') %}
     <td class="col-sm-3">{{v.description}}</td>
     <td class="col-sm-1"><a class="btn btn-secondary" href="/lvfs/vendor/{{v.vendor_id}}/details">Edit</a></td>
 {% else %}
@@ -91,7 +91,7 @@
   </tr>
 </table>
 
-{% if g.user is defined and g.user.check_capability('admin') %}
+{% if g.user is defined and g.user.check_acl('@admin') %}
 <h1>Create a new vendor</h1>
 <form method="post" action="/lvfs/vendor/add" class="form-inline">
   <input class="form-control" type="text" size="20" name="group_id" placeholder="Group ID" required>

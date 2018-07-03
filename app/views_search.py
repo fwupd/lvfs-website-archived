@@ -11,7 +11,7 @@ from flask_login import login_required
 
 from app import app, db
 
-from .models import Guid, Keyword, Vendor, UserCapability, SearchEvent, _split_search_string
+from .models import Guid, Keyword, Vendor, SearchEvent, _split_search_string
 from .hash import _addr_hash
 from .util import _get_client_address, _error_internal, _error_permission_denied
 
@@ -53,7 +53,8 @@ def _get_md_priority_for_kws(kws):
 @app.route('/lvfs/search/<int:search_event_id>/delete')
 @login_required
 def search_delete(search_event_id):
-    if not g.user.check_capability(UserCapability.Admin):
+    # security check
+    if not g.user.check_acl('@admin'):
         return _error_permission_denied('Unable to delete search')
     ev = db.session.query(SearchEvent).filter(SearchEvent.search_event_id == search_event_id).first()
     if not ev:

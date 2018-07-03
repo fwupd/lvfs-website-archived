@@ -10,7 +10,7 @@ from flask_login import login_required
 from app import app, db
 
 from .util import _error_permission_denied
-from .models import UserCapability, Firmware
+from .models import Firmware
 
 @app.route('/lvfs/device')
 @login_required
@@ -20,7 +20,7 @@ def device():
     """
 
     # security check
-    if not g.user.check_capability(UserCapability.Admin):
+    if not g.user.check_acl('@admin'):
         return _error_permission_denied('Unable to view devices')
 
     # get all the guids we can target

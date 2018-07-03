@@ -9,14 +9,17 @@
   <tr class="row {% if kw == md.keywords[0] %}table-borderless{% endif %}">
     <td class="col-sm-10"><pre>{{kw.value}}</pre></td>
     <td class="col-sm-2">
+{% if md.check_acl('@modify-keywords') %}
 {% if kw.priority < 5 %}
       <a class="btn btn-block btn-danger" href="/lvfs/component/keyword/{{kw.keyword_id}}/delete">Delete</a>
 {% else %}
       <a class="btn btn-block btn-danger disabled" href="#">Delete</a>
 {% endif %}
+{% endif %}
     </td>
   </tr>
 {% endfor %}
+{% if md.check_acl('@modify-keywords') %}
   <form method="post" action="/lvfs/component/keyword/add" class="form">
   <tr class="row table-borderless">
     <td class="col-sm-10">
@@ -28,6 +31,7 @@
     </td>
   </tr>
   </form>
+{% endif %}
 </table>
 {% endblock %}
 

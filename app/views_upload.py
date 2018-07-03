@@ -183,8 +183,8 @@ def upload():
     else:
         vendor = g.user.vendor
 
-    # ensure the user has access to this vendor
-    if not g.user.check_for_vendor(vendor, allow_affiliates=True):
+    # security check
+    if not vendor.check_acl('@upload'):
         flash('Failed to upload file for vendor: Permission denied: '
               'User with vendor %s cannot upload to vendor %s' %
               (g.user.vendor.group_id, vendor.group_id), 'warning')
@@ -221,7 +221,7 @@ def upload():
     # check the file does not already exist
     fw = db.session.query(Firmware).filter(Firmware.checksum_upload == ufile.checksum_upload).first()
     if fw:
-        if g.user.check_for_firmware(fw):
+        if fw.check_acl('@view'):
             flash('Failed to upload file: A file with hash %s already exists' % fw.checksum_upload, 'warning')
             return redirect('/lvfs/firmware/%s' % fw.firmware_id)
         flash('Failed to upload file: Another user has already uploaded this firmware', 'warning')

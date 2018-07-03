@@ -16,7 +16,7 @@
 {% endif %}
     </td>
     <td class="col-sm-2 text-right">
-{% if not fw.is_deleted and (fw.remote.name != 'stable' or g.user.is_qa) %}
+{% if not fw.is_deleted and fw.check_acl('@delete') %}
       <button type="button" class="btn btn-block btn-danger" data-toggle="modal" data-target="#deleteModal">Delete</button>
 {% endif %}
     </td>
@@ -36,26 +36,50 @@
 {% endif %}
     </td>
     <td class="col-sm-2 align-middle text-right">
-{% if g.user.is_qa %}
-{% if fw.is_deleted %}
+{% if fw.is_deleted and fw.check_acl('@undelete') %}
       <a class="btn btn-block btn-danger" href="/lvfs/firmware/{{fw.firmware_id}}/undelete" role="button">Undelete</a>
-{% elif fw.remote.name == 'private' %}
+{% endif %}
+
+{% if fw.remote.name == 'private' %}
+{% if fw.check_acl('@promote-embargo') %}
       <a class="btn btn-block btn-primary" href="/lvfs/firmware/{{fw.firmware_id}}/promote/embargo" role="button">&#8594; Embargo</a>
+{% endif %}
+{% if fw.check_acl('@promote-testing') %}
       <a class="btn btn-block btn-primary" href="/lvfs/firmware/{{fw.firmware_id}}/promote/testing" role="button">&#8594; Testing</a>
       <button type="button" class="btn btn-block btn-primary" data-toggle="modal" data-target="#promoteStableModal">&#8594; Stable</button>
+{% endif %}
+
 {% elif fw.remote.name.startswith('embargo') %}
 {% if not fw.vendor.is_embargo_default %}
       <a class="btn btn-block btn-secondary" href="/lvfs/firmware/{{fw.firmware_id}}/promote/private" role="button">&#8592; Private</a>
 {% endif %}
+{% if fw.check_acl('@promote-testing') %}
       <a class="btn btn-block btn-primary" href="/lvfs/firmware/{{fw.firmware_id}}/promote/testing" role="button">&#8594; Testing</a>
       <button type="button" class="btn btn-block btn-primary" data-toggle="modal" data-target="#promoteStableModal">&#8594; Stable</button>
+{% endif %}
+
 {% elif fw.remote.name == 'testing' %}
+{% if fw.check_acl('@promote-private') %}
       <a class="btn btn-block btn-secondary" href="/lvfs/firmware/{{fw.firmware_id}}/promote/private" role="button">&#8592; Private</a>
+{% endif %}
+{% if fw.check_acl('@promote-embargo') %}
       <a class="btn btn-block btn-secondary" href="/lvfs/firmware/{{fw.firmware_id}}/promote/embargo" role="button">&#8592; Embargo</a>
+{% endif %}
+{% if fw.check_acl('@promote-stable') %}
       <button type="button" class="btn btn-block btn-primary" data-toggle="modal" data-target="#promoteStableModal">&#8594; Stable</button>
+{% endif %}
+
 {% elif fw.remote.name == 'stable' %}
+{% if fw.check_acl('@promote-private') %}
+      <a class="btn btn-block btn-secondary" href="/lvfs/firmware/{{fw.firmware_id}}/promote/private" role="button">&#8592; Private</a>
+{% endif %}
+{% if fw.check_acl('@promote-embargo') %}
+      <a class="btn btn-block btn-secondary" href="/lvfs/firmware/{{fw.firmware_id}}/promote/embargo" role="button">&#8592; Embargo</a>
+{% endif %}
+{% if fw.check_acl('@promote-testing') %}
       <button type="button" class="btn btn-block btn-danger" data-toggle="modal" data-target="#demoteTestingModal">&#8592; Testing</button>
 {% endif %}
+
 {% endif %}
     </td>
   </tr>
