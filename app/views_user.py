@@ -128,7 +128,7 @@ def user_modify_by_admin(user_id):
         return _error_permission_denied('Unable to modify user as non-admin')
 
     # set each optional thing in turn
-    for key in ['display_name', 'username_old', 'auth_type']:
+    for key in ['display_name', 'username', 'username_old', 'auth_type']:
         if key in request.form:
             value = request.form[key]
             if value == '':

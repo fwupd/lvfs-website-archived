@@ -11,6 +11,12 @@
     <input type="text" class="form-control" name="display_name" value="{{u.display_name}}" required>
   </div>
 {% endif %}
+{% if g.user.check_capability('admin') %}
+  <div class="form-group">
+    <label for="display_name">Username:</label>
+    <input type="text" class="form-control" name="username" value="{{u.username}}">
+  </div>
+{% endif %}
 {% if g.user.check_capability('admin') and u.username_old %}
   <div class="form-group">
     <label for="display_name">Legacy Username:</label>
