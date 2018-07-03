@@ -4,7 +4,7 @@
 # Copyright (C) 2015-2018 Richard Hughes <richard@hughsie.com>
 # Licensed under the GNU General Public License Version 2
 #
-# pylint: disable=too-few-public-methods,too-many-instance-attributes,too-many-arguments
+# pylint: disable=too-few-public-methods,too-many-instance-attributes,too-many-arguments,too-many-lines
 
 import datetime
 import fnmatch
@@ -257,6 +257,10 @@ class Vendor(db.Model):
                 return True
             return False
         elif action == '@modify-oauth':
+            return False
+        elif action == '@view-affiliations':
+            return user.is_qa
+        elif action == '@modify-affiliations':
             return False
 
         # user specified the wrong thing

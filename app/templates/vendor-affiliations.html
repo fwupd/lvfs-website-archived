@@ -4,10 +4,17 @@
 {% block nav %}{% include 'vendor-nav.html' %}{% endblock %}
 
 {% block content %}
+
+{% if v.check_acl('@modify-affiliations') %}
 <div class="alert alert-warning mt-1" role="alert">
   Be <b>very careful</b> using this feature as ODMs will be able to upload to
   OEM embargo targets, and OEMs will be able to delete ODM firmware.
 </div>
+{% else %}
+<div class="alert alert-info mt-1" role="alert">
+  Please contact the LVFS administrator if you would like to add or remove affiliations.
+</div>
+{% endif %}
 
 <table class="table">
 {% if v.affiliations|length == 0 %}
@@ -24,11 +31,14 @@
   <tr class="row">
     <td class="col-sm-10"><a href="/lvfs/vendor/{{r.vendor_odm.vendor_id}}">{{r.vendor_odm.display_name}}</a></td>
     <td class="col-sm-2">
+{% if v.check_acl('@modify-affiliations') %}
       <a class="btn btn-block btn-danger" href="/lvfs/vendor/{{v.vendor_id}}/affiliation/{{r.affiliation_id}}/delete" role="button">Remove</a>
+{% endif %}
     </td>
   </tr>
 {% endfor %}
 {% endif %}
+{% if v.check_acl('@modify-affiliations') %}
   <tr class="row table-borderless">
     <form method="post" action="/lvfs/vendor/{{v.vendor_id}}/affiliation/add">
     <td class="col-sm-10">
@@ -45,7 +55,7 @@
     </td>
     </form>
   </tr>
+{% endif %}
 </table>
-
 
 {% endblock %}

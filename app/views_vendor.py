@@ -361,8 +361,8 @@ def vendor_affiliations(vendor_id):
         return redirect(url_for('.vendor_list'), 302)
 
     # security check
-    if not g.user.check_acl('@admin'):
-        return _error_permission_denied('Unable to edit vendor as non-admin')
+    if not vendor.check_acl('@view-affiliations'):
+        return _error_permission_denied('Unable to view affiliations')
 
     # add other vendors
     vendors = []
@@ -381,10 +381,6 @@ def vendor_affiliations(vendor_id):
 def vendor_affiliation_add(vendor_id):
     """ Allows changing a vendor [ADMIN ONLY] """
 
-    # security check
-    if not g.user.check_acl('@admin'):
-        return _error_permission_denied('Unable to edit vendor as non-admin')
-
     # check exists
     vendor = db.session.query(Vendor).filter(Vendor.vendor_id == vendor_id).first()
     if not vendor:
@@ -392,6 +388,10 @@ def vendor_affiliation_add(vendor_id):
         return redirect(url_for('.vendor_affiliations', vendor_id=vendor_id), 302)
     if not 'vendor_id_odm' in request.form:
         return _error_internal('No value')
+
+    # security check
+    if not vendor.check_acl('@modify-affiliations'):
+        return _error_permission_denied('Unable to add vendor affiliation')
 
     # check if it already exists
     vendor_id_odm = int(request.form['vendor_id_odm'])
@@ -411,15 +411,16 @@ def vendor_affiliation_add(vendor_id):
 def vendor_affiliation_delete(vendor_id, affiliation_id):
     """ Allows changing a vendor [ADMIN ONLY] """
 
-    # security check
-    if not g.user.check_acl('@admin'):
-        return _error_permission_denied('Unable to edit vendor as non-admin')
-
     # check exists
     vendor = db.session.query(Vendor).filter(Vendor.vendor_id == vendor_id).first()
     if not vendor:
         flash('Failed to get vendor details: No a vendor with that group ID', 'warning')
         return redirect(url_for('.vendor_list'), 302)
+
+    # security check
+    if not vendor.check_acl('@modify-affiliations'):
+        return _error_permission_denied('Unable to delete vendor affiliations')
+
     for res in vendor.affiliations:
         if res.affiliation_id == affiliation_id:
             db.session.delete(res)
