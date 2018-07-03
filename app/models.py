@@ -246,6 +246,11 @@ class Vendor(db.Model):
             if self.get_affiliation_by_odm_id(user.vendor_id):
                 return True
             return False
+        elif action == '@view-metadata':
+            # all members of a group can generate the metadata file
+            if user.vendor_id == self.vendor_id:
+                return True
+            return False
         elif action == '@manage-users':
             # manager user can modify any users in his group
             if user.is_vendor_manager and user.vendor_id == self.vendor_id:

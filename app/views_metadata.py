@@ -15,16 +15,21 @@ from .hash import _qa_hash
 from .models import Vendor, Remote
 from .util import _error_internal, _error_permission_denied
 
-@login_required
 @app.route('/lvfs/metadata/<group_id>')
+@login_required
 def metadata_remote(group_id):
     """
     Generate a remote file for a given QA group.
     """
 
     # find the vendor
-    if not db.session.query(Vendor).filter(Vendor.group_id == group_id).first():
+    vendor = db.session.query(Vendor).filter(Vendor.group_id == group_id).first()
+    if not vendor:
         return _error_internal('No vendor with that name')
+
+    # security check
+    if not vendor.check_acl('@view-metadata'):
+        return _error_permission_denied('Unable to view metadata')
 
     # generate file
     remote = []
@@ -49,12 +54,10 @@ def metadata_view():
 
     # show all embargo metadata URLs when admin user
     vendors = []
-    if g.user.check_acl('@admin'):
-        for vendor in db.session.query(Vendor).\
-                        filter(Vendor.is_account_holder != 'no').all():
+    for vendor in db.session.query(Vendor).\
+                    filter(Vendor.is_account_holder != 'no').all():
+        if vendor.check_acl('@view-metadata'):
             vendors.append(vendor)
-    else:
-        vendors.append(g.user.vendor)
     remotes = {}
     for r in db.session.query(Remote).all():
         remotes[r.name] = r
