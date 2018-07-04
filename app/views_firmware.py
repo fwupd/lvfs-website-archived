@@ -42,8 +42,6 @@ def firmware(show_all=False):
             continue
         if len(fw.mds) == 0:
             continue
-        if not show_all and fw.is_deleted:
-            continue
         name = fw.mds[0].developer_name + ' ' + fw.mds[0].name
         if not name in names:
             names[name] = []
