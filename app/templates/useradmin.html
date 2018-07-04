@@ -41,24 +41,32 @@
       </option>
     </select>
   </div>
+
+<h3>Attributes</h3>
+{% if g.user.check_acl('@add-attribute-analyst') %}
   <div class="form-group">
     <label for="is_analyst">
       <input class="checkbox" type="checkbox" name="is_analyst" value="1" {{'checked' if u.is_analyst}} />
       Allow read-only access to all firmware and associated reports in group
     </label>
   </div>
+{% endif %}
+{% if g.user.check_acl('@add-attribute-qa') %}
   <div class="form-group">
     <label for="is_qa">
       <input class="checkbox" type="checkbox" name="is_qa" value="1" {{'checked' if u.is_qa}} />
       Allow moving firmware in group to testing and stable
     </label>
   </div>
+{% endif %}
+{% if g.user.check_acl('@add-attribute-manager') %}
   <div class="form-group">
     <label for="is_vendor_manager">
       <input class="checkbox" type="checkbox" name="is_vendor_manager" value="1" {{'checked' if u.is_vendor_manager}} />
       Allow managing users in the {{u.vendor.group_id}} group
     </label>
   </div>
+{% endif %}
 {% endif %}
 {% if g.user.check_acl('@admin') %}
   <hr/>

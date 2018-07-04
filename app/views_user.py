@@ -129,6 +129,17 @@ def user_modify_by_admin(user_id):
     if not g.user.check_acl('@admin') and 'vendor_id' in request.form:
         return _error_permission_denied('Unable to modify group for user as non-admin')
 
+    # user is being promoted, so check the manager already has this attribute
+    if not user.is_vendor_manager and 'is_vendor_manager' in request.form:
+        if not g.user.check_acl('@add-attribute-manager'):
+            return _error_permission_denied('Unable to promote user to manager')
+    if not user.is_analyst and 'is_analyst' in request.form:
+        if not g.user.check_acl('@add-attribute-analyst'):
+            return _error_permission_denied('Unable to promote user to analyst')
+    if not user.is_qa and 'is_qa' in request.form:
+        if not g.user.check_acl('@add-attribute-qa'):
+            return _error_permission_denied('Unable to promote user to QA')
+
     # set each optional thing in turn
     old_vendor = user.vendor
     for key in ['display_name', 'username', 'username_old', 'auth_type', 'vendor_id']:

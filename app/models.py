@@ -92,6 +92,18 @@ class User(db.Model):
             if self.is_qa or self.is_analyst:
                 return True
             return False
+        elif action == '@add-attribute-manager':
+            if not self.vendor.check_acl('@manage-users'):
+                return False
+            return self.is_vendor_manager
+        elif action == '@add-attribute-analyst':
+            if not self.vendor.check_acl('@manage-users'):
+                return False
+            return self.is_analyst
+        elif action == '@add-attribute-qa':
+            if not self.vendor.check_acl('@manage-users'):
+                return False
+            return self.is_qa
         elif action in ('@view-eventlog', '@view-issues'):
             return self.is_qa
         raise NotImplementedError('unknown security check type: %s' % self)
