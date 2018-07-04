@@ -315,17 +315,20 @@ def firmware_affiliation(firmware_id):
         return _error_internal('No firmware matched!')
 
     # security check
-    if not g.user.check_acl('@admin'):
-        return _error_permission_denied('Insufficient permissions to view firmware affiliations')
+    if not fw.check_acl('@modify-affiliation'):
+        return _error_permission_denied('Insufficient permissions to modify affiliations')
 
     # add other vendors
-    vendors = []
-    for v in db.session.query(Vendor).order_by(Vendor.display_name).all():
-        if v.is_account_holder != 'yes':
-            continue
-        #if not vendor.get_affiliation_by_odm_id(v.vendor_id):
-        #    continue
-        vendors.append(v)
+    if g.user.check_acl('@admin'):
+        vendors = []
+        for v in db.session.query(Vendor).order_by(Vendor.display_name).all():
+            if v.is_account_holder != 'yes':
+                continue
+            vendors.append(v)
+    else:
+        vendors = [g.user.vendor]
+        for aff in fw.vendor.affiliations_for:
+            vendors.append(aff.vendor)
 
     return render_template('firmware-affiliation.html', fw=fw, vendors=vendors)
 
@@ -334,20 +337,25 @@ def firmware_affiliation(firmware_id):
 def firmware_affiliation_change(firmware_id):
     """ Changes the assigned vendor ID for the firmware """
 
+    # change the vendor
+    if 'vendor_id' not in request.form:
+        return _error_internal('No vendor ID specified')
+
     # find firmware
     fw = db.session.query(Firmware).filter(Firmware.firmware_id == firmware_id).first()
     if not fw:
         return _error_internal("No firmware %s" % firmware_id)
 
     # security check
-    if not g.user.check_acl('@admin'):
-        return _error_permission_denied('Insufficient permissions to modify firmware')
-
-    # change the vendor
-    if 'vendor_id' not in request.form:
-        return _error_internal('No vendor ID specified')
+    if not fw.check_acl('@modify-affiliation'):
+        return _error_permission_denied('Insufficient permissions to change affiliation')
 
     vendor_id = int(request.form['vendor_id'])
+    if vendor_id == fw.vendor_id:
+        flash('No affiliation change required', 'info')
+        return redirect(url_for('.firmware_affiliation', firmware_id=fw.firmware_id))
+    if not g.user.is_admin and not g.user.vendor.is_affiliate_for(vendor_id):
+        return _error_permission_denied('Insufficient permissions to change affiliation to %u' % vendor_id)
     old_vendor = fw.vendor
     fw.vendor_id = vendor_id
     db.session.commit()
@@ -361,7 +369,7 @@ def firmware_affiliation_change(firmware_id):
         db.session.commit()
 
     flash('Changed firmware vendor', 'info')
-    return redirect(url_for('.firmware_affiliation', firmware_id=fw.firmware_id))
+    return redirect(url_for('.firmware_show', firmware_id=fw.firmware_id))
 
 @app.route('/lvfs/firmware/<int:firmware_id>/problems')
 @login_required

@@ -945,6 +945,61 @@ class LvfsTestCase(unittest.TestCase):
         assert b'>embargo-oem<' in rv.data, rv.data
         assert b'>embargo-odm<' not in rv.data, rv.data
 
+    def test_affiliation_change_as_user(self):
+
+        # add oem and odm
+        self.login()
+        self.add_vendor('oem')  # 2
+        self.add_user('alice@oem.com', 'oem')
+        rv = self.app.post('/lvfs/vendor/2/modify_by_admin', data=dict(
+            is_account_holder='yes',
+        ), follow_redirects=True)
+        assert b'Updated vendor' in rv.data, rv.data
+        self.add_vendor('odm')  # 3
+        self.add_user('bob@odm.com', 'odm')
+        rv = self.app.post('/lvfs/vendor/3/modify_by_admin', data=dict(
+            is_account_holder='yes',
+        ), follow_redirects=True)
+        assert b'Updated vendor' in rv.data, rv.data
+        self.logout()
+
+        # bob uploads to the ODM vendor
+        self.login('bob@odm.com')
+        self.upload(target='embargo')
+
+        # change the ownership to 'oem' (no affiliation set up)
+        rv = self.app.get('/lvfs/firmware/1/affiliation')
+        assert b'Insufficient permissions to modify affiliations' in rv.data, rv.data
+
+        # change the ownership to admin
+        rv = self.app.post('/lvfs/firmware/1/affiliation/change', data=dict(
+            vendor_id='1',
+        ), follow_redirects=True)
+        assert b'Insufficient permissions to change affiliation' in rv.data, rv.data
+
+        # set up affiliation
+        self.logout()
+        self.login()
+        self.add_affiliation(2, 3)
+        self.logout()
+        self.login('bob@odm.com', accept_agreement=False)
+
+        # change the ownership to 'oem' (affiliation present)
+        rv = self.app.get('/lvfs/firmware/1/affiliation')
+        assert b'<option value="3" selected' in rv.data, rv.data
+        assert b'<option value="2"' in rv.data, rv.data
+        rv = self.app.post('/lvfs/firmware/1/affiliation/change', data=dict(
+            vendor_id='2',
+        ), follow_redirects=True)
+        assert b'Changed firmware vendor' in rv.data, rv.data
+        rv = self.app.get('/lvfs/firmware/1/affiliation')
+        assert b'Insufficient permissions to modify affiliations' in rv.data, rv.data
+
+        # verify remote was changed
+        rv = self.app.get('/lvfs/firmware/1')
+        assert b'>embargo-oem<' in rv.data, rv.data
+        assert b'>embargo-odm<' not in rv.data, rv.data
+
     def add_affiliation(self, vendor_id_oem, vendor_id_odm):
         rv = self.app.post('/lvfs/vendor/%u/affiliation/add' % vendor_id_oem, data=dict(
             vendor_id_odm=vendor_id_odm,

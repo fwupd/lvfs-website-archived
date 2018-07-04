@@ -6,7 +6,7 @@
     <li class="nav-item">
       <a class="nav-link {% if request.url_rule.endpoint == 'firmware_components' %}active{% endif %}" href="/lvfs/firmware/{{fw.firmware_id}}/components">Components</a>
     </li>
-{% if g.user.check_acl('@admin') %}
+{% if fw.check_acl('@modify-affiliation') %}
     <li class="nav-item">
       <a class="nav-link {% if request.url_rule.endpoint == 'firmware_affiliation' %}active{% endif %}" href="/lvfs/firmware/{{fw.firmware_id}}/affiliation">Vendor</a>
     </li>

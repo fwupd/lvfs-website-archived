@@ -13,6 +13,13 @@
   owner the ablity to change the target and even delete the firmware.
 </p>
 
+{% if not g.user.check_acl('@admin') %}
+<div class="alert alert-warning mt-1" role="alert">
+  If you move this firmware to an different vendor it will not be possible
+  to edit the update details or move the firmware to testing or stable.
+</div>
+{% endif %}
+
 <form action="/lvfs/firmware/{{fw.firmware_id}}/affiliation/change" method="post" enctype="multipart/form-data" class="form">
   <div class="form-group row">
     <label for="target" class="col-sm-2 col-form-label">Controlling vendor</label>

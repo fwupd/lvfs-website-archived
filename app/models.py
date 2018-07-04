@@ -200,6 +200,9 @@ class Vendor(db.Model):
     affiliations = relationship("Affiliation",
                                 foreign_keys=[Affiliation.vendor_id],
                                 back_populates="vendor")
+    affiliations_for = relationship("Affiliation",
+                                    foreign_keys=[Affiliation.vendor_id_odm],
+                                    back_populates="vendor")
 
     # link using foreign keys
     remote = relationship('Remote', foreign_keys=[remote_id])
@@ -235,11 +238,17 @@ class Vendor(db.Model):
             val += 0x1
         return val
 
-    def get_affiliation_by_odm_id(self, vendor_id_odm):
+    def is_affiliate_for(self, vendor_id):
+        for rel in self.affiliations_for:
+            if rel.vendor_id == vendor_id:
+                return True
+        return False
+
+    def is_affiliate(self, vendor_id_odm):
         for rel in self.affiliations:
             if rel.vendor_id_odm == vendor_id_odm:
-                return rel
-        return None
+                return True
+        return False
 
     def check_acl(self, action, user=None):
 
@@ -255,7 +264,7 @@ class Vendor(db.Model):
             if user.vendor_id == self.vendor_id:
                 return True
             # allow vendor affiliates too
-            if self.get_affiliation_by_odm_id(user.vendor_id):
+            if self.is_affiliate(user.vendor_id):
                 return True
             return False
         elif action == '@view-metadata':
@@ -762,6 +771,14 @@ class Firmware(db.Model):
             return False
         elif action == '@remove-limit':
             if user.is_qa and user.vendor_id == self.vendor_id:
+                return True
+            return False
+        elif action == '@modify-affiliation':
+            # there are no affiliates for this vendor
+            if not self.vendor.affiliations_for:
+                return False
+            # is original file uploader and uploaded to ODM group
+            if user.user_id == self.user_id and user.vendor_id == self.vendor_id:
                 return True
             return False
 

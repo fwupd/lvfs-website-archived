@@ -371,7 +371,7 @@ def vendor_affiliations(vendor_id):
             continue
         if v.is_uploading != 'yes':
             continue
-        if vendor.get_affiliation_by_odm_id(v.vendor_id):
+        if v.is_affiliate_for(vendor.vendor_id):
             continue
         vendors.append(v)
     return render_template('vendor-affiliations.html', v=vendor, other_vendors=vendors)
