@@ -323,6 +323,15 @@ class LvfsTestCase(unittest.TestCase):
                           environ_base={'HTTP_USER_AGENT': 'fwupd/1.1.1'})
         assert rv.status_code == 200, rv.status_code
 
+    def _run_cron(self, kind='metadata'):
+        env = {}
+        env['LVFS_CUSTOM_SETTINGS'] = self.cfg_filename
+        ps = subprocess.Popen(['./cron.py', kind], env=env,
+                              stdout=subprocess.PIPE,
+                              stderr=subprocess.PIPE)
+        stdout, _ = ps.communicate()
+        return stdout
+
     def test_cron_metadata(self):
 
         # verify all metadata is in good shape
@@ -336,12 +345,7 @@ class LvfsTestCase(unittest.TestCase):
         assert b'Will be signed in' in rv.data, rv.data
 
         # run the cron job manually
-        env = {}
-        env['LVFS_CUSTOM_SETTINGS'] = self.cfg_filename
-        ps = subprocess.Popen(['./cron.py', 'metadata'], env=env,
-                              stdout=subprocess.PIPE,
-                              stderr=subprocess.PIPE)
-        stdout, _ = ps.communicate()
+        stdout = self._run_cron()
         assert 'Updating: embargo-admin' in stdout, stdout
 
         # verify all metadata is in good shape
