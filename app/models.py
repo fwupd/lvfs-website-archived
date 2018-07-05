@@ -570,6 +570,10 @@ class Remote(db.Model):
     is_dirty = Column(Boolean, default=False)
 
     @property
+    def is_deleted(self):
+        return self.name == 'deleted'
+
+    @property
     def filename(self):
         if self.name == 'private':
             return None
@@ -670,7 +674,7 @@ class Firmware(db.Model):
 
     @property
     def is_deleted(self):
-        return self.remote.name == 'deleted'
+        return self.remote.is_deleted
 
     @property
     def inhibit_download(self):
