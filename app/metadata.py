@@ -13,7 +13,6 @@ from gi.repository import GLib
 
 from app import app, db
 
-from .hash import _qa_hash
 from .models import Firmware, Vendor
 from .util import _get_settings
 
@@ -145,7 +144,7 @@ def _generate_metadata_kind(filename, fws, firmware_baseuri=''):
                   AppStreamGlib.NodeToXmlFlags.FORMAT_INDENT |
                   AppStreamGlib.NodeToXmlFlags.FORMAT_MULTILINE)
 
-def _metadata_update_targets(targets):
+def _metadata_update_targets(remotes):
     """ updates metadata for a specific target """
     fws = db.session.query(Firmware).all()
     settings = _get_settings()
@@ -155,28 +154,19 @@ def _metadata_update_targets(targets):
     if not os.path.exists(download_dir):
         os.mkdir(download_dir)
 
-    for target in targets:
+    # create metadata for each remote
+    for r in remotes:
         fws_filtered = []
         for fw in fws:
-            if fw.remote.name == 'private':
-                continue
-            if fw.remote.name != target:
+            if fw.is_deleted:
                 continue
             if not fw.signed_timestamp:
                 continue
-            fws_filtered.append(fw)
-        if target == 'stable':
-            _generate_metadata_kind(os.path.join(download_dir, 'firmware.xml.gz'),
-                                    fws_filtered,
-                                    firmware_baseuri=settings['firmware_baseuri'])
-        elif target == 'testing':
-            _generate_metadata_kind(os.path.join(download_dir, 'firmware-testing.xml.gz'),
-                                    fws_filtered,
-                                    firmware_baseuri=settings['firmware_baseuri'])
-        elif target.startswith('embargo-'):
-            _generate_metadata_kind(os.path.join(download_dir, 'firmware-%s.xml.gz' % _qa_hash(target[8:])),
-                                    fws_filtered,
-                                    firmware_baseuri=settings['firmware_baseuri'])
+            if r.check_fw(fw):
+                fws_filtered.append(fw)
+        _generate_metadata_kind(os.path.join(download_dir, r.filename),
+                                fws_filtered,
+                                firmware_baseuri=settings['firmware_baseuri'])
 
 def _hashfile(afile, hasher, blocksize=65536):
     buf = afile.read(blocksize)

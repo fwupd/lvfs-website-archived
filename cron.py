@@ -31,7 +31,6 @@ app = application.app
 def _regenerate_and_sign_metadata():
 
     # get list of dirty remotes
-    remote_names = []
     remotes = []
     for r in db.session.query(Remote).all():
         if r.name == 'private':
@@ -40,18 +39,18 @@ def _regenerate_and_sign_metadata():
             continue
         if r.is_dirty:
             remotes.append(r)
-            remote_names.append(r.name)
 
     # nothing to do
-    if not len(remote_names):
+    if not len(remotes):
         return
 
     # update everything required
-    for remote_name in remote_names:
-        print('Updating: %s' % remote_name)
-    _metadata_update_targets(remote_names)
-    if 'stable' in remote_names:
-        _metadata_update_pulp()
+    for r in remotes:
+        print('Updating: %s' % r.name)
+    _metadata_update_targets(remotes)
+    for r in remotes:
+        if r.name == 'stable':
+            _metadata_update_pulp()
 
     # sign and sync
     download_dir = app.config['DOWNLOAD_DIR']
@@ -67,8 +66,8 @@ def _regenerate_and_sign_metadata():
     db.session.expire_all()
 
     # log what we did
-    for remote_name in remote_names:
-        _event_log('Signed metadata %s' % remote_name)
+    for r in remotes:
+        _event_log('Signed metadata %s' % r.name)
 
 def _sign_md(cfarchive, cf):
     # parse each metainfo file

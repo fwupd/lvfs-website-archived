@@ -569,6 +569,12 @@ class Remote(db.Model):
     is_public = Column(Boolean, default=False)
     is_dirty = Column(Boolean, default=False)
 
+    def check_fw(self, fw):
+        # remote is specified exactly
+        if self.remote_id == fw.remote.remote_id:
+            return True
+        return False
+
     @property
     def is_deleted(self):
         return self.name == 'deleted'
