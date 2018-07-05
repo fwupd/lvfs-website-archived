@@ -12,6 +12,17 @@ import os
 import unittest
 import tempfile
 import subprocess
+import gzip
+import cStringIO
+
+def _gzip_decompress_buffer(buf):
+    fgz = cStringIO.StringIO()
+    fgz.write(buf)
+    fgz.seek(0)
+    with gzip.GzipFile(fileobj=fgz, mode='rb') as gzip_obj:
+        buf_d = gzip_obj.read()
+    fgz.close()
+    return buf_d
 
 class LvfsTestCase(unittest.TestCase):
 
@@ -1109,6 +1120,57 @@ class LvfsTestCase(unittest.TestCase):
         rv = self.app.get('/lvfs/firmware/1/promote/testing',
                           follow_redirects=True)
         assert b'Permission denied: No QA access to 1' in rv.data, rv.data
+
+    def test_oem_firmware_in_odm_metadata(self):
+
+        self.login()
+        self.add_vendor('oem')  # 2
+        self.add_user('alice@oem.com', 'oem')
+        self.add_vendor('odm')  # 3
+        self.add_user('bob@odm.com', 'odm')
+        self.add_vendor('another-unrelated-oem')  # 4
+        self.add_affiliation(2, 3)
+        rv = self.app.post('/lvfs/vendor/2/modify_by_admin', data=dict(
+            is_account_holder='yes',
+        ), follow_redirects=True)
+        assert b'Updated vendor' in rv.data, rv.data
+        rv = self.app.post('/lvfs/vendor/3/modify_by_admin', data=dict(
+            is_account_holder='yes',
+        ), follow_redirects=True)
+        assert b'Updated vendor' in rv.data, rv.data
+        self.logout()
+
+        # test uploading to a OEM account we have an affiliation with
+        self.login('bob@odm.com')
+        self.upload(vendor_id=2)
+        rv = self.app.get('/lvfs/firmware/1/promote/embargo',
+                          follow_redirects=True)
+        assert b'Moved firmware' in rv.data, rv.data
+        self.logout()
+
+        # run the cron job manually
+        stdout = self._run_cron('firmware')
+        assert 'hughski-colorhug2-2.0.3' in stdout, stdout
+        stdout = self._run_cron('metadata')
+        assert 'Updating: embargo-oem' in stdout, stdout
+        assert 'Updating: embargo-odm' in stdout, stdout
+
+        # verify the firmware is present for the odm
+        rv = self.app.get('/downloads/firmware-6f8926be2d4543878d451be96eb7221eb4313dda.xml.gz')
+        xml = _gzip_decompress_buffer(rv.data)
+        assert 'com.hughski.ColorHug2.firmware' in xml, xml
+
+        # verify the firmware is present for the oem
+        rv = self.app.get('/downloads/firmware-ce7d5a03f067ff4ec73901dbacd378785dea1176.xml.gz')
+        xml = _gzip_decompress_buffer(rv.data)
+        assert 'com.hughski.ColorHug2.firmware' in xml, xml
+
+        # remove affiliation as admin
+        self.login()
+        rv = self.app.get('/lvfs/vendor/2/affiliation/1/delete', follow_redirects=True)
+        assert b'Deleted affiliation' in rv.data, rv.data
+        rv = self.app.get('/lvfs/vendor/2/affiliations')
+        assert b'No existing affiliations exist' in rv.data, rv.data
 
     def test_keywords(self):
 

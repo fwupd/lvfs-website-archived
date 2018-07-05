@@ -569,9 +569,15 @@ class Remote(db.Model):
     is_public = Column(Boolean, default=False)
     is_dirty = Column(Boolean, default=False)
 
+    # link using foreign keys
+    vendors = relationship("Vendor", back_populates="remote")
+
     def check_fw(self, fw):
         # remote is specified exactly
         if self.remote_id == fw.remote.remote_id:
+            return True
+        # odm uploaded to oem remote, but also include for odm
+        if not self.is_public and fw.user.vendor in self.vendors:
             return True
         return False
 

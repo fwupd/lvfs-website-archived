@@ -214,6 +214,10 @@ def firmware_promote(firmware_id, target):
     remote.is_dirty = True
     fw.remote.is_dirty = True
 
+    # also dirty any ODM remote if uploading on behalf of an OEM
+    if target == 'embargo' and fw.vendor != fw.user.vendor:
+        fw.user.vendor.remote.is_dirty = True
+
     # all okay
     fw.remote_id = remote.remote_id
     fw.events.append(FirmwareEvent(fw.remote_id, g.user.user_id))
@@ -363,6 +367,7 @@ def firmware_affiliation_change(firmware_id):
     # do we need to regenerate remotes?
     if fw.remote.name.startswith('embargo'):
         fw.vendor.remote.is_dirty = True
+        fw.user.vendor.remote.is_dirty = True
         old_vendor.remote.is_dirty = True
         fw.remote_id = fw.vendor.remote.remote_id
         fw.events.append(FirmwareEvent(fw.remote_id, g.user.user_id))
