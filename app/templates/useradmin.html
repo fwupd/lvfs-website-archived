@@ -38,10 +38,10 @@
         Disabled
       </option>
       <option value="local" {{ 'selected' if u.auth_type == 'local' }}>
-        Local (can change own password)
+        Enabled, can change own password
       </option>
       <option value="local+locked" {{ 'selected' if u.auth_type == 'local+locked' }}>
-        Local Locked (password cannot be changed)
+        Enabled, password cannot be changed
       </option>
       <option value="oauth" {{ 'selected' if u.auth_type == 'oauth' }}>
         OAuth only
