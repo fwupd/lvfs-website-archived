@@ -28,6 +28,7 @@
       {{ 'me' if u.user_id == g.user.user_id }}
       {{ u.auth_type if u.auth_type else 'disabled' }}
       {{ 'admin' if u.is_admin }}
+      {{ 'approved' if u.is_approved_public }}
       {{ 'manager' if u.is_vendor_manager }}
       {{ 'qa' if u.is_qa }}
       {{ 'analyst' if u.is_analyst }}

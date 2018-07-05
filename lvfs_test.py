@@ -101,14 +101,15 @@ class LvfsTestCase(unittest.TestCase):
         ), follow_redirects=True)
 
     def add_user(self, username='testuser@fwupd.org', group_id='testgroup',
-                 password='Pa$$w0rd', is_qa=False, is_analyst=False, is_vendor_manager=False):
+                 password='Pa$$w0rd', is_qa=False, is_analyst=False,
+                 is_vendor_manager=False, is_approved_public=False):
         rv = self._add_user(username, group_id, password)
         assert b'Added user' in rv.data, rv.data
         user_id_idx = rv.data.find('Added user ')
         assert user_id_idx != -1, rv.data
         user_id = int(rv.data[user_id_idx+11:user_id_idx+12])
         assert user_id != 0, rv.data
-        if is_qa or is_analyst or is_vendor_manager:
+        if is_qa or is_analyst or is_vendor_manager or is_approved_public:
             data = {'auth_type': 'local'}
             if is_qa:
                 data['is_qa'] = '1'
@@ -116,6 +117,8 @@ class LvfsTestCase(unittest.TestCase):
                 data['is_analyst'] = '1'
             if is_vendor_manager:
                 data['is_vendor_manager'] = '1'
+            if is_approved_public:
+                data['is_approved_public'] = '1'
             rv = self.app.post('/lvfs/user/%i/modify_by_admin' % user_id,
                                data=data, follow_redirects=True)
             assert b'Updated profile' in rv.data, rv.data
@@ -395,7 +398,7 @@ class LvfsTestCase(unittest.TestCase):
         self.add_user('alice@fwupd.org')
         self.add_user('bob@fwupd.org')
         self.add_user('clara@fwupd.org', is_analyst=True)
-        self.add_user('mario@fwupd.org', is_qa=True)
+        self.add_user('mario@fwupd.org', is_qa=True, is_approved_public=True)
         self.logout()
 
         # let alice upload a file to embargo

@@ -139,6 +139,9 @@ def user_modify_by_admin(user_id):
     if not user.is_qa and 'is_qa' in request.form:
         if not g.user.check_acl('@add-attribute-qa'):
             return _error_permission_denied('Unable to promote user to QA')
+    if not user.is_approved_public and 'is_approved_public' in request.form:
+        if not g.user.check_acl('@add-attribute-qa'):
+            return _error_permission_denied('Unable to promote user to QA')
 
     # set each optional thing in turn
     old_vendor = user.vendor
@@ -150,7 +153,7 @@ def user_modify_by_admin(user_id):
             setattr(user, key, value)
 
     # unchecked checkbuttons are not included in the form data
-    for key in ['is_qa', 'is_analyst', 'is_vendor_manager']:
+    for key in ['is_qa', 'is_analyst', 'is_vendor_manager', 'is_approved_public']:
         setattr(user, key, True if key in request.form else False)
 
     # password is optional, and hashed

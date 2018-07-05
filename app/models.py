@@ -49,6 +49,7 @@ class User(db.Model):
     is_qa = Column(Boolean, default=False)
     is_analyst = Column(Boolean, default=False)
     is_vendor_manager = Column(Boolean, default=False)
+    is_approved_public = Column(Boolean, default=False)
     is_admin = Column(Boolean, default=False)
     agreement_id = Column(Integer, ForeignKey('agreements.agreement_id'))
     ctime = Column(DateTime, nullable=False, default=datetime.datetime.utcnow)
@@ -61,7 +62,7 @@ class User(db.Model):
 
     def __init__(self, username, password=None, display_name=None,
                  vendor_id=None, auth_type='disabled', is_analyst=False, is_qa=False,
-                 is_admin=False, is_vendor_manager=False):
+                 is_admin=False, is_vendor_manager=False, is_approved_public=False):
         """ Constructor for object """
         self.username = username
         self.password = password
@@ -72,6 +73,7 @@ class User(db.Model):
         self.vendor_id = vendor_id
         self.is_admin = is_admin
         self.is_vendor_manager = is_vendor_manager
+        self.is_approved_public = is_approved_public
 
     def check_acl(self, action=None):
 
@@ -96,6 +98,10 @@ class User(db.Model):
             if not self.vendor.check_acl('@manage-users'):
                 return False
             return self.is_vendor_manager
+        elif action == '@add-attribute-approved':
+            if not self.vendor.check_acl('@manage-users'):
+                return False
+            return self.is_approved_public
         elif action == '@add-attribute-analyst':
             if not self.vendor.check_acl('@manage-users'):
                 return False
@@ -763,6 +769,10 @@ class Firmware(db.Model):
             if user.is_qa and user.vendor_id == self.vendor_id:
                 return True
             if user.user_id == self.user_id:
+                return True
+            return False
+        elif action in ('@promote-stable', '@promote-testing'):
+            if user.is_approved_public and user.vendor_id == self.vendor_id:
                 return True
             return False
         elif action.startswith('@promote-'):
