@@ -1,0 +1,17 @@
+<nav>
+  <ul class="nav nav-tabs">
+    <li class="nav-item">
+      <a class="nav-link {% if page == 'admin' %}active{% endif %}" href="/lvfs/user/{{u.user_id}}/admin">Overview</a>
+    </li>
+{% if u.fws|length > 0 %}
+    <li class="nav-item">
+      <a class="nav-link {% if page == 'firmware' %}active{% endif %}" href="/lvfs/user/{{u.user_id}}/firmware">Uploaded Firmware</a>
+    </li>
+{% endif %}
+{% if g.user.check_acl('@admin') %}
+    <li class="nav-item">
+      <a class="nav-link {% if page == 'vendor' %}active{% endif %}" href="/lvfs/user/{{u.user_id}}/vendor">Change Vendor</a>
+    </li>
+{% endif %}
+  </ul>
+</nav>

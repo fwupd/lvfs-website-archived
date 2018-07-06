@@ -302,9 +302,10 @@ def user_list():
         return _error_permission_denied('Unable to show userlist for non-admin user')
     return render_template('userlist.html', users=db.session.query(User).all())
 
-@app.route('/lvfs/user/<int:user_id>/admin')
+@app.route('/lvfs/user/<int:user_id>')
+@app.route('/lvfs/user/<int:user_id>/<page>')
 @login_required
-def user_admin(user_id):
+def user_admin(user_id, page='admin'):
     """
     Shows an admin panel for a user
     """
@@ -331,4 +332,4 @@ def user_admin(user_id):
                     order_by(Vendor.display_name).all()
     else:
         vendors = []
-    return render_template('useradmin.html', u=user, possible_vendors=vendors)
+    return render_template('user-%s.html' % page, page=page, u=user, possible_vendors=vendors)

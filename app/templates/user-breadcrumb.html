@@ -1,0 +1,16 @@
+<nav aria-label="breadcrumb">
+  <ol class="breadcrumb mt-3">
+    <li class="breadcrumb-item"><a href="/lvfs/vendorlist">All</a></li>
+    <li class="breadcrumb-item"><a href="/lvfs/vendor/{{u.vendor.vendor_id}}/users">{{u.vendor.display_name}}</a></li>
+    <li class="breadcrumb-item"><a href="/lvfs/user/{{u.user_id}}">{{u.display_name}}</a></li>
+{% if page == 'admin' %}
+    <li class="breadcrumb-item active ">Overview</li>
+{% endif %}
+{% if page == 'firmware' %}
+    <li class="breadcrumb-item active ">Uploaded Firmware</li>
+{% endif %}
+{% if page == 'vendor' %}
+    <li class="breadcrumb-item active ">Change Vendor</li>
+{% endif %}
+  </ol>
+</nav>

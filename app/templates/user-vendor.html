@@ -1,0 +1,56 @@
+{% extends "default.html" %}
+{% block title %}User Details{% endblock %}
+
+{% block nav %}{% include 'user-nav.html' %}{% endblock %}
+
+{% block content %}
+
+<div class="alert alert-warning mt-1" role="alert">
+  Moving a user from one vendor should be done carefully.
+</div>
+
+<form method="post" action="/lvfs/user/{{u.user_id}}/modify_by_admin">
+{% if u.is_qa %}
+  <input type="hidden" name="is_qa" value="1">
+{% endif %}
+{% if u.is_analyst %}
+  <input type="hidden" name="is_analyst" value="1">
+{% endif %}
+{% if u.is_vendor_manager %}
+  <input type="hidden" name="is_vendor_manager" value="1">
+{% endif %}
+{% if u.is_approved_public %}
+  <input type="hidden" name="is_approved_public" value="1">
+{% endif %}
+
+  <div class="form-group row">
+    <label class="col-sm-2 col-form-label" for="display_name">New Vendor</label>
+    <div class="col-sm-10">
+    <select class="form-control" name="vendor_id">
+{% for v in possible_vendors %}
+      <option value="{{v.vendor_id}}" {{ 'selected' if v.vendor_id == u.vendor_id }}>
+        {{v.display_name}}
+      </option>
+{% endfor %}
+    </select>
+    </div>
+  </div>
+
+  <div class="form-group">
+    <label for="reparent">
+      <input class="checkbox" type="checkbox" name="reparent" value="1" checked />
+      Move firmware uploaded by the user to the new group
+    </label>
+  </div>
+  <div class="form-group">
+    <label for="send_email">
+      <input class="checkbox" type="checkbox" name="send_email" value="1" checked />
+      Notify the user about the account change
+    </label>
+  </div>
+  <input type="submit" class="btn btn-primary btn-danger" class="submit" value="Modify">
+</form>
+
+{% endblock %}
+
+{% block breadcrumb %}{% include 'user-breadcrumb.html' %}{% endblock %}
