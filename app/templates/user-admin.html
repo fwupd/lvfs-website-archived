@@ -5,6 +5,13 @@
 
 {% block content %}
 
+{% if u.user_id == g.user.user_id %}
+<div class="alert alert-warning mt-1" role="alert">
+  <strong>Be careful editing your own profile:</strong>
+  If you remove attributes they may need to be re-added manually by the LVFS administrator.
+</div>
+{% endif %}
+
 <form method="post" action="/lvfs/user/{{u.user_id}}/modify_by_admin">
 {% if u.auth_type != 'oauth' %}
   <div class="form-group row">

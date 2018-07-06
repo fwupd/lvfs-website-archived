@@ -316,11 +316,6 @@ def user_admin(user_id, page='admin'):
         flash('No user found', 'danger')
         return redirect(url_for('.user_list'), 422)
 
-    # check user is not trying to edit themselves using the admin panel
-    if user.user_id == g.user.user_id:
-        flash('Cannot self edit using admin panel', 'warning')
-        return redirect(url_for('.user_list'))
-
     # security check
     if not user.vendor.check_acl('@manage-users'):
         return _error_permission_denied('Unable to modify user for non-admin user')

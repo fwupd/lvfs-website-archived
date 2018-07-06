@@ -8,7 +8,7 @@
       <a class="nav-link {% if page == 'firmware' %}active{% endif %}" href="/lvfs/user/{{u.user_id}}/firmware">Uploaded Firmware</a>
     </li>
 {% endif %}
-{% if g.user.check_acl('@admin') %}
+{% if g.user.check_acl('@admin') and u.user_id != g.user.user_id %}
     <li class="nav-item">
       <a class="nav-link {% if page == 'vendor' %}active{% endif %}" href="/lvfs/user/{{u.user_id}}/vendor">Change Vendor</a>
     </li>

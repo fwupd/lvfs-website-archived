@@ -16,11 +16,7 @@
 {% for u in v.users %}
   <tr class="row">
     <td class="col-sm-3">
-{% if u.user_id == g.user.user_id %}
-      <code>{{u.username}}</code>
-{% else %}
       <a href="/lvfs/user/{{u.user_id}}/admin"><code>{{u.username}}</code></a>
-{% endif %}
     </td>
     <td class="col-sm-2">{{u.display_name}}</td>
     <td class="col-sm-1">{{u.fws|length}}</td>
