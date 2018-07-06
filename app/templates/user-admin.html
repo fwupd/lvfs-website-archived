@@ -50,42 +50,41 @@
     </select>
     </div>
   </div>
-
   <fieldset class="form-group">
     <div class="row">
       <legend class="col-form-label col-sm-2 pt-0">Attributes</legend>
       <div class="col-sm-10">
 {% if g.user.check_acl('@add-attribute-analyst') %}
-        <div class="form-check">
-          <input class="form-check-input" type="checkbox" name="is_analyst" id="is_analyst" value="1" {{'checked' if u.is_analyst}}>
-          <label class="form-check-label ml-3 mt-1" for="is_analyst">
+        <span class="switch">
+          <input class="switch" type="checkbox" name="is_analyst" id="is_analyst" value="1" {{'checked' if u.is_analyst}}>
+          <label for="is_analyst">
             Read-only access to all firmware and associated reports in the <code>{{u.vendor.group_id}}</code> group
           </label>
-        </div>
+        </span>
 {% endif %}
 {% if g.user.check_acl('@add-attribute-qa') %}
-        <div class="form-check mt-2">
-          <input class="form-check-input" type="checkbox" name="is_qa" id="is_qa" value="1" {{'checked' if u.is_qa}}>
-          <label class="form-check-label ml-3 mt-1" for="is_qa">
+        <span class="switch mt-3">
+          <input class="switch" type="checkbox" name="is_qa" id="is_qa" value="1" {{'checked' if u.is_qa}}>
+          <label for="is_qa">
             Allowed to modify all the firmware uploaded to the <code>{{u.vendor.group_id}}</code> group
           </label>
-        </div>
+        </span>
 {% endif %}
 {% if g.user.check_acl('@add-attribute-manager') %}
-        <div class="form-check mt-2">
-          <input class="form-check-input" type="checkbox" name="is_vendor_manager" id="is_vendor_manager" value="1" {{'checked' if u.is_vendor_manager}}>
-          <label class="form-check-label ml-3 mt-1" for="is_vendor_manager">
+        <span class="switch mt-3 mb-3">
+          <input class="switch mt-3" type="checkbox" name="is_vendor_manager" id="is_vendor_manager" value="1" {{'checked' if u.is_vendor_manager}}>
+          <label for="is_vendor_manager">
             Allowed to add, remove and modify users in the <code>{{u.vendor.group_id}}</code> group
           </label>
-        </div>
+        </span>
 {% endif %}
 {% if g.user.check_acl('@add-attribute-approved') %}
-        <div class="form-check mt-2">
-          <input class="form-check-input" type="checkbox" name="is_approved_public" id="is_approved_public" value="1" {{'checked' if u.is_approved_public}}>
-          <label class="form-check-label ml-3 mt-1" for="is_approved_public">
+        <span class="switch mt-3">
+          <input class="switch" type="checkbox" name="is_approved_public" id="is_approved_public" value="1" {{'checked' if u.is_approved_public}}>
+          <label for="is_approved_public">
             Allowed to move firmware to the public <code>testing</code> and <code>stable</code> remotes
           </label>
-        </div>
+        </span>
 {% endif %}
       </div>
     </div>
