@@ -1,7 +1,22 @@
 Dear {{ user.display_name }},
 
-Your profile has been modified on the Linux Vendor Firmware Service by {{ g.user.display_name }} <{{ g.user.username }}>. You may need to log out and back in before these changes will be applied:
+Your profile has been modified on the Linux Vendor Firmware Service by {{ g.user.display_name }} <{{ g.user.username }}>.
 
+You can now:
+
+ * Upload firmware to {{user.vendor.display_name}}
+{% for aff in user.vendor.affiliations_for %}
+ * Upload firmware on behalf of {{aff.vendor.display_name}}
+{% endfor %}{% if user.is_analyst %}
+ * Access all firmware and associated reports in the {{user.vendor.group_id}} group
+{% endif %}{% if user.is_qa %}
+ * Modify all the firmware uploaded to the {{user.vendor.group_id}} group
+{% endif %}{% if user.is_vendor_manager %}
+ * Add, remove and modify users in the {{user.vendor.group_id}} group
+{% endif %}{% if user.is_approved_public %}
+ * Move firmware to the public testing and stable remotes
+{% endif %}
+You may need to log out and back in before these changes will be applied:
 {{ url_for('.logout', _external=True) }}
 
 Regards,
