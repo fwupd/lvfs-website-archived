@@ -59,6 +59,9 @@ class User(db.Model):
     # link using foreign keys
     vendor = relationship('Vendor', foreign_keys=[vendor_id])
     agreement = relationship('Agreement', foreign_keys=[agreement_id])
+    fws = relationship('Firmware',
+                       order_by="desc(Firmware.timestamp)",
+                       primaryjoin='Firmware.user_id==User.user_id')
 
     def __init__(self, username, password=None, display_name=None,
                  vendor_id=None, auth_type='disabled', is_analyst=False, is_qa=False,

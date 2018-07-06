@@ -6,15 +6,16 @@
 {% block content %}
 <table class="table">
   <tr class="row table-borderless">
-    <th class="col-sm-4">Username</th>
+    <th class="col-sm-3">Username</th>
     <th class="col-sm-2">Display Name</th>
+    <th class="col-sm-1">Uploads</th>
     <th class="col-sm-2">Last Used</th>
     <th class="col-sm-2">Attributes</th>
     <th class="col-sm-2">&nbsp;</th>
   </tr>
 {% for u in v.users %}
   <tr class="row">
-    <td class="col-sm-4">
+    <td class="col-sm-3">
 {% if u.user_id == g.user.user_id %}
       <code>{{u.username}}</code>
 {% else %}
@@ -22,6 +23,7 @@
 {% endif %}
     </td>
     <td class="col-sm-2">{{u.display_name}}</td>
+    <td class="col-sm-1">{{u.fws|length}}</td>
     <td class="col-sm-2">{{u.atime}}</td>
     <td class="col-sm-2">
       <code>
