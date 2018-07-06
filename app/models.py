@@ -4,7 +4,7 @@
 # Copyright (C) 2015-2018 Richard Hughes <richard@hughsie.com>
 # Licensed under the GNU General Public License Version 2
 #
-# pylint: disable=too-few-public-methods,too-many-instance-attributes,too-many-arguments,too-many-lines
+# pylint: disable=too-few-public-methods,too-many-instance-attributes,too-many-arguments,too-many-lines,protected-access
 
 import datetime
 import fnmatch
@@ -292,8 +292,6 @@ class Vendor(db.Model):
             return user.is_qa
         elif action == '@modify-affiliations':
             return False
-
-        # user specified the wrong thing
         raise NotImplementedError('unknown security check action: %s:%s' % (self, action))
 
     def __repr__(self):
@@ -546,22 +544,17 @@ class Component(db.Model):
 
         # depends on the action requested
         if action == '@modify-updateinfo':
-            if user.is_qa and user.vendor_id == self.fw.vendor_id:
+            if user.is_qa and self.fw._is_vendor(user):
                 return True
-            # is original file uploader, if not promoted
-            if user.user_id == self.fw.user_id:
-                if not self.fw.remote.is_public:
-                    return True
+            if self.fw._is_owner(user) and not self.fw.remote.is_public:
+                return True
             return False
         elif action in ('@modify-keywords', '@modify-requirements'):
-            if user.is_qa and user.vendor_id == self.fw.vendor_id:
+            if user.is_qa and self.fw._is_vendor(user):
                 return True
-            if user.user_id == self.fw.user_id:
-                if not self.fw.remote.is_public:
-                    return True
+            if self.fw._is_owner(user) and not self.fw.remote.is_public:
+                return True
             return False
-
-        # user specified the wrong thing
         raise NotImplementedError('unknown security check action: %s:%s' % (self, action))
 
     def __repr__(self):
@@ -751,6 +744,12 @@ class Firmware(db.Model):
         self.user_id = None         # user_id of the uploader
         self.mds = []
 
+    def _is_owner(self, user):
+        return self.user_id == user.user_id
+
+    def _is_vendor(self, user):
+        return self.vendor_id == user.vendor_id
+
     def check_acl(self, action, user=None):
 
         # fall back
@@ -761,19 +760,17 @@ class Firmware(db.Model):
 
         # depends on the action requested
         if action == '@delete':
-            if user.is_qa and user.vendor_id == self.vendor_id:
+            if user.is_qa and self._is_vendor(user):
                 return True
-            if user.user_id == self.user_id:
-                if not self.remote.is_public:
-                    return True
+            if self._is_owner(user) and not self.remote.is_public:
+                return True
             return False
         elif action == '@view':
-            if user.is_qa and user.vendor_id == self.vendor_id:
+            if user.is_qa and self._is_vendor(user):
                 return True
-            # in analyst group for firmware owner
-            if user.is_analyst and user.vendor_id == self.vendor_id:
+            if user.is_analyst and self._is_vendor(user):
                 return True
-            if user.user_id == self.user_id:
+            if self._is_owner(user):
                 return True
             return False
         elif action == '@view-analytics':
@@ -783,20 +780,20 @@ class Firmware(db.Model):
                 return True
             return False
         elif action == '@undelete':
-            if user.is_qa and user.vendor_id == self.vendor_id:
+            if user.is_qa and self._is_vendor(user):
                 return True
-            if user.user_id == self.user_id:
+            if self._is_owner(user):
                 return True
             return False
         elif action in ('@promote-stable', '@promote-testing'):
-            if user.is_approved_public and user.vendor_id == self.vendor_id:
+            if user.is_approved_public and self._is_vendor(user):
                 return True
             return False
         elif action.startswith('@promote-'):
-            if user.is_qa and user.vendor_id == self.vendor_id:
+            if user.is_qa and self._is_vendor(user):
                 return True
             # is original file uploader can move private<->embargo
-            if user.user_id == self.user_id:
+            if self._is_owner(user):
                 old = self.remote.name
                 if old.startswith('embargo-'):
                     old = 'embargo'
@@ -807,25 +804,22 @@ class Firmware(db.Model):
                     return True
             return False
         elif action == '@add-limit':
-            if user.is_qa and user.vendor_id == self.vendor_id:
+            if user.is_qa and self._is_vendor(user):
                 return True
-            if user.user_id == self.user_id:
+            if self._is_owner(user):
                 return True
             return False
         elif action == '@remove-limit':
-            if user.is_qa and user.vendor_id == self.vendor_id:
+            if user.is_qa and self._is_vendor(user):
                 return True
             return False
         elif action == '@modify-affiliation':
-            # there are no affiliates for this vendor
             if not self.vendor.affiliations_for:
                 return False
             # is original file uploader and uploaded to ODM group
-            if user.user_id == self.user_id and user.vendor_id == self.vendor_id:
+            if self._is_owner(user) and self._is_vendor(user):
                 return True
             return False
-
-        # user specified the wrong thing
         raise NotImplementedError('unknown security check action: %s:%s' % (self, action))
 
     def __repr__(self):
@@ -958,23 +952,18 @@ class Issue(db.Model):
 
         # depends on the action requested
         if action == '@create':
-            # QA user can create issues
             return user.is_qa
         elif action == '@modify':
-            # QA user can modify any issues matching group_id
             if user.is_qa and user.vendor_id == self.vendor_id:
                 return True
             return False
         elif action == '@view':
-            # QA user can modify any issues matching group_id
             if user.is_qa and user.vendor_id == self.vendor_id:
                 return True
             # any issues owned by admin can be viewed by a QA user
             if user.is_qa and self.vendor_id == 1:
                 return True
             return False
-
-        # user specified the wrong thing
         raise NotImplementedError('unknown security check action: %s:%s' % (self, action))
 
     def __repr__(self):
@@ -1069,11 +1058,9 @@ class Report(db.Model):
             return False
         elif action == '@view':
             # QA user can modify any issues matching vendor_id
-            if user.is_qa and user.vendor_id == self.fw.vendor_id:
+            if user.is_qa and self.fw._is_vendor(user):
                 return True
             return False
-
-        # user specified the wrong thing
         raise NotImplementedError('unknown security check action: %s:%s' % (self, action))
 
     def __repr__(self):
