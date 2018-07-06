@@ -4,6 +4,8 @@
 # Copyright (C) 2018 Richard Hughes <richard@hughsie.com>
 # Licensed under the GNU General Public License Version 2
 
+from __future__ import print_function
+
 from flask_mail import Message
 
 from app import app, mail
@@ -19,6 +21,7 @@ def send_async_email(app2, msg):
 def send_email(subject, recipient, text_body):
     if 'MAIL_SUPPRESS_SEND' in app.config and app.config['MAIL_SUPPRESS_SEND']:
         _event_log('Not sending email to %s' % recipient)
+        print(text_body)
         return
     msg = Message(subject, recipients=[recipient])
     msg.body = text_body
