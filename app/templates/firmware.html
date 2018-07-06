@@ -36,11 +36,7 @@
 {% for fw in fw_by_name[name] %}
 {% if show_all or fw.is_newest_in_state %}
   <tr class="row">
-{% if not fw.version_display or fw.mds[0].version == fw.version_display %}
-    <td class="col-sm-3">{{fw.mds[0].version}}</td>
-{% else %}
-    <td class="col-sm-3">{{fw.version_display}} [{{fw.mds[0].version}}]</td>
-{% endif %}
+    <td class="col-sm-3">{{fw.version_display}}</td>
     <td class="col-sm-3">{{fw.timestamp}}</td>
     <td class="col-sm-4">{{fw.remote.name}}</td>
     <td class="col-sm-2 text-right">

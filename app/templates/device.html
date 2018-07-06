@@ -22,11 +22,7 @@
 {% for fw in fws %}
 
 {% if (g.user is defined and g.user.check_acl('@admin')) or fw.remote.is_public %}
-{% if fw.version_display %}
 <h2 class="mt-3">Version {{fw.version_display}}:</h2>
-{% else %}
-<h2>Version {{fw.mds[0].version}}:</h2>
-{% endif %}
 {% if fw.remote.name == 'testing' %}
 <p>
   <b>Warning:</b> This firmware is in the testing state and may not be suitable for

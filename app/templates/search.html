@@ -67,11 +67,7 @@
     <td class="col-sm-11">
       <a href="/lvfs/component/{{md.component_id}}/all">Firmware: {{md.name}}</a><br/>
       Vendor: {{md.developer_name}}<br/>
-{% if md.fw.version_display %}
-      Latest Version: {{md.fw.version_display}}
-{% else %}
       Latest Version: {{md.version}}
-{% endif %}
     </td>
   </tr>
 {% endfor %}

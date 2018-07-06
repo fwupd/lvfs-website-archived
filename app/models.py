@@ -666,7 +666,7 @@ class Firmware(db.Model):
     filename = Column(Text, nullable=False)
     download_cnt = Column(Integer, default=0)
     checksum_upload = Column(String(40), nullable=False, index=True)
-    version_display = Column(Text, nullable=True, default=None)
+    _version_display = Column('version_display', Text, nullable=True, default=None)
     remote_id = Column(Integer, ForeignKey('remotes.remote_id'), nullable=False)
     checksum_signed = Column(String(40), nullable=False)
     user_id = Column(Integer, ForeignKey('users.user_id'), nullable=False)
@@ -708,6 +708,20 @@ class Firmware(db.Model):
         return datetime.datetime.now() + datetime.timedelta(seconds=secs)
 
     @property
+    def version_display(self):
+        if self._version_display:
+            return self._version_display
+        md_versions = []
+        for md in self.mds:
+            if md.version not in md_versions:
+                md_versions.append(md.version)
+        return ','.join(md_versions)
+
+    @version_display.setter
+    def version_display(self, value):
+        self._version_display = value
+
+    @property
     def problems(self):
         # does the firmware have any warnings
         problems = []
@@ -728,7 +742,7 @@ class Firmware(db.Model):
         self.timestamp = None
         self.filename = None        # filename of the original .cab file
         self.checksum_upload = None # SHA1 of the original .cab file
-        self.version_display = None # from the firmware.inf file
+        self._version_display = None # from the firmware.inf file
         self.download_cnt = 0       # generated from the client database
         self.checksum_signed = None # SHA1 of the signed .cab
         self.user_id = None         # user_id of the uploader
