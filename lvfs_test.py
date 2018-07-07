@@ -454,11 +454,54 @@ class LvfsTestCase(unittest.TestCase):
 
         # login, upload then check both events were logged
         self.login()
+        self.add_user('alice@fwupd.org')
+        self.add_user('bob@fwupd.org', is_qa=True)
+        self.add_user('mario@oem.com', is_qa=True, group_id='oem')
+        self.logout()
+
+        # alice cannot see her own event
+        self.login('alice@fwupd.org')
         self.upload()
+        rv = self.app.get('/lvfs/eventlog')
+        assert b'Unable to show event log for non-QA user' in rv.data, rv.data
+        assert b'Uploaded file' not in rv.data, rv.data
+        assert b'Logged in' not in rv.data, rv.data
+        self.logout()
+
+        # sign firmware, to create a admin-only event
+        stdout = self._run_cron('firmware')
+        assert 'hughski-colorhug2-2.0.3' in stdout, stdout
+
+        # mario can't see anything as he's in a different vendor group
+        self.login('mario@oem.com')
+        rv = self.app.get('/lvfs/eventlog')
+        assert b'Uploaded file' not in rv.data, rv.data
+        assert b'Logged in' in rv.data, rv.data
+        assert b'Signed firmware' not in rv.data, rv.data
+        assert b'mario@oem.com' in rv.data, rv.data
+        assert b'alice@fwupd.org' not in rv.data, rv.data
+        self.logout()
+
+        # bob is QA and can see just event for his vendor group
+        self.login('bob@fwupd.org')
         rv = self.app.get('/lvfs/eventlog')
         assert b'Uploaded file' in rv.data, rv.data
         assert b'Logged in' in rv.data, rv.data
         assert b'>anonymous<' not in rv.data, rv.data
+        assert b'Signed firmware' not in rv.data, rv.data
+        assert b'mario@oem.com' not in rv.data, rv.data
+        assert b'alice@fwupd.org' in rv.data, rv.data
+        self.logout()
+
+        # root can see everything
+        self.login()
+        rv = self.app.get('/lvfs/eventlog')
+        assert b'Uploaded file' in rv.data, rv.data
+        assert b'Logged in' in rv.data, rv.data
+        assert b'Signed firmware' in rv.data, rv.data
+        assert b'alice@fwupd.org' in rv.data, rv.data
+        assert b'bob@fwupd.org' in rv.data, rv.data
+        assert b'mario@oem.com' in rv.data, rv.data
 
     def test_vendorlist(self):
 

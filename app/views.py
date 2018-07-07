@@ -400,7 +400,7 @@ def eventlog(start=0, length=20):
         eventlog_len = length * 20
 
     # table contents
-    if g.user.check_acl():
+    if g.user.check_acl('@admin'):
         events = db.session.query(Event).\
                         order_by(Event.id.desc()).\
                         offset(start).limit(length).all()
