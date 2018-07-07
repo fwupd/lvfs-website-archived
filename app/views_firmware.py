@@ -30,10 +30,6 @@ def firmware(show_all=False):
     Show all previsouly uploaded firmware for this user.
     """
 
-    # check is valid
-    if not g.user.check_acl():
-        return _error_permission_denied('Not a valid user')
-
     # group by the firmware name
     names = {}
     for fw in db.session.query(Firmware).\

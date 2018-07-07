@@ -84,10 +84,6 @@ class User(db.Model):
         if self.is_admin:
             return True
 
-        # this is just a check for 'is logged in'
-        if not action:
-            return True
-
         # decide based on the action
         if action == '@admin':
             return False
