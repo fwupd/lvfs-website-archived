@@ -192,6 +192,12 @@ def firmware_promote(firmware_id, target):
     if not fw.check_acl('@promote-' + target):
         return _error_permission_denied("No QA access to %s" % fw.firmware_id)
 
+    # vendor has to fix the problems first
+    if target in ['stable', 'testing'] and fw.problems:
+        probs = ','.join(fw.problems)
+        flash('Firmware has problems that must be fixed first: %s' % probs, 'warning')
+        return redirect(url_for('.firmware_show', firmware_id=firmware_id))
+
     # set new remote
     if target == 'embargo':
         remote = fw.vendor.remote

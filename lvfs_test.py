@@ -218,6 +218,7 @@ class LvfsTestCase(unittest.TestCase):
         self.login()
 
         # promote the firmware to testing then stable
+        self.run_cron_firmware()
         rv = self.app.get('/lvfs/firmware/1/promote/testing',
                           follow_redirects=True)
         assert b'>testing<' in rv.data, rv.data
@@ -355,6 +356,16 @@ class LvfsTestCase(unittest.TestCase):
         stdout, _ = ps.communicate()
         return stdout
 
+    def run_cron_firmware(self, fn='hughski-colorhug2-2.0.3'):
+        stdout = self._run_cron('firmware')
+        assert fn in stdout, stdout
+
+    def run_cron_metadata(self, remote_ids=None):
+        stdout = self._run_cron('metadata')
+        if remote_ids:
+            for remote_id in remote_ids:
+                assert 'Updating: %s' % remote_id in stdout, stdout
+
     def test_cron_metadata(self):
 
         # verify all metadata is in good shape
@@ -368,8 +379,7 @@ class LvfsTestCase(unittest.TestCase):
         assert b'Will be signed in' in rv.data, rv.data
 
         # run the cron job manually
-        stdout = self._run_cron()
-        assert 'Updating: embargo-admin' in stdout, stdout
+        self.run_cron_metadata(['embargo-admin'])
 
         # verify all metadata is in good shape
         rv = self.app.get('/lvfs/metadata')
@@ -454,6 +464,7 @@ class LvfsTestCase(unittest.TestCase):
         assert b'/lvfs/firmware/1' in rv.data, rv.data
         rv = self.app.get('/lvfs/firmware/1/analytics/clients')
         assert b'User Agent' in rv.data, rv.data
+        self.run_cron_firmware()
         rv = self.app.get('/lvfs/firmware/1/promote/testing',
                           follow_redirects=True)
         assert b'>testing<' in rv.data, rv.data
@@ -478,8 +489,7 @@ class LvfsTestCase(unittest.TestCase):
         self.logout()
 
         # sign firmware, to create a admin-only event
-        stdout = self._run_cron('firmware')
-        assert 'hughski-colorhug2-2.0.3' in stdout, stdout
+        self.run_cron_firmware()
 
         # mario can't see anything as he's in a different vendor group
         self.login('mario@oem.com')
@@ -772,6 +782,7 @@ class LvfsTestCase(unittest.TestCase):
                           follow_redirects=True)
         assert b'Moved firmware' in rv.data, rv.data
         assert b'>embargo-admin<' in rv.data, rv.data
+        self.run_cron_firmware()
         rv = self.app.get('/lvfs/firmware/1/promote/testing',
                           follow_redirects=True)
         assert b'Moved firmware' in rv.data, rv.data
@@ -1231,12 +1242,9 @@ class LvfsTestCase(unittest.TestCase):
         assert b'Moved firmware' in rv.data, rv.data
         self.logout()
 
-        # run the cron job manually
-        stdout = self._run_cron('firmware')
-        assert 'hughski-colorhug2-2.0.3' in stdout, stdout
-        stdout = self._run_cron('metadata')
-        assert 'Updating: embargo-oem' in stdout, stdout
-        assert 'Updating: embargo-odm' in stdout, stdout
+        # run the cron jobs manually
+        self.run_cron_firmware()
+        self.run_cron_metadata(['embargo-oem', 'embargo-odm'])
 
         # verify the firmware is present for the odm
         rv = self.app.get('/downloads/firmware-6f8926be2d4543878d451be96eb7221eb4313dda.xml.gz')
