@@ -17,14 +17,12 @@ from flask_oauthlib.client import OAuth
 from flask_sqlalchemy import SQLAlchemy
 from werkzeug.local import LocalProxy
 
-from .response import SecureResponse
 from .pluginloader import Pluginloader
 from .util import _error_internal, _event_log
 from .dbutils import drop_db, init_db
 
 app = Flask(__name__)
 if os.path.exists('app/custom.cfg'):
-    app.response_class = SecureResponse
     app.config.from_pyfile('custom.cfg')
 else:
     app.config.from_pyfile('flaskapp.cfg')
