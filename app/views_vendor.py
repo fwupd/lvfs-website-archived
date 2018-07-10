@@ -330,20 +330,27 @@ def vendor_user_add(vendor_id):
             return redirect(url_for('.vendor_users', vendor_id=vendor_id), 302)
 
     # add user
-    password = _generate_password()
-    user = User(username=request.form['username'],
-                display_name=request.form['display_name'],
-                auth_type='local',
-                password=_password_hash(password),
-                vendor_id=vendor.vendor_id)
+    if g.user.vendor.oauth_domain_glob:
+        user = User(username=request.form['username'],
+                    display_name=request.form['display_name'],
+                    auth_type='oauth',
+                    vendor_id=vendor.vendor_id)
+    else:
+        password = _generate_password()
+        user = User(username=request.form['username'],
+                    display_name=request.form['display_name'],
+                    auth_type='local',
+                    password=_password_hash(password),
+                    vendor_id=vendor.vendor_id)
     db.session.add(user)
     db.session.commit()
 
     # send email
-    send_email("[LVFS] An account has been created",
-               user.username,
-               render_template('email-confirm.txt',
-                               user=user, password=password))
+    if user.auth_type == 'local':
+        send_email("[LVFS] An account has been created",
+                   user.username,
+                   render_template('email-confirm.txt',
+                                   user=user, password=password))
 
     # done!
     flash('Added user %i' % user.user_id, 'info')
