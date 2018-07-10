@@ -18,7 +18,8 @@ from sqlalchemy import Column, Integer, String, Text, Boolean, DateTime, Foreign
 from sqlalchemy.orm import relationship
 
 from app import db
-from .hash import _qa_hash
+from .hash import _qa_hash, _password_hash
+from .util import _generate_password
 
 class Agreement(db.Model):
 
@@ -43,6 +44,8 @@ class User(db.Model):
     username = Column(String(80), nullable=False, index=True)
     username_old = Column(Text, default=None)
     password = Column(String(40), default=None)
+    password_recovery = Column(String(40), default=None)
+    password_recovery_ts = Column(DateTime, default=None)
     display_name = Column(Unicode, default=None)
     vendor_id = Column(Integer, ForeignKey('vendors.vendor_id'), nullable=False)
     auth_type = Column(Text, default='disabled')
@@ -121,6 +124,19 @@ class User(db.Model):
         elif action in ('@view-eventlog', '@view-issues'):
             return self.is_qa
         raise NotImplementedError('unknown security check type: %s' % self)
+
+    def generate_password_recovery(self):
+        if self.is_robot:
+            raise RuntimeError('account is a robot')
+        if self.auth_type == 'disabled':
+            raise RuntimeError('account is locked')
+        if self.auth_type == 'local+locked':
+            raise RuntimeError('account is locked')
+        if self.auth_type == 'oauth':
+            raise RuntimeError('account set to OAuth only')
+        self.mtime = datetime.datetime.utcnow()
+        self.password_recovery = _password_hash(_generate_password())
+        self.password_recovery_ts = datetime.datetime.utcnow()
 
     @property
     def is_authenticated(self):

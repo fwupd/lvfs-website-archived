@@ -20,7 +20,11 @@ def send_async_email(app2, msg):
 
 def send_email(subject, recipient, text_body):
     if 'MAIL_SUPPRESS_SEND' in app.config and app.config['MAIL_SUPPRESS_SEND']:
-        _event_log('Not sending email to %s' % recipient)
+        if 'DEBUG' in app.config and app.config['DEBUG']:
+            # also save the email *contents* -- which could be password...
+            _event_log('Not sending email to %s: %s' % (recipient, text_body))
+        else:
+            _event_log('Not sending email to %s' % recipient)
         print(text_body)
         return
     msg = Message(subject, recipients=[recipient])

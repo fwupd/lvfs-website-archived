@@ -40,6 +40,7 @@ class LvfsTestCase(unittest.TestCase):
         cfgfile = open(self.cfg_filename, 'w')
         cfgfile.write('\n'.join([
             "SQLALCHEMY_DATABASE_URI = '%s'" % self.db_uri,
+            "DEBUG = True",
             "RESTORE_DIR = '/tmp'",
             "DOWNLOAD_DIR = '/tmp'",
             "SECRET_PASSWORD_SALT = 'lvfs%%%'",
@@ -1576,6 +1577,55 @@ class LvfsTestCase(unittest.TestCase):
         assert b'Deleted agreement' in rv.data, rv.data
         rv = self.app.get('/lvfs/agreement/list')
         assert b'DONOTSIGN' not in rv.data, rv.data
+
+    def _get_token_from_eventlog(self, token_before):
+        self.login()
+        rv = self.app.get('/lvfs/eventlog/1/2')
+        self.logout()
+        found_token = False
+        for tok in str(rv.data).split():
+            if found_token:
+                return tok
+            if tok == token_before:
+                found_token = True
+        return None
+
+    def test_password_recovery(self):
+
+        # add a user, then try to recover the password
+        self.login()
+        self.add_user('testuser@fwupd.org')
+        self.logout()
+
+        # not logged in
+        rv = self.app.get('/lvfs/user/recover', follow_redirects=True)
+        assert b'password recovery link' in rv.data, rv.data
+        rv = self.app.post('/lvfs/user/recover', data=dict(
+            username=u'NOBODY@fwupd.org',
+        ), follow_redirects=True)
+        assert b'Unable to recover password as no username' in rv.data, rv.data
+        rv = self.app.post('/lvfs/user/recover', data=dict(
+            username=u'testuser@fwupd.org',
+        ), follow_redirects=True)
+        assert b'email has been sent with a recovery link' in rv.data, rv.data
+
+        # get the recovery link from the admin event log
+        uri = self._get_token_from_eventlog('link:')
+        assert uri
+        rv = self.app.get(uri, follow_redirects=True)
+        assert b'password has been reset' in rv.data, rv.data
+
+        # get the login link to check the email was sent
+        password = self._get_token_from_eventlog('Password:')
+        assert password, password
+
+        # try to use recovery link again
+        rv = self.app.get(uri, follow_redirects=True)
+        assert b'No user with that recovery password' in rv.data, rv.data
+        assert b'password has been reset' not in rv.data, rv.data
+
+        # try to log in with the new password
+        self.login('testuser@fwupd.org', password=password)
 
 if __name__ == '__main__':
     unittest.main()

@@ -1,0 +1,9 @@
+Dear {{ user.display_name }},
+
+We have received a request to reset your password. If you want to reset your password please click the following link: {{ url_for('.user_recover_with_secret', secret=user.password_recovery, _external=True) }} within the next 24 hours.
+
+If you did not submit this request and do not want to change your password please ignore this email.
+
+Regards,
+
+The LVFS admins

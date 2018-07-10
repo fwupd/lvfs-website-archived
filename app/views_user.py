@@ -223,6 +223,73 @@ def user_modify_by_admin(user_id):
 
     return redirect(url_for('.user_admin', user_id=user_id))
 
+@app.route('/lvfs/user/recover/<secret>')
+def user_recover_with_secret(secret):
+
+    # check we have the right token
+    user = db.session.query(User).filter(User.password_recovery == secret).first()
+    if not user:
+        flash('No user with that recovery password', 'danger')
+        return redirect(url_for('.index'), 302)
+
+    # user has since been disabled
+    if user.auth_type == 'disabled':
+        flash('User has been disabled since the recovery email was sent', 'danger')
+        return redirect(url_for('.index'), 302)
+
+    # user waited too long
+    if datetime.datetime.utcnow() > user.password_recovery_ts + datetime.timedelta(hours=24):
+        flash('More than 24 hours elapsed since the recovery email was sent', 'warning')
+        return redirect(url_for('.index'), 302)
+
+    # password is stored hashed
+    password = _generate_password()
+    user.password = _password_hash(password)
+    user.password_recovery = None
+    user.password_recovery_ts = None
+    user.mtime = datetime.datetime.utcnow()
+    db.session.commit()
+
+    # send email
+    send_email("[LVFS] Your password has been reset",
+               user.username,
+               render_template('email-recover-password.txt',
+                               user=user, password=password))
+    flash('Your password has been reset and an email has been sent with the new details', 'info')
+    return redirect(url_for('.index'), 302)
+
+@app.route('/lvfs/user/recover', methods=['GET', 'POST'])
+def user_recover():
+    """
+    Shows an account recovery panel for a user
+    """
+    if request.method != 'POST':
+        return render_template('user-recover.html')
+    if not 'username' in request.form:
+        return _error_permission_denied('Unable to recover user as no username')
+
+    # check exists
+    username = request.form['username']
+    user = db.session.query(User).filter(User.username == username).first()
+    if not user:
+        flash('Unable to recover password as no username %s found' % username, 'warning')
+        return redirect(url_for('.index'), 302)
+
+    # set the recovery password
+    try:
+        user.generate_password_recovery()
+        db.session.commit()
+    except RuntimeError as e:
+        flash('Unable to recover password for %s: %s' % (username, str(e)), 'warning')
+        return redirect(url_for('.index'), 302)
+
+    # send email
+    send_email("[LVFS] Your login details",
+               user.username,
+               render_template('email-recover.txt', user=user))
+    flash('An email has been sent with a recovery link', 'info')
+    return redirect(url_for('.index'), 302)
+
 @app.route('/lvfs/user/add', methods=['GET', 'POST'])
 @login_required
 def user_add():
