@@ -135,19 +135,7 @@ def firmware_undelete(firmware_id):
     flash('Firmware undeleted', 'info')
     return redirect(url_for('.firmware'))
 
-@app.route('/lvfs/firmware/<int:firmware_id>/delete')
-@login_required
-def firmware_delete(firmware_id):
-    """ Delete a firmware entry and also delete the file from disk """
-
-    # check firmware exists in database
-    fw = db.session.query(Firmware).filter(Firmware.firmware_id == firmware_id).first()
-    if not fw:
-        return _error_internal("No firmware file with ID %s exists" % firmware_id)
-
-    # security check
-    if not fw.check_acl('@delete'):
-        return _error_permission_denied('Insufficient permissions to delete firmware')
+def _firmware_delete(fw):
 
     # find private remote
     remote = db.session.query(Remote).filter(Remote.name == 'deleted').first()
@@ -166,6 +154,23 @@ def firmware_delete(firmware_id):
     # mark as invalid
     fw.remote_id = remote.remote_id
     fw.events.append(FirmwareEvent(fw.remote_id, g.user.user_id))
+
+@app.route('/lvfs/firmware/<int:firmware_id>/delete')
+@login_required
+def firmware_delete(firmware_id):
+    """ Delete a firmware entry and also delete the file from disk """
+
+    # check firmware exists in database
+    fw = db.session.query(Firmware).filter(Firmware.firmware_id == firmware_id).first()
+    if not fw:
+        return _error_internal("No firmware file with ID %s exists" % firmware_id)
+
+    # security check
+    if not fw.check_acl('@delete'):
+        return _error_permission_denied('Insufficient permissions to delete firmware')
+
+    # delete firmware
+    _firmware_delete(fw)
     db.session.commit()
 
     flash('Firmware deleted', 'info')

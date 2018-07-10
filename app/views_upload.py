@@ -26,6 +26,7 @@ from .uploadedfile import UploadedFile, FileTooLarge, FileTooSmall, FileNotSuppo
 from .util import _get_client_address, _get_settings
 from .util import _error_internal, _error_permission_denied
 from .util import _json_success, _json_error
+from .views_firmware import _firmware_delete
 
 def _get_plugin_metadata_for_uploaded_file(ufile):
     settings = _get_settings()
@@ -245,14 +246,25 @@ def upload():
 
     # all the components existed, so build an error out of all the versions
     if len(fws_already_exist) == len(ufile.get_components()):
-        versions_for_display = []
-        for fw in fws_already_exist:
-            for md in fw.mds:
-                if not md.version_display in versions_for_display:
-                    versions_for_display.append(md.version_display)
-        flash('Failed to upload file: A firmware file for this device with '
-              'version %s already exists' % ','.join(versions_for_display), 'danger')
-        return redirect('/lvfs/firmware/%s' % fw.firmware_id)
+        if g.user.is_robot and 'auto-delete' in request.form:
+            for fw in fws_already_exist:
+                if fw.remote.is_public:
+                    return _error_permission_denied('Firmware %i cannot be autodeleted as is in remote %s' %
+                                                    (fw.firmware_id, fw.remote.name))
+                if fw.user.user_id != g.user.user_id:
+                    return _error_permission_denied('Firmware was not uploaded by this user')
+            for fw in fws_already_exist:
+                flash('Firmware %i was auto-deleted due to robot upload' % fw.firmware_id)
+                _firmware_delete(fw)
+        else:
+            versions_for_display = []
+            for fw in fws_already_exist:
+                for md in fw.mds:
+                    if not md.version_display in versions_for_display:
+                        versions_for_display.append(md.version_display)
+            flash('Failed to upload file: A firmware file for this device with '
+                  'version %s already exists' % ','.join(versions_for_display), 'danger')
+            return redirect('/lvfs/firmware/%s' % fw.firmware_id)
 
     # check if the file dropped a GUID previously supported
     for component in ufile.get_components():
