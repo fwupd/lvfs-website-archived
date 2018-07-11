@@ -19,7 +19,7 @@ from werkzeug.local import LocalProxy
 
 from .pluginloader import Pluginloader
 from .util import _error_internal, _event_log
-from .dbutils import drop_db, init_db
+from .dbutils import drop_db, init_db, anonymize_db
 
 app = Flask(__name__)
 if os.path.exists('app/custom.cfg'):
@@ -44,6 +44,10 @@ def initdb_command():
 @app.cli.command('dropdb')
 def dropdb_command():
     drop_db(db)
+
+@app.cli.command('anonymizedb')
+def anonymizedb_command():
+    anonymize_db(db)
 
 def flash_save_eventlog(unused_sender, message, category, **unused_extra):
     is_important = False
