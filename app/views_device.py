@@ -4,6 +4,8 @@
 # Copyright (C) 2017-2018 Richard Hughes <richard@hughsie.com>
 # Licensed under the GNU General Public License Version 2
 
+import datetime
+
 from flask import render_template, g
 from flask_login import login_required
 
@@ -35,12 +37,14 @@ def device():
 
     return render_template('devices.html', devices=devices)
 
-@app.route('/lvfs/device/<guid>')
-def device_guid(guid):
-    """
-    Show information for one device, which can be seen without a valid login
-    """
+def _dt_from_quarter(year, quarter):
+    month = (quarter * 3) + 1
+    if month > 12:
+        month %= 12
+        year += 1
+    return datetime.datetime(year, month, 1)
 
+def _get_fws_for_guid(guid):
     # get all the guids we can target
     fws = []
     for fw in db.session.query(Firmware).\
@@ -54,9 +58,42 @@ def device_guid(guid):
                 continue
             fws.append(fw)
             break
+    return fws
 
-    return render_template('device.html', fws=fws)
+@app.route('/lvfs/device/<guid>')
+def device_guid(guid):
+    """
+    Show information for one device, which can be seen without a valid login
+    """
+    fws = _get_fws_for_guid(guid)
+    return render_template('device.html', guid=guid, fws=fws)
 
+@app.route('/lvfs/device/<guid>/analytics')
+def device_analytics(guid):
+    """
+    Show analytics for one device, which can be seen without a valid login
+    """
+    data = []
+    labels = []
+    now = datetime.date.today()
+    fws = _get_fws_for_guid(guid)
+    for i in range(-2, 1):
+        year = now.year + i
+        for quarter in range(0, 4):
+            t1 = _dt_from_quarter(year, quarter)
+            t2 = _dt_from_quarter(year, quarter + 1)
+            cnt = 0
+            for fw in fws:
+                if fw.timestamp >= t1 and fw.timestamp < t2:
+                    cnt += 1
+            labels.append("%04iQ%i" % (year, quarter + 1))
+            data.append(cnt)
+
+    return render_template('device-analytics.html',
+                           guid=guid,
+                           labels=labels,
+                           data=data,
+                           fws=fws)
 
 @app.route('/lvfs/devicelist')
 def device_list():

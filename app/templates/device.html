@@ -1,8 +1,10 @@
 {% extends "default.html" %}
 {% block title %}Device{% endblock %}
 
+{% block nav %}{% include 'device-nav.html' %}{% endblock %}
+
 {% block content %}
-<h1>Device Details</h1>
+<h2>Device Details</h2>
 
 {% if fws|length == 0 %}
 
@@ -12,10 +14,22 @@
 
 <p>This page show all the firmware releases for a specific device.</p>
 <table class="table">
-  <tr><th>Name</th><td>{{fws[0].mds[0].name}}</td></tr>
-  <tr><th>Summary</th><td>{{fws[0].mds[0].summary}}</td></tr>
-  <tr><th>Developer Name</th><td><a href="{{fws[0].mds[0].url_homepage}}">{{fws[0].mds[0].developer_name}}</a></td></tr>
-  <tr><th>Firmware License</th><td>{{fws[0].mds[0].project_license}}</td></tr>
+  <tr class="row">
+    <th class="col-sm-2">Name</th>
+    <td class="col-sm-10">{{fws[0].mds[0].name}}</td>
+  </tr>
+  <tr class="row">
+    <th class="col-sm-2">Summary</th>
+    <td class="col-sm-10">{{fws[0].mds[0].summary}}</td>
+  </tr>
+  <tr class="row">
+    <th class="col-sm-2">Developer Name</th>
+  <td class="col-sm-10"><a href="{{fws[0].mds[0].url_homepage}}">{{fws[0].mds[0].developer_name}}</a></td>
+  </tr>
+  <tr class="row">
+    <th class="col-sm-2">Firmware License</th>
+    <td class="col-sm-10">{{fws[0].mds[0].project_license}}</td>
+  </tr>
 </table>
 
 <h1>Update History</h1>

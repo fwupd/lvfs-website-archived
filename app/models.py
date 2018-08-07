@@ -237,6 +237,7 @@ class Vendor(db.Model):
     affiliations_for = relationship("Affiliation",
                                     foreign_keys=[Affiliation.vendor_id_odm],
                                     back_populates="vendor")
+    fws = relationship("Firmware")
 
     # link using foreign keys
     remote = relationship('Remote', foreign_keys=[remote_id])

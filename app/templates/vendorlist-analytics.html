@@ -1,0 +1,39 @@
+{% extends "default.html" %}
+
+{% block title %}Vendor Analytics{% endblock %}
+
+{% block nav %}{% include 'vendorlist-nav.html' %}{% endblock %}
+
+{% block content %}
+<h2>{{title}}</h2>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.7.1/Chart.js" integrity="sha256-t3+U9BqykoMN9cqZmJ5Z53TvPv4V7S9AmjUcIWNNyxo=" crossorigin="anonymous"></script>
+<script>
+Chart.defaults.global.animation = false;
+</script>
+<canvas id="ChartVendors" width="1000" height="400"></canvas>
+<script>
+var ctx = document.getElementById("ChartVendors").getContext("2d");
+var data = {
+    labels: {{labels|safe}},
+    datasets: [
+        {
+            label: "{{title}}",
+            borderColor: "rgba(20,120,220,0.2)",
+            backgroundColor: "rgba(20,120,220,0.2)",
+            data: {{data|safe}}
+        },
+    ]
+};
+
+new Chart(ctx, {
+    type: 'bar',
+    data: data,
+    options: {
+        legend: {
+            display: false
+        }
+    }
+});
+</script>
+
+{% endblock %}

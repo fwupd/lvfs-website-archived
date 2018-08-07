@@ -29,13 +29,90 @@ def _sort_vendor_func(a, b):
         return 1
     return 0
 
+def _count_vendor_fws_public(vendor):
+    cnt = 0
+    for fw in vendor.fws:
+        if fw.remote.is_public:
+            cnt += 1
+    return cnt
+
+def _count_vendor_fws_downloads(vendor):
+    cnt = 0
+    for fw in vendor.fws:
+        cnt += fw.download_cnt
+    return cnt
+
+def _count_vendor_fws_devices(vendor):
+    guids = {}
+    for fw in vendor.fws:
+        if fw.remote.is_public:
+            for md in fw.mds:
+                for gu in md.guids:
+                    guids[gu.value] = 1
+    return len(guids)
+
+def _get_vendorlist_stats(vendors, fn):
+
+    # get stats
+    display_names = {}
+    for v in vendors:
+        if not v.visible:
+            continue
+        cnt = fn(v)
+        if not cnt:
+            continue
+        display_name = v.display_name.split(' ')[0]
+        if display_name not in display_names:
+            display_names[display_name] = 0
+        display_names[display_name] += cnt
+
+    # build graph data
+    labels = []
+    data = []
+    vendors = sorted(display_names.items(), key=lambda k: k[1], reverse=True)
+    for display_name, cnt in vendors[:10]:
+        labels.append(str(display_name))
+        data.append(int(cnt))
+    return labels, data
+
+def _abs_to_pc(data):
+    total = 0
+    for num in data:
+        total += num
+    data_pc = []
+    for num in data:
+        data_pc.append(num * 100 / total)
+    return data_pc
+
+@app.route('/lvfs/vendorlist/<page>')
+def vendor_list_analytics(page):
+    if page == 'publicfw':
+        vendors = db.session.query(Vendor).order_by(Vendor.display_name).all()
+        labels, data = _get_vendorlist_stats(vendors, _count_vendor_fws_public)
+        return render_template('vendorlist-analytics.html', vendors=vendors,
+                               title='Total number of public firmware files',
+                               page=page, labels=labels, data=data)
+    if page == 'downloads':
+        vendors = db.session.query(Vendor).order_by(Vendor.display_name).all()
+        labels, data = _get_vendorlist_stats(vendors, _count_vendor_fws_downloads)
+        return render_template('vendorlist-analytics.html', vendors=vendors,
+                               title='Percentage of firmware downloads',
+                               page=page, labels=labels, data=_abs_to_pc(data))
+    if page == 'devices':
+        vendors = db.session.query(Vendor).order_by(Vendor.display_name).all()
+        labels, data = _get_vendorlist_stats(vendors, _count_vendor_fws_devices)
+        return render_template('vendorlist-analytics.html', vendors=vendors,
+                               title='Total number of supported devices',
+                               page=page, labels=labels, data=data)
+    return _error_internal('Vendorlist kind invalid')
+
 @app.route('/status')
 @app.route('/vendorlist') # deprecated
 @app.route('/lvfs/vendorlist')
 def vendor_list():
     vendors = db.session.query(Vendor).order_by(Vendor.display_name).all()
     vendors.sort(_sort_vendor_func)
-    return render_template('vendorlist.html', vendors=vendors)
+    return render_template('vendorlist.html', vendors=vendors, page='overview')
 
 @app.route('/lvfs/vendor/add', methods=['GET', 'POST'])
 @login_required
