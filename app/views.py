@@ -163,6 +163,16 @@ def utility_processor():
             return 'n/a'
         return datetime.datetime.fromtimestamp(tmp).strftime('%Y-%m-%d %H:%M:%S')
 
+    def format_humanize_naturalday(tmp):
+        if not tmp:
+            return 'n/a'
+        return humanize.naturalday(tmp)
+
+    def format_humanize_naturaltime(tmp):
+        if not tmp:
+            return 'n/a'
+        return humanize.naturaltime(tmp)
+
     def format_timedelta_approx(tmp):
         return humanize.naturaltime(tmp).replace(' from now', '')
 
@@ -176,6 +186,8 @@ def utility_processor():
         return "%.1f%s%s" % (num, 'Yi', suffix)
 
     return dict(format_size=format_size,
+                format_humanize_naturalday=format_humanize_naturalday,
+                format_humanize_naturaltime=format_humanize_naturaltime,
                 format_timedelta_approx=format_timedelta_approx,
                 format_timestamp=format_timestamp)
 

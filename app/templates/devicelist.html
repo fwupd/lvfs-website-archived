@@ -28,7 +28,27 @@
   vendor website, please file an issue against the <a href="https://github.com/hughsie/lvfs-website/issues">LVFS website</a>.
 </p>
 
-<h2>Current List of Supported Devices</h2>
+<!-- news -->
+<h2>Most Recent Devices Added</h2>
+<div class="card-columns">
+{% for fw in devices %}
+  <div class="card">
+    <div class="card-body">
+      <p class="card-text">
+        Support for the <a href="/lvfs/device/{{fw.mds[0].guids[0].value}}">{{fw.mds[0].name_display}}</a>
+        was added by {{fw.mds[0].developer_name_display}}.
+      </p>
+    </div>
+    <div class="card-footer">
+      {{format_humanize_naturaltime(fw.timestamp)}}
+    </div>
+  </div>
+{% endfor %}
+</div>
+
+<hr/>
+
+<h2>All Supported Devices</h2>
 {% if vendors|length > 0 %}
 {% for vendor in vendors %}
 <h3>{{vendor}}</h3>

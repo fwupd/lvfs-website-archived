@@ -98,6 +98,19 @@ def device_list():
     for vendor in mds_by_vendor:
         mds_by_vendor[vendor].sort(key=lambda obj: obj.name)
 
+    # get most recent supported devices
+    devices_seen = {}
+    for fw in db.session.query(Firmware).\
+                order_by(Firmware.timestamp.asc()).all():
+        if not fw.remote.is_public:
+            continue
+        desc = fw.mds[0].developer_name + ':' + fw.mds[0].name
+        if desc in devices_seen:
+            continue
+        devices_seen[desc] = fw
+    devices = sorted(devices_seen.values(), key=lambda fw: fw.timestamp, reverse=True)
+
     return render_template('devicelist.html',
                            vendors=sorted(vendors),
+                           devices=devices[:6],
                            mds_by_vendor=mds_by_vendor)

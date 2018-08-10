@@ -527,6 +527,14 @@ class Component(db.Model):
         return None
 
     @property
+    def developer_name_display(self):
+        return self.developer_name.split(' ')[0]
+
+    @property
+    def name_display(self):
+        return self.name.replace(' System Update', '')
+
+    @property
     def version_display(self):
         if self.version.isdigit():
             v = int(self.version)
