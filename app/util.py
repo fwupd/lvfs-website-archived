@@ -9,6 +9,7 @@
 from __future__ import print_function
 
 import os
+import json
 import calendar
 import datetime
 import string
@@ -16,7 +17,7 @@ import random
 
 from glob import fnmatch
 
-from flask import request, flash, render_template, g
+from flask import request, flash, render_template, g, Response
 
 import gi
 gi.require_version('GCab', '1.0')
@@ -95,6 +96,30 @@ def _error_permission_denied(msg=None):
     """ Error handler: Permission Denied """
     flash("Permission denied: %s" % msg, 'danger')
     return render_template('error.html'), 401
+
+def _json_success(msg=None, uri=None, errcode=200):
+    """ Success handler: JSON output """
+    item = {}
+    item['success'] = True
+    if msg:
+        item['msg'] = msg
+    if uri:
+        item['uri'] = uri
+    dat = json.dumps(item, sort_keys=True, indent=4, separators=(',', ': '))
+    return Response(response=dat,
+                    status=errcode, \
+                    mimetype="application/json")
+
+def _json_error(msg=None, errcode=400):
+    """ Error handler: JSON output """
+    item = {}
+    item['success'] = False
+    if msg:
+        item['msg'] = str(msg)
+    dat = json.dumps(item, sort_keys=True, indent=4, separators=(',', ': '))
+    return Response(response=dat,
+                    status=errcode, \
+                    mimetype="application/json")
 
 def _get_chart_labels_months():
     """ Gets the chart labels """

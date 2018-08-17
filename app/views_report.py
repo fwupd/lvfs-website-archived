@@ -13,6 +13,7 @@ from app import app, db
 
 from .models import Firmware, Report, ReportAttribute, Issue
 from .util import _error_internal, _error_permission_denied
+from .util import _json_success, _json_error
 
 @app.route('/lvfs/report/<report_id>')
 @login_required
@@ -43,31 +44,6 @@ def report_delete(report_id):
     flash('Deleted report', 'info')
     return redirect(url_for('.analytics_reports'))
 
-def json_success(msg=None, uri=None, errcode=200):
-    """ Success handler: JSON output """
-    item = {}
-    item['success'] = True
-    if msg:
-        item['msg'] = msg
-    if uri:
-        item['uri'] = uri
-    dat = json.dumps(item, sort_keys=True, indent=4, separators=(',', ': '))
-    return Response(response=dat,
-                    status=errcode, \
-                    mimetype="application/json")
-
-@app.errorhandler(400)
-def json_error(msg=None, errcode=400):
-    """ Error handler: JSON output """
-    item = {}
-    item['success'] = False
-    if msg:
-        item['msg'] = str(msg)
-    dat = json.dumps(item, sort_keys=True, indent=4, separators=(',', ': '))
-    return Response(response=dat,
-                    status=errcode, \
-                    mimetype="application/json")
-
 def _find_issue_for_report_data(data, fw):
     for issue in db.session.query(Issue).order_by(Issue.priority.desc()).all():
         if not issue.enabled:
@@ -84,42 +60,42 @@ def firmware_report():
 
     # only accept form data
     if request.method != 'POST':
-        return json_error('only POST supported')
+        return _json_error('only POST supported')
 
     # parse JSON data
     try:
         item = json.loads(request.data.decode('utf8'))
     except ValueError as e:
-        return json_error(str(e))
+        return _json_error(str(e))
 
     # check we got enough data
     for key in ['ReportVersion', 'MachineId', 'Reports', 'Metadata']:
         if not key in item:
-            return json_error('invalid data, expected %s' % key)
+            return _json_error('invalid data, expected %s' % key)
         if item[key] is None:
-            return json_error('missing data, expected %s' % key)
+            return _json_error('missing data, expected %s' % key)
 
     # parse only this version
     if item['ReportVersion'] != 2:
-        return json_error('report version not supported')
+        return _json_error('report version not supported')
 
     # add each firmware report
     machine_id = item['MachineId']
     reports = item['Reports']
     if len(reports) == 0:
-        return json_error('no reports included')
+        return _json_error('no reports included')
     metadata = item['Metadata']
     if len(metadata) == 0:
-        return json_error('no metadata included')
+        return _json_error('no metadata included')
 
     msgs = []
     uris = []
     for report in reports:
         for key in ['Checksum', 'UpdateState', 'Metadata']:
             if not key in report:
-                return json_error('invalid data, expected %s' % key)
+                return _json_error('invalid data, expected %s' % key)
             if report[key] is None:
-                return json_error('missing data, expected %s' % key)
+                return _json_error('missing data, expected %s' % key)
 
         # flattern the report including the per-machine and per-report metadata
         data = metadata
@@ -176,5 +152,5 @@ def firmware_report():
     db.session.commit()
 
     # put messages and URIs on one line
-    return json_success(msg='; '.join(msgs) if msgs else None,
-                        uri='; '.join(uris) if uris else None)
+    return _json_success(msg='; '.join(msgs) if msgs else None,
+                         uri='; '.join(uris) if uris else None)
