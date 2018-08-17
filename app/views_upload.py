@@ -25,6 +25,7 @@ from .models import Vendor, Remote, Agreement, Affiliation
 from .uploadedfile import UploadedFile, FileTooLarge, FileTooSmall, FileNotSupported, MetadataInvalid
 from .util import _get_client_address, _get_settings
 from .util import _error_internal, _error_permission_denied
+from .util import _json_success, _json_error
 
 def _get_plugin_metadata_for_uploaded_file(ufile):
     settings = _get_settings()
@@ -315,3 +316,44 @@ def upload():
         db.session.commit()
 
     return redirect(url_for('.firmware_show', firmware_id=fw.firmware_id))
+
+@app.route('/lvfs/upload_hwinfo', methods=['POST'])
+def upload_hwinfo():
+    """ Upload a hwinfo binary file to the LVFS service without authentication """
+
+    # not correct parameters
+    if not 'type' in request.form:
+        return _json_error('no type')
+    if not 'machine_id' in request.form:
+        return _json_error('no machine_id')
+    if not 'file' in request.files:
+        return _json_error('no file')
+    if len(request.form['machine_id']) != 32:
+        return _json_error('machine_id %s not valid' % request.form['machine_id'])
+    try:
+        int(request.form['machine_id'], 16)
+    except ValueError as e:
+        return _json_error(str(e))
+
+    # check type against defined list
+    settings = _get_settings()
+    if request.form['type'] not in settings['hwinfo_kinds'].split(','):
+        return _json_error('type not valid')
+
+    # read in entire file
+    fileitem = request.files['file']
+    if not fileitem:
+        return _json_error('no file object')
+    filebuf = fileitem.read()
+    if len(filebuf) > 0x40000:
+        return _json_error('file is too large')
+
+    # dump to a file
+    hwinfo_dir = os.path.join(app.config['HWINFO_DIR'], request.form['type'])
+    if not os.path.exists(hwinfo_dir):
+        os.mkdir(hwinfo_dir)
+    fn = os.path.join(hwinfo_dir, '%s' % request.form['machine_id'])
+    if os.path.exists(fn):
+        return _json_error('already reported from this machine-id')
+    open(fn, 'wb').write(filebuf)
+    return _json_success()

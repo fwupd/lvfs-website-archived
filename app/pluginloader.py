@@ -67,6 +67,8 @@ class PluginGeneral(PluginBase):
                                    'This is a test instance and may be broken at any time.'))
         s.append(PluginSettingText('firmware_baseuri', 'Firmware BaseURI',
                                    'https://fwupd.org/downloads/'))
+        s.append(PluginSettingText('hwinfo_kinds', 'Allowed hwinfo Types',
+                                   'nvme'))
         return s
 
 class Pluginloader(object):
