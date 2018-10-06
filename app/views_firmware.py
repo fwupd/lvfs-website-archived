@@ -19,7 +19,7 @@ from app import app, db
 from .dbutils import _execute_count_star
 
 from .models import Firmware, Report, Client, FirmwareEvent, FirmwareLimit, Remote, Vendor
-from .util import _error_internal, _error_permission_denied
+from .util import _error_internal, _error_permission_denied, _event_log
 from .util import _get_chart_labels_months, _get_chart_labels_days
 
 @app.route('/lvfs/firmware')
@@ -140,7 +140,8 @@ def _firmware_delete(fw):
     # find private remote
     remote = db.session.query(Remote).filter(Remote.name == 'deleted').first()
     if not remote:
-        return _error_internal('No deleted remote')
+        _event_log('No deleted remote')
+        return
 
     # move file so it's no longer downloadable
     path = os.path.join(app.config['DOWNLOAD_DIR'], fw.filename)
