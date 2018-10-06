@@ -178,7 +178,6 @@ def vendor_delete(vendor_id):
     if not vendor:
         flash('Failed to delete vendor: No a vendor with that group ID', 'warning')
         return redirect(url_for('.vendor_list'), 302)
-    db.session.delete(vendor.remote)
     db.session.delete(vendor)
     db.session.commit()
     flash('Removed vendor', 'info')

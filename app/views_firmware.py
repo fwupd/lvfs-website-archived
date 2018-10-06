@@ -177,6 +177,41 @@ def firmware_delete(firmware_id):
     flash('Firmware deleted', 'info')
     return redirect(url_for('.firmware'))
 
+@app.route('/lvfs/firmware/<int:firmware_id>/nuke')
+@login_required
+def firmware_nuke(firmware_id):
+    """ Delete a firmware entry and also delete the file from disk """
+
+    # check firmware exists in database
+    fw = db.session.query(Firmware).filter(Firmware.firmware_id == firmware_id).first()
+    if not fw:
+        return _error_internal("No firmware file with ID %s exists" % firmware_id)
+
+    # firmware is not deleted yet
+    if not fw.is_deleted:
+        return _error_permission_denied('Cannot nuke file not yet deleted')
+
+    # security check
+    if not fw.check_acl('@nuke'):
+        return _error_permission_denied('Insufficient permissions to nuke firmware')
+
+    # really delete firmware
+    path = os.path.join(app.config['RESTORE_DIR'], fw.filename)
+    if os.path.exists(path):
+        os.remove(path)
+
+    # generate next cron run
+    fw.remote.is_dirty = True
+
+    # delete everything we stored about the firmware
+    db.session.delete(fw)
+
+    # all done
+    db.session.commit()
+
+    flash('Firmware nuked', 'info')
+    return redirect(url_for('.firmware'))
+
 @app.route('/lvfs/firmware/<int:firmware_id>/promote/<target>')
 @login_required
 def firmware_promote(firmware_id, target):

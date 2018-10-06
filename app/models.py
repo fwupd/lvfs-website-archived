@@ -229,18 +229,27 @@ class Vendor(db.Model):
     version_format = Column(String(10), default=None) # usually 'triplet' or 'quad'
 
     # magically get the users in this vendor group
-    users = relationship("User", back_populates="vendor")
-    restrictions = relationship("Restriction", back_populates="vendor")
+    users = relationship("User",
+                         back_populates="vendor",
+                         cascade='all,delete-orphan')
+    restrictions = relationship("Restriction",
+                                back_populates="vendor",
+                                cascade='all,delete-orphan')
     affiliations = relationship("Affiliation",
                                 foreign_keys=[Affiliation.vendor_id],
-                                back_populates="vendor")
+                                back_populates="vendor",
+                                cascade='all,delete-orphan')
     affiliations_for = relationship("Affiliation",
                                     foreign_keys=[Affiliation.vendor_id_odm],
                                     back_populates="vendor")
-    fws = relationship("Firmware")
+    fws = relationship("Firmware",
+                       cascade='all,delete-orphan')
 
     # link using foreign keys
-    remote = relationship('Remote', foreign_keys=[remote_id])
+    remote = relationship('Remote',
+                          foreign_keys=[remote_id],
+                          single_parent=True,
+                          cascade='all,delete-orphan')
 
     def __init__(self, group_id=None, remote_id=None):
         """ Constructor for object """
@@ -493,9 +502,16 @@ class Component(db.Model):
     fw = relationship("Firmware", back_populates="mds", lazy='joined')
 
     # include all Component objects
-    requirements = relationship("Requirement", back_populates="md")
-    guids = relationship("Guid", back_populates="md", lazy='joined')
-    keywords = relationship("Keyword", back_populates="md")
+    requirements = relationship("Requirement",
+                                back_populates="md",
+                                cascade='all,delete-orphan')
+    guids = relationship("Guid",
+                         back_populates="md",
+                         lazy='joined',
+                         cascade='all,delete-orphan')
+    keywords = relationship("Keyword",
+                            back_populates="md",
+                            cascade='all,delete-orphan')
 
     def __init__(self):
         """ Constructor for object """
@@ -712,11 +728,22 @@ class Firmware(db.Model):
     signed_timestamp = Column(DateTime, default=None)
 
     # include all Component objects
-    mds = relationship("Component", back_populates="fw", lazy='joined')
-    events = relationship("FirmwareEvent", back_populates="fw")
-    reports = relationship("Report", back_populates="fw")
-    clients = relationship("Client", back_populates="fw")
-    limits = relationship("FirmwareLimit", back_populates="fw")
+    mds = relationship("Component",
+                       back_populates="fw",
+                       lazy='joined',
+                       cascade='all,delete-orphan')
+    events = relationship("FirmwareEvent",
+                          back_populates="fw",
+                          cascade='all,delete-orphan')
+    reports = relationship("Report",
+                           back_populates="fw",
+                           cascade='all,delete-orphan')
+    clients = relationship("Client",
+                           back_populates="fw",
+                           cascade='all,delete-orphan')
+    limits = relationship("FirmwareLimit",
+                          back_populates="fw",
+                          cascade='all,delete-orphan')
 
     # link using foreign keys
     vendor = relationship('Vendor', foreign_keys=[vendor_id])
@@ -803,10 +830,16 @@ class Firmware(db.Model):
 
         # depends on the action requested
         if action == '@delete':
+            if self.is_deleted:
+                return False
             if user.is_qa and self._is_vendor(user):
                 return True
             if self._is_owner(user) and not self.remote.is_public:
                 return True
+            return False
+        elif action == '@nuke':
+            if not self.is_deleted:
+                return False
             return False
         elif action == '@view':
             if user.is_qa and self._is_vendor(user):
@@ -963,7 +996,9 @@ class Issue(db.Model):
     url = Column(Text, default='')
     name = Column(Text, default=None)
     description = Column(Text, default='')
-    conditions = relationship("Condition", back_populates="issue")
+    conditions = relationship("Condition",
+                              back_populates="issue",
+                              cascade='all,delete-orphan')
 
     # link using foreign keys
     vendor = relationship('Vendor', foreign_keys=[vendor_id])
@@ -1052,7 +1087,9 @@ class Report(db.Model):
 
     # link using foreign keys
     fw = relationship('Firmware', foreign_keys=[firmware_id])
-    attributes = relationship("ReportAttribute", back_populates="report")
+    attributes = relationship("ReportAttribute",
+                              back_populates="report",
+                              cascade='all,delete-orphan')
 
     def __init__(self, firmware_id, machine_id=None, state=0, checksum=None, issue_id=0):
         """ Constructor for object """

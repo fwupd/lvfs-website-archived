@@ -171,6 +171,22 @@ class LvfsTestCase(unittest.TestCase):
         rv = self._upload('contrib/hughski-colorhug2-2.0.3.cab', 'NOTVALID')
         assert b'Target not valid' in rv.data, rv.data
 
+    def test_firmware_nuke(self):
+
+        # upload firmware
+        self.login()
+        rv = self._upload('contrib/hughski-colorhug2-2.0.3.cab', 'private')
+        assert b'7514fc4b0e1a306337de78c58f10e9e68f791de2' in rv.data, rv.data
+        rv = self.app.get('/lvfs/firmware/1')
+        assert b'>☠ Nuke ☠<' not in rv.data, rv.data
+        rv = self.app.get('/lvfs/firmware/1/nuke', follow_redirects=True)
+        assert b'Cannot nuke file not yet deleted' in rv.data, rv.data
+        self.delete_firmware()
+        rv = self.app.get('/lvfs/firmware/1')
+        assert b'>☠ Nuke ☠<' in rv.data, rv.data
+        rv = self.app.get('/lvfs/firmware/1/nuke', follow_redirects=True)
+        assert b'No firmware has been uploaded' in rv.data, rv.data
+
     def test_upload_valid(self):
 
         # upload firmware
