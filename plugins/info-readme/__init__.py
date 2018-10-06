@@ -39,7 +39,7 @@ class Plugin(PluginBase):
         # get settings
         settings = _get_settings('info_readme')
         if settings['info_readme_enable'] != 'enabled':
-            return None
+            return
         if not settings['info_readme_filename']:
             raise PluginError('No filename set')
         if not settings['info_readme_template']:
