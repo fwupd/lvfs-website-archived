@@ -37,6 +37,7 @@ def metadata_remote(group_id):
     remote.append('Title=Embargoed for ' + group_id)
     remote.append('Keyring=gpg')
     remote.append('MetadataURI=https://fwupd.org/downloads/%s' % vendor.remote.filename)
+    remote.append('ReportURI=https://fwupd.org/lvfs/firmware/report')
     remote.append('OrderBefore=lvfs,fwupd')
     fn = group_id + '-embargo.conf'
     response = make_response('\n'.join(remote))
