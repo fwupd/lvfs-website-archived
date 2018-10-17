@@ -752,8 +752,8 @@ class Firmware(db.Model):
             return self._version_display
         md_versions = []
         for md in self.mds:
-            if md.version not in md_versions:
-                md_versions.append(md.version)
+            if md.version_display not in md_versions:
+                md_versions.append(md.version_display)
         return ','.join(md_versions)
 
     @version_display.setter
