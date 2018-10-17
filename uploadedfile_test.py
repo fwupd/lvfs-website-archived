@@ -19,7 +19,8 @@ from app.util import _archive_get_files_from_glob, _archive_add
 def _get_valid_firmware():
     return 'fubar'.ljust(1024)
 
-def _get_valid_metainfo(release_description='This stable release fixes bugs'):
+def _get_valid_metainfo(release_description='This stable release fixes bugs',
+                        version_format='quad'):
     return """
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- Copyright 2015 Richard Hughes <richard@hughsie.com> -->
@@ -36,16 +37,17 @@ def _get_valid_metainfo(release_description='This stable release fixes bugs'):
   <project_license>GPL-2.0+</project_license>
   <developer_name>Hughski Limited</developer_name>
   <releases>
-    <release version="3.0.2" timestamp="1424116753">
+    <release version="0x30002" timestamp="1424116753">
       <description><p>%s</p></description>
     </release>
   </releases>
   <custom>
     <value key="foo">bar</value>
     <value key="LVFS::InhibitDownload"/>
+    <value key="LVFS::VersionFormat">%s</value>
   </custom>
 </component>
-""" % release_description
+""" % (release_description, version_format)
 
 def _archive_to_contents(arc):
     ostream = Gio.MemoryOutputStream.new_resizable()
@@ -130,6 +132,15 @@ class TestStringMethods(unittest.TestCase):
         self.assertIsNotNone(_archive_get_files_from_glob(arc2, 'firmware.bin'))
         self.assertIsNotNone(_archive_get_files_from_glob(arc2, 'firmware.metainfo.xml'))
 
+    # invalid version-format
+    def test_invalid_version_format(self):
+        arc = GCab.Cabinet.new()
+        _archive_add(arc, 'firmware.bin', _get_valid_firmware())
+        _archive_add(arc, 'firmware.metainfo.xml', _get_valid_metainfo(version_format='foo'))
+        with self.assertRaises(MetadataInvalid):
+            ufile = UploadedFile()
+            ufile.parse('foo.cab', _archive_to_contents(arc))
+
     # valid metadata
     def test_metadata(self):
         arc = GCab.Cabinet.new()
@@ -141,6 +152,8 @@ class TestStringMethods(unittest.TestCase):
         self.assertTrue('foo' in metadata)
         self.assertTrue('LVFS::InhibitDownload' in metadata)
         self.assertTrue(metadata['foo'] == 'bar')
+        self.assertTrue('LVFS::VersionFormat' in metadata)
+        self.assertTrue(metadata['LVFS::VersionFormat'] == 'quad')
         self.assertFalse('NotGoingToExist' in metadata)
 
     # update description references another file

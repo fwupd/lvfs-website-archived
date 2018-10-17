@@ -539,14 +539,24 @@ class Component(db.Model):
     def version_display(self):
         if self.version.isdigit():
             v = int(self.version)
-            if self.version_format_with_vendor_fallback == 'quad':
+            version_format = self.version_format_with_vendor_fallback
+            if version_format == 'quad':
                 return '%02i.%02i.%02i.%02i' % ((v & 0xff000000) >> 24,
                                                 (v & 0x00ff0000) >> 16,
                                                 (v & 0x0000ff00) >> 8,
                                                 v & 0x000000ff)
-            return '%02i.%02i.%04i' % ((v & 0xff000000) >> 24,
-                                       (v & 0x00ff0000) >> 16,
-                                       v & 0x0000ffff)
+            elif version_format == 'triplet':
+                return '%02i.%02i.%04i' % ((v & 0xff000000) >> 24,
+                                           (v & 0x00ff0000) >> 16,
+                                           v & 0x0000ffff)
+            elif version_format == 'pair':
+                return '%02i.%02i' % ((v & 0xffff0000) >> 16, v & 0x0000ffff)
+            elif version_format == 'intel-me':
+                return '%i.%i.%i.%i' % (((v & 0xe0000000) >> 29) + 0x0b,
+                                        (v & 0x1f000000) >> 24,
+                                        (v & 0x00ff0000) >> 16,
+                                        v &  0x0000ffff)
+
         return self.version
 
     def _check_release_description(self):

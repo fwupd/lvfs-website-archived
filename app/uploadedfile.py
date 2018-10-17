@@ -114,6 +114,7 @@ class UploadedFile(object):
         self.filename_new = None
         self.fwupd_min_version = '0.8.0'    # a guess, but everyone should have this
         self.version_display = None
+        self.version_formats = ['plain', 'pair', 'triplet', 'quad', 'intel-me']
 
         # strip out any unlisted files
         self._repacked_cfarchive = GCab.Cabinet.new()
@@ -261,8 +262,8 @@ class UploadedFile(object):
         # check the version format
         version_format = component.get_metadata_item('LVFS::VersionFormat')
         if version_format:
-            if version_format not in ['triplet', 'quad']:
-                raise MetadataInvalid('LVFS::VersionFormat can only be triplet or quad')
+            if version_format not in self.version_formats:
+                raise MetadataInvalid('LVFS::VersionFormat can only be %s' % self.version_formats)
 
         # does the firmware require a specific fwupd version?
         req = component.get_require_by_value(AppStreamGlib.RequireKind.ID,
