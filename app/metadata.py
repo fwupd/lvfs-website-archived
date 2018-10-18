@@ -40,6 +40,7 @@ def _generate_metadata_kind(filename, fws, firmware_baseuri=''):
                 component.set_metadata_license(md.metadata_license)
                 component.set_project_license(md.project_license)
                 component.set_developer_name(None, md.developer_name)
+                component.set_priority(md.priority)
                 components[md.appstream_id] = component
             else:
                 component = components[md.appstream_id]

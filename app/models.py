@@ -497,6 +497,7 @@ class Component(db.Model):
     screenshot_caption = Column(Unicode, default=None)
     inhibit_download = Column(Boolean, default=False)
     version_format = Column(String(10), default=None) # usually 'triplet' or 'quad'
+    priority = Column(Integer, default=0)
 
     # link back to parent
     fw = relationship("Firmware", back_populates="mds", lazy='joined')
@@ -534,6 +535,7 @@ class Component(db.Model):
         self.release_urgency = None
         self.screenshot_url = None
         self.screenshot_caption = None
+        self.priority = 0
 
     @property
     def version_format_with_vendor_fallback(self):

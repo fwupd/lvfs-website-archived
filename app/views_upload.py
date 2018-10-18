@@ -74,6 +74,7 @@ def _create_fw_from_uploaded_file(ufile):
         md.project_license = component.get_project_license()
         md.url_homepage = unicode(component.get_url_item(AppStreamGlib.UrlKind.HOMEPAGE))
         md.description = unicode(component.get_description())
+        md.priority = component.get_priority()
 
         # fix up the vendor
         if md.developer_name == 'LenovoLtd.':
