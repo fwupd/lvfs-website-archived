@@ -114,7 +114,7 @@ class UploadedFile(object):
         self.filename_new = None
         self.fwupd_min_version = '0.8.0'    # a guess, but everyone should have this
         self.version_display = None
-        self.version_formats = ['plain', 'pair', 'triplet', 'quad', 'intel-me']
+        self.version_formats = ['plain', 'pair', 'triplet', 'quad', 'intel-me', 'intel-me2']
 
         # strip out any unlisted files
         self._repacked_cfarchive = GCab.Cabinet.new()

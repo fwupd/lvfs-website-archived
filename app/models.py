@@ -572,7 +572,11 @@ class Component(db.Model):
                                         (v & 0x1f000000) >> 24,
                                         (v & 0x00ff0000) >> 16,
                                         v &  0x0000ffff)
-
+            elif version_format == 'intel-me2':
+                return '%i.%i.%i.%i' % ((v & 0xf0000000) >> 28,
+                                        (v & 0x0f000000) >> 24,
+                                        (v & 0x00ff0000) >> 16,
+                                        v &  0x0000ffff)
         return self.version
 
     def _check_release_description(self):
