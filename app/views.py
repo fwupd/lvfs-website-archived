@@ -205,31 +205,53 @@ def errorhandler_401(msg=None):
     print("generic error handler")
     return _error_permission_denied(msg)
 
-@app.route('/developers')
-def developers():
-    return render_template('developers.html')
+@app.route('/developers') # deprecated
+@app.route('/lvfs/docs/developers')
+def docs_developers():
+    return render_template('docs-developers.html')
 
-@app.route('/privacy')
-def privacy():
-    return render_template('privacy.html')
+@app.route('/privacy') # deprecated
+@app.route('/lvfs/docs/privacy')
+def docs_privacy():
+    return render_template('docs-privacy.html')
 
-@app.route('/users')
-def users():
-    return render_template('users.html')
+@app.route('/users') # deprecated
+@app.route('/lvfs/docs/users')
+def docs_users():
+    return render_template('docs-users.html')
 
-@app.route('/donations')
-def donations():
-    return render_template('donations.html')
+@app.route('/donations') # deprecated
+@app.route('/lvfs/docs/donations')
+def docs_donations():
+    return render_template('docs-donations.html')
 
 @app.route('/vendors')
-def vendors():
-    return render_template('vendors.html',
+@app.route('/lvfs/docs/vendors')
+def docs_vendors():
+    return render_template('docs-vendors.html')
+
+@app.route('/metainfo') # deprecated
+@app.route('/lvfs/docs/metainfo')
+def docs_metainfo():
+    return render_template('docs-metainfo.html')
+
+@app.route('/lvfs/docs/composite')
+def docs_composite():
+    return render_template('docs-composite.html')
+
+@app.route('/lvfs/docs/telemetry')
+def docs_telemetry():
+    return render_template('docs-telemetry.html')
+
+@app.route('/lvfs/docs/introduction')
+def docs_introduction():
+    return render_template('docs-introduction.html',
                            firmware_cnt=db.session.query(Firmware).count(),
                            devices_cnt=db.session.query(Component.appstream_id).distinct().count())
 
-@app.route('/metainfo')
-def metainfo():
-    return render_template('metainfo.html')
+@app.route('/lvfs/docs/affiliates')
+def docs_affiliates():
+    return render_template('docs-affiliates.html')
 
 @app.route('/')
 @app.route('/lvfs/')

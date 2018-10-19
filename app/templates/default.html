@@ -31,14 +31,19 @@
               Home
             </a>
             <div class="dropdown-menu" aria-labelledby="navbarDropdown">
-              <a class="dropdown-item" href="/vendors">Hardware Vendors</a>
-              <a class="dropdown-item" href="/users">End Users</a>
-              <a class="dropdown-item" href="/developers">Developers</a>
+              <a class="dropdown-item" href="{{url_for('.docs_introduction')}}">Introduction</a>
+              <a class="dropdown-item" href="{{url_for('.docs_vendors')}}">Hardware Vendors</a>
+              <a class="dropdown-item" href="{{url_for('.docs_users')}}">End Users</a>
+              <a class="dropdown-item" href="{{url_for('.docs_developers')}}">Developers</a>
               <div class="dropdown-divider"></div>
-              <a class="dropdown-item" href="/privacy">Privacy Report</a>
+              <a class="dropdown-item" href="{{url_for('.docs_metainfo')}}">Metainfo Files</a>
+              <a class="dropdown-item" href="{{url_for('.docs_composite')}}">Composite Devices</a>
+              <a class="dropdown-item" href="{{url_for('.docs_telemetry')}}">Telemetry</a>
+              <a class="dropdown-item" href="{{url_for('.docs_affiliates')}}">Affiliates</a>
               <div class="dropdown-divider"></div>
-              <a class="dropdown-item" href="/donations">Donating to the LVFS</a>
               <a class="dropdown-item" href="/lvfs/devicelist">Supported Devices</a>
+              <a class="dropdown-item" href="/lvfs/donations">Donating to the LVFS</a>
+              <a class="dropdown-item" href="/lvfs/privacy">Privacy Report</a>
             </div>
           </li>
 {% if g.user is defined %}
