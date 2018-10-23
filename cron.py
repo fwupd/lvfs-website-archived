@@ -36,11 +36,7 @@ def _regenerate_and_sign_metadata():
     # get list of dirty remotes
     remotes = []
     for r in db.session.query(Remote).all():
-        if r.name == 'private':
-            continue
-        if r.name == 'deleted':
-            continue
-        if r.is_dirty:
+        if r.is_signed and r.is_dirty:
             remotes.append(r)
 
     # nothing to do

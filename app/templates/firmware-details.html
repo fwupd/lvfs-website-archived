@@ -27,7 +27,7 @@
   <tr class="row">
     <th class="col-sm-3 align-middle">Current Target</th>
     <td class="col-sm-7 align-middle">
-{% if fw.remote.name != 'private' and fw.remote.is_dirty %}
+{% if fw.remote.is_signed %}
       <div class="alert alert-warning" role="alert">
         The <code>{{fw.remote.name}}</code> metadata will be signed in {{format_timedelta_approx(fw.remote.scheduled_signing)}}.
       </div>

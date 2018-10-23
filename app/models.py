@@ -661,6 +661,10 @@ class Remote(db.Model):
         return self.name == 'deleted'
 
     @property
+    def is_signed(self):
+        return self.name != 'deleted' and self.name != 'private'
+
+    @property
     def filename(self):
         if self.name == 'private':
             return None
