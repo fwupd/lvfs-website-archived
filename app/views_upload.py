@@ -221,7 +221,7 @@ def upload():
         ufile = UploadedFile()
         ufile.parse(os.path.basename(fileitem.filename), fileitem.read())
     except (FileTooLarge, FileTooSmall, FileNotSupported, MetadataInvalid) as e:
-        flash('Failed to upload file: ' + str(e), 'danger')
+        flash('Failed to upload file: ' + unicode(e), 'danger')
         return redirect(request.url)
 
     # check the file does not already exist

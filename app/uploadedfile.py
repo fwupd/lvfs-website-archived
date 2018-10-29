@@ -213,7 +213,11 @@ class UploadedFile(object):
             component.add_format(fmt)
             component.validate(AppStreamGlib.AppValidateFlags.NONE)
         except Exception as e:
-            raise MetadataInvalid('The metadata %s could not be parsed: %s' % (cf.get_name(), str(e)))
+            try:
+                msg = e.message.decode('utf-8')
+            except AttributeError:
+                msg = unicode(e)
+            raise MetadataInvalid('The metadata %s could not be parsed: %s' % (cf.get_name(), msg))
 
         # add to the archive
         self._add_cf_to_repacked_folder(cf)
