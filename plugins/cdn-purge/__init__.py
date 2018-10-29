@@ -10,6 +10,7 @@ from __future__ import print_function
 
 import os
 import fnmatch
+import json
 import requests
 
 from app.pluginloader import PluginBase, PluginError, PluginSettingText, PluginSettingBool
@@ -40,6 +41,7 @@ class Plugin(PluginBase):
         s.append(PluginSettingText('cdn_purge_uri', 'URI', 'https://bunnycdn.com/api/purge?url=https://lvfs.b-cdn.net/downloads/'))
         s.append(PluginSettingText('cdn_purge_accesskey', 'Accesskey', ''))
         s.append(PluginSettingText('cdn_purge_files', 'File Whitelist', '*.xml.gz,*.xml.gz.asc'))
+        s.append(PluginSettingText('cdn_purge_method', 'Request method', 'GET'))
         return s
 
     def file_modified(self, fn):
@@ -59,10 +61,20 @@ class Plugin(PluginBase):
         # URI not set
         if not settings['cdn_purge_uri']:
             raise PluginError('No URI set')
+        if not settings['cdn_purge_method']:
+            raise PluginError('No request method set')
 
         # purge
         url = settings['cdn_purge_uri'] + basename
-        headers = {'AccessKey': settings['cdn_purge_accesskey']}
-        r = requests.get(url, headers=headers)
+        headers = {}
+        if settings['cdn_purge_accesskey']:
+            headers['AccessKey'] = settings['cdn_purge_accesskey']
+        r = requests.request(settings['cdn_purge_method'], url, headers=headers)
         if r.text:
-            raise PluginError('Failed to purge metadata on CDN: ' + r.text)
+            try:
+                response = json.loads(r.text)
+                if response['status'] != 'ok':
+                    raise PluginError('Failed to purge metadata on CDN: ' + r.text)
+            except ValueError as e:
+                # BunnyCDN doesn't sent a JSON blob
+                raise PluginError('Failed to purge metadata on CDN: %s: %s' % (r.text, str(e)))
