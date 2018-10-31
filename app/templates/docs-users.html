@@ -120,7 +120,13 @@ $ $ gdbus call --system --dest org.freedesktop.fwupd --object-path / --method or
       By default, any users are able to update signed firmware for removable hardware.
       The logic here is that if the hardware can be removed, it can easily be moved to
       a different device that the attacker owns.
-      For non-removable devices only admin users are able to update signed firmware.
+      For non-removable devices only user accounts with administrative rights
+      are able to update using firmware signed by the LVFS.
+    </p>
+    <p class="card-text">
+      Administrative users (i.e. <code>root</code>) can install firmware that
+      does not originate from the LVFS (e.g. locally built) but fwupd does
+      not affect the separate secure boot requirements in any way.
     </p>
   </div>
 </div>
