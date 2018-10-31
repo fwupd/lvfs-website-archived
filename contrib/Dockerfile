@@ -15,6 +15,7 @@ RUN yum -y install \
 	python2-pylint \
 	python-blinker \
 	python-humanize \
+	python-lxml \
 	python-requests \
 	python-sqlalchemy \
 	python-flask \

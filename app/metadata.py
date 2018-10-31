@@ -6,10 +6,7 @@
 
 import os
 import hashlib
-
-from gi.repository import AppStreamGlib
-from gi.repository import Gio
-from gi.repository import GLib
+from lxml import etree as ET
 
 from app import app, db
 
@@ -18,141 +15,212 @@ from .util import _get_settings
 
 def _generate_metadata_kind(filename, fws, firmware_baseuri=''):
     """ Generates AppStream metadata of a specific kind """
-    store = AppStreamGlib.Store.new()
-    store.set_origin('lvfs')
-    store.set_api_version(0.9)
 
+    root = ET.Element('components')
+    root.set('origin', 'lvfs')
+    root.set('version', '0.9')
+
+    # build a map of appstream_id:mds
     components = {}
-    for fw in fws:
-
-        # add each component
+    for fw in sorted(fws, key=lambda fw: fw.mds[0].appstream_id):
         for md in fw.mds:
             if md.appstream_id not in components:
-                component = AppStreamGlib.App.new()
-                component.set_trust_flags(AppStreamGlib.AppTrustFlags.CHECK_DUPLICATES)
-                component.set_id(md.appstream_id)
-                component.set_kind(AppStreamGlib.AppKind.FIRMWARE)
-                component.set_name(None, md.name)
-                component.set_comment(None, md.summary)
-                component.set_description(None, md.description)
-                if md.url_homepage:
-                    component.add_url(AppStreamGlib.UrlKind.HOMEPAGE, md.url_homepage)
-                component.set_metadata_license(md.metadata_license)
-                component.set_project_license(md.project_license)
-                component.set_developer_name(None, md.developer_name)
-                if md.priority:
-                    component.set_priority(md.priority)
-                components[md.appstream_id] = component
+                components[md.appstream_id] = [md]
             else:
-                component = components[md.appstream_id]
+                mds = components[md.appstream_id]
+                mds.append(md)
 
-            # add provide
-            for guid in md.guids:
-                prov = AppStreamGlib.Provide.new()
-                prov.set_kind(AppStreamGlib.ProvideKind.FIRMWARE_FLASHED)
-                prov.set_value(guid.value)
-                component.add_provide(prov)
+    # process each component in ID order
+    for appstream_id in sorted(components):
+        mds = components[appstream_id]
+        mds.sort(key=lambda md: md.release_timestamp, reverse=True)
 
-            # add release
-            if md.version:
-                rel = AppStreamGlib.Release.new()
-                rel.set_version(md.version)
-                if md.release_description:
-                    rel.set_description(None, md.release_description)
-                if md.release_timestamp:
-                    rel.set_timestamp(md.release_timestamp)
-                rel.checksums = []
-                rel.add_location(firmware_baseuri + fw.filename)
-                rel.set_size(AppStreamGlib.SizeKind.INSTALLED, md.release_installed_size)
-                rel.set_size(AppStreamGlib.SizeKind.DOWNLOAD, md.release_download_size)
-                if md.release_urgency:
-                    rel.set_urgency(AppStreamGlib.urgency_kind_from_string(md.release_urgency))
-                component.add_release(rel)
+        # assume all the components have the same parent firmware information
+        md = mds[0]
+        component = ET.SubElement(root, 'component')
+        component.set('type', 'firmware')
+        ET.SubElement(component, 'id').text = md.appstream_id
+        ET.SubElement(component, 'name').text = md.name
+        ET.SubElement(component, 'summary').text = md.summary
+        ET.SubElement(component, 'developer_name').text = md.developer_name
+        if md.description:
+            desc = ET.SubElement(component, 'description')
+            for c in ET.fromstring('<tmp>' + md.description + '</tmp>'):
+                desc.append(c)
+        ET.SubElement(component, 'project_license').text = md.project_license
+        if md.url_homepage:
+            child = ET.SubElement(component, 'url')
+            child.set('type', 'homepage')
+            child.text = md.url_homepage
+        for md in mds:
+            if md.priority:
+                component.set('priority', str(md.priority))
 
-                # add container checksum
-                if fw.checksum_signed:
-                    csum = AppStreamGlib.Checksum.new()
-                    csum.set_kind(GLib.ChecksumType.SHA1)
-                    csum.set_target(AppStreamGlib.ChecksumTarget.CONTAINER)
-                    csum.set_value(fw.checksum_signed)
-                    csum.set_filename(fw.filename)
-                    rel.add_checksum(csum)
+        # add requires for each allowed vendor_ids
+        elements = {}
+        for md in mds:
+            vendor = db.session.query(Vendor).filter(Vendor.vendor_id == md.fw.vendor_id).first()
+            if not vendor:
+                continue
+            if not vendor.restrictions:
+                continue
 
-                # add content checksum
-                if md.checksum_contents:
-                    csum = AppStreamGlib.Checksum.new()
-                    csum.set_kind(GLib.ChecksumType.SHA1)
-                    csum.set_target(AppStreamGlib.ChecksumTarget.CONTENT)
-                    csum.set_value(md.checksum_contents)
-                    csum.set_filename(md.filename_contents)
-                    rel.add_checksum(csum)
+            # allow specifying more than one ID
+            vendor_ids = []
+            for res in vendor.restrictions:
+                vendor_ids.append(res.value)
+            child = ET.Element('firmware')
+            child.text = 'vendor-id'
+            if len(vendor_ids) == 1:
+                child.set('compare', 'eq')
+            else:
+                child.set('compare', 'regex')
+            child.set('version', '|'.join(vendor_ids))
+            elements['vendor-id'] = child
 
-            # add screenshot
-            if md.screenshot_caption:
-                ss = AppStreamGlib.Screenshot.new()
-                ss.set_caption(None, md.screenshot_caption)
-                if md.screenshot_url:
-                    im = AppStreamGlib.Image.new()
-                    im.set_url(md.screenshot_url)
-                    ss.add_image(im)
-                component.add_screenshot(ss)
-
-            # add requires for each allowed vendor_ids
-            vendor = db.session.query(Vendor).filter(Vendor.vendor_id == fw.vendor_id).first()
-            if vendor and vendor.restrictions:
-                vendor_ids = []
-                for res in vendor.restrictions:
-                    vendor_ids.append(res.value)
-                req = AppStreamGlib.Require.new()
-                req.set_kind(AppStreamGlib.RequireKind.FIRMWARE)
-                req.set_value('vendor-id')
-                if len(vendor_ids) == 1:
-                    req.set_compare(AppStreamGlib.RequireCompare.EQ)
-                else:
-                    req.set_compare(AppStreamGlib.RequireCompare.REGEX)
-                req.set_version('|'.join(vendor_ids))
-                component.add_require(req)
-
-            # add manual firmware or fwupd version requires
+        # add requires for <firmware> or fwupd version
+        for md in mds:
             for rq in md.requirements:
                 if rq.kind == 'hardware':
                     continue
-                req = AppStreamGlib.Require.new()
-                req.set_kind(AppStreamGlib.Require.kind_from_string(rq.kind))
+                child = ET.Element(rq.kind)
                 if rq.value:
-                    req.set_value(rq.value)
+                    child.text = rq.value
                 if rq.compare:
-                    req.set_compare(AppStreamGlib.Require.compare_from_string(rq.compare))
+                    child.set('compare', rq.compare)
                 if rq.version:
-                    req.set_version(rq.version)
-                component.add_require(req)
+                    child.set('version', rq.version)
+                elements[rq.kind + str(rq.value)] = child
 
-            # add hardware requirements
-            rq_hws = []
+        # add a single requirement for <hardware>
+        rq_hws = []
+        for md in mds:
             for rq in md.requirements:
                 if rq.kind == 'hardware':
                     rq_hws.append(rq.value)
-            if rq_hws:
-                req = AppStreamGlib.Require.new()
-                req.set_kind(AppStreamGlib.RequireKind.HARDWARE)
-                req.set_value('|'.join(rq_hws))
-                component.add_require(req)
+        if rq_hws:
+            child = ET.Element('hardware')
+            child.text = '|'.join(rq_hws)
+            elements['hardware'] = child
 
-            # add any shared metadata
+        # requires shared by all releases
+        if elements:
+            parent = ET.SubElement(component, 'requires')
+            for key in elements:
+                parent.append(elements[key])
+
+        # screenshot shared by all releases
+        elements = {}
+        for md in mds:
+            if not md.screenshot_url and not md.screenshot_caption:
+                continue
+            # try to dedupe using the URL and then the caption
+            key = md.screenshot_url
+            if not key:
+                key = md.screenshot_caption
+            if key not in elements:
+                child = ET.Element('screenshot')
+                if not elements:
+                    child.set('type', 'default')
+                if md.screenshot_caption:
+                    ET.SubElement(child, 'caption').text = md.screenshot_caption
+                if md.screenshot_url:
+                    ET.SubElement(child, 'image').text = md.screenshot_url
+                elements[key] = child
+        if elements:
+            parent = ET.SubElement(component, 'screenshots')
+            for key in elements:
+                parent.append(elements[key])
+
+        # add each release
+        releases = ET.SubElement(component, 'releases')
+        for md in mds:
+            if not md.version:
+                continue
+            rel = ET.SubElement(releases, 'release')
+            if md.release_timestamp:
+                rel.set('timestamp', str(md.release_timestamp))
+            if md.release_urgency and md.release_urgency != 'unknown':
+                rel.set('urgency', md.release_urgency)
+            if md.version:
+                rel.set('version', md.version)
+            ET.SubElement(rel, 'location').text = firmware_baseuri + md.fw.filename
+
+            # add container checksum
+            if md.fw.checksum_signed:
+                csum = ET.SubElement(rel, 'checksum')
+                csum.text = md.fw.checksum_signed
+                csum.set('type', 'sha1')
+                csum.set('filename', md.fw.filename)
+                csum.set('target', 'container')
+
+            # add content checksum
+            if md.checksum_contents:
+                csum = ET.SubElement(rel, 'checksum')
+                csum.text = md.checksum_contents
+                csum.set('type', 'sha1')
+                csum.set('filename', md.filename_contents)
+                csum.set('target', 'content')
+
+            # add long description
+            if md.release_description:
+                desc = ET.SubElement(rel, 'description')
+                for c in ET.fromstring('<tmp>' + md.release_description + '</tmp>'):
+                    desc.append(c)
+
+            # add sizes if set
+            if md.release_installed_size:
+                sz = ET.SubElement(rel, 'size')
+                sz.set('type', 'installed')
+                sz.text = str(md.release_installed_size)
+            if md.release_download_size:
+                sz = ET.SubElement(rel, 'size')
+                sz.set('type', 'download')
+                sz.text = str(md.release_download_size)
+
+        # provides shared by all releases
+        elements = {}
+        for md in mds:
+            for guid in md.guids:
+                if guid.value in elements:
+                    continue
+                child = ET.Element('firmware')
+                child.set('type', 'flashed')
+                child.text = guid.value
+                elements[guid.value] = child
+        if elements:
+            parent = ET.SubElement(component, 'provides')
+            for key in sorted(elements):
+                parent.append(elements[key])
+
+        # metadata shared by all releases
+        elements = {}
+        for md in mds:
             if md.inhibit_download:
-                component.add_metadata('LVFS::InhibitDownload')
+                if 'LVFS::InhibitDownload' in elements:
+                    continue
+                child = ET.Element('value')
+                child.set('key', 'LVFS::InhibitDownload')
+                elements['LVFS::InhibitDownload'] = child
             if md.version_format:
-                component.add_metadata('LVFS::VersionFormat', md.version_format)
-
-    # add components
-    for appstream_id in components:
-        store.add_app(components[appstream_id])
+                if 'LVFS::VersionFormat' in elements:
+                    continue
+                child = ET.Element('value')
+                child.set('key', 'LVFS::VersionFormat')
+                child.text = md.version_format
+                elements['LVFS::VersionFormat'] = child
+        if elements:
+            parent = ET.SubElement(component, 'metadata')
+            for key in elements:
+                parent.append(elements[key])
 
     # dump to file
-    store.to_file(Gio.file_new_for_path(filename),
-                  AppStreamGlib.NodeToXmlFlags.ADD_HEADER |
-                  AppStreamGlib.NodeToXmlFlags.FORMAT_INDENT |
-                  AppStreamGlib.NodeToXmlFlags.FORMAT_MULTILINE)
+    et = ET.ElementTree(root)
+    et.write(filename,
+             encoding='utf-8',
+             xml_declaration=True,
+             compression=5,
+             pretty_print=True)
 
 def _metadata_update_targets(remotes):
     """ updates metadata for a specific target """
