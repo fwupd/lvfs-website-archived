@@ -73,6 +73,31 @@ def firmware_component_show(component_id, page='overview'):
     return render_template('firmware-md-' + page + '.html',
                            md=md, fw=fw, page=page)
 
+@app.route('/lvfs/component/<int:component_id>/modify', methods=['POST'])
+@login_required
+def firmware_component_modify(component_id):
+    """ Modifies the component properties """
+
+    # find firmware
+    md = db.session.query(Component).filter(Component.component_id == component_id).first()
+    if not md:
+        return _error_internal("No component %s" % component_id)
+
+    # security check
+    if not md.check_acl('@modify-updateinfo'):
+        return _error_permission_denied('Insufficient permissions to modify firmware')
+
+    # set new metadata values
+    if 'screenshot_url' in request.form:
+        md.screenshot_url = request.form['screenshot_url']
+    if 'screenshot_caption' in request.form:
+        md.screenshot_caption = request.form['screenshot_caption']
+
+    # modify
+    db.session.commit()
+    flash('Component updated', 'info')
+    return redirect(url_for('.firmware_component_show', component_id=component_id))
+
 @app.route('/lvfs/component/<int:component_id>/requirement/delete/<requirement_id>')
 @login_required
 def firmware_requirement_delete(component_id, requirement_id):

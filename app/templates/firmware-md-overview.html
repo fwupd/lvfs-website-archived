@@ -42,24 +42,38 @@
   </tr>
 {% endif %}
 {% if md.screenshot_url %}
+  <form class="form-inline" method="post" action="/lvfs/component/{{md.component_id}}/modify" method="POST">
   <tr class="row">
-    <th class="col-sm-3">Screenshot</th>
-    <td class="col-sm-9">
-      <figure class="text-center">
-        <img src="{{md.screenshot_url}}" class="figure-img img-fluid rounded">
-{% if md.screenshot_caption %}
-        <figcaption class="figure-caption">{{md.screenshot_caption|safe}}</figcaption>
+    <th class="col-sm-3">Screenshot URL</th>
+{% if fw.remote.name != 'stable' or g.user.check_acl('@admin') %}
+    <td class="col-sm-7">
+      <input type="text" class="form-control" name="screenshot_url" value="{{md.screenshot_url if md.screenshot_url}}"/>
+    </td>
+    <td class="col-sm-2">
+      <input type="submit" class="btn btn-secondary btn-block" value="Set"/>
+    </td>
+{% else %}
+    <td class="col-sm-7"><code>{{md.screenshot_url}}</code></td>
 {% endif %}
-      </figure>
-    </td>
   </tr>
-{% elif md.screenshot_caption %}
+  </form>
+{% endif %}
+{% if md.screenshot_caption %}
+  <form class="form-inline" method="post" action="/lvfs/component/{{md.component_id}}/modify" method="POST">
   <tr class="row">
-    <th class="col-sm-3">Screenshot</th>
-    <td class="col-sm-9">
-      <p>{{md.screenshot_caption|safe}}</p>
+    <th class="col-sm-3">Screenshot Caption</th>
+{% if fw.remote.name != 'stable' or g.user.check_acl('@admin') %}
+    <td class="col-sm-7">
+      <textarea class="form-control" name="screenshot_caption" cols="100" rows="3">{{md.screenshot_caption if md.screenshot_caption}}</textarea>
     </td>
+    <td class="col-sm-2">
+      <input type="submit" class="btn btn-secondary btn-block" value="Set"/>
+    </td>
+{% else %}
+    <td class="col-sm-9"><code>{{md.screenshot_caption}}</code>
+{% endif %}
   </tr>
+  </form>
 {% endif %}
 </table>
 {% endblock %}
