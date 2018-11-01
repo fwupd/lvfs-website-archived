@@ -7,6 +7,9 @@
 from flask import request, url_for, redirect, render_template, flash
 from flask_login import login_required
 
+from gi.repository import AppStreamGlib
+from gi.repository import GLib
+
 from app import app, db
 
 from .models import Requirement, Component, Keyword, Firmware
@@ -52,6 +55,47 @@ def firmware_component_all(component_id):
             break
     return render_template('device.html', fws=fws)
 
+@app.route('/lvfs/component/<int:component_id>/modify', methods=['POST'])
+@login_required
+def firmware_component_modify(component_id):
+    """ Modifies the component properties """
+
+    # find firmware
+    md = db.session.query(Component).filter(Component.component_id == component_id).first()
+    if not md:
+        return _error_internal("No component %s" % component_id)
+
+    # security check
+    if not md.check_acl('@modify-updateinfo'):
+        return _error_permission_denied('Insufficient permissions to modify firmware')
+
+    # set new metadata values
+    page = 'overview'
+    if 'screenshot_url' in request.form:
+        md.screenshot_url = request.form['screenshot_url']
+    if 'screenshot_caption' in request.form:
+        md.screenshot_caption = request.form['screenshot_caption']
+    if 'urgency' in request.form:
+        md.release_urgency = request.form['urgency']
+        page = 'update'
+    if 'description' in request.form:
+        txt = request.form['description']
+        if txt:
+            if txt.find('<p>') == -1 and txt.find('<li>') == -1:
+                txt = AppStreamGlib.markup_import(txt, AppStreamGlib.MarkupConvertFormat.SIMPLE)
+            try:
+                AppStreamGlib.markup_validate(txt)
+            except GLib.Error as e: # pylint: disable=catching-non-exception
+                return _error_internal("Failed to parse %s: %s" % (txt, str(e)))
+        md.release_description = unicode(txt)
+
+    # modify
+    db.session.commit()
+    flash('Component updated', 'info')
+    return redirect(url_for('.firmware_component_show',
+                            component_id=component_id,
+                            page=page))
+
 @app.route('/lvfs/component/<int:component_id>')
 @app.route('/lvfs/component/<int:component_id>/<page>')
 @login_required
@@ -71,32 +115,7 @@ def firmware_component_show(component_id, page='overview'):
         return _error_permission_denied('Unable to view other vendor firmware')
 
     return render_template('firmware-md-' + page + '.html',
-                           md=md, fw=fw, page=page)
-
-@app.route('/lvfs/component/<int:component_id>/modify', methods=['POST'])
-@login_required
-def firmware_component_modify(component_id):
-    """ Modifies the component properties """
-
-    # find firmware
-    md = db.session.query(Component).filter(Component.component_id == component_id).first()
-    if not md:
-        return _error_internal("No component %s" % component_id)
-
-    # security check
-    if not md.check_acl('@modify-updateinfo'):
-        return _error_permission_denied('Insufficient permissions to modify firmware')
-
-    # set new metadata values
-    if 'screenshot_url' in request.form:
-        md.screenshot_url = request.form['screenshot_url']
-    if 'screenshot_caption' in request.form:
-        md.screenshot_caption = request.form['screenshot_caption']
-
-    # modify
-    db.session.commit()
-    flash('Component updated', 'info')
-    return redirect(url_for('.firmware_component_show', component_id=component_id))
+                           md=md, page=page)
 
 @app.route('/lvfs/component/<int:component_id>/requirement/delete/<requirement_id>')
 @login_required

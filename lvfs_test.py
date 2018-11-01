@@ -939,11 +939,11 @@ class LvfsTestCase(unittest.TestCase):
         assert b'value="low" selected' in rv.data, rv.data
 
         # edit the description and severity
-        rv = self.app.post('/lvfs/firmware/1/modify', data=dict(
+        rv = self.app.post('/lvfs/component/1/modify', data=dict(
             urgency='critical',
             description=u'Not enough cats!',
         ), follow_redirects=True)
-        assert b'Update text updated' in rv.data, rv.data
+        assert b'Component updated' in rv.data, rv.data
 
         # verify the new update info
         rv = self.app.get('/lvfs/component/1/update')
@@ -1170,13 +1170,14 @@ class LvfsTestCase(unittest.TestCase):
         assert b'Hughski Limited ColorHug2 Device Update' in rv.data, rv.data
 
         # check bob can change the update description and severity
-        rv = self.app.post('/lvfs/firmware/1/modify', data=dict(
+        rv = self.app.post('/lvfs/component/1/modify', data=dict(
             urgency='critical',
             description=u'Not enough cats!',
         ), follow_redirects=True)
-        assert b'Update text updated' in rv.data, rv.data
+        assert b'Component updated' in rv.data, rv.data
 
         # check bob can move the firmware to the embargo remote for the *OEM*
+        rv = self.app.get('/lvfs/firmware/1')
         assert b'/promote/embargo' in rv.data, rv.data
         rv = self.app.get('/lvfs/firmware/1/promote/embargo',
                           follow_redirects=True)

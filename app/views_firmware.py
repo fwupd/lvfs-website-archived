@@ -12,9 +12,6 @@ from flask import request, url_for, redirect, render_template, flash, g
 from flask_login import login_required
 from sqlalchemy.orm import joinedload
 
-from gi.repository import AppStreamGlib
-from gi.repository import GLib
-
 from app import app, db
 from .dbutils import _execute_count_star
 
@@ -63,44 +60,6 @@ def firmware(show_all=False):
 @app.route('/lvfs/firmware_all')
 def firmware_all():
     return firmware(True)
-
-@app.route('/lvfs/firmware/<int:firmware_id>/modify', methods=['GET', 'POST'])
-@login_required
-def firmware_modify(firmware_id):
-    """ Modifies the update urgency and release notes for the update """
-
-    if request.method != 'POST':
-        return redirect(url_for('.firmware'))
-
-    # find firmware
-    fw = db.session.query(Firmware).filter(Firmware.firmware_id == firmware_id).first()
-    if not fw:
-        return _error_internal("No firmware %s" % firmware_id)
-
-    # security check
-    for md in fw.mds:
-        if not md.check_acl('@modify-updateinfo'):
-            return _error_permission_denied('Insufficient permissions to modify firmware')
-
-    # set new metadata values
-    for md in fw.mds:
-        if 'urgency' in request.form:
-            md.release_urgency = request.form['urgency']
-        if 'description' in request.form:
-            txt = request.form['description']
-            if txt:
-                if txt.find('<p>') == -1 and txt.find('<li>') == -1:
-                    txt = AppStreamGlib.markup_import(txt, AppStreamGlib.MarkupConvertFormat.SIMPLE)
-                try:
-                    AppStreamGlib.markup_validate(txt)
-                except GLib.Error as e: # pylint: disable=catching-non-exception
-                    return _error_internal("Failed to parse %s: %s" % (txt, str(e)))
-            md.release_description = unicode(txt)
-
-    # modify
-    db.session.commit()
-    flash('Update text updated', 'info')
-    return redirect(url_for('.firmware_show', firmware_id=firmware_id))
 
 @app.route('/lvfs/firmware/<int:firmware_id>/undelete')
 @login_required
