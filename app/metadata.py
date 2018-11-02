@@ -11,7 +11,7 @@ from lxml import etree as ET
 from app import app, db
 
 from .models import Firmware, Vendor
-from .util import _get_settings
+from .util import _get_settings, _xml_from_markdown
 
 def _generate_metadata_kind(filename, fws, firmware_baseuri=''):
     """ Generates AppStream metadata of a specific kind """
@@ -44,9 +44,7 @@ def _generate_metadata_kind(filename, fws, firmware_baseuri=''):
         ET.SubElement(component, 'summary').text = md.summary
         ET.SubElement(component, 'developer_name').text = md.developer_name
         if md.description:
-            desc = ET.SubElement(component, 'description')
-            for c in ET.fromstring('<tmp>' + md.description + '</tmp>'):
-                desc.append(c)
+            component.append(_xml_from_markdown(md.description))
         ET.SubElement(component, 'project_license').text = md.project_license
         if md.url_homepage:
             child = ET.SubElement(component, 'url')
@@ -164,9 +162,7 @@ def _generate_metadata_kind(filename, fws, firmware_baseuri=''):
 
             # add long description
             if md.release_description:
-                desc = ET.SubElement(rel, 'description')
-                for c in ET.fromstring('<tmp>' + md.release_description + '</tmp>'):
-                    desc.append(c)
+                rel.append(_xml_from_markdown(md.release_description))
 
             # add sizes if set
             if md.release_installed_size:

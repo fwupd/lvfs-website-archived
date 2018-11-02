@@ -19,7 +19,7 @@ from sqlalchemy.orm import relationship
 
 from app import db
 from .hash import _qa_hash, _password_hash
-from .util import _generate_password
+from .util import _generate_password, _xml_from_markdown, _get_update_description_problems
 
 class Agreement(db.Model):
 
@@ -481,8 +481,8 @@ class Component(db.Model):
     appstream_id = Column(Text, nullable=False)
     name = Column(Unicode, default=None)
     summary = Column(Unicode, default=None)
-    description = Column(Unicode, default=None)
-    release_description = Column(Unicode, default=None)
+    description = Column(Unicode, default=None)         # markdown format
+    release_description = Column(Unicode, default=None) # markdown format
     url_homepage = Column(Unicode, default=None)
     metadata_license = Column(Text, default=None)
     project_license = Column(Text, default=None)
@@ -581,14 +581,12 @@ class Component(db.Model):
                                         v &  0x0000ffff)
         return self.version
 
-    def _check_release_description(self):
+    @property
+    def problems(self):
         if not self.release_description:
-            return False
-        if len(self.release_description) < 12:
-            return False
-        if self.release_description.find('.BLD') != -1:
-            return False
-        return True
+            return []
+        root = _xml_from_markdown(self.release_description)
+        return _get_update_description_problems(root)
 
     def add_keywords_from_string(self, value, priority=0):
         existing_keywords = {}
@@ -818,7 +816,7 @@ class Firmware(db.Model):
         for md in self.mds:
             if md.release_urgency == 'unknown':
                 problems.append('no-release-urgency')
-            if not md._check_release_description():
+            if md.problems:
                 problems.append('no-release-description')
         return list(set(problems))
 

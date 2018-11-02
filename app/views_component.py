@@ -7,9 +7,6 @@
 from flask import request, url_for, redirect, render_template, flash
 from flask_login import login_required
 
-from gi.repository import AppStreamGlib
-from gi.repository import GLib
-
 from app import app, db
 
 from .models import Requirement, Component, Keyword, Firmware
@@ -31,6 +28,13 @@ def _validate_guid(guid):
     if len(split[4]) != 12:
         return False
     return True
+
+def _sanitize_markdown_text(txt):
+    txt = txt.replace('\r', '')
+    new_lines = []
+    for line in txt.split('\n'):
+        new_lines.append(line.strip())
+    return '\n'.join(new_lines)
 
 @app.route('/lvfs/component/<int:component_id>/all')
 def firmware_component_all(component_id):
@@ -74,20 +78,13 @@ def firmware_component_modify(component_id):
     if 'screenshot_url' in request.form:
         md.screenshot_url = request.form['screenshot_url']
     if 'screenshot_caption' in request.form:
-        md.screenshot_caption = request.form['screenshot_caption']
+        md.screenshot_caption = _sanitize_markdown_text(request.form['screenshot_caption'])
     if 'urgency' in request.form:
         md.release_urgency = request.form['urgency']
         page = 'update'
     if 'description' in request.form:
-        txt = request.form['description']
-        if txt:
-            if txt.find('<p>') == -1 and txt.find('<li>') == -1:
-                txt = AppStreamGlib.markup_import(txt, AppStreamGlib.MarkupConvertFormat.SIMPLE)
-            try:
-                AppStreamGlib.markup_validate(txt)
-            except GLib.Error as e: # pylint: disable=catching-non-exception
-                return _error_internal("Failed to parse %s: %s" % (txt, str(e)))
-        md.release_description = unicode(txt)
+        md.release_description = _sanitize_markdown_text(request.form['description'])
+        page = 'update'
 
     # modify
     db.session.commit()

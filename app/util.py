@@ -17,12 +17,140 @@ import random
 
 from glob import fnmatch
 
+from lxml import etree as ET
 from flask import request, flash, render_template, g, Response
 
 import gi
 gi.require_version('GCab', '1.0')
 from gi.repository import GCab
 from gi.repository import GLib
+
+def _unwrap_xml_text(txt):
+    txt = txt.replace('\r', '')
+    new_lines = []
+    for line in txt.split('\n'):
+        if not line:
+            continue
+        new_lines.append(line.strip())
+    return ' '.join(new_lines)
+
+def _markdown_from_xml(markup):
+    """ return MarkDown for the XML input """
+    tmp = ''
+    root = ET.fromstring('<description>' + markup + '</description>')
+    for n in root:
+        if n.tag == 'p':
+            if n.text:
+                tmp += _unwrap_xml_text(n.text) + '\n\n'
+        elif n.tag == 'ul' or n.tag == 'ol':
+            for c in n:
+                if c.tag == 'li' and c.text:
+                    tmp += ' * ' + _unwrap_xml_text(c.text) + '\n'
+            tmp += '\n'
+    tmp = tmp.strip(' \n')
+    return tmp
+
+def _check_is_markdown_li(line):
+    if line.startswith('- '):
+        return 2
+    if line.startswith(' - '):
+        return 3
+    if line.startswith('* '):
+        return 2
+    if line.startswith(' * '):
+        return 3
+    return 0
+
+def _xml_from_markdown(markdown):
+    """ return a ElementTree for the markdown text """
+    ul = None
+    root = ET.Element('description')
+    for line in markdown.split('\n'):
+        if not line:
+            continue
+        markdown_li_sz = _check_is_markdown_li(line)
+        if markdown_li_sz:
+            if ul is None:
+                ul = ET.SubElement(root, 'ul')
+            ET.SubElement(ul, 'li').text = line[markdown_li_sz:]
+        else:
+            ul = None
+            ET.SubElement(root, 'p').text = line
+    return root
+
+def _add_problem(problems, title, line=None):
+    if line:
+        problem = "%s: [%s]" % (title, line)
+    else:
+        problem = title
+    if problem in problems:
+        return
+    problems.append(problem)
+
+def _check_both(problems, txt):
+    if txt.isupper():
+        _add_problem(problems, 'Uppercase only sentences are not allowed', txt)
+
+def _check_is_fake_li(txt):
+    for line in txt.split('\n'):
+        if _check_is_markdown_li(line):
+            return True
+    return False
+
+def _check_para(problems, txt):
+    _check_both(problems, txt)
+    if txt.startswith('[') or txt.endswith(']'):
+        _add_problem(problems, 'Paragraphs cannot start or end with "[" or "]"', txt)
+    if txt.startswith('(') or txt.endswith(')'):
+        _add_problem(problems, 'Paragraphs cannot start or end with "(" or ")"', txt)
+    if _check_is_fake_li(txt):
+        _add_problem(problems, 'Paragraphs cannot start with list elements', txt)
+    if txt.find('.BLD') != -1 or txt.find('changes.new') != -1:
+        _add_problem(problems, 'Do not refer to BLD or changes.new release notes', txt)
+    if len(txt) > 300:
+        _add_problem(problems, 'Paragraphs is too long, limit is 300 chars and was %i' % len(txt), txt)
+    if len(txt) < 12:
+        _add_problem(problems, 'Paragraphs is too short, minimum is 12 chars and was %i' % len(txt), txt)
+
+def _check_li(problems, txt):
+    _check_both(problems, txt)
+    if txt == 'Nothing.':
+        _add_problem(problems, 'List elements cannot be empty, found "Nothing"')
+    if _check_is_fake_li(txt):
+        _add_problem(problems, 'List elements cannot start with bullets', txt)
+    if txt.find('.BLD') != -1:
+        _add_problem(problems, 'Do not refer to BLD release notes', txt)
+    if txt.find('Fix the return code from GetHardwareVersion') != -1:
+        _add_problem(problems, 'Do not use the example update notes!', txt)
+    if len(txt) > 200:
+        _add_problem(problems, 'List element is too long, limit is 200 chars and was %i' % len(txt), txt)
+    if len(txt) < 5:
+        _add_problem(problems, 'List element is too short, minimum is 5 chars and was %i' % len(txt), txt)
+
+def _get_update_description_problems(root):
+    problems = []
+    n_para = 0
+    n_li = 0
+    for n in root:
+        if n.tag == 'p':
+            _check_para(problems, n.text)
+            n_para += 1
+        elif n.tag == 'ul' or n.tag == 'ol':
+            for c in n:
+                if c.tag == 'li':
+                    _check_li(problems, c.text)
+                    n_li += 1
+                else:
+                    _add_problem(problems, 'Invalid XML tag', '<%s>' % c.tag)
+        else:
+            _add_problem(problems, 'Invalid XML tag', '<%s>' % n.tag)
+    if n_para > 5:
+        _add_problem(problems, 'Too many paragraphs, limit is 5')
+    if n_li > 10:
+        _add_problem(problems, 'Too many list elements, limit is 10')
+    if n_para < 1:
+        _add_problem(problems, 'Not enough paragraphs, minimum is 1')
+    return problems
 
 def _get_settings(unused_prefix=None):
     """ return a dict of all the settings """
