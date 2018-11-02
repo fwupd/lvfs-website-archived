@@ -36,6 +36,25 @@ def _sanitize_markdown_text(txt):
         new_lines.append(line.strip())
     return '\n'.join(new_lines)
 
+
+@app.route('/lvfs/component/problems')
+@login_required
+def firmware_component_problems():
+    """
+    Show all components with problems
+    """
+    mds = []
+    for md in db.session.query(Component).\
+                order_by(Component.release_timestamp.desc()).all():
+        if not md.problems:
+            continue
+        if not md.check_acl('@modify-updateinfo'):
+            continue
+        if md.fw.is_deleted:
+            continue
+        mds.append(md)
+    return render_template('firmware-md-problems.html', mds=mds)
+
 @app.route('/lvfs/component/<int:component_id>/all')
 def firmware_component_all(component_id):
 

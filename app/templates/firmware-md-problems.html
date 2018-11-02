@@ -1,0 +1,30 @@
+{% extends "default.html" %}
+{% block title %}Components with problems{% endblock %}
+
+{% block content %}
+<h3>Device Software Versions</h3>
+
+<table class="table">
+  <tr class="row table-borderless">
+    <th class="col-sm-3">Name</th>
+    <th class="col-sm-7">Problems</th>
+    <th class="col-sm-2"></th>
+  </tr>
+{% for md in mds %}
+  <tr class="row">
+    <td class="col-sm-3">{{md.name}}</td>
+    <td class="col-sm-7">
+      <ul>
+{% for problem in md.problems %}
+        <li>{{problem}}</li>
+{% endfor %}
+      </ul>
+    </td>
+    <td class="col-sm-2 text-right">
+      <a class="btn btn-info btn-block" href="/lvfs/component/{{md.component_id}}/update">Details</a>
+    </td>
+  </tr>
+{% endfor %}
+</table>
+
+{% endblock %}
