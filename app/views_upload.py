@@ -119,7 +119,10 @@ def _create_fw_from_uploaded_file(ufile):
         # from the first screenshot
         if len(component.get_screenshots()) > 0:
             ss = component.get_screenshots()[0]
-            md.screenshot_caption = ss.get_caption(None)
+            tmp = ss.get_caption(None)
+            tmp = tmp.replace('<p>', '')
+            tmp = tmp.replace('</p>', '')
+            md.screenshot_caption = tmp
             if len(ss.get_images()) > 0:
                 im = ss.get_images()[0]
                 md.screenshot_url = unicode(im.get_url())
