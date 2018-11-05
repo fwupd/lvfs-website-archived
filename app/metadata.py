@@ -242,6 +242,10 @@ def _metadata_update_targets(remotes):
                                 fws_filtered,
                                 firmware_baseuri=settings['firmware_baseuri'])
 
+        # all firmwares are contained in the correct metadata now
+        for fw in fws_filtered:
+            fw.is_dirty = False
+
 def _hashfile(afile, hasher, blocksize=65536):
     buf = afile.read(blocksize)
     while len(buf) > 0:

@@ -109,6 +109,7 @@ def _firmware_delete(fw):
         shutil.move(path, path_new)
 
     # generate next cron run
+    fw.is_dirty = True
     fw.remote.is_dirty = True
 
     # mark as invalid
@@ -214,6 +215,9 @@ def firmware_promote(firmware_id, target):
     # invalidate both the remote it came from and the one it's going to
     remote.is_dirty = True
     fw.remote.is_dirty = True
+
+    # invalidate the firmware as we're waiting for the metadata generation
+    fw.is_dirty = True
 
     # also dirty any ODM remote if uploading on behalf of an OEM
     if target == 'embargo' and fw.vendor != fw.user.vendor:
@@ -370,6 +374,7 @@ def firmware_affiliation_change(firmware_id):
         fw.vendor.remote.is_dirty = True
         fw.user.vendor.remote.is_dirty = True
         old_vendor.remote.is_dirty = True
+        fw.is_dirty = True
         fw.remote_id = fw.vendor.remote.remote_id
         fw.events.append(FirmwareEvent(fw.remote_id, g.user.user_id))
         db.session.commit()

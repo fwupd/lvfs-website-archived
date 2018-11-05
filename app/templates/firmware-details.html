@@ -27,9 +27,10 @@
   <tr class="row">
     <th class="col-sm-3 align-middle">Current Target</th>
     <td class="col-sm-7 align-middle">
-{% if fw.remote.is_signed and fw.remote.is_dirty %}
+{% if fw.remote.is_signed and fw.is_dirty %}
       <div class="alert alert-warning" role="alert">
-        The <code>{{fw.remote.name}}</code> metadata will be signed in {{format_timedelta_approx(fw.remote.scheduled_signing)}}.
+        The <code>{{fw.remote.name}}</code> metadata will be regenerated to
+        include this firmware in {{format_timedelta_approx(fw.remote.scheduled_signing)}}.
       </div>
 {% else %}
       <code>{{fw.remote.name}}</code>

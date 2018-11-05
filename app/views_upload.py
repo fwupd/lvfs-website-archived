@@ -318,6 +318,7 @@ def upload():
     fw.addr = _get_client_address()
     fw.remote_id = remote.remote_id
     fw.checksum_signed = hashlib.sha1(cab_data).hexdigest()
+    fw.is_dirty = True
 
     # add to database
     fw.events.append(FirmwareEvent(remote.remote_id, g.user.user_id))

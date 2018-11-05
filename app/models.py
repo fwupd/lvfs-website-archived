@@ -744,6 +744,7 @@ class Firmware(db.Model):
     checksum_signed = Column(String(40), nullable=False)
     user_id = Column(Integer, ForeignKey('users.user_id'), nullable=False)
     signed_timestamp = Column(DateTime, default=None)
+    is_dirty = Column(Boolean, default=False)   # waiting to be included in metadata
 
     # include all Component objects
     mds = relationship("Component",
