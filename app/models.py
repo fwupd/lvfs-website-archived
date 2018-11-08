@@ -586,7 +586,13 @@ class Component(db.Model):
         if not self.release_description:
             return []
         root = _xml_from_markdown(self.release_description)
-        return _get_update_description_problems(root)
+        problems = _get_update_description_problems(root)
+        # check for OEMs just pasting in the XML like before
+        for element_name in ['p', 'li', 'ul', 'ol']:
+            if self.release_description.find('<' + element_name + '>') != -1:
+                problems.append('Update descriptions cannot contain XML markup')
+                break
+        return problems
 
     def add_keywords_from_string(self, value, priority=0):
         existing_keywords = {}
