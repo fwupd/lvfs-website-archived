@@ -79,13 +79,15 @@ def _xml_from_markdown(markdown):
     return root
 
 def _add_problem(problems, title, line=None):
+    from app.models import Problem
     if line:
-        problem = "%s: [%s]" % (title, line)
+        tmp = "%s: [%s]" % (title, line)
     else:
-        problem = title
-    if problem in problems:
-        return
-    problems.append(problem)
+        tmp = title
+    for problem in problems:
+        if problem.description == tmp:
+            return
+    problems.append(Problem('invalid-release-description', tmp))
 
 def _check_both(problems, txt):
     if txt.isupper():

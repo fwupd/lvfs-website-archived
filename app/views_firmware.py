@@ -195,8 +195,11 @@ def firmware_promote(firmware_id, target):
 
     # vendor has to fix the problems first
     if target in ['stable', 'testing'] and fw.problems:
-        probs = ','.join(fw.problems)
-        flash('Firmware has problems that must be fixed first: %s' % probs, 'warning')
+        probs = []
+        for problem in fw.problems:
+            if problem.kind not in probs:
+                probs.append(problem.kind)
+        flash('Firmware has problems that must be fixed first: %s' % ','.join(probs), 'warning')
         return redirect(url_for('.firmware_show', firmware_id=firmware_id))
 
     # set new remote

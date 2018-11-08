@@ -9,20 +9,18 @@
 <table class="table">
   <tr class="row table-borderless">
     <th class="col-sm-3">Name</th>
-    <th class="col-sm-9">Description</th>
-  </tr>
-{% if 'no-release-urgency' in fw.problems %}
+    <th class="col-sm-7">Description</th>
+{% for problem in fw.problems %}
   <tr class="row">
     <td class="col-sm-3">
-      <img src="/img/dialog-warning.png"/>
-      No update urgency
+      <img src="/img/{{problem.icon_name}}.png"/>
+      {{problem.summary}}
     </td>
-    <td class="col-sm-9">
+{% if problem.kind == 'no-release-urgency' %}
+    <td class="col-sm-7">
       <p class="card-text">
         All components should have an appropriate update urgency before a
         firmware is moved to stable.
-        You can do this for each component on this firmware by clicking <b>Components</b> &raquo; <b>Details</b>
-        &raquo; <b>Update Details</b> and setting an urgency from the dropdown.
       </p>
       <p class="card-text">
         For future firmware uploads, this can be set automatically using
@@ -30,20 +28,11 @@
         <a href="/metainfo"><code>.metainfo.xml</code></a> file.
       </p>
     </td>
-  </tr>
-{% endif %}
-{% if 'no-release-description' in fw.problems %}
-  <tr class="row">
-    <td class="col-sm-3">
-      <img src="/img/dialog-warning.png"/>
-      No update description
-    </td>
-    <td class="col-sm-9">
+{% elif problem.kind == 'no-release-description' %}
+    <td class="col-sm-7">
       <p class="card-text">
         All components should have a suitable update description before a
         firmware is moved to stable.
-        You can do this for each component on this firmware by clicking <b>Components</b> &raquo; <b>Details</b>
-        &raquo; <b>Update Details</b> and writing some content that is shown to users.
         Writing good quality release notes are really important as some users may be
         worried about an update that does not explain what it fixes.
       </p>
@@ -54,37 +43,47 @@
         text&lt;/p&gt;&lt;/description&gt;&lt;/release&gt;</code>
       </p>
     </td>
-  </tr>
+{% elif problem.kind == 'invalid-release-description' %}
+    <td class="col-sm-7">
+      <p class="card-text">
+        All components should have a suitable update description before a
+        firmware is moved to stable.
+      </p>
+{% if problem.description %}
+      <p class="card-text">
+        <code>{{problem.description}}</code>
+      </p>
 {% endif %}
-{% if 'unsigned' in fw.problems %}
-  <tr class="row">
-    <td class="col-sm-3">
-      <img src="/img/task-due.png"/>
-      Firmware is unsigned
     </td>
-    <td class="col-sm-9">
+{% elif problem.kind == 'unsigned' %}
+    <td class="col-sm-7">
       <p class="card-text">
         Signing a firmware file on the LVFS is automatic and will be completed in
         {{format_timedelta_approx(fw.scheduled_signing)}}.
         You can refresh this page to find out when the firmware has been signed.
       </p>
     </td>
-  </tr>
-{% endif %}
-{% if 'deleted' in fw.problems %}
-  <tr class="row">
-    <td class="col-sm-3">
-      <img src="/img/emblem-readonly.png"/>
-      Firmware has been deleted
-    </td>
-    <td class="col-sm-9">
+{% elif problem.kind == 'deleted' %}
+    <td class="col-sm-7">
       <p class="card-text">
         Once a file has been deleted on the LVFS it must be undeleted before it
         can be moved to a different target.
       </p>
     </td>
-  </tr>
+{% else %}
+    <td class="col-sm-7">
+      <p class="card-text">
+        Please report this issue to the LVFS administrator.
+      </p>
+    </td>
 {% endif %}
+    <td class="col-sm-2">
+{% if problem.url %}
+      <a class="btn btn-info btn-block" href={{problem.url}}>Details</a>
+{% endif %}
+    </td>
+  </tr>
+{% endfor %}
 </table>
 
 {% endblock %}

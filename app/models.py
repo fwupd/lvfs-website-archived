@@ -12,7 +12,7 @@ import re
 
 from gi.repository import AppStreamGlib
 
-from flask import g
+from flask import g, url_for
 
 from sqlalchemy import Column, Integer, String, Text, Boolean, DateTime, ForeignKey, Unicode, Index
 from sqlalchemy.orm import relationship
@@ -20,6 +20,34 @@ from sqlalchemy.orm import relationship
 from app import db
 from .hash import _qa_hash, _password_hash
 from .util import _generate_password, _xml_from_markdown, _get_update_description_problems
+
+class Problem(object):
+    def __init__(self, kind, description=None, url=None):
+        self.kind = kind
+        self.description = description
+        self.url = url
+
+    @property
+    def summary(self):
+        if self.kind == 'unsigned':
+            return 'Firmware is unsigned'
+        if self.kind == 'deleted':
+            return 'Firmware has been deleted'
+        if self.kind == 'no-release-urgency':
+            return 'No update urgency'
+        if self.kind == 'no-release-description':
+            return 'No update description'
+        if self.kind == 'invalid-release-description':
+            return 'No valid update description'
+        return 'Unknown problem %s' % self.kind
+
+    @property
+    def icon_name(self):
+        if self.kind == 'unsigned':
+            return 'task-due'
+        if self.kind == 'deleted':
+            return 'emblem-readonly'
+        return 'dialog-warning'
 
 class Agreement(db.Model):
 
@@ -590,8 +618,18 @@ class Component(db.Model):
         # check for OEMs just pasting in the XML like before
         for element_name in ['p', 'li', 'ul', 'ol']:
             if self.release_description.find('<' + element_name + '>') != -1:
-                problems.append('Update descriptions cannot contain XML markup')
+                problems.append(Problem('invalid-release-description',
+                                        'Release description cannot contain XML markup'))
                 break
+        if self.release_urgency == 'unknown':
+            problems.append(Problem('no-release-urgency',
+                                    'Release urgency has not been set'))
+
+        # set the URL for the component
+        for problem in problems:
+            problem.url = url_for('.firmware_component_show',
+                                  component_id=self.component_id,
+                                  page='update')
         return problems
 
     def add_keywords_from_string(self, value, priority=0):
@@ -818,15 +856,16 @@ class Firmware(db.Model):
         # does the firmware have any warnings
         problems = []
         if self.is_deleted:
-            problems.append('deleted')
+            problem = Problem('deleted')
+            problem.url = url_for('.firmware_show', firmware_id=self.firmware_id)
+            problems.append(problem)
         if not self.signed_timestamp:
-            problems.append('unsigned')
+            problem = Problem('unsigned')
+            problem.url = url_for('.firmware_show', firmware_id=self.firmware_id)
+            problems.append(problem)
         for md in self.mds:
-            if md.release_urgency == 'unknown':
-                problems.append('no-release-urgency')
-            if md.problems:
-                problems.append('no-release-description')
-        return list(set(problems))
+            problems.extend(md.problems)
+        return problems
 
     def __init__(self):
         """ Constructor for object """
