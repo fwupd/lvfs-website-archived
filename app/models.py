@@ -623,10 +623,11 @@ class Component(db.Model):
 
         # depends on the action requested
         if action == '@modify-updateinfo':
-            if user.is_qa and self.fw._is_vendor(user):
-                return True
-            if self.fw._is_owner(user) and not self.fw.remote.is_public:
-                return True
+            if not self.fw.remote.is_public:
+                if user.is_qa and self.fw._is_vendor(user):
+                    return True
+                if self.fw._is_owner(user):
+                    return True
             return False
         elif action in ('@modify-keywords', '@modify-requirements'):
             if user.is_qa and self.fw._is_vendor(user):

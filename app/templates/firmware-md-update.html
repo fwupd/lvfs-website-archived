@@ -5,6 +5,18 @@
 
 {% block content %}
 
+{% if md.fw.remote.name == 'stable' and not g.user.check_acl('@admin') %}
+<div class="alert alert-danger mt-1" role="alert">
+  This firmware has <strong>already been pushed to stable</strong>.
+  Move the firmware back to embargo or private to edit the text.
+</div>
+{% else %}
+<div class="alert alert-info mt-1" role="alert">
+  Changing this information will <strong>only</strong> modify the metadata when the
+  firmware changes state, e.g. from <em>testing</em> to <em>stable</em>.
+</div>
+{% endif %}
+
 {% if not md.check_acl('@modify-updateinfo') %}
 <table class="table">
 {% if md.release_urgency %}
@@ -25,17 +37,6 @@
 
 {% else %}
 
-{% if md.fw.remote.name == 'stable' %}
-<div class="alert alert-danger mt-1" role="alert">
-  This firmware has <strong>already been pushed to stable</strong>.
-  The admin user has to manually rebuild the metadata to propagate changes.
-</div>
-{% else %}
-<div class="alert alert-info mt-1" role="alert">
-  Changing this information will <strong>only</strong> modify the metadata when the
-  firmware changes state, e.g. from <em>testing</em> to <em>stable</em>.
-</div>
-{% endif %}
 <form method="post" action="/lvfs/component/{{md.component_id}}/modify">
   <div class="form-group">
     <label for="urgency">Urgency</label>
