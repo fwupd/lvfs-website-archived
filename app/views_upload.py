@@ -101,6 +101,7 @@ def _create_fw_from_uploaded_file(ufile):
         # from the release
         rel = component.get_release_default()
         md.version = rel.get_version()
+        md.install_duration = rel.get_install_duration()
         md.release_description = _markdown_from_xml(unicode(rel.get_description()))
         md.release_timestamp = rel.get_timestamp()
         md.release_installed_size = rel.get_size(AppStreamGlib.SizeKind.INSTALLED)

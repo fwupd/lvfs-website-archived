@@ -526,6 +526,7 @@ class Component(db.Model):
     inhibit_download = Column(Boolean, default=False)
     version_format = Column(String(10), default=None) # usually 'triplet' or 'quad'
     priority = Column(Integer, default=0)
+    install_duration = Column(Integer, default=0)
 
     # link back to parent
     fw = relationship("Firmware", back_populates="mds", lazy='joined')

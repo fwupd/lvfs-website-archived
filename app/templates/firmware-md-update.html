@@ -49,29 +49,48 @@
 {% endif %}
 
 <form method="post" action="/lvfs/component/{{md.component_id}}/modify">
-  <div class="form-group">
-    <label for="urgency">Urgency</label>
-    <select class="form-control" id="urgency" name="urgency" required>
-      <option value="unknown" {{ 'selected' if md.release_urgency == 'unknown' }}>Unknown</option>
-      <option value="low" {{ 'selected' if md.release_urgency == 'low' }}>Low</option>
-      <option value="medium" {{ 'selected' if md.release_urgency == 'medium' }}>Medium</option>
-      <option value="high" {{ 'selected' if md.release_urgency == 'high' }}>High</option>
-      <option value="critical" {{ 'selected' if md.release_urgency == 'critical' }}>Critical</option>
-    </select>
-  </div>
-  <div class="form-group">
-    <label for="description">Description</label>
-    <textarea class="form-control" name="description" id="description" cols="100" rows="15">{{md.release_description if md.release_description}}</textarea>
-    <p class="text-secondary">
-      Text is formatted with
-      <a href="https://daringfireball.net/projects/markdown/syntax">Markdown</a>.
-      Only paragraph and lists are currently supported.
-    </p>
-  </div>
+
+<table class="table">
+  <tr class="row table-borderless">
+    <th class="col-sm-3">Update Urgency</th>
+    <td class="col-sm-9">
+      <select class="form-control" id="urgency" name="urgency" required>
+        <option value="unknown" {{ 'selected' if md.release_urgency == 'unknown' }}>Unknown</option>
+        <option value="low" {{ 'selected' if md.release_urgency == 'low' }}>Low</option>
+        <option value="medium" {{ 'selected' if md.release_urgency == 'medium' }}>Medium</option>
+        <option value="high" {{ 'selected' if md.release_urgency == 'high' }}>High</option>
+        <option value="critical" {{ 'selected' if md.release_urgency == 'critical' }}>Critical</option>
+      </select>
+    </td>
+  </tr>
+  <tr class="row table-borderless">
+    <th class="col-sm-3">Release Notes</th>
+    <td class="col-sm-9">
+      <textarea class="form-control" name="description" id="description" cols="100" rows="15">{{md.release_description if md.release_description}}</textarea>
+      <p class="text-secondary">
+        Text is formatted with
+        <a href="https://daringfireball.net/projects/markdown/syntax">Markdown</a>.
+        Only paragraph and lists are currently supported.
+      </p>
+    </td>
+  </tr>
+  <tr class="row table-borderless">
+    <th class="col-sm-3">Install Duration</th>
+    <td class="col-sm-9">
+      <input class="form-control" type="number" name="install_duration" min="0" max="3600" step="5" value="{{md.install_duration}}"/>
+      <p class="text-secondary">
+        The value here can be approximate and is given in seconds.
+        For updates requiring a reboot the install duration should include the
+        time to POST the system both before and after the update has run.
+        A value of zero can be used to signify <em>unknown</em>.
+      </p>
+    </td>
+  </tr>
+</table>
   <input class="btn btn-primary" type="submit" value="Save"/>
 </form>
 
-<h3 class="mt-3">Example:</h3>
+<h3 class="mt-3">Release Notes Example:</h3>
 <pre class="p-2 border border-info rounded">
 This stable release fixes the following issues:
 

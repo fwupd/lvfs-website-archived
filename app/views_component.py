@@ -98,6 +98,9 @@ def firmware_component_modify(component_id):
         md.screenshot_url = request.form['screenshot_url']
     if 'screenshot_caption' in request.form:
         md.screenshot_caption = _sanitize_markdown_text(request.form['screenshot_caption'])
+    if 'install_duration' in request.form:
+        md.install_duration = int(request.form['install_duration'])
+        page = 'install_duration'
     if 'urgency' in request.form:
         md.release_urgency = request.form['urgency']
         page = 'update'
