@@ -15,9 +15,7 @@
   </tr>
 {% for u in v.users %}
   <tr class="row">
-    <td class="col-sm-3">
-      <a href="/lvfs/user/{{u.user_id}}/admin"><code>{{u.username}}</code></a>
-    </td>
+    <td class="col-sm-3"><code>{{u.username}}</code></td>
     <td class="col-sm-2">{{u.display_name}}</td>
     <td class="col-sm-1">{{u.fws|length}}</td>
     <td class="col-sm-2">{{u.atime}}</td>
@@ -35,8 +33,8 @@
     </td>
     <td class="col-sm-2">
 {% if u.auth_type and u.user_id != g.user.user_id %}
-      <a class="btn btn-block btn-danger"
-         href="/lvfs/vendor/{{v.vendor_id}}/user/{{u.user_id}}/disable">Disable</a>
+      <a class="btn btn-block btn-info"
+         href="/lvfs/user/{{u.user_id}}/admin">Details</a>
 {% endif %}
     </td>
   </tr>

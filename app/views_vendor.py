@@ -357,31 +357,6 @@ def vendor_upload(vendor_id):
 
     return redirect(url_for('.vendor_details', vendor_id=vendor_id), 302)
 
-
-@app.route('/lvfs/vendor/<int:vendor_id>/user/<int:user_id>/disable')
-@login_required
-def vendor_user_disable(vendor_id, user_id):
-
-    # check exists
-    vendor = db.session.query(Vendor).filter(Vendor.vendor_id == vendor_id).first()
-    if not vendor:
-        flash('Failed to delete user: No vendor with that vendor ID', 'warning')
-        return redirect(url_for('.vendor_users', vendor_id=vendor_id))
-    user = db.session.query(User).filter(User.user_id == user_id).first()
-    if not user:
-        flash('Failed to delete user: No user with that user ID', 'warning')
-        return redirect(url_for('.vendor_users', vendor_id=vendor_id))
-
-    # security check
-    if not vendor.check_acl('@manage-users'):
-        return _error_permission_denied('Unable to delete user as non-admin')
-
-    # erase password and set as 'disabled'
-    user.password = None
-    user.auth_type = 'disabled'
-    db.session.commit()
-    return redirect(url_for('.vendor_users', vendor_id=vendor_id))
-
 def _verify_username_vendor_glob(username, username_glob):
     for tmp in username_glob.split(','):
         if fnmatch.fnmatch(username, tmp):
