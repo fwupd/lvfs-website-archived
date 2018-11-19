@@ -125,7 +125,6 @@ def anonymize_db(db):
         for u in v.users:
             u.display_name = user_names[idx_user_names]
             u.username = _make_boring(u.display_name) + u.vendor.username_glob[1:]
-            u.username_old = None
             idx_user_names += 1
         idx_vendor_names += 1
 

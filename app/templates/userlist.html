@@ -6,17 +6,15 @@
 {% if users|length > 0 %}
 <table class="table">
   <tr class="row table-borderless">
-    <th class="col-sm-4">Vendor</th>
-    <th class="col-sm-3">Username</th>
-    <th class="col-sm-3">Username (legacy)</th>
+    <th class="col-sm-5">Vendor</th>
+    <th class="col-sm-5">Username</th>
     <th class="col-sm-2">&nbsp;</th>
   </tr>
 {% for u in users %}
   <!-- user_id={{u.user_id}} -->
   <tr class="row">
-    <td class="col-sm-4">{{u.vendor.group_id}}</td>
-    <td class="col-sm-3">{{u.username}}</td>
-    <td class="col-sm-3">{{u.username_old}}</td>
+    <td class="col-sm-5">{{u.vendor.group_id}}</td>
+    <td class="col-sm-5">{{u.username}}</td>
     <td class="col-sm-2">
       <a class="btn btn-info btn-block" href="/lvfs/user/{{u.user_id}}/admin">Details</a>
     </td>

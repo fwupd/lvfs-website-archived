@@ -297,14 +297,6 @@ def login():
             filter(User.username == request.form['username']).\
             filter(User.password == _password_hash(request.form['password'])).first()
     if not user:
-        # check to see if the user used the fallback name
-        user_old = db.session.query(User).\
-                        filter(User.username_old == request.form['username']).\
-                        filter(User.password == _password_hash(request.form['password'])).first()
-        if user_old:
-            flash(u'You have to use %s as the username for this user' % user_old.username, 'danger')
-            return redirect(url_for('.index'))
-
         # check OAuth, user is NOT added to the database
         user = _create_user_for_oauth_username(request.form['username'])
     if not user:

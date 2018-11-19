@@ -151,7 +151,7 @@ def user_modify_by_admin(user_id):
 
     # set each optional thing in turn
     old_vendor = user.vendor
-    for key in ['display_name', 'username', 'username_old', 'auth_type', 'vendor_id', 'auth_warning']:
+    for key in ['display_name', 'username', 'auth_type', 'vendor_id', 'auth_warning']:
         if key in request.form:
             value = request.form[key]
             if value == '':
