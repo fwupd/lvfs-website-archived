@@ -66,6 +66,7 @@ def _xml_from_markdown(markdown):
     ul = None
     root = ET.Element('description')
     for line in markdown.split('\n'):
+        line = line.strip()
         if not line:
             continue
         markdown_li_sz = _check_is_markdown_li(line)
