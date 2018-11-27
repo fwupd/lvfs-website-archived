@@ -74,7 +74,7 @@
   </tr>
   <tr class="row">
     <th class="col-sm-2">Description</th>
-    <td class="col-sm-10">{{fw.mds[0].release_description}}</td>
+    <td class="col-sm-10">{{format_html_from_markdown(fw.mds[0].release_description)|safe}}</td>
   </tr>
 </table>
 </div>

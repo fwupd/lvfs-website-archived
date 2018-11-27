@@ -29,7 +29,7 @@ from .pluginloader import PluginError
 from .models import Firmware, Requirement, Component, Vendor
 from .models import User, Analytic, Client, Event, Useragent, _get_datestr_from_datetime
 from .hash import _password_hash, _addr_hash
-from .util import _get_client_address, _get_settings
+from .util import _get_client_address, _get_settings, _xml_from_markdown
 from .util import _error_permission_denied, _event_log, _error_internal
 
 def _user_agent_safe_for_requirement(user_agent):
@@ -185,10 +185,25 @@ def utility_processor():
             num /= 1024.0
         return "%.1f%s%s" % (num, 'Yi', suffix)
 
+    def format_html_from_markdown(tmp):
+        root = _xml_from_markdown(tmp)
+        txt = ''
+        for n in root:
+            if n.tag == 'p':
+                txt += '<p>' + n.text + '</p>'
+            elif n.tag == 'ul' or n.tag == 'ol':
+                txt += '<ul>'
+                for c in n:
+                    if c.tag == 'li':
+                        txt += '<li>' + c.text + '</li>'
+                txt += '</ul>'
+        return txt
+
     return dict(format_size=format_size,
                 format_humanize_naturalday=format_humanize_naturalday,
                 format_humanize_naturaltime=format_humanize_naturaltime,
                 format_timedelta_approx=format_timedelta_approx,
+                format_html_from_markdown=format_html_from_markdown,
                 format_timestamp=format_timestamp)
 
 @lm.unauthorized_handler
