@@ -186,6 +186,8 @@ def utility_processor():
         return "%.1f%s%s" % (num, 'Yi', suffix)
 
     def format_html_from_markdown(tmp):
+        if not tmp:
+            return '<p>None</p>'
         root = _xml_from_markdown(tmp)
         txt = ''
         for n in root:

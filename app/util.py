@@ -63,6 +63,8 @@ def _check_is_markdown_li(line):
 
 def _xml_from_markdown(markdown):
     """ return a ElementTree for the markdown text """
+    if not markdown:
+        return None
     ul = None
     root = ET.Element('description')
     for line in markdown.split('\n'):

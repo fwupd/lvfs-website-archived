@@ -602,10 +602,16 @@ class Component(db.Model):
 
     @property
     def problems(self):
-        if not self.release_description:
-            return []
-        root = _xml_from_markdown(self.release_description)
-        problems = _get_update_description_problems(root)
+
+        # verify update description
+        if self.release_description:
+            root = _xml_from_markdown(self.release_description)
+            problems = _get_update_description_problems(root)
+        else:
+            problems = []
+            problems.append(Problem('invalid-release-description',
+                                    'Release description is missing'))
+
         # check for OEMs just pasting in the XML like before
         for element_name in ['p', 'li', 'ul', 'ol']:
             if self.release_description.find('<' + element_name + '>') != -1:
