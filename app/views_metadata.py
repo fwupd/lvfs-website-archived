@@ -86,3 +86,25 @@ def metadata_rebuild():
     if scheduled_signing:
         flash('Metadata will be rebuilt %s' % humanize.naturaltime(scheduled_signing), 'info')
     return redirect(url_for('.metadata_view'))
+
+@app.route('/lvfs/metadata/rebuild/<remote_id>')
+@login_required
+def metadata_rebuild_remote(remote_id):
+    """
+    Forces a rebuild of one metadata remote.
+    """
+
+    # security check
+    if not g.user.check_acl('@admin'):
+        return _error_permission_denied('Only admin is allowed to rebuild metadata')
+
+    # update metadata
+    r = db.session.query(Remote).filter(Remote.remote_id == remote_id).first()
+    if not r:
+        return _error_internal('No remote with that ID')
+    r.is_dirty = True
+
+    # modify
+    db.session.commit()
+    flash('Remote %s marked as dirty' % r.name, 'info')
+    return redirect(url_for('.metadata_view'))

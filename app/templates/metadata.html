@@ -16,42 +16,64 @@
   <tr class="row borderless">
     <th class="col-sm-3">Description</th>
     <th class="col-sm-1">Public</th>
-    <th class="col-sm-4">URL</th>
-    <th class="col-sm-4">Custom Remote</th>
+    <th class="col-sm-3">URL</th>
+    <th class="col-sm-3">Custom Remote</th>
+    <th class="col-sm-2">Action</th>
   </tr>
   <tr class="row">
     <td class="col-sm-3">Stable</td>
     <td class="col-sm-1"><b>Yes</b></td>
-    <td class="col-sm-4"><a href="/downloads/firmware.xml.gz">
+    <td class="col-sm-3"><a href="/downloads/firmware.xml.gz">
       firmware.xml.gz
 {% if remotes['stable'].is_dirty %}
       <br/><span class="badge badge-warning">Will be signed in {{format_timedelta_approx(remotes['stable'].scheduled_signing)}}</span>
 {% endif %}
     </td>
-    <td class="col-sm-4 text-muted">not required</td>
+    <td class="col-sm-3 text-muted">not required</td>
+    <td class="col-sm-2">
+{% if g.user.check_acl('@admin') %}
+      <a class="btn btn-block btn-warning"
+        href={{url_for('metadata_rebuild_remote',
+                       remote_id=remotes['stable'].remote_id)}}>Rebuild</a>
+{% endif %}
+    </td>
   </tr>
   <tr class="row">
     <td class="col-sm-3">Testing</td>
     <td class="col-sm-1"><b>Yes</b></td>
-    <td class="col-sm-4"><a href="/downloads/firmware-testing.xml.gz">
+    <td class="col-sm-3"><a href="/downloads/firmware-testing.xml.gz">
       firmware-testing.xml.gz
 {% if remotes['testing'].is_dirty %}
       <br/><span class="badge badge-warning">Will be signed in {{format_timedelta_approx(remotes['testing'].scheduled_signing)}})</span>
 {% endif %}
     </td>
-    <td class="col-sm-4 text-muted">not required</td>
+    <td class="col-sm-3 text-muted">not required</td>
+    <td class="col-sm-2">
+{% if g.user.check_acl('@admin') %}
+      <a class="btn btn-block btn-warning"
+        href={{url_for('metadata_rebuild_remote',
+                       remote_id=remotes['testing'].remote_id)}}>Rebuild</a>
+{% endif %}
+    </td>
   </tr>
 {% for v in vendors %}
   <tr class="row">
     <td class="col-sm-3">Embargo &lsquo;{{v.group_id}}&rsquo;</td>
     <td class="col-sm-1"><b>No</b></td>
-    <td class="col-sm-4">
+    <td class="col-sm-3">
       <a href="/downloads/{{v.remote.filename}}">{{ v.remote.filename[:16] }}
 {% if remotes['embargo-' + v.group_id].is_dirty %}
       <br/><span class="badge badge-warning">Will be signed in {{format_timedelta_approx(remotes['embargo-' + v.group_id].scheduled_signing)}}</span>
 {% endif %}
     </td>
-    <td class="col-sm-4"><code><a href="/lvfs/metadata/{{v.group_id}}">{{v.group_id}}-embargo.conf</a></code></td>
+    <td class="col-sm-3"><code><a href="/lvfs/metadata/{{v.group_id}}">{{v.group_id}}-embargo.conf</a></code></td>
+    <td class="col-sm-2">
+{% if g.user.check_acl('@admin') %}
+      <a class="btn btn-block btn-warning"
+        href={{url_for('metadata_rebuild_remote',
+                       remote_id=v.remote.remote_id)}}>Rebuild</a>
+{% endif %}
+    </td>
   </tr>
 {% endfor %}
 </table>
@@ -71,7 +93,7 @@
   This rebuilds metadata for all targets and QA groups.
 </p>
 <form method=\"get\" action="/lvfs/metadata/rebuild">
-<button class="btn btn-danger">Rebuild Metadata</button>
+<button class="btn btn-warning">Rebuild Metadata</button>
 </form>
 {% endif %}
 {% endblock %}
