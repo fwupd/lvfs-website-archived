@@ -8,7 +8,6 @@ RUN yum -y install \
 	libgcab1 \
 	libstemmer \
 	MySQL-python \
-	python2-boto3 \
 	python2-flask-login \
 	python2-flask-migrate \
 	python2-gnupg \

@@ -26,9 +26,6 @@ class Plugin(PluginBase):
     def __init__(self):
         PluginBase.__init__(self)
 
-    def order_after(self):
-        return ['cdn-sync']
-
     def name(self):
         return 'CDN Purge'
 
