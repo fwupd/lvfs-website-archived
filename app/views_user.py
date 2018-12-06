@@ -76,8 +76,13 @@ def user_modify(user_id):
         flash('Failed to modify profile: Name invalid', 'warning')
         return redirect(url_for('.profile'), 302)
 
+    # hash the provided password
+    password_hash = _password_hash(password)
+    if password_hash != user.password:
+        user.password = password_hash
+        user.password_ts = datetime.datetime.utcnow()
+
     # save to database
-    user.password = _password_hash(password)
     user.display_name = display_name
     user.mtime = datetime.datetime.utcnow()
     db.session.commit()
@@ -102,6 +107,7 @@ def user_reset_by_admin(user_id):
     password = _generate_password()
     user.password = _password_hash(password)
     user.mtime = datetime.datetime.utcnow()
+    user.password_ts = None
     db.session.commit()
 
     # send email
@@ -248,6 +254,7 @@ def user_recover_with_secret(secret):
     # password is stored hashed
     password = _generate_password()
     user.password = _password_hash(password)
+    user.password_ts = None
     user.password_recovery = None
     user.password_recovery_ts = None
     user.mtime = datetime.datetime.utcnow()

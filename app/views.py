@@ -333,7 +333,10 @@ def login():
     # success
     login_user(user, remember=False)
     g.user = user
-    flash('Logged in', 'info')
+    if user.password_ts:
+        flash(u'Logged in', 'info')
+    else:
+        flash(u'Logged in, now change your password using Profile ⇒ User', 'info')
 
     # set the access time
     user.atime = datetime.datetime.utcnow()

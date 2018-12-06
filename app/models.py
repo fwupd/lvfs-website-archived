@@ -71,6 +71,7 @@ class User(db.Model):
     user_id = Column(Integer, primary_key=True, unique=True, nullable=False)
     username = Column(String(80), nullable=False, index=True)
     password = Column(String(40), default=None)
+    password_ts = Column(DateTime, default=None)
     password_recovery = Column(String(40), default=None)
     password_recovery_ts = Column(DateTime, default=None)
     display_name = Column(Unicode, default=None)
