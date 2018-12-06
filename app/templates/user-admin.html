@@ -44,6 +44,12 @@
       <input type="text" class="form-control" name="auth_warning" value="{{u.auth_warning if u.auth_warning else ''}}">
     </div>
   </div>
+  <div class="form-group row">
+    <label class="col-sm-2 col-form-label" for="human_user">Contact Email</label>
+    <div class="col-sm-10">
+      <input type="text" class="form-control" name="human_user" value="{{u.human_user.username if u.human_user else ''}}" placeholder="As username...">
+    </div>
+  </div>
 {% endif %}
 {% if u.vendor.check_acl('@manage-users') %}
   <div class="form-group row">

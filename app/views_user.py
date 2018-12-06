@@ -76,6 +76,16 @@ def user_modify(user_id):
         flash('Failed to modify profile: Name invalid', 'warning')
         return redirect(url_for('.profile'), 302)
 
+    # get the new human_user_id if specified
+    if 'human_user' in request.form and request.form['human_user']:
+        username = request.form['human_user']
+        human_user = db.session.query(User).\
+                            filter(User.username == username).first()
+        if not human_user:
+            flash('Failed to modify profile: Human user %s not found' % username, 'warning')
+            return redirect(url_for('.profile'), 302)
+        user.human_user_id = human_user.user_id
+
     # hash the provided password
     password_hash = _password_hash(password)
     if password_hash != user.password:
@@ -163,6 +173,19 @@ def user_modify_by_admin(user_id):
             if value == '':
                 value = None
             setattr(user, key, value)
+
+    # get the new human_user_id if specified
+    if 'human_user' in request.form:
+        username = request.form['human_user']
+        if username:
+            human_user = db.session.query(User).\
+                                filter(User.username == username).first()
+            if not human_user:
+                flash('Failed to modify profile: Human user %s not found' % username, 'warning')
+                return redirect(url_for('.profile'), 302)
+            user.human_user_id = human_user.user_id
+        else:
+            user.human_user_id = None
 
     # unchecked checkbuttons are not included in the form data
     for key in ['is_qa', 'is_analyst', 'is_vendor_manager', 'is_approved_public', 'is_robot', 'is_admin']:

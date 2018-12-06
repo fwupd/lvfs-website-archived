@@ -89,10 +89,13 @@ class User(db.Model):
     mtime = Column(DateTime, nullable=False, default=datetime.datetime.utcnow)
     atime = Column(DateTime, default=None)
     dtime = Column(DateTime, default=None)
+    human_user_id = Column(Integer, ForeignKey('users.user_id'), nullable=True)
 
     # link using foreign keys
     vendor = relationship('Vendor', foreign_keys=[vendor_id])
     agreement = relationship('Agreement', foreign_keys=[agreement_id])
+    human_user = relationship('User', remote_side=[user_id])
+
     fws = relationship('Firmware',
                        order_by="desc(Firmware.timestamp)",
                        primaryjoin='Firmware.user_id==User.user_id')
@@ -176,6 +179,8 @@ class User(db.Model):
 
     @property
     def email_address(self):
+        if self.human_user:
+            return self.human_user.username
         return self.username
 
     @property
