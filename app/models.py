@@ -175,6 +175,10 @@ class User(db.Model):
         return True
 
     @property
+    def email_address(self):
+        return self.username
+
+    @property
     def is_active(self):
         return True
 

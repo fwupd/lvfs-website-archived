@@ -424,7 +424,7 @@ def vendor_user_add(vendor_id):
     # send email
     if user.auth_type == 'local':
         send_email("[LVFS] An account has been created",
-                   user.username,
+                   user.email_address,
                    render_template('email-confirm.txt',
                                    user=user, password=password))
 

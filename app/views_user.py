@@ -112,7 +112,7 @@ def user_reset_by_admin(user_id):
 
     # send email
     send_email("[LVFS] Your password has been reset",
-               user.username,
+               user.email_address,
                render_template('email-modify-password.txt',
                                user=user, password=password))
 
@@ -212,7 +212,7 @@ def user_modify_by_admin(user_id):
     if 'send_email' in request.form:
         if old_vendor.vendor_id != user.vendor_id:
             send_email("[LVFS] Your account has been moved",
-                       user.username,
+                       user.email_address,
                        render_template('email-moved.txt',
                                        user=user,
                                        old_vendor=old_vendor,
@@ -220,11 +220,11 @@ def user_modify_by_admin(user_id):
         else:
             if user.auth_type == 'disabled':
                 send_email("[LVFS] Your account has been disabled",
-                           user.username,
+                           user.email_address,
                            render_template('email-disabled.txt', user=user))
             else:
                 send_email("[LVFS] Your account has been updated",
-                           user.username,
+                           user.email_address,
                            render_template('email-modify.txt', user=user))
         flash('Updated profile and sent a notification email to the user', 'info')
     else:
@@ -262,7 +262,7 @@ def user_recover_with_secret(secret):
 
     # send email
     send_email("[LVFS] Your password has been reset",
-               user.username,
+               user.email_address,
                render_template('email-recover-password.txt',
                                user=user, password=password))
     flash('Your password has been reset and an email has been sent with the new details', 'info')
@@ -295,7 +295,7 @@ def user_recover():
 
     # send email
     send_email("[LVFS] Your login details",
-               user.username,
+               user.email_address,
                render_template('email-recover.txt', user=user))
     flash('An email has been sent with a recovery link', 'info')
     return redirect(url_for('.index'), 302)
