@@ -20,6 +20,8 @@ import gi
 gi.require_version('AppStreamGlib', '1.0')
 from gi.repository import AppStreamGlib
 
+import GeoIP
+
 from app import app, db, lm, ploader
 from .dbutils import _execute_count_star
 from .pluginloader import PluginError
@@ -88,6 +90,16 @@ def serveStaticResource(resource):
             if req and user_agent and not _user_agent_safe_for_requirement(user_agent):
                 return Response(response='detected fwupd version too old',
                                 status=412,
+                                mimetype="text/plain")
+
+        # check the firmware vendor has no country block
+        if fw.banned_country_codes:
+            banned_country_codes = fw.banned_country_codes.split(',')
+            geo = GeoIP.new(GeoIP.GEOIP_MEMORY_CACHE)
+            country_code = geo.country_code_by_addr(_get_client_address())
+            if country_code and country_code in banned_country_codes:
+                return Response(response='firmware not available from this IP range',
+                                status=451,
                                 mimetype="text/plain")
 
         # check any firmware download limits

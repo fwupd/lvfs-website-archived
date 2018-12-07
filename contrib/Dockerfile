@@ -4,9 +4,14 @@ RUN yum -y update
 RUN yum -y install epel-release
 RUN yum -y install \
 	bsdtar \
+	geolite2-country \
 	libappstream-glib \
 	libgcab1 \
 	libstemmer \
+	GeoIP-devel \
+	gcc \
+	python-GeoIP \
+	python34-devel \
 	python34-gobject \
 	python34-pip \
 	python34-psutil \

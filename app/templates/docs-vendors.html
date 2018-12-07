@@ -65,4 +65,19 @@
   </div>
 </div>
 
+<div class="card mb-3">
+  <h3 class="card-header list-group-item-info">Can I restrict downloads from embargoed and sanctioned countries?</h3>
+  <div class="card-body">
+    <p class="card-text">
+      The LVFS administrator can configure the policy for all firmware owned by
+      the vendor to be blocked from download in embargoed or otherwise
+      sanctioned countries.
+    </p>
+    <p class="card-text">
+      The blocked ISO 3166 country codes can also be specified in the firmware
+      itself, using the <code>LVFS::BannedCountryCodes</code> metadata key.
+    </p>
+  </div>
+</div>
+
 {% endblock %}

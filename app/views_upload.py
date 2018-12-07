@@ -370,6 +370,10 @@ def upload():
             if pr:
                 md.protocol_id = pr.protocol_id
 
+        # allows OEM to set banned country codes
+        if 'LVFS::BannedCountryCodes' in metadata:
+            fw.banned_country_codes = metadata['LVFS::BannedCountryCodes']
+
     # add to database
     fw.events.append(FirmwareEvent(remote.remote_id, g.user.user_id))
     db.session.add(fw)

@@ -121,6 +121,13 @@
     <td class="col-sm-4">{{fw.version_display}}</td>
     <td class="col-sm-4"></td>
   </tr>
+{% if fw.banned_country_codes %}
+  <tr class="row">
+    <th class="col-sm-3">Banned Country Codes</th>
+    <td class="col-sm-4">{{fw.banned_country_codes}}</td>
+    <td class="col-sm-4"></td>
+  </tr>
+{% endif %}
   <tr class="row">
     <th class="col-sm-3">Downloads</th>
     <td class="col-sm-6">{{fw.download_cnt}}</td>

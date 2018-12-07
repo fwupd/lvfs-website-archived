@@ -339,6 +339,7 @@ class Vendor(db.Model):
     username_glob = Column(Text, default=None)
     version_format = Column(String(10), default=None) # usually 'triplet' or 'quad'
     url = Column(Text, default=None)
+    banned_country_codes = Column(Text, default=None) # ISO 3166, delimeter ','
 
     # magically get the users in this vendor group
     users = relationship("User",
@@ -1111,6 +1112,7 @@ class Firmware(db.Model):
     user_id = Column(Integer, ForeignKey('users.user_id'), nullable=False)
     signed_timestamp = Column(DateTime, default=None)
     is_dirty = Column(Boolean, default=False)   # waiting to be included in metadata
+    _banned_country_codes = Column('banned_country_codes', Text, default=None) # ISO 3166, delimeter ','
 
     # include all Component objects
     mds = relationship("Component",
@@ -1147,6 +1149,12 @@ class Firmware(db.Model):
     @property
     def is_deleted(self):
         return self.remote.is_deleted
+
+    @property
+    def banned_country_codes(self):
+        if self._banned_country_codes:
+            return self._banned_country_codes
+        return self.vendor.banned_country_codes
 
     @property
     def inhibit_download(self):

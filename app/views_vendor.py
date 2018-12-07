@@ -351,6 +351,7 @@ def vendor_modify_by_admin(vendor_id):
                 'username_glob',
                 'version_format',
                 'url',
+                'banned_country_codes',
                 'keywords']:
         if key in request.form:
             setattr(vendor, key, request.form[key])

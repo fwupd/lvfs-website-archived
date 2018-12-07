@@ -12,3 +12,4 @@ pyqrcode
 onetimepass
 PyGObject
 PyMySQL
+GeoIP
