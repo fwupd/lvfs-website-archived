@@ -59,6 +59,10 @@ def _check_is_markdown_li(line):
         return 2
     if line.startswith(' * '):
         return 3
+    if len(line) > 2 and line[0].isdigit() and line[1] == '.':
+        return 2
+    if len(line) > 3 and line[0].isdigit() and line[1].isdigit() and line[2] == '.':
+        return 3
     return 0
 
 def _xml_from_markdown(markdown):
@@ -75,7 +79,7 @@ def _xml_from_markdown(markdown):
         if markdown_li_sz:
             if ul is None:
                 ul = ET.SubElement(root, 'ul')
-            ET.SubElement(ul, 'li').text = line[markdown_li_sz:]
+            ET.SubElement(ul, 'li').text = line[markdown_li_sz:].strip()
         else:
             ul = None
             ET.SubElement(root, 'p').text = line
