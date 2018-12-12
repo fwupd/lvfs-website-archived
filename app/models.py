@@ -21,6 +21,28 @@ from app import db
 from .hash import _qa_hash, _password_hash
 from .util import _generate_password, _xml_from_markdown, _get_update_description_problems
 
+class SecurityClaim(object):
+
+    def __init__(self):
+        self.attrs = {}
+
+    def add_attr(self, attr, detail=None):
+
+        # append the attribute if it does not exist
+        if attr not in self.attrs:
+            self.attrs[attr] = detail
+
+    @property
+    def rating(self):
+        if 'signed-firmware' in self.attrs and 'device-checksum' in self.attrs:
+            return 2
+        if 'signed-firmware' in self.attrs:
+            return 1
+        return 0
+
+    def __repr__(self):
+        return "SecurityClaim object %s" % self.attrs
+
 class Problem(object):
     def __init__(self, kind, description=None, url=None):
         self.kind = kind
@@ -624,6 +646,22 @@ class Component(db.Model):
         return self.name.replace(' System Update', '')
 
     @property
+    def security_claim(self):
+        sc = None
+        if self.protocol:
+            sc = self.protocol.security_claim
+            if self.protocol.can_verify:
+                if self.device_checksums:
+                    sc.add_attr('device-checksum', 'Firmware has attestation checksums')
+                else:
+                    sc.add_attr('no-device-checksum', 'Firmware has no attestation checksums')
+        if not sc:
+            sc = SecurityClaim()
+        if self.checksum_contents:
+            sc.add_attr('contents-checksum', 'Added to the LVFS by %s' % self.fw.vendor.display_name)
+        return sc
+
+    @property
     def version_display(self):
         if self.version.isdigit():
             v = int(self.version)
@@ -896,6 +934,17 @@ class Firmware(db.Model):
             if md.inhibit_download:
                 return True
         return False
+
+    @property
+    def security_claim(self):
+        # return the smallest of all the components, i.e. the least secure
+        sc_lowest = None
+        for md in self.mds:
+            if not sc_lowest or md.security_claim.rating < sc_lowest.rating:
+                sc_lowest = md.security_claim
+        if not sc_lowest:
+            sc_lowest = SecurityClaim()
+        return sc_lowest
 
     @property
     def scheduled_signing(self):
@@ -1370,6 +1419,19 @@ class Protocol(db.Model):
         if action == '@modify':
             return False
         raise NotImplementedError('unknown security check action: %s:%s' % (self, action))
+
+    @property
+    def security_claim(self):
+        sc = SecurityClaim()
+        if self.is_signed:
+            sc.add_attr('signed-firmware', 'Update is cryptographically signed')
+        else:
+            sc.add_attr('no-signed-firmware', 'Update is not cryptographically signed')
+        if self.can_verify:
+            sc.add_attr('verify-firmware', 'Firmware can be verified after flashing')
+        else:
+            sc.add_attr('no-verify-firmware', 'Firmware cannot be verified after flashing')
+        return sc
 
     def __init__(self, value, name=None, is_signed=False, can_verify=False, is_public=True):
         """ Constructor for object """

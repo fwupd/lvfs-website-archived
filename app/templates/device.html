@@ -76,6 +76,23 @@
     <th class="col-sm-2">Description</th>
     <td class="col-sm-10">{{format_html_from_markdown(fw.mds[0].release_description)|safe}}</td>
   </tr>
+  <tr class="row">
+    <th class="col-sm-2">Security</th>
+    <td class="col-sm-10">
+      <ul class="list-group">
+{% for attr in fw.security_claim.attrs|sort() %}
+        <li class="list-group-item">
+{% if not attr.startswith('no') %}
+          <span class="font-weight-bold text-success">☑</span>
+{% else %}
+          <span class="font-weight-bold text-danger">☒</span>
+{% endif %}
+          {{fw.security_claim.attrs[attr]}}
+        </li>
+{% endfor %}
+      </ul>
+    </td>
+  </tr>
 </table>
 </div>
 {% endif %}
