@@ -38,7 +38,7 @@
           <option value="glob" {{ 'selected' if rq and rq.compare == 'glob' }}>Glob</option>
           <option value="regex" {{ 'selected' if rq and rq.compare == 'regex' }}>Regular Expression</option>
         </select>
-        <input type="text" class="form-control" name="version" value="{{rq.version}}"/>
+        <input type="text" class="form-control fixed-width h-100" name="version" value="{{rq.version}}"/>
       </div>
 {% if md.check_acl('@modify-requirements') %}
       <div class="col-sm-2 text-right">
@@ -69,7 +69,7 @@
           <option value="glob" {{ 'selected' if rq and rq.compare == 'glob' }}>Glob</option>
           <option value="regex" {{ 'selected' if rq and rq.compare == 'regex' }}>Regular Expression</option>
         </select>
-        <input type="text" class="form-control" name="version" value="{{rq.version}}"/>
+        <input type="text" class="form-control fixed-width h-100" name="version" value="{{rq.version}}"/>
       </div>
 {% if md.check_acl('@modify-requirements') %}
        <div class="col-sm-2 text-right">
@@ -101,7 +101,7 @@
           <option value="glob" {{ 'selected' if rq and rq.compare == 'glob' }}>Glob</option>
           <option value="regex" {{ 'selected' if rq and rq.compare == 'regex' }}>Regular Expression</option>
         </select>
-        <input type="text" class="form-control" name="version" value="{{rq.version}}"/>
+        <input type="text" class="form-control fixed-width h-100" name="version" value="{{rq.version}}"/>
       </div>
 {% if md.check_acl('@modify-requirements') %}
       <div class="col-sm-2 text-right">
@@ -136,7 +136,7 @@
     <form class="form-inline" action="/lvfs/component/{{md.component_id}}/requirement/add" method="POST" >
       <td class="col-sm-10">
         <input type="hidden" name="kind" value="hardware">
-        <input type="text" class="form-control" name="value" placeholder="b0f340b1-361e-55f9-b691-bc46d0921ea8"/>
+        <input type="text" class="form-control fixed-width" name="value" placeholder="b0f340b1-361e-55f9-b691-bc46d0921ea8"/>
         <p class="text-secondary">
           Add GUIDs here to restrict the update to a specific machine.
         </p>

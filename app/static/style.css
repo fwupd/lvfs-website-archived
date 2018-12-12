@@ -17,3 +17,9 @@ input[type=checkbox] {
 .table-borderless th {
     border: 0;
 }
+
+input[type=text].fixed-width
+{
+    font-family: monospace;
+    font-size: 110%;
+}
