@@ -133,6 +133,12 @@ def _create_fw_from_uploaded_file(ufile):
         md.checksum_contents = csum.get_value()
         md.filename_contents = csum.get_filename()
 
+        # from the device checksum
+        if hasattr(AppStreamGlib.ChecksumTarget, 'DEVICE'):
+            csum = rel.get_checksum_by_target(AppStreamGlib.ChecksumTarget.DEVICE) # pylint: disable=no-member
+            if csum:
+                md.checksum_device = csum.get_value()
+
         # allows OEM to hide the direct download link on the LVFS
         metadata = component.get_metadata()
         if 'LVFS::InhibitDownload' in metadata:

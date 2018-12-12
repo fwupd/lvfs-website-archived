@@ -160,6 +160,13 @@ def _generate_metadata_kind(filename, fws, firmware_baseuri=''):
                 csum.set('filename', md.filename_contents)
                 csum.set('target', 'content')
 
+            # add device checksum
+            if md.checksum_device:
+                csum = ET.SubElement(rel, 'checksum')
+                csum.text = md.checksum_device
+                csum.set('type', 'sha1')
+                csum.set('target', 'device')
+
             # add long description
             if md.release_description:
                 rel.append(_xml_from_markdown(md.release_description))

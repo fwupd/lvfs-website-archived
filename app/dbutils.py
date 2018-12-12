@@ -136,6 +136,7 @@ def anonymize_db(db):
             continue
         for md in fw.mds:
             md.checksum_contents = hashlib.sha1(os.urandom(32)).hexdigest()
+            md.checksum_device = hashlib.sha1(os.urandom(32)).hexdigest()
             if md.name not in device_names_existing:
                 device_names_existing[md.name] = device_names[idx_device_names]
                 idx_device_names += 1

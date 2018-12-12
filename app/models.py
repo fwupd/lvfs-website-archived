@@ -515,6 +515,7 @@ class Component(db.Model):
     component_id = Column(Integer, primary_key=True, unique=True, nullable=False, index=True)
     firmware_id = Column(Integer, ForeignKey('firmware.firmware_id'), nullable=False, index=True)
     checksum_contents = Column(String(40), nullable=False)
+    checksum_device = Column(String(40), default=None)
     appstream_id = Column(Text, nullable=False)
     name = Column(Unicode, default=None)
     summary = Column(Unicode, default=None)
@@ -560,6 +561,7 @@ class Component(db.Model):
         self.name = None
         self.summary = None
         self.checksum_contents = None       # SHA1 of the firmware.bin
+        self.checksum_device = None         # SHA1 of the firmware on-device
         self.release_description = None
         self.release_timestamp = 0
         self.developer_name = None

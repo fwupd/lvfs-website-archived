@@ -78,6 +78,15 @@ def firmware_component_all(component_id):
             break
     return render_template('device.html', fws=fws)
 
+def is_sha1(text):
+    if len(text) != 40:
+        return False
+    try:
+        _ = int(text, 16)
+    except ValueError:
+        return False
+    return True
+
 @app.route('/lvfs/component/<int:component_id>/modify', methods=['POST'])
 @login_required
 def firmware_component_modify(component_id):
@@ -96,6 +105,13 @@ def firmware_component_modify(component_id):
     page = 'overview'
     if 'screenshot_url' in request.form:
         md.screenshot_url = request.form['screenshot_url']
+    if 'checksum_device' in request.form:
+        checksum_device = request.form['checksum_device'].lower()
+        if not is_sha1(checksum_device):
+            flash('Invalid SHA1 hash: %s' % checksum_device, 'warning')
+            return redirect(url_for('.firmware_component_show',
+                                    component_id=md.component_id))
+        md.checksum_device = checksum_device
     if 'screenshot_caption' in request.form:
         md.screenshot_caption = _sanitize_markdown_text(request.form['screenshot_caption'])
     if 'install_duration' in request.form:

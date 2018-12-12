@@ -41,6 +41,21 @@
     <td class="col-sm-9">{{md.priority}}</td>
   </tr>
 {% endif %}
+  <form class="form-inline" method="post" action="/lvfs/component/{{md.component_id}}/modify" method="POST">
+  <tr class="row">
+    <th class="col-sm-3">Device Checksum</th>
+{% if md.fw.remote.name != 'stable' or g.user.check_acl('@admin') %}
+    <td class="col-sm-7">
+      <input type="text" class="form-control fixed-width" name="checksum_device" value="{{md.checksum_device if md.checksum_device}}"/>
+    </td>
+    <td class="col-sm-2">
+      <input type="submit" class="btn btn-secondary btn-block" value="Set"/>
+    </td>
+{% else %}
+    <td class="col-sm-7"><code>{{md.checksum_device}}</code></td>
+{% endif %}
+  </tr>
+  </form>
 {% if md.screenshot_url %}
   <form class="form-inline" method="post" action="/lvfs/component/{{md.component_id}}/modify" method="POST">
   <tr class="row">
