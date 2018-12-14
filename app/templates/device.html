@@ -1,5 +1,5 @@
 {% extends "default.html" %}
-{% block title %}Device{% endblock %}
+{% block title %}{{fws[0].mds[0].name if fws else 'No firmware for device found'}}{% endblock %}
 
 {% block nav %}{% include 'device-nav.html' %}{% endblock %}
 
