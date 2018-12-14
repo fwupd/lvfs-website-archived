@@ -4,13 +4,17 @@
 {% block content %}
 <h1>Metadata</h1>
 <p>
-  The metadata URLs can be used in <code>/etc/fwupd/remotes.d</code>
-  to perform end-to-end tests. It is important to not share the
-  embargo URL with external users if you want the firmware to remain hidden
-  from the public.
+  The metadata remotes can be used to perform end-to-end tests.
+  Save the file to <code>/etc/fwupd/remotes.d</code> is you are using the distribution version of
+  fwupd or to <code>/root/snap/fwupd/current/etc/fwupd/remotes.d</code> for the
+  <a href="https://snapcraft.io/fwupd">Snap</a> version.
   You also may need to do <code>fwupdmgr refresh</code> on each
   client to show new updates.
 </p>
+<div class="alert alert-warning mt-1" role="alert">
+  Do not share the embargo URL with external users as the
+  private firmware should remain hidden from the public.
+</div>
 
 <table class="table">
   <tr class="row borderless">
