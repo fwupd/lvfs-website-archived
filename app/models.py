@@ -99,6 +99,10 @@ class User(db.Model):
     fws = relationship('Firmware',
                        order_by="desc(Firmware.timestamp)",
                        primaryjoin='Firmware.user_id==User.user_id')
+    events = relationship("Event",
+                          order_by="desc(Event.timestamp)",
+                          lazy='dynamic',
+                          cascade='all,delete-orphan')
 
     def __init__(self, username, password=None, display_name=None,
                  vendor_id=None, auth_type='disabled', is_analyst=False, is_qa=False,
@@ -281,6 +285,10 @@ class Vendor(db.Model):
                                     back_populates="vendor")
     fws = relationship("Firmware",
                        cascade='all,delete-orphan')
+    events = relationship("Event",
+                          order_by="desc(Event.timestamp)",
+                          lazy='dynamic',
+                          cascade='all,delete-orphan')
 
     # link using foreign keys
     remote = relationship('Remote',

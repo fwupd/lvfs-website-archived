@@ -1,0 +1,35 @@
+{% extends "default.html" %}
+{% block title %}Vendor Event Log{% endblock %}
+
+{% block nav %}{% include 'vendor-nav.html' %}{% endblock %}
+
+{% block content %}
+
+<table class="table">
+  <tr class="row table-borderless">
+    <th class="col-sm-2">Timestamp</th>
+    <th class="col-sm-2">Address</th>
+    <th class="col-sm-3">User</th>
+    <th class="col-sm-5">Message</th>
+  </tr>
+{% for e in v.events.limit(1000) %}
+  <tr class="row">
+    <td class="col-sm-2">{{e.timestamp}}</td>
+    <td class="col-sm-2"><code>{{e.address}}</code></td>
+    <td class="col-sm-3">{{e.user.username}}</td>
+    <td class="col-sm-5">
+{% if e.is_important %}
+      &#x272a;
+{% endif %}
+      {{e.message}}
+{% if e.request %}
+      <code>{{e.request}}</code>
+{% endif %}
+    </td>
+  </tr>
+{% endfor %}
+</table>
+
+{% endblock %}
+
+{% block breadcrumb %}{% include 'vendor-breadcrumb.html' %}{% endblock %}

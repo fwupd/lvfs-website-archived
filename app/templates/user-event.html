@@ -1,0 +1,33 @@
+{% extends "default.html" %}
+{% block title %}User Event Log{% endblock %}
+
+{% block nav %}{% include 'user-nav.html' %}{% endblock %}
+
+{% block content %}
+
+<table class="table">
+  <tr class="row table-borderless">
+    <th class="col-sm-2">Timestamp</th>
+    <th class="col-sm-2">Address</th>
+    <th class="col-sm-8">Message</th>
+  </tr>
+{% for e in u.events.limit(1000) %}
+  <tr class="row">
+    <td class="col-sm-2">{{e.timestamp}}</td>
+    <td class="col-sm-2"><code>{{e.address}}</code></td>
+    <td class="col-sm-8">
+{% if e.is_important %}
+      &#x272a;
+{% endif %}
+      {{e.message}}
+{% if e.request %}
+      <code>{{e.request}}</code>
+{% endif %}
+    </td>
+  </tr>
+{% endfor %}
+</table>
+
+{% endblock %}
+
+{% block breadcrumb %}{% include 'user-breadcrumb.html' %}{% endblock %}

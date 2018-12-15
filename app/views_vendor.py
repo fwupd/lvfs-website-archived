@@ -212,6 +212,20 @@ def vendor_restrictions(vendor_id):
         return redirect(url_for('.vendor_list'), 302)
     return render_template('vendor-restrictions.html', v=vendor)
 
+@app.route('/lvfs/vendor/<int:vendor_id>/event')
+@login_required
+def vendor_event(vendor_id):
+    """ Allows changing a vendor """
+
+    # security check
+    vendor = db.session.query(Vendor).filter(Vendor.vendor_id == vendor_id).first()
+    if not vendor:
+        flash('Failed to get vendor details: No a vendor with that group ID', 'warning')
+        return redirect(url_for('.vendor_list'), 302)
+    if not vendor.check_acl('@manage-users'):
+        return _error_permission_denied('Unable to view event log')
+    return render_template('vendor-event.html', v=vendor, page='event')
+
 @app.route('/lvfs/vendor/<int:vendor_id>/users')
 @login_required
 def vendor_users(vendor_id):
