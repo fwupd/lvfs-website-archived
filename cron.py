@@ -151,6 +151,20 @@ def _regenerate_and_sign_firmware():
     # drop caches in other sessions
     db.session.expire_all()
 
+def _purge_old_deleted_firmware():
+
+    # find all unsigned firmware
+    for fw in db.session.query(Firmware).all():
+        if fw.is_deleted and fw.target_duration > datetime.timedelta(days=30*6):
+            print('Deleting %s as age %s' % (fw.filename, fw.target_duration))
+            path = os.path.join(app.config['RESTORE_DIR'], fw.filename)
+            if os.path.exists(path):
+                os.remove(path)
+            db.session.delete(fw)
+
+    # all done
+    db.session.commit()
+
 if __name__ == '__main__':
 
     if len(sys.argv) < 2:
@@ -169,6 +183,13 @@ if __name__ == '__main__':
         try:
             with app.test_request_context():
                 _regenerate_and_sign_metadata()
+        except NotImplementedError as e:
+            print(str(e))
+            sys.exit(1)
+    if 'purgedelete' in sys.argv:
+        try:
+            with app.test_request_context():
+                _purge_old_deleted_firmware()
         except NotImplementedError as e:
             print(str(e))
             sys.exit(1)

@@ -6,6 +6,13 @@
 {% endblock %}
 
 {% block content %}
+
+{% if fw.is_deleted and fw.target_duration.total_seconds() > 60*60*24*30 %}
+<div class="alert alert-warning mt-1" role="alert">
+  This firmware will be purged after 6 months in the deleted state.
+</div>
+{% endif %}
+
 <table class="table">
   <tr class="row table-borderless">
     <th class="col-sm-3 align-middle">Filename</th>
