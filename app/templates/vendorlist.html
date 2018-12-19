@@ -83,7 +83,7 @@
 {% endif %}
 {% if g.user is defined and g.user.check_acl('@admin') %}
     <td class="col-sm-3">{{v.description}}</td>
-    <td class="col-sm-1"><a class="btn btn-secondary" href="/lvfs/vendor/{{v.vendor_id}}/details">Edit</a></td>
+    <td class="col-sm-1"><a class="btn btn-secondary btn-block" href="/lvfs/vendor/{{v.vendor_id}}/details">Edit</a></td>
 {% else %}
     <td class="col-sm-4">{{v.description}}</td>
 {% endif %}
