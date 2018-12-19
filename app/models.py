@@ -272,6 +272,7 @@ class Vendor(db.Model):
     remote_id = Column(Integer, ForeignKey('remotes.remote_id'), nullable=False)
     username_glob = Column(Text, default=None)
     version_format = Column(String(10), default=None) # usually 'triplet' or 'quad'
+    url = Column(Text, default=None)
 
     # magically get the users in this vendor group
     users = relationship("User",

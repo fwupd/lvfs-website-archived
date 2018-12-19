@@ -37,7 +37,11 @@
     </td>
     <td class="col-sm-2">
 {% if v.visible %}
+{% if v.url %}
+      <a href="{{v.url}}">{{v.display_name}}</a>
+{% else %}
       {{v.display_name}}
+{% endif %}
 {% else %}
       <em>{{v.display_name}} [private]</em>
 {% endif %}

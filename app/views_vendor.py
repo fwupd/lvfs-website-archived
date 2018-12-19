@@ -330,6 +330,7 @@ def vendor_modify_by_admin(vendor_id):
                 'comments',
                 'username_glob',
                 'version_format',
+                'url',
                 'keywords']:
         if key in request.form:
             setattr(vendor, key, request.form[key])
