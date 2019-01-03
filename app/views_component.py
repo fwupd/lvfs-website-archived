@@ -148,6 +148,10 @@ def firmware_component_show(component_id, page='overview'):
     if not fw.check_acl('@view'):
         return _error_permission_denied('Unable to view other vendor firmware')
 
+    # firmware requirements are too complicated to show on the simplified fiew
+    if page == 'requires' and md.has_complex_requirements:
+        page = 'requires-advanced'
+
     protocols = db.session.query(Protocol).order_by(Protocol.protocol_id.asc()).all()
     return render_template('component-' + page + '.html',
                            protocols=protocols, md=md, page=page)
@@ -184,6 +188,7 @@ def firmware_requirement_delete(component_id, requirement_id):
                             page='requires'))
 
 @app.route('/lvfs/component/<int:component_id>/requirement/add', methods=['POST'])
+@app.route('/lvfs/component/<int:component_id>/requirement/modify', methods=['POST'])
 @login_required
 def firmware_requirement_add(component_id):
     """ Adds a requirement to a component """
@@ -213,24 +218,25 @@ def firmware_requirement_add(component_id):
                                 page='requires'))
 
     # check it's not already been added
-    rq = md.find_req(request.form['kind'], request.form['value'])
-    if rq:
-        if 'version' in request.form:
-            rq.version = request.form['version']
-        if 'compare' in request.form:
-            if request.form['compare'] == 'any':
-                db.session.delete(rq)
-                db.session.commit()
-                flash('Deleted requirement %s' % rq.value, 'info')
-                return redirect(url_for('.firmware_component_show',
-                                        component_id=md.component_id,
-                                        page='requires'))
-            rq.compare = request.form['compare']
-        db.session.commit()
-        flash('Modified requirement %s' % rq.value, 'info')
-        return redirect(url_for('.firmware_component_show',
-                                component_id=md.component_id,
-                                page='requires'))
+    if 'modify' in request.url_rule.rule:
+        rq = md.find_req(request.form['kind'], request.form['value'])
+        if rq:
+            if 'version' in request.form:
+                rq.version = request.form['version']
+            if 'compare' in request.form:
+                if request.form['compare'] == 'any':
+                    db.session.delete(rq)
+                    db.session.commit()
+                    flash('Deleted requirement %s' % rq.value, 'info')
+                    return redirect(url_for('.firmware_component_show',
+                                            component_id=md.component_id,
+                                            page='requires'))
+                rq.compare = request.form['compare']
+            db.session.commit()
+            flash('Modified requirement %s' % rq.value, 'info')
+            return redirect(url_for('.firmware_component_show',
+                                    component_id=md.component_id,
+                                    page='requires'))
 
     # add requirement
     rq = Requirement(md.component_id,

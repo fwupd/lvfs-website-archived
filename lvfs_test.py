@@ -969,14 +969,14 @@ class LvfsTestCase(unittest.TestCase):
         assert b'Removed requirement 85d38fda-fc0e-5c6f-808f-076984ae7978' in rv.data, rv.data
 
         # add an invalid CHID
-        rv = self.app.post('/lvfs/component/1/requirement/add', data=dict(
+        rv = self.app.post('/lvfs/component/1/requirement/modify', data=dict(
             kind='hardware',
             value='NOVALIDGUID',
         ), follow_redirects=True)
         assert b'NOVALIDGUID is not a valid GUID' in rv.data, rv.data
 
         # add a valid CHID
-        rv = self.app.post('/lvfs/component/1/requirement/add', data=dict(
+        rv = self.app.post('/lvfs/component/1/requirement/modify', data=dict(
             kind='hardware',
             value='85d38fda-fc0e-5c6f-808f-076984ae7978',
         ), follow_redirects=True)
@@ -984,7 +984,7 @@ class LvfsTestCase(unittest.TestCase):
         assert b'Added requirement' in rv.data, rv.data
 
         # modify an existing requirement by adding it again
-        rv = self.app.post('/lvfs/component/1/requirement/add', data=dict(
+        rv = self.app.post('/lvfs/component/1/requirement/modify', data=dict(
             kind='id',
             value='org.freedesktop.fwupd',
             compare='ge',
@@ -994,7 +994,7 @@ class LvfsTestCase(unittest.TestCase):
         assert b'Modified requirement' in rv.data, rv.data
 
         # delete a requirement by adding an 'any' comparison
-        rv = self.app.post('/lvfs/component/1/requirement/add', data=dict(
+        rv = self.app.post('/lvfs/component/1/requirement/modify', data=dict(
             kind='id',
             value='org.freedesktop.fwupd',
             compare='any',

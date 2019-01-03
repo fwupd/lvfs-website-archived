@@ -736,6 +736,19 @@ class Component(db.Model):
                                   page='update')
         return problems
 
+    @property
+    def has_complex_requirements(self):
+        seen = []
+        for rq in self.requirements:
+            if rq.kind == 'firmware':
+                if rq.value not in ['firmware', 'bootloader']:
+                    return True
+            key = rq.kind + ':' + rq.value
+            if key in seen:
+                return True
+            seen.append(key)
+        return False
+
     def add_keywords_from_string(self, value, priority=0):
         existing_keywords = {}
         for kw in self.keywords:
