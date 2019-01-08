@@ -111,12 +111,18 @@ def _create_fw_from_uploaded_file(ufile):
 
         # from requires
         for req in component.get_requires():
-            rq = Requirement(md.component_id,
-                             AppStreamGlib.Require.kind_to_string(req.get_kind()),
-                             req.get_value(),
-                             AppStreamGlib.Require.compare_to_string(req.get_compare()),
-                             req.get_version())
-            md.requirements.append(rq)
+            req_kind = AppStreamGlib.Require.kind_to_string(req.get_kind())
+            req_compare = AppStreamGlib.Require.compare_to_string(req.get_compare())
+            req_value = req.get_value()
+            if req_kind == 'hardware':
+                req_values = req_value.split('|')
+            else:
+                req_values = [req_value]
+            for req_value in req_values:
+                rq = Requirement(md.component_id,
+                                 req_kind, req_value, req_compare,
+                                 req.get_version())
+                md.requirements.append(rq)
 
         # from the first screenshot
         if len(component.get_screenshots()) > 0:
