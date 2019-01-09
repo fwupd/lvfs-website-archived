@@ -5,6 +5,7 @@
 # Licensed under the GNU General Public License Version 2
 #
 # pylint: disable=fixme,too-many-public-methods,line-too-long,too-many-lines
+# pylint: disable=too-many-instance-attributes
 
 from __future__ import print_function
 
@@ -30,6 +31,10 @@ def _gzip_decompress_buffer(buf):
 class LvfsTestCase(unittest.TestCase):
 
     def setUp(self):
+
+        # global checksums
+        self.checksum_upload = None
+        self.checksum_signed = None
 
         # create new database
         self.db_fd, self.db_filename = tempfile.mkstemp()
@@ -146,10 +151,19 @@ class LvfsTestCase(unittest.TestCase):
             data['vendor_id'] = vendor_id
         return self.app.post('/lvfs/upload', data=data, follow_redirects=True)
 
+    def _ensure_checksums_from_upload(self):
+        # peek into the database to get the checksums
+        from app import db
+        from app.models import Firmware
+        fw = db.session.query(Firmware).first()
+        self.checksum_upload = fw.checksum_upload
+        self.checksum_signed = fw.checksum_signed
+
     def upload(self, target='private', vendor_id=None, filename='contrib/hughski-colorhug2-2.0.3.cab'):
         rv = self._upload(filename, target, vendor_id)
         assert b'Uploaded file' in rv.data, rv.data
-        assert b'7514fc4b0e1a306337de78c58f10e9e68f791de2' in rv.data, rv.data
+        self._ensure_checksums_from_upload()
+        assert self.checksum_upload.encode('utf-8') in rv.data, rv.data
 
     def test_login_logout(self):
 
@@ -180,7 +194,8 @@ class LvfsTestCase(unittest.TestCase):
         # upload firmware
         self.login()
         rv = self._upload('contrib/hughski-colorhug2-2.0.3.cab', 'private')
-        assert b'7514fc4b0e1a306337de78c58f10e9e68f791de2' in rv.data, rv.data
+        self._ensure_checksums_from_upload()
+        assert self.checksum_upload in rv.data.decode('utf-8'), rv.data
         rv = self.app.get('/lvfs/firmware/1')
         assert b'>☠ Nuke ☠<' not in rv.data, rv.data
         rv = self.app.get('/lvfs/firmware/1/nuke', follow_redirects=True)
@@ -196,14 +211,16 @@ class LvfsTestCase(unittest.TestCase):
         # upload firmware
         self.login()
         rv = self._upload('contrib/hughski-colorhug2-2.0.3.cab', 'private')
-        assert b'7514fc4b0e1a306337de78c58f10e9e68f791de2' in rv.data, rv.data
+        self._ensure_checksums_from_upload()
+        assert self.checksum_upload in rv.data.decode('utf-8'), rv.data
         rv = self.app.get('/lvfs/firmware/1/components')
         assert b'com.hughski.ColorHug2.firmware' in rv.data, rv.data
 
         # download
-        rv = self.app.get('/downloads/7514fc4b0e1a306337de78c58f10e9e68f791de2-hughski-colorhug2-2.0.3.cab')
+        rv = self.app.get('/downloads/' + self.checksum_upload + '-hughski-colorhug2-2.0.3.cab')
         assert rv.status_code == 200, rv.status_code
-        assert len(rv.data) == 10974, len(rv.data)
+        assert len(rv.data) > 10000, len(rv.data)
+        assert len(rv.data) < 20000, len(rv.data)
 
         # check analytics works
         uris = ['/lvfs/firmware/1/analytics',
@@ -254,14 +271,14 @@ class LvfsTestCase(unittest.TestCase):
         self.login()
 
         # download it
-        rv = self.app.get('/downloads/7514fc4b0e1a306337de78c58f10e9e68f791de2-hughski-colorhug2-2.0.3.cab')
+        rv = self.app.get('/downloads/' + self.checksum_upload + '-hughski-colorhug2-2.0.3.cab')
         assert rv.status_code == 200, rv.status_code
 
         # test deleting the firmware
         self.delete_firmware()
 
         # download missing file
-        rv = self.app.get('/downloads/7514fc4b0e1a306337de78c58f10e9e68f791de2-hughski-colorhug2-2.0.3.cab')
+        rv = self.app.get('/downloads/' + self.checksum_upload + '-hughski-colorhug2-2.0.3.cab')
         assert rv.status_code == 410, rv.status_code
 
         # re-upload the same file
@@ -336,18 +353,18 @@ class LvfsTestCase(unittest.TestCase):
 
         # download twice, both, success
         for _ in range(2):
-            rv = self.app.get('/downloads/7514fc4b0e1a306337de78c58f10e9e68f791de2-hughski-colorhug2-2.0.3.cab',
+            rv = self.app.get('/downloads/' + self.checksum_upload + '-hughski-colorhug2-2.0.3.cab',
                               environ_base={'HTTP_USER_AGENT': 'fwupd/1.1.1'})
             assert rv.status_code == 200, rv.status_code
 
         # download, fail
-        rv = self.app.get('/downloads/7514fc4b0e1a306337de78c58f10e9e68f791de2-hughski-colorhug2-2.0.3.cab',
+        rv = self.app.get('/downloads/' + self.checksum_upload + '-hughski-colorhug2-2.0.3.cab',
                           environ_base={'HTTP_USER_AGENT': 'fwupd/1.1.1'})
         assert rv.status_code == 429, rv.status_code
         assert rv.data == 'ETOOSLOW', rv.data
 
         # download not matching glob, success
-        rv = self.app.get('/downloads/7514fc4b0e1a306337de78c58f10e9e68f791de2-hughski-colorhug2-2.0.3.cab',
+        rv = self.app.get('/downloads/' + self.checksum_upload + '-hughski-colorhug2-2.0.3.cab',
                           environ_base={'HTTP_USER_AGENT': 'wget/1.2.3'})
         assert rv.status_code == 200, rv.status_code
 
@@ -363,7 +380,7 @@ class LvfsTestCase(unittest.TestCase):
         assert b'ETOOSLOW' not in rv.data, rv.data
 
         # download, success
-        rv = self.app.get('/downloads/7514fc4b0e1a306337de78c58f10e9e68f791de2-hughski-colorhug2-2.0.3.cab',
+        rv = self.app.get('/downloads/' + self.checksum_upload + '-hughski-colorhug2-2.0.3.cab',
                           environ_base={'HTTP_USER_AGENT': 'fwupd/1.1.1'})
         assert rv.status_code == 200, rv.status_code
 
@@ -422,7 +439,7 @@ class LvfsTestCase(unittest.TestCase):
                               stdout=subprocess.PIPE,
                               stderr=subprocess.PIPE)
         stdout, _ = ps.communicate()
-        assert 'Signing: /tmp/7514fc4b0e1a306337de78c58f10e9e68f791de2-hughski-colorhug2-2.0.3.cab' in stdout, stdout
+        assert 'Signing: /tmp/' + self.checksum_upload + '-hughski-colorhug2-2.0.3.cab' in stdout, stdout
 
         # verify the firmware is now signed
         rv = self.app.get('/lvfs/firmware/1')
@@ -444,7 +461,7 @@ class LvfsTestCase(unittest.TestCase):
         self.login('alice@fwupd.org')
         self.upload('embargo')
         rv = self.app.get('/lvfs/firmware/1')
-        assert b'/downloads/7514fc4b0e1a306337de78c58f10e9e68f791de2' in rv.data, rv.data
+        assert '/downloads/' + self.checksum_upload in rv.data.decode('utf-8'), rv.data
         rv = self.app.get('/lvfs/firmware')
         assert b'/lvfs/firmware/1' in rv.data, rv.data
         rv = self.app.get('/lvfs/firmware/1/analytics/clients')
@@ -466,7 +483,7 @@ class LvfsTestCase(unittest.TestCase):
         # clara can see all firmwares, but can't promote them
         self.login('clara@fwupd.org')
         rv = self.app.get('/lvfs/firmware/1')
-        assert b'/downloads/7514fc4b0e1a306337de78c58f10e9e68f791de2' in rv.data, rv.data
+        assert '/downloads/' + self.checksum_upload in rv.data.decode('utf-8'), rv.data
         rv = self.app.get('/lvfs/firmware')
         assert b'/lvfs/firmware/1' in rv.data, rv.data
         rv = self.app.get('/lvfs/firmware/1/analytics/clients')
@@ -479,7 +496,7 @@ class LvfsTestCase(unittest.TestCase):
         # mario can see things from both users and promote
         self.login('mario@fwupd.org')
         rv = self.app.get('/lvfs/firmware/1')
-        assert b'/downloads/7514fc4b0e1a306337de78c58f10e9e68f791de2' in rv.data, rv.data
+        assert '/downloads/' + self.checksum_upload in rv.data.decode('utf-8'), rv.data
         rv = self.app.get('/lvfs/firmware')
         assert b'/lvfs/firmware/1' in rv.data, rv.data
         rv = self.app.get('/lvfs/firmware/1/analytics/clients')
@@ -822,7 +839,9 @@ class LvfsTestCase(unittest.TestCase):
         assert b'Moved firmware' in rv.data, rv.data
         assert b'>private<' in rv.data, rv.data
 
-    def _report(self, updatestate=2, distro_id='fedora', checksum='3f1b8ec0fa8ee323d1934a0256037c8100175755'):
+    def _report(self, updatestate=2, distro_id='fedora', checksum=None):
+        if not checksum:
+            checksum = self.checksum_signed
         return self.app.post('/lvfs/firmware/report', data=
                              '{'
                              '  "ReportVersion" : 2,'
@@ -1169,7 +1188,7 @@ class LvfsTestCase(unittest.TestCase):
 
         # check bob can see the firmware he uploaded
         rv = self.app.get('/lvfs/firmware/1')
-        assert b'/downloads/7514fc4b0e1a306337de78c58f10e9e68f791de2' in rv.data, rv.data
+        assert '/downloads/' + self.checksum_upload in rv.data.decode('utf-8'), rv.data
         rv = self.app.get('/lvfs/firmware')
         assert b'Hughski Limited ColorHug2 Device Update' in rv.data, rv.data
 
@@ -1547,7 +1566,7 @@ class LvfsTestCase(unittest.TestCase):
 
         # download a few times
         for _ in range(5):
-            rv = self.app.get('/downloads/7514fc4b0e1a306337de78c58f10e9e68f791de2-hughski-colorhug2-2.0.3.cab',
+            rv = self.app.get('/downloads/' + self.checksum_upload + '-hughski-colorhug2-2.0.3.cab',
                               environ_base={'HTTP_USER_AGENT': 'fwupd/1.1.1'})
             assert rv.status_code == 200, rv.status_code
 
@@ -1558,17 +1577,17 @@ class LvfsTestCase(unittest.TestCase):
         self.upload()
 
         # download with a new version of fwupd
-        rv = self.app.get('/downloads/7514fc4b0e1a306337de78c58f10e9e68f791de2-hughski-colorhug2-2.0.3.cab',
+        rv = self.app.get('/downloads/' + self.checksum_upload + '-hughski-colorhug2-2.0.3.cab',
                           environ_base={'HTTP_USER_AGENT': 'fwupd/1.0.5'})
         assert rv.status_code == 200, rv.status_code
 
         # download with an old gnome-software and a new fwupd
-        rv = self.app.get('/downloads/7514fc4b0e1a306337de78c58f10e9e68f791de2-hughski-colorhug2-2.0.3.cab',
+        rv = self.app.get('/downloads/' + self.checksum_upload + '-hughski-colorhug2-2.0.3.cab',
                           environ_base={'HTTP_USER_AGENT': 'gnome-software/3.20.5 fwupd/1.0.5'})
         assert rv.status_code == 200, rv.status_code
 
         # download with an old version of fwupd
-        rv = self.app.get('/downloads/7514fc4b0e1a306337de78c58f10e9e68f791de2-hughski-colorhug2-2.0.3.cab',
+        rv = self.app.get('/downloads/' + self.checksum_upload + '-hughski-colorhug2-2.0.3.cab',
                           environ_base={'HTTP_USER_AGENT': 'fwupd/0.7.9999'})
         assert rv.status_code == 412, rv.status_code
         assert b'fwupd version too old' in rv.data, rv.data
