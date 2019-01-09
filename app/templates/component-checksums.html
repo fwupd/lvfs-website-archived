@@ -46,6 +46,42 @@
   </tr>
 {% endif %}
 </table>
+
+<h3 class="mt-3">User-Submitted Reports</h3>
+
+{% if checksum_counts|length %}
+<table class="table">
+  <tr class="row">
+    <th class="col-sm-1 text-center">Count</th>
+    <th class="col-sm-9">Checksum</th>
+    <th class="col-sm-2">&nbsp;</th>
+  </tr>
+{% for (cnt, checksum) in checksum_counts %}
+  <tr class="row">
+    <td class="col-sm-1 text-center">
+{% if checksum in device_checksums %}
+      <span class="badge badge-success">{{cnt}}</span>
+{% else %}
+      <span class="badge badge-danger">{{cnt}}</span>
+{% endif %}
+    </td>
+    <td class="col-sm-9">
+      <code>{{checksum}}</code>
+    </td>
+    <td class="col-sm-2 text-right">
+      <a class="btn btn-secondary btn-block"
+         href="{{url_for('.firmware_analytics_reports', firmware_id=md.fw.firmware_id, state=2)}}"
+         role="button">Show</a>
+    </td>
+  </tr>
+{% endfor %}
+</table>
+{% else %}
+<p class="text-secondary">
+  No reports with device checksums.
+</p>
+{% endif %}
+
 {% endblock %}
 
 {% block breadcrumb %}{% include 'component-breadcrumb.html' %}{% endblock %}

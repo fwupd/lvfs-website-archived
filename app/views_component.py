@@ -7,9 +7,11 @@
 from flask import request, url_for, redirect, render_template, flash
 from flask_login import login_required
 
+from sqlalchemy import func
+
 from app import app, db
 
-from .models import Requirement, Component, Keyword, Firmware, Checksum, Protocol
+from .models import Requirement, Component, Keyword, Firmware, Checksum, Protocol, Report, ReportAttribute
 from .util import _error_internal, _error_permission_denied
 
 def _validate_guid(guid):
@@ -138,6 +140,38 @@ def firmware_component_modify(component_id):
     return redirect(url_for('.firmware_component_show',
                             component_id=component_id,
                             page=page))
+
+@app.route('/lvfs/component/<int:component_id>/checksums')
+@login_required
+def firmware_component_checksums(component_id):
+    """ Show firmware component information """
+
+    # get firmware component
+    md = db.session.query(Component).filter(Component.component_id == component_id).first()
+    if not md:
+        return _error_internal('No component matched!')
+
+    # security check
+    fw = md.fw
+    if not fw:
+        return _error_internal('No firmware matched!')
+    if not fw.check_acl('@view'):
+        return _error_permission_denied('Unable to view component')
+
+    # find reports witch device checkums that match this firmware
+    checksum_counts = db.session.query(func.count(ReportAttribute.value),
+                                       ReportAttribute.value).\
+                                       join(Report).\
+                                       filter(Report.firmware_id == fw.firmware_id).\
+                                       filter(ReportAttribute.key == 'ChecksumDevice').\
+                                       group_by(ReportAttribute.value).all()
+    device_checksums = []
+    for csum in md.device_checksums:
+        device_checksums.append(csum.value)
+    return render_template('component-checksums.html',
+                           md=md, page='checksums',
+                           device_checksums=device_checksums,
+                           checksum_counts=checksum_counts)
 
 @app.route('/lvfs/component/<int:component_id>')
 @app.route('/lvfs/component/<int:component_id>/<page>')
