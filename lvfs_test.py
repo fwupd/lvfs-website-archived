@@ -64,6 +64,10 @@ class LvfsTestCase(unittest.TestCase):
         self.app.get('/lvfs/settings_create')
         self.app.get('/lvfs/agreement/create')
         self.app.get('/lvfs/agreement/1/accept')
+        rv = self.app.post('/lvfs/protocol/add', data=dict(
+            value='com.hughski.colorhug',
+        ), follow_redirects=True)
+        assert b'Added protocol' in rv.data, rv.data
         self.logout()
 
     def tearDown(self):
