@@ -6,7 +6,7 @@
 
 import json
 
-from flask import request, url_for, redirect, flash, Response
+from flask import request, url_for, redirect, flash, Response, render_template
 from flask_login import login_required
 
 from app import app, db
@@ -27,6 +27,17 @@ def report_view(report_id):
     return Response(response=str(report.to_kvs()),
                     status=400, \
                     mimetype="application/json")
+
+@app.route('/lvfs/report/<report_id>/details')
+@login_required
+def report_details(report_id):
+    report = db.session.query(Report).filter(Report.report_id == report_id).first()
+    if not report:
+        return _error_permission_denied('Report does not exist')
+    # security check
+    if not report.check_acl('@view'):
+        return _error_permission_denied('Unable to view report')
+    return render_template('report-details.html', rpt=report)
 
 @app.route('/lvfs/report/<report_id>/delete')
 @login_required
