@@ -87,6 +87,15 @@ def _is_sha1(text):
         return False
     return True
 
+def _is_sha256(text):
+    if len(text) != 64:
+        return False
+    try:
+        _ = int(text, 16)
+    except ValueError:
+        return False
+    return True
+
 @app.route('/lvfs/component/<int:component_id>/modify', methods=['POST'])
 @login_required
 def firmware_component_modify(component_id):
@@ -349,11 +358,9 @@ def firmware_checksum_add(component_id):
     """ Adds a checksum to a component """
 
     # check we have data
-    for key in ['kind', 'value']:
+    for key in ['value']:
         if key not in request.form or not request.form[key]:
             return _error_internal('No %s specified!' % key)
-    if request.form['kind'] not in ['SHA1', 'SHA256']:
-        return _error_internal('No valid hash kind specified!')
 
     # get firmware component
     md = db.session.query(Component).\
@@ -366,28 +373,27 @@ def firmware_checksum_add(component_id):
         return _error_permission_denied('Unable to modify other vendor firmware')
 
     # validate is a valid hash
-    if request.form['kind'] == 'SHA1':
-        if not _is_sha1(request.form['value']):
-            flash('%s is not a valid SHA1 hash' % request.form['value'], 'warning')
-            return redirect(url_for('.firmware_component_show',
-                                    component_id=md.component_id,
-                                    page='checksums'))
+    hash_value = request.form['value']
+    if _is_sha1(hash_value):
+        hash_kind = 'SHA1'
+    elif _is_sha256(hash_value):
+        hash_kind = 'SHA256'
     else:
-        flash('%s is not a recognised hash' % request.form['value'], 'warning')
+        flash('%s is not a recognised SHA1 or SHA256 hash' % hash_value, 'warning')
         return redirect(url_for('.firmware_component_show',
                                 component_id=md.component_id,
                                 page='checksums'))
 
     # check it's not already been added
     for csum in md.device_checksums:
-        if csum.value == request.form['value']:
-            flash('%s has already been added' % request.form['value'], 'warning')
+        if csum.value == hash_value:
+            flash('%s has already been added' % hash_value, 'warning')
             return redirect(url_for('.firmware_component_show',
                                     component_id=md.component_id,
                                     page='checksums'))
 
     # add checksum
-    csum = Checksum(kind=request.form['kind'], value=request.form['value'])
+    csum = Checksum(kind=hash_kind, value=hash_value)
     md.device_checksums.append(csum)
     md.fw.mark_dirty()
     db.session.commit()
