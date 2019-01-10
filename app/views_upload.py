@@ -153,21 +153,6 @@ def _create_fw_from_uploaded_file(ufile, local=False):
                     elif csum.get_kind() == GLib.ChecksumType.SHA256:
                         md.device_checksums.append(Checksum(csum.get_value(), 'SHA256'))
 
-        # allows OEM to hide the direct download link on the LVFS
-        metadata = component.get_metadata()
-        if 'LVFS::InhibitDownload' in metadata:
-            md.inhibit_download = True
-
-        # allows OEM to change the triplet (AA.BB.CCDD) to quad (AA.BB.CC.DD)
-        if 'LVFS::VersionFormat' in metadata:
-            md.version_format = metadata['LVFS::VersionFormat']
-
-        # allows OEM to specify protocol
-        if 'LVFS::UpdateProtocol' in metadata:
-            pr = db.session.query(Protocol).\
-                    filter(Protocol.value == metadata['LVFS::UpdateProtocol']).first()
-            if pr:
-                md.protocol_id = pr.protocol_id
 
         fw.mds.append(md)
 
@@ -358,6 +343,24 @@ def upload():
     for md in fw.mds:
         if not md.version_format and vendor.version_format and md.version.find('.') == -1:
             md.version_format = vendor.version_format
+
+    metadata = component.get_metadata()
+    for md in fw.mds:
+        # allows OEM to hide the direct download link on the LVFS
+        if 'LVFS::InhibitDownload' in metadata:
+            md.inhibit_download = True
+
+        # allows OEM to change the triplet (AA.BB.CCDD) to quad (AA.BB.CC.DD)
+        if 'LVFS::VersionFormat' in metadata:
+            md.version_format = metadata['LVFS::VersionFormat']
+
+        # allows OEM to specify protocol
+        if 'LVFS::UpdateProtocol' in metadata:
+            pr = db.session.query(Protocol).\
+                    filter(Protocol.value == metadata['LVFS::UpdateProtocol']).first()
+            if pr:
+                md.protocol_id = pr.protocol_id
+
 
     # add to database
     fw.events.append(FirmwareEvent(remote.remote_id, g.user.user_id))
