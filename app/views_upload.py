@@ -55,7 +55,7 @@ def _user_can_upload(user):
     # works for us
     return True
 
-def _create_fw_from_uploaded_file(ufile):
+def _create_fw_from_uploaded_file(ufile, local=False):
 
     # create empty firmware
     fw = Firmware()
@@ -102,7 +102,11 @@ def _create_fw_from_uploaded_file(ufile):
         # from the release
         rel = component.get_release_default()
         md.version = rel.get_version()
-        md.install_duration = rel.get_install_duration()
+        #allows this to work on older versions of appstream-glib
+        try:
+            md.install_duration = rel.get_install_duration()
+        except AttributeError:
+            md.install_duration = 0
         md.release_description = _markdown_from_xml(unicode(rel.get_description()))
         md.release_timestamp = rel.get_timestamp()
         md.release_installed_size = rel.get_size(AppStreamGlib.SizeKind.INSTALLED)
