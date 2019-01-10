@@ -3,6 +3,11 @@
     <li class="nav-item">
       <a class="nav-link {% if page == 'overview' %}active{% endif %}" href="/lvfs/component/{{md.component_id}}">Overview</a>
     </li>
+{% if md.assays|length > 0 %}
+    <li class="nav-item">
+      <a class="nav-link {% if page == 'assays' %}active{% endif %}" href="/lvfs/component/{{md.component_id}}/assays">Tests</a>
+    </li>
+{% endif %}
 {% if md.protocol and md.protocol.can_verify %}
     <li class="nav-item">
       <a class="nav-link {% if page == 'checksums' %}active{% endif %}" href="/lvfs/component/{{md.component_id}}/checksums">Device Checksums</a>

@@ -1,0 +1,60 @@
+{% extends "default.html" %}
+{% block title %}Assays{% endblock %}
+
+{% block nav %}{% include 'component-nav.html' %}{% endblock %}
+
+{% block content %}
+<table class="table">
+{% if md.assays|length > 0 %}
+  <tr class="row table-borderless">
+    <th class="col-sm-3">Plugin ID</th>
+    <th class="col-sm-7">Details</th>
+    <th class="col-sm-2"></th>
+  </tr>
+{% for assay in md.assays %}
+  <tr class="row">
+    <td class="col-sm-3">
+      <code>{{assay.plugin_id}}</code>
+    </td>
+    <td class="col-sm-7">
+      <ul class="list-group">
+{% if not assay.started_ts %}
+        <li class="list-group-item list-group-item-warning">Test is pending…</li>
+{% elif not assay.ended_ts %}
+        <li class="list-group-item list-group-item-info">Test is running since {{assay.started_ts}}…</li>
+{% endif %}
+{% for attr in assay.attributes %}
+        <li class="list-group-item {{'list-group-item-success' if attr.success else 'list-group-item-danger'}}">
+          <code>{{attr.title}}: {{attr.message}}</code>
+        </li>
+{% endfor %}
+{% if assay.waived_ts %}
+        <li class="list-group-item list-group-item-warning">
+          Waived by <code>{{assay.waived_user.username}}</code>
+        </li>
+{% endif %}
+      </ul>
+    </td>
+    <td class="col-sm-2 text-right">
+{% if assay.started_ts and assay.check_acl('@retry') %}
+      <a class="btn btn-info btn-block"
+         href="{{url_for('.firmware_assay_retry', component_id=md.component_id, assay_id=assay.assay_id)}}"
+         role="button">Retry</a>
+{% endif %}
+{% if assay.ended_ts and assay.waivable and not assay.waived_ts and assay.check_acl('@waive') %}
+      <a class="btn btn-warning btn-block"
+         href="{{url_for('.firmware_assay_waive', component_id=md.component_id, assay_id=assay.assay_id)}}"
+         role="button">Waive</a>
+{% endif %}
+    </td>
+  </tr>
+{% endfor %}
+</table>
+{% else %}
+<p class="text-secondary">
+  No tests are required.
+</p>
+{% endif %}
+{% endblock %}
+
+{% block breadcrumb %}{% include 'component-breadcrumb.html' %}{% endblock %}

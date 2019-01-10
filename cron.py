@@ -27,6 +27,7 @@ from app import db, ploader
 from app.models import Remote, Firmware
 from app.metadata import _metadata_update_targets, _metadata_update_pulp
 from app.util import _archive_get_files_from_glob, _get_dirname_safe, _event_log
+from app.pluginloader import PluginError
 
 # make compatible with Flask
 app = application.app
@@ -165,6 +166,45 @@ def _purge_old_deleted_firmware():
     # all done
     db.session.commit()
 
+def _check_firmware():
+
+    # ensure the assay has been added for the firmware type
+    for fw in db.session.query(Firmware).all():
+        if fw.is_deleted:
+            continue
+        for md in fw.mds:
+            ploader.ensure_assay_for_md(md)
+
+        # process each assay
+        for md in fw.mds:
+            for assay in md.assays:
+                if assay.ended_ts:
+                    continue
+                if assay.started_ts:
+                    _event_log('Assay %s already running on %s, ignoring' % (assay.plugin_id, md.component_id))
+                    continue
+                plugin = ploader.get_by_id(assay.plugin_id)
+                if not plugin:
+                    _event_log('No plugin %s' % assay.plugin_id)
+                    assay.ended_ts = datetime.datetime.utcnow()
+                    continue
+                if not hasattr(plugin, 'run_assay_on_md'):
+                    _event_log('No run_assay_on_md in %s' % assay.plugin_id)
+                    assay.ended_ts = datetime.datetime.utcnow()
+                    continue
+                try:
+                    assay.started_ts = datetime.datetime.utcnow()
+                    _event_log('Running assay %s on component %s' % (assay.plugin_id, md.component_id))
+                    plugin.run_assay_on_md(assay, md)
+                    assay.ended_ts = datetime.datetime.utcnow()
+                    # don't leave a failed task running
+                    db.session.commit()
+                except PluginError as e:
+                    _event_log('Plugin %s failed for run_assay_on_md(): %s' % (plugin.id, str(e)))
+
+    # all done
+    db.session.commit()
+
 if __name__ == '__main__':
 
     if len(sys.argv) < 2:
@@ -190,6 +230,13 @@ if __name__ == '__main__':
         try:
             with app.test_request_context():
                 _purge_old_deleted_firmware()
+        except NotImplementedError as e:
+            print(str(e))
+            sys.exit(1)
+    if 'fwchecks' in sys.argv:
+        try:
+            with app.test_request_context():
+                _check_firmware()
         except NotImplementedError as e:
             print(str(e))
             sys.exit(1)

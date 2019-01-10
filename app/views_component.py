@@ -4,14 +4,17 @@
 # Copyright (C) 2017-2018 Richard Hughes <richard@hughsie.com>
 # Licensed under the GNU General Public License Version 2
 
-from flask import request, url_for, redirect, render_template, flash
+import datetime
+
+from flask import request, url_for, redirect, render_template, flash, g
 from flask_login import login_required
 
 from sqlalchemy import func
 
-from app import app, db
+from app import app, db, ploader
 
-from .models import Requirement, Component, Keyword, Firmware, Checksum, Protocol, Report, ReportAttribute
+from .models import Requirement, Component, Keyword, Firmware, Checksum
+from .models import Protocol, Report, ReportAttribute, Assay
 from .util import _error_internal, _error_permission_denied
 
 def _validate_guid(guid):
@@ -132,6 +135,9 @@ def firmware_component_modify(component_id):
     if 'description' in request.form:
         md.release_description = _sanitize_markdown_text(request.form['description'])
         page = 'update'
+
+    # ensure the assay has been added for the new firmware type
+    ploader.ensure_assay_for_md(md)
 
     # modify
     md.fw.mark_dirty()
@@ -435,3 +441,68 @@ def firmware_checksum_add(component_id):
     return redirect(url_for('.firmware_component_show',
                             component_id=md.component_id,
                             page='checksums'))
+
+@app.route('/lvfs/component/<int:component_id>/assay/retry/<assay_id>')
+@login_required
+def firmware_assay_retry(component_id, assay_id):
+
+    # get firmware component
+    assay = db.session.query(Assay).filter(Assay.assay_id == assay_id).first()
+    if not assay:
+        return _error_internal('No assay matched!')
+
+    # get the component for the assay
+    md = assay.md
+    if md.component_id != component_id:
+        return _error_internal('Wrong component ID for assay!')
+    if not md:
+        return _error_internal('No metadata matched!')
+
+    # security check
+    if not assay.check_acl('@retry'):
+        return _error_permission_denied('Unable to retry assay')
+
+    # remove chid
+    assay.started_ts = None
+    assay.ended_ts = None
+    assay.waived_ts = None
+    for attr in assay.attributes:
+        db.session.delete(attr)
+    db.session.commit()
+
+    # log
+    flash('Assay %s will be re-run soon' % assay.plugin_id, 'info')
+    return redirect(url_for('.firmware_component_show',
+                            component_id=md.component_id,
+                            page='assays'))
+
+@app.route('/lvfs/component/<int:component_id>/assay/waive/<assay_id>')
+@login_required
+def firmware_assay_waive(component_id, assay_id):
+
+    # get firmware component
+    assay = db.session.query(Assay).filter(Assay.assay_id == assay_id).first()
+    if not assay:
+        return _error_internal('No assay matched!')
+
+    # get the component for the assay
+    md = assay.md
+    if md.component_id != component_id:
+        return _error_internal('Wrong component ID for assay!')
+    if not md:
+        return _error_internal('No metadata matched!')
+
+    # security check
+    if not assay.waivable or not assay.check_acl('@waive'):
+        return _error_permission_denied('Unable to waive assay')
+
+    # remove chid
+    assay.waived_ts = datetime.date.today()
+    assay.waived_user_id = g.user.user_id
+    db.session.commit()
+
+    # log
+    flash('Assay %s was waived' % assay.plugin_id, 'info')
+    return redirect(url_for('.firmware_component_show',
+                            component_id=md.component_id,
+                            page='assays'))

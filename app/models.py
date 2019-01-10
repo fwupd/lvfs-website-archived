@@ -63,6 +63,10 @@ class Problem(object):
             return 'No valid update description'
         if self.kind == 'no-protocol':
             return 'No update protocol set'
+        if self.kind == 'assay-failed':
+            return 'Firmware is not valid'
+        if self.kind == 'assay-pending':
+            return 'Firmware tests are pending'
         return 'Unknown problem %s' % self.kind
 
     @property
@@ -563,6 +567,96 @@ class Checksum(db.Model):
     def __repr__(self):
         return "Checksum object %s(%s)" % (self.kind, self.value)
 
+class AssayAttribute(db.Model):
+    __tablename__ = 'assay_attributes'
+    __table_args__ = {'mysql_character_set': 'utf8mb4'}
+
+    assay_attribute_id = Column(Integer, primary_key=True, nullable=False, unique=True)
+    assay_id = Column(Integer, ForeignKey('assays.assay_id'), nullable=False)
+    title = Column(Text, nullable=False)
+    message = Column(Text, default=None)
+    success = Column(Boolean, default=False)
+
+    # link back to parent
+    assay = relationship("Assay", back_populates="attributes")
+
+    def __init__(self, assay_id=0, title=None, message=None, success=True):
+        """ Constructor for object """
+        self.assay_id = assay_id
+        self.title = title
+        self.message = message
+        self.success = success
+
+    def __repr__(self):
+        return "AssayAttribute object %s=%s" % (self.title, self.message)
+
+class Assay(db.Model):
+
+    # sqlalchemy metadata
+    __tablename__ = 'assays'
+    __table_args__ = {'mysql_character_set': 'utf8mb4'}
+
+    assay_id = Column(Integer, primary_key=True, unique=True, nullable=False)
+    component_id = Column(Integer, ForeignKey('components.component_id'), nullable=False)
+    plugin_id = Column(Text, default=None)
+    waivable = Column(Boolean, default=False)
+    started_ts = Column(DateTime, default=None)
+    ended_ts = Column(DateTime, default=None)
+    waived_ts = Column(DateTime, default=None)
+    waived_user_id = Column(Integer, ForeignKey('users.user_id'), nullable=True)
+
+    # link using foreign keys
+    waived_user = relationship('User', foreign_keys=[waived_user_id])
+    attributes = relationship("AssayAttribute",
+                              back_populates="assay",
+                              cascade='all,delete-orphan')
+
+    # link back to parent
+    md = relationship("Component", back_populates="assays")
+
+    def __init__(self, plugin_id, waivable=False):
+        self.plugin_id = plugin_id
+        self.waivable = waivable
+
+    def add_pass(self, title, message=None):
+        self.attributes.append(AssayAttribute(title=title, message=message))
+
+    def add_fail(self, title, message):
+        self.attributes.append(AssayAttribute(title=title, message=message, success=False))
+
+    def check_acl(self, action, user=None):
+
+        # fall back
+        if not user:
+            user = g.user
+        if user.is_admin:
+            return True
+
+        # depends on the action requested
+        if action == '@retry':
+            if user.is_qa and self.md.fw._is_vendor(user):
+                return True
+            if self.md.fw._is_owner(user):
+                return True
+            return False
+        if action == '@waive':
+            if user.is_qa and self.md.fw._is_vendor(user):
+                return True
+            return False
+        raise NotImplementedError('unknown security check action: %s:%s' % (self, action))
+
+    @property
+    def success(self):
+        if not self.attributes:
+            return True
+        for attr in self.attributes:
+            if not attr.success:
+                return False
+        return True
+
+    def __repr__(self):
+        return "Assay object %s(%s)" % (self.kind, self.has_passed)
+
 class Component(db.Model):
 
     # sqlalchemy metadata
@@ -612,6 +706,9 @@ class Component(db.Model):
     keywords = relationship("Keyword",
                             back_populates="md",
                             cascade='all,delete-orphan')
+    assays = relationship("Assay",
+                          back_populates="md",
+                          cascade='all,delete-orphan')
     protocol = relationship('Protocol', foreign_keys=[protocol_id])
 
     def __init__(self):
@@ -636,6 +733,12 @@ class Component(db.Model):
         self.screenshot_url = None
         self.screenshot_caption = None
         self.priority = 0
+
+    def find_assay_by_plugin_id(self, plugin_id):
+        for assay in self.assays:
+            if assay.plugin_id == plugin_id:
+                return assay
+        return None
 
     @property
     def developer_name_display(self):
@@ -726,6 +829,23 @@ class Component(db.Model):
             problem.url = url_for('.firmware_component_show',
                                   component_id=self.component_id)
             problems.append(problem)
+
+        # assay failures
+        for assay in self.assays:
+            if not assay.started_ts:
+                problem = Problem('assay-pending',
+                                  'Runtime test %s is pending' % assay.plugin_id)
+                problem.url = url_for('.firmware_component_show',
+                                      component_id=self.component_id,
+                                      page='assays')
+                problems.append(problem)
+            elif not assay.success and not assay.waived_ts:
+                problem = Problem('assay-failed',
+                                  'Runtime test %s did not succeed' % assay.plugin_id)
+                problem.url = url_for('.firmware_component_show',
+                                      component_id=self.component_id,
+                                      page='assays')
+                problems.append(problem)
 
         # set the URL for the component
         for problem in problems:

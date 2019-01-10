@@ -359,6 +359,11 @@ def upload():
     fw.events.append(FirmwareEvent(remote.remote_id, g.user.user_id))
     db.session.add(fw)
     db.session.commit()
+
+    # ensure the assay has been added for the firmware type
+    for md in fw.mds:
+        ploader.ensure_assay_for_md(md)
+
     flash('Uploaded file %s to %s' % (ufile.filename_new, target), 'info')
 
     # invalidate

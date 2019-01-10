@@ -184,6 +184,17 @@ class Pluginloader(object):
                 except PluginError as e:
                     _event_log('Plugin %s failed for ArchiveFinalize(): %s' % (plugin.id, str(e)))
 
+    # ensure an assay is added for the component
+    def ensure_assay_for_md(self, md):
+        if not self.loaded:
+            self.load_plugins()
+        for plugin in self._plugins:
+            if hasattr(plugin, 'ensure_assay_for_md'):
+                try:
+                    plugin.ensure_assay_for_md(md)
+                except PluginError as e:
+                    _event_log('Plugin %s failed for ensure_assay_for_md(): %s' % (plugin.id, str(e)))
+
     # log out of all oauth providers
     def oauth_logout(self):
         if not self.loaded:
