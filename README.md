@@ -75,3 +75,11 @@ Use the secure GPG key (with the long secret password).
 If the firmware is already signed with a PKCS-7 or GPG signature and is going
 to be shipped out-of-band from the usual LVFS workflow then `local.py` can be
 used to generate metadata for `/usr/share/fwupd/remotes.d/vendor/firmware/`.
+
+An example of generating metadata:
+```
+./local.py --archive-directory /usr/share/fwupd/remotes.d/vendor/ --basename firmware --metadata /usr/share/fwupd/remotes.d/vendor/vendor.xml.gz
+```
+
+This assumes that the firmware CAB files are already in `/usr/share/fwupd/remotes.d/vendor/firmware`
+and will be run on that system.
