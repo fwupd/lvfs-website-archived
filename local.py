@@ -28,18 +28,19 @@ if __name__ == '__main__':
     # process all archives in directory
     fws = []
     print('Searching %s' % archive_dir)
-    for fn in os.listdir(archive_dir):
-        if not fn.endswith('.cab'):
-            continue
-        print('Processing %s...' % fn)
-        ufile = UploadedFile()
-        ufile.parse(os.path.basename(fn), open(fn, 'r').read())
-        fw = _create_fw_from_uploaded_file(ufile)
-        fws.append(fw)
+    for root, dirs, files in os.walk(archive_dir):
+        for fn in files:
+            if not fn.endswith('.cab'):
+                continue
+            print('Processing %s...' % fn)
+            ufile = UploadedFile()
+            ufile.parse(fn, open(os.path.join(root, fn), 'r').read(), use_hashed_prefix=False)
+            fw = _create_fw_from_uploaded_file(ufile)
+            fws.append(fw)
 
     # write metadata
     print('Writing %s' % metadata_fn)
-    _generate_metadata_kind(metadata_fn, fws)
+    _generate_metadata_kind(metadata_fn, fws, firmware_baseuri='%s/' % archive_dir, local=True)
 
     # success
     sys.exit(0)

@@ -322,7 +322,7 @@ class UploadedFile(object):
         for cf in cfs:
             self._load_metainfo(cf)
 
-    def parse(self, filename, data):
+    def parse(self, filename, data, use_hashed_prefix=True):
 
         # check size
         self._data_size = len(data)
@@ -333,7 +333,10 @@ class UploadedFile(object):
 
         # get new filename
         self.checksum_upload = hashlib.sha1(data).hexdigest()
-        self.filename_new = self.checksum_upload + '-' + filename.replace('.zip', '.cab')
+        if use_hashed_prefix:
+            self.filename_new = self.checksum_upload + '-' + filename.replace('.zip', '.cab')
+        else:
+            self.filename_new = filename.replace('.zip', '.cab')
 
         # parse the file
         self._load_archive(filename, data)

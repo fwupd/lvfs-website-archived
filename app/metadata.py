@@ -3,6 +3,8 @@
 #
 # Copyright (C) 2015-2018 Richard Hughes <richard@hughsie.com>
 # Licensed under the GNU General Public License Version 2
+#
+# pylint: disable=too-many-statements
 
 import os
 import hashlib
@@ -13,7 +15,7 @@ from app import app, db
 from .models import Firmware, Vendor
 from .util import _get_settings, _xml_from_markdown
 
-def _generate_metadata_kind(filename, fws, firmware_baseuri=''):
+def _generate_metadata_kind(filename, fws, firmware_baseuri='', local=False):
     """ Generates AppStream metadata of a specific kind """
 
     root = ET.Element('components')
@@ -57,6 +59,8 @@ def _generate_metadata_kind(filename, fws, firmware_baseuri=''):
         # add requires for each allowed vendor_ids
         elements = {}
         for md in mds:
+            if local:
+                break
             vendor = db.session.query(Vendor).filter(Vendor.vendor_id == md.fw.vendor_id).first()
             if not vendor:
                 continue
@@ -145,9 +149,13 @@ def _generate_metadata_kind(filename, fws, firmware_baseuri=''):
             ET.SubElement(rel, 'location').text = firmware_baseuri + md.fw.filename
 
             # add container checksum
-            if md.fw.checksum_signed:
+            if md.fw.checksum_signed or local:
                 csum = ET.SubElement(rel, 'checksum')
-                csum.text = md.fw.checksum_signed
+                #metadata intended to be used locally won't be signed
+                if local:
+                    csum.text = md.fw.checksum_upload
+                else:
+                    csum.text = md.fw.checksum_signed
                 csum.set('type', 'sha1')
                 csum.set('filename', md.fw.filename)
                 csum.set('target', 'container')
