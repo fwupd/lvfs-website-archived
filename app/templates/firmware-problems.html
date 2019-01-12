@@ -82,7 +82,7 @@
         can be moved to a different target.
       </p>
     </td>
-{% elif problem.kind == 'assay-pending' %}
+{% elif problem.kind == 'test-pending' %}
     <td class="col-sm-7">
       <p class="card-text">
         The LVFS runs tests on certain types of firmware to check they are valid.
@@ -90,7 +90,7 @@
         You can refresh this page to find out when the firmware has been tested.
       </p>
     </td>
-{% elif problem.kind == 'assay-failed' %}
+{% elif problem.kind == 'test-failed' %}
     <td class="col-sm-7">
       <p class="card-text">
         A check on the firmware has failed.

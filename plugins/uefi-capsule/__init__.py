@@ -1,10 +1,10 @@
 #!/usr/bin/python2
 # -*- coding: utf-8 -*-
 #
-# Copyright (C) 2018 Richard Hughes <richard@hughsie.com>
+# Copyright (C) 2018-2019 Richard Hughes <richard@hughsie.com>
 # Licensed under the GNU General Public License Version 2
 #
-# pylint: disable=no-self-use
+# pylint: disable=no-self-use,wrong-import-position
 
 from __future__ import print_function
 
@@ -12,9 +12,15 @@ import os
 import struct
 import uuid
 
+import gi
+gi.require_version('GCab', '1.0')
+from gi.repository import GCab
+from gi.repository import Gio
+from gi.repository import GLib
+
 from app.pluginloader import PluginBase, PluginError, PluginSettingBool
-from app.util import _get_firmware_contents_from_archive, _get_settings
-from app.models import Assay
+from app.util import _get_settings, _archive_get_files_from_glob
+from app.models import Test
 
 class Plugin(PluginBase):
     def __init__(self):
@@ -31,7 +37,7 @@ class Plugin(PluginBase):
         s.append(PluginSettingBool('uefi_capsule_check_header', 'Check Header', True))
         return s
 
-    def ensure_assay_for_md(self, md):
+    def ensure_test_for_fw(self, fw):
 
         # get settings
         settings = _get_settings('uefi_capsule_check_header')
@@ -39,18 +45,21 @@ class Plugin(PluginBase):
             return
 
         # only run for capsule updates
-        if not md.protocol:
-            return
-        if md.protocol.value != 'org.uefi.capsule':
-            return
+        require_test = False
+        for md in fw.mds:
+            if not md.protocol:
+                continue
+            if md.protocol.value == 'org.uefi.capsule':
+                require_test = True
 
         # add if not already exists
-        assay = md.find_assay_by_plugin_id(self.id)
-        if not assay:
-            assay = Assay(self.id, waivable=True)
-            md.assays.append(assay)
+        if require_test:
+            test = fw.find_test_by_plugin_id(self.id)
+            if not test:
+                test = Test(self.id, waivable=True)
+                fw.tests.append(test)
 
-    def run_assay_on_md(self, assay, md):
+    def run_test_on_fw(self, test, fw):
 
         # get settings
         settings = _get_settings('uefi_capsule_check_header')
@@ -58,55 +67,70 @@ class Plugin(PluginBase):
             return
 
         # decompress firmware
+        from app import app
+        fn = os.path.join(app.config['DOWNLOAD_DIR'], fw.filename)
         try:
-            contents = _get_firmware_contents_from_archive(md)
-        except RuntimeError as e:
-            assay.add_fail('Open', 'Cannot load %s: %s' % (md.filename_contents, str(e)))
-            # we have to abort here, no further tests are possible
-            return
+            istream = Gio.File.new_for_path(fn).read()
+        except gi.repository.GLib.Error as e: # pylint: disable=catching-non-exception
+            raise RuntimeError(e)
+        cfarchive = GCab.Cabinet.new()
+        cfarchive.load(istream)
+        cfarchive.extract(None)
 
-        # unpack the header
-        try:
-            data = struct.unpack('<16sIII', contents[:28])
-        except struct.error as e:
-            assay.add_fail('FileSize', len(contents))
-            # we have to abort here, no further tests are possible
-            return
+        # check each capsule
+        for md in fw.mds:
+            if md.protocol.value != 'org.uefi.capsule':
+                continue
 
-        # check the GUID
-        guid = str(uuid.UUID(bytes_le=data[0]))
-        referenced_guids = []
-        for gu in md.guids:
-            referenced_guids.append(gu.value)
-        if guid == '00000000-0000-0000-0000-000000000000':
-            assay.add_fail('GUID', '%s is not valid' % guid)
-        elif guid in referenced_guids:
-            assay.add_pass('GUID', guid)
-        else:
-            assay.add_fail('GUID', '%s not found in %s' % (guid, referenced_guids))
+            # get the component contents data
+            cfs = _archive_get_files_from_glob(cfarchive, md.filename_contents)
+            if not cfs or len(cfs) > 1:
+                test.add_fail('Open', '%s not found in archive' % md.filename_contents)
+                continue
+            contents = cfs[0].get_bytes().get_data()
 
-        # check the header size
-        if data[1] % 4096 == 0:
-            assay.add_pass('HeaderSize', data[1])
-        else:
-            assay.add_fail('HeaderSize', '0x%x not aligned to 4kB' % data[1])
+            # unpack the header
+            try:
+                data = struct.unpack('<16sIII', contents[:28])
+            except struct.error as e:
+                test.add_fail('FileSize', len(contents))
+                # we have to abort here, no further tests are possible
+                continue
 
-        # check if the flags are sane
-        CAPSULE_FLAGS_PERSIST_ACROSS_RESET = 0x00010000
-        CAPSULE_FLAGS_POPULATE_SYSTEM_TABLE = 0x00020000
-        CAPSULE_FLAGS_INITIATE_RESET = 0x00040000
-        if data[2] & CAPSULE_FLAGS_POPULATE_SYSTEM_TABLE > 0 and \
-           data[2] & CAPSULE_FLAGS_PERSIST_ACROSS_RESET == 0:
-            assay.add_fail('Flags', '0x%x -- POPULATE_SYSTEM_TABLE requires PERSIST_ACROSS_RESET' % data[2])
-        elif data[2] & CAPSULE_FLAGS_INITIATE_RESET > 0 and \
-             data[2] & CAPSULE_FLAGS_PERSIST_ACROSS_RESET == 0:
-            assay.add_fail('Flags', '0x%x -- INITIATE_RESET requires PERSIST_ACROSS_RESET' % data[2])
-        else:
-            assay.add_pass('Flags', '0x%x' % data[2])
+            # check the GUID
+            guid = str(uuid.UUID(bytes_le=data[0]))
+            referenced_guids = []
+            for gu in md.guids:
+                referenced_guids.append(gu.value)
+            if guid == '00000000-0000-0000-0000-000000000000':
+                test.add_fail('GUID', '%s is not valid' % guid)
+            elif guid in referenced_guids:
+                test.add_pass('GUID', guid)
+            else:
+                test.add_fail('GUID', '%s not found in %s' % (guid, referenced_guids))
 
-        # check the capsule image size
-        if data[3] == len(contents):
-            assay.add_pass('CapsuleImageSize', data[3])
-        else:
-            assay.add_fail('CapsuleImageSize',
-                           '0x%x does not match file size 0x%x' % (data[3], len(contents)))
+            # check the header size
+            if data[1] % 4096 == 0:
+                test.add_pass('HeaderSize', data[1])
+            else:
+                test.add_fail('HeaderSize', '0x%x not aligned to 4kB' % data[1])
+
+            # check if the flags are sane
+            CAPSULE_FLAGS_PERSIST_ACROSS_RESET = 0x00010000
+            CAPSULE_FLAGS_POPULATE_SYSTEM_TABLE = 0x00020000
+            CAPSULE_FLAGS_INITIATE_RESET = 0x00040000
+            if data[2] & CAPSULE_FLAGS_POPULATE_SYSTEM_TABLE > 0 and \
+               data[2] & CAPSULE_FLAGS_PERSIST_ACROSS_RESET == 0:
+                test.add_fail('Flags', '0x%x -- POPULATE_SYSTEM_TABLE requires PERSIST_ACROSS_RESET' % data[2])
+            elif data[2] & CAPSULE_FLAGS_INITIATE_RESET > 0 and \
+                 data[2] & CAPSULE_FLAGS_PERSIST_ACROSS_RESET == 0:
+                test.add_fail('Flags', '0x%x -- INITIATE_RESET requires PERSIST_ACROSS_RESET' % data[2])
+            else:
+                test.add_pass('Flags', '0x%x' % data[2])
+
+            # check the capsule image size
+            if data[3] == len(contents):
+                test.add_pass('CapsuleImageSize', data[3])
+            else:
+                test.add_fail('CapsuleImageSize',
+                              '0x%x does not match file size 0x%x' % (data[3], len(contents)))

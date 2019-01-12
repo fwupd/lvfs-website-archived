@@ -15,7 +15,7 @@ from sqlalchemy.orm import joinedload
 from app import app, db
 from .dbutils import _execute_count_star
 
-from .models import Firmware, Report, Client, FirmwareEvent, FirmwareLimit, Remote, Vendor
+from .models import Firmware, Report, Client, FirmwareEvent, FirmwareLimit, Remote, Vendor, Test
 from .util import _error_internal, _error_permission_denied, _event_log
 from .util import _get_chart_labels_months, _get_chart_labels_days
 
@@ -556,3 +556,76 @@ def firmware_analytics_month(firmware_id):
                            fw=fw,
                            graph_labels=_get_chart_labels_days()[::-1],
                            graph_data=data_fw[::-1])
+
+@app.route('/lvfs/firmware/<int:firmware_id>/tests')
+@login_required
+def firmware_tests(firmware_id):
+
+    # get details about the firmware
+    fw = db.session.query(Firmware).\
+            filter(Firmware.firmware_id == firmware_id).first()
+    if not fw:
+        return _error_internal('No firmware matched!')
+
+    # security check
+    if not fw.check_acl('@view'):
+        return _error_permission_denied('Insufficient permissions to view firmwares')
+
+    return render_template('firmware-tests.html', fw=fw)
+
+@app.route('/lvfs/firmware/<int:firmware_id>/test/retry/<test_id>')
+@login_required
+def firmware_test_retry(firmware_id, test_id):
+
+    # get test
+    test = db.session.query(Test).filter(Test.test_id == test_id).first()
+    if not test:
+        return _error_internal('No test matched!')
+
+    # check the firmware for the test
+    fw = test.fw
+    if fw.firmware_id != firmware_id:
+        return _error_internal('Wrong firmware ID for test!')
+
+    # security check
+    if not test.check_acl('@retry'):
+        return _error_permission_denied('Unable to retry test')
+
+    # remove chid
+    test.started_ts = None
+    test.ended_ts = None
+    test.waived_ts = None
+    for attr in test.attributes:
+        db.session.delete(attr)
+    db.session.commit()
+
+    # log
+    flash('Test %s will be re-run soon' % test.plugin_id, 'info')
+    return redirect(url_for('.firmware_tests', firmware_id=fw.firmware_id))
+
+@app.route('/lvfs/firmware/<int:firmware_id>/test/waive/<test_id>')
+@login_required
+def firmware_test_waive(firmware_id, test_id):
+
+    # get test
+    test = db.session.query(Test).filter(Test.test_id == test_id).first()
+    if not test:
+        return _error_internal('No test matched!')
+
+    # check the firmware for the test
+    fw = test.fw
+    if fw.firmware_id != firmware_id:
+        return _error_internal('Wrong firmware ID for test!')
+
+    # security check
+    if not test.waivable or not test.check_acl('@waive'):
+        return _error_permission_denied('Unable to waive test')
+
+    # remove chid
+    test.waived_ts = datetime.date.today()
+    test.waived_user_id = g.user.user_id
+    db.session.commit()
+
+    # log
+    flash('Test %s was waived' % test.plugin_id, 'info')
+    return redirect(url_for('.firmware_tests', firmware_id=fw.firmware_id))

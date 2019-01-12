@@ -1,49 +1,51 @@
 {% extends "default.html" %}
-{% block title %}Assays{% endblock %}
+{% block title %}Firmware Tests{% endblock %}
 
-{% block nav %}{% include 'component-nav.html' %}{% endblock %}
+{% block nav %}
+{% include 'firmware-nav.html' %}
+{% endblock %}
 
 {% block content %}
 <table class="table">
-{% if md.assays|length > 0 %}
+{% if fw.tests|length > 0 %}
   <tr class="row table-borderless">
     <th class="col-sm-3">Plugin ID</th>
     <th class="col-sm-7">Details</th>
     <th class="col-sm-2"></th>
   </tr>
-{% for assay in md.assays %}
+{% for test in fw.tests %}
   <tr class="row">
     <td class="col-sm-3">
-      <code>{{assay.plugin_id}}</code>
+      <code>{{test.plugin_id}}</code>
     </td>
     <td class="col-sm-7">
       <ul class="list-group">
-{% if not assay.started_ts %}
+{% if not test.started_ts %}
         <li class="list-group-item list-group-item-warning">Test is pending…</li>
-{% elif not assay.ended_ts %}
-        <li class="list-group-item list-group-item-info">Test is running since {{assay.started_ts}}…</li>
+{% elif not test.ended_ts %}
+        <li class="list-group-item list-group-item-info">Test is running since {{test.started_ts}}…</li>
 {% endif %}
-{% for attr in assay.attributes %}
+{% for attr in test.attributes %}
         <li class="list-group-item {{'list-group-item-success' if attr.success else 'list-group-item-danger'}}">
           <code>{{attr.title}}: {{attr.message}}</code>
         </li>
 {% endfor %}
-{% if assay.waived_ts %}
+{% if test.waived_ts %}
         <li class="list-group-item list-group-item-warning">
-          Waived by <code>{{assay.waived_user.username}}</code>
+          Waived by <code>{{test.waived_user.username}}</code>
         </li>
 {% endif %}
       </ul>
     </td>
     <td class="col-sm-2 text-right">
-{% if assay.started_ts and assay.check_acl('@retry') %}
+{% if test.started_ts and test.check_acl('@retry') %}
       <a class="btn btn-info btn-block"
-         href="{{url_for('.firmware_assay_retry', component_id=md.component_id, assay_id=assay.assay_id)}}"
+         href="{{url_for('.firmware_test_retry', firmware_id=fw.firmware_id, test_id=test.test_id)}}"
          role="button">Retry</a>
 {% endif %}
-{% if assay.ended_ts and assay.waivable and not assay.waived_ts and assay.check_acl('@waive') %}
+{% if not test.success and test.ended_ts and test.waivable and not test.waived_ts and test.check_acl('@waive') %}
       <a class="btn btn-warning btn-block"
-         href="{{url_for('.firmware_assay_waive', component_id=md.component_id, assay_id=assay.assay_id)}}"
+         href="{{url_for('.firmware_test_waive', firmware_id=fw.firmware_id, test_id=test.test_id)}}"
          role="button">Waive</a>
 {% endif %}
     </td>
@@ -57,4 +59,4 @@
 {% endif %}
 {% endblock %}
 
-{% block breadcrumb %}{% include 'component-breadcrumb.html' %}{% endblock %}
+{% block breadcrumb %}{% include 'firmware-breadcrumb.html' %}{% endblock %}

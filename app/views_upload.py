@@ -360,9 +360,8 @@ def upload():
     db.session.add(fw)
     db.session.commit()
 
-    # ensure the assay has been added for the firmware type
-    for md in fw.mds:
-        ploader.ensure_assay_for_md(md)
+    # ensure the test has been added for the firmware type
+    ploader.ensure_test_for_fw(fw)
 
     flash('Uploaded file %s to %s' % (ufile.filename_new, target), 'info')
 

@@ -184,16 +184,16 @@ class Pluginloader(object):
                 except PluginError as e:
                     _event_log('Plugin %s failed for ArchiveFinalize(): %s' % (plugin.id, str(e)))
 
-    # ensure an assay is added for the component
-    def ensure_assay_for_md(self, md):
+    # ensure an test is added for the firmware
+    def ensure_test_for_fw(self, fw):
         if not self.loaded:
             self.load_plugins()
         for plugin in self._plugins:
-            if hasattr(plugin, 'ensure_assay_for_md'):
+            if hasattr(plugin, 'ensure_test_for_fw'):
                 try:
-                    plugin.ensure_assay_for_md(md)
+                    plugin.ensure_test_for_fw(fw)
                 except PluginError as e:
-                    _event_log('Plugin %s failed for ensure_assay_for_md(): %s' % (plugin.id, str(e)))
+                    _event_log('Plugin %s failed for ensure_test_for_fw(): %s' % (plugin.id, str(e)))
 
     # log out of all oauth providers
     def oauth_logout(self):

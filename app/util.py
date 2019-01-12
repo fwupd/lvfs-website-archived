@@ -23,7 +23,6 @@ from flask import request, flash, render_template, g, Response
 import gi
 gi.require_version('GCab', '1.0')
 from gi.repository import GCab
-from gi.repository import Gio
 from gi.repository import GLib
 
 def _unwrap_xml_text(txt):
@@ -296,20 +295,3 @@ def _email_check(value):
 
 def _generate_password(size=10, chars=string.ascii_letters + string.digits):
     return ''.join(random.choice(chars) for _ in range(size))
-
-def _get_firmware_contents_from_archive(md):
-    from app import app
-    fn = os.path.join(app.config['DOWNLOAD_DIR'], md.fw.filename)
-    try:
-        istream = Gio.File.new_for_path(fn).read()
-    except gi.repository.GLib.Error as e: # pylint: disable=catching-non-exception
-        raise RuntimeError(e)
-    cfarchive = GCab.Cabinet.new()
-    cfarchive.load(istream)
-    cfarchive.extract(None)
-
-    cfs = _archive_get_files_from_glob(cfarchive, md.filename_contents)
-    if not cfs or len(cfs) > 1:
-        raise RuntimeError('file not found in archive')
-
-    return cfs[0].get_bytes().get_data()
