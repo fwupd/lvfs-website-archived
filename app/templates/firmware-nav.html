@@ -32,13 +32,13 @@
 {% if fw.check_acl('@view-analytics') %}
 {% if fw.download_cnt > 0 %}
     <li class="nav-item">
-      <a class="nav-link {% if request.url_rule.endpoint == 'firmware_analytics_clients' %}active{% endif %}" href="/lvfs/firmware/{{fw.firmware_id}}/analytics/clients">Recent Downloads</a>
+      <a class="nav-link {% if request.url_rule.endpoint == 'firmware_analytics_clients' %}active{% endif %}" href="/lvfs/firmware/{{fw.firmware_id}}/analytics/clients">Downloads</a>
     </li>
     <li class="nav-item">
-      <a class="nav-link {% if request.url_rule.endpoint == 'firmware_analytics_year' %}active{% endif %}" href="/lvfs/firmware/{{fw.firmware_id}}/analytics/year">Past Year</a>
+      <a class="nav-link {% if request.url_rule.endpoint == 'firmware_analytics_year' %}active{% endif %}" href="/lvfs/firmware/{{fw.firmware_id}}/analytics/year">Year</a>
     </li>
     <li class="nav-item">
-      <a class="nav-link {% if request.url_rule.endpoint == 'firmware_analytics_month' %}active{% endif %}" href="/lvfs/firmware/{{fw.firmware_id}}/analytics/month">Past Month</a>
+      <a class="nav-link {% if request.url_rule.endpoint == 'firmware_analytics_month' %}active{% endif %}" href="/lvfs/firmware/{{fw.firmware_id}}/analytics/month">Month</a>
     </li>
 {% endif %}
 {% if fw.reports|length > 0 %}
