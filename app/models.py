@@ -1081,6 +1081,15 @@ class Firmware(db.Model):
                 sc_lowest = md.security_claim
         if not sc_lowest:
             sc_lowest = SecurityClaim()
+
+        # been virus checked
+        test = self.find_test_by_plugin_id('clamav')
+        if test and test.ended_ts:
+            if test.success:
+                sc_lowest.add_attr('virus-safe', 'Virus checked using ClamAV')
+            else:
+                sc_lowest.add_attr('no-virus-safe', 'Virus check using ClamAV failed')
+
         return sc_lowest
 
     @property

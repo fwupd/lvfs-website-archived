@@ -73,6 +73,10 @@ class LvfsTestCase(unittest.TestCase):
             value='com.hughski.colorhug',
         ), follow_redirects=True)
         assert b'Added protocol' in rv.data, rv.data
+        rv = self.app.post('/lvfs/settings/modify', data=dict(
+            clamav_enable='disabled',
+        ), follow_redirects=True)
+        assert b'Updated settings' in rv.data, rv.data
         self.logout()
 
     def tearDown(self):
