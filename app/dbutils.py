@@ -203,7 +203,7 @@ def init_db(db):
         db.session.add(vendor)
         db.session.commit()
         db.session.add(User(username='sign-test@fwupd.org',
-                            password=u'5459dbe5e9aa80e077bfa40f3fb2ca8368ed09b4',
+                            password_hash=u'5459dbe5e9aa80e077bfa40f3fb2ca8368ed09b4',
                             auth_type='local',
                             display_name=u'Admin User',
                             vendor_id=vendor.vendor_id,

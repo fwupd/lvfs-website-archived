@@ -98,7 +98,7 @@ class User(db.Model):
 
     user_id = Column(Integer, primary_key=True, unique=True, nullable=False)
     username = Column(String(80), nullable=False, index=True)
-    password = Column(String(40), default=None)
+    password_hash = Column('password', String(40), default=None)
     password_ts = Column(DateTime, default=None)
     password_recovery = Column(String(40), default=None)
     password_recovery_ts = Column(DateTime, default=None)
@@ -132,12 +132,12 @@ class User(db.Model):
                           lazy='dynamic',
                           cascade='all,delete-orphan')
 
-    def __init__(self, username, password=None, display_name=None,
+    def __init__(self, username, password_hash=None, display_name=None,
                  vendor_id=None, auth_type='disabled', is_analyst=False, is_qa=False,
                  is_admin=False, is_vendor_manager=False, is_approved_public=False):
         """ Constructor for object """
         self.username = username
-        self.password = password
+        self.password_hash = password_hash
         self.display_name = display_name
         self.auth_type = auth_type
         self.is_analyst = is_analyst
@@ -146,6 +146,20 @@ class User(db.Model):
         self.is_admin = is_admin
         self.is_vendor_manager = is_vendor_manager
         self.is_approved_public = is_approved_public
+
+    @property
+    def password(self):
+        raise AttributeError('password is not a readable attribute')
+
+    @password.setter
+    def password(self, password):
+        password_hash = _password_hash(password)
+        if password_hash != self.password_hash:
+            self.password_ts = datetime.datetime.utcnow()
+        self.password_hash = password_hash
+
+    def verify_password(self, password):
+        return self.password_hash == _password_hash(password)
 
     def check_acl(self, action=None):
 

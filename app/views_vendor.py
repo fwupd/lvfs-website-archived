@@ -19,7 +19,6 @@ from app import app, db
 from .emails import send_email
 from .util import _error_permission_denied, _error_internal, _email_check
 from .models import Vendor, Restriction, User, Remote, Affiliation
-from .hash import _password_hash
 from .util import _generate_password
 
 # sort by awesomeness
@@ -427,12 +426,13 @@ def vendor_user_add(vendor_id):
                     auth_type='oauth',
                     vendor_id=vendor.vendor_id)
     else:
-        password = _generate_password()
         user = User(username=request.form['username'],
                     display_name=request.form['display_name'],
                     auth_type='local',
-                    password=_password_hash(password),
                     vendor_id=vendor.vendor_id)
+        # this is stored hashed
+        password = _generate_password()
+        user.password = password
     db.session.add(user)
     db.session.commit()
 

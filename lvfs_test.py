@@ -97,7 +97,7 @@ class LvfsTestCase(unittest.TestCase):
     def login(self, username='sign-test@fwupd.org', password='Pa$$w0rd', accept_agreement=True):
         rv = self._login(username, password)
         assert b'/lvfs/upload' in rv.data, rv.data
-        assert b'Incorrect username or password' not in rv.data, rv.data
+        assert b'Incorrect username' not in rv.data, rv.data
         if accept_agreement and username != 'sign-test@fwupd.org':
             rv = self.app.get('/lvfs/agreement/1/accept', follow_redirects=True)
             assert b'Recorded acceptance of the agreement' in rv.data, rv.data
@@ -180,9 +180,9 @@ class LvfsTestCase(unittest.TestCase):
         rv = self._logout()
         assert b'/lvfs/upload' not in rv.data, rv.data
         rv = self._login('sign-test@fwupd.orgx', u'default')
-        assert b'Incorrect username or password' in rv.data, rv.data
+        assert b'Incorrect username' in rv.data, rv.data
         rv = self._login('sign-test@fwupd.org', u'defaultx')
-        assert b'Incorrect username or password' in rv.data, rv.data
+        assert b'Incorrect password' in rv.data, rv.data
 
     def test_upload_invalid(self):
 

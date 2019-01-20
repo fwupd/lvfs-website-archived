@@ -14,7 +14,6 @@ from app import app, db
 from .emails import send_email
 from .util import _error_internal, _error_permission_denied, _email_check, _generate_password
 from .models import User, Vendor, Remote, Firmware, Event, FirmwareEvent
-from .hash import _password_hash
 
 def _password_check(value):
     """ Check the password for suitability """
@@ -57,11 +56,8 @@ def user_modify(user_id):
         return _error_permission_denied('Unable to change user as no data')
     if not 'display_name' in request.form:
         return _error_permission_denied('Unable to change user as no data')
-    old_password_hash = _password_hash(request.form['password_old'])
-    user = db.session.query(User).\
-            filter(User.user_id == user_id).\
-            filter(User.password == old_password_hash).first()
-    if not user:
+    user = db.session.query(User).filter(User.user_id == user_id).first()
+    if not user.verify_password(request.form['password_old']):
         flash('Failed to modify profile: Incorrect existing password', 'danger')
         return redirect(url_for('.profile'), 302)
 
@@ -69,6 +65,9 @@ def user_modify(user_id):
     password = request.form['password_new']
     if not _password_check(password):
         return redirect(url_for('.profile'), 302)
+
+    # password_ts is only updated if it's different
+    user.password = password
 
     # verify name
     display_name = request.form['display_name']
@@ -85,12 +84,6 @@ def user_modify(user_id):
             flash('Failed to modify profile: Human user %s not found' % username, 'warning')
             return redirect(url_for('.profile'), 302)
         user.human_user_id = human_user.user_id
-
-    # hash the provided password
-    password_hash = _password_hash(password)
-    if password_hash != user.password:
-        user.password = password_hash
-        user.password_ts = datetime.datetime.utcnow()
 
     # save to database
     user.display_name = display_name
@@ -115,7 +108,7 @@ def user_reset_by_admin(user_id):
 
     # password is stored hashed
     password = _generate_password()
-    user.password = _password_hash(password)
+    user.password = password
     user.mtime = datetime.datetime.utcnow()
     user.password_ts = None
     db.session.commit()
@@ -193,7 +186,7 @@ def user_modify_by_admin(user_id):
 
     # password is optional, and hashed
     if 'password' in request.form and request.form['password']:
-        user.password = _password_hash(request.form['password'])
+        user.password = request.form['password']
 
     # was disabled?
     if user.auth_type == 'disabled':
@@ -276,7 +269,7 @@ def user_recover_with_secret(secret):
 
     # password is stored hashed
     password = _generate_password()
-    user.password = _password_hash(password)
+    user.password = password
     user.password_ts = None
     user.password_recovery = None
     user.password_recovery_ts = None
@@ -380,10 +373,10 @@ def user_add():
         db.session.add(vendor)
         db.session.commit()
     user = User(username=username,
-                password=_password_hash(password),
                 auth_type='local',
                 display_name=display_name,
                 vendor_id=vendor.vendor_id)
+    user.password = password
     db.session.add(user)
     db.session.commit()
     flash('Added user %i and an email has been sent to the user' % user.user_id, 'info')

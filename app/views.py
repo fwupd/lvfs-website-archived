@@ -28,7 +28,7 @@ from .pluginloader import PluginError
 
 from .models import Firmware, Requirement, Component, Vendor, Protocol
 from .models import User, Analytic, Client, Event, Useragent, _get_datestr_from_datetime
-from .hash import _password_hash, _addr_hash
+from .hash import _addr_hash
 from .util import _get_client_address, _get_settings, _xml_from_markdown
 from .util import _error_permission_denied, _event_log, _error_internal
 
@@ -284,7 +284,7 @@ def index():
     user = db.session.query(User).filter(User.username == 'admin').first()
     settings = _get_settings()
     default_admin_password = False
-    if user and user.password == u'5459dbe5e9aa80e077bfa40f3fb2ca8368ed09b4':
+    if user and user.password_hash == u'5459dbe5e9aa80e077bfa40f3fb2ca8368ed09b4':
         default_admin_password = True
     server_warning = ''
     if 'server_warning' in settings:
@@ -318,24 +318,28 @@ def _create_user_for_oauth_username(username):
 def login():
     """ A login screen to allow access to the LVFS main page """
     # auth check
-    user = db.session.query(User).\
-            filter(User.username == request.form['username']).\
-            filter(User.password == _password_hash(request.form['password'])).first()
-    if not user:
+    user = db.session.query(User).filter(User.username == request.form['username']).first()
+    if user:
+        if user.auth_type == 'oauth':
+            flash('Failed to log in as %s: Only OAuth can be used for this user' % user.username, 'danger')
+            return redirect(url_for('.index'))
+        if not user.verify_password(request.form['password']):
+            flash('Failed to log in: Incorrect password for %s' % request.form['username'], 'danger')
+            return redirect(url_for('.index'))
+    else:
         # check OAuth, user is NOT added to the database
         user = _create_user_for_oauth_username(request.form['username'])
-    if not user:
-        flash('Failed to log in: Incorrect username or password for %s' % request.form['username'], 'danger')
-        return redirect(url_for('.index'))
+        if not user:
+            flash('Failed to log in: Incorrect username %s' % request.form['username'], 'danger')
+            return redirect(url_for('.index'))
+
+    # check auth type
     if not user.auth_type or user.auth_type == 'disabled':
         if user.dtime:
             flash('Failed to log in as %s: User account was disabled on %s' %
                   (request.form['username'], user.dtime.strftime('%Y-%m-%d')), 'danger')
         else:
             flash('Failed to log in as %s: User account is disabled' % request.form['username'], 'danger')
-        return redirect(url_for('.index'))
-    if user.auth_type == 'oauth':
-        flash('Failed to log in as %s: Only OAuth can be used to log in for this user' % user.username, 'danger')
         return redirect(url_for('.index'))
 
     # success
