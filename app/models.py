@@ -13,6 +13,7 @@ import re
 from gi.repository import AppStreamGlib
 
 from flask import g, url_for
+from werkzeug.security import generate_password_hash, check_password_hash
 
 from sqlalchemy import Column, Integer, String, Text, Boolean, DateTime, ForeignKey, Unicode, Index
 from sqlalchemy.orm import relationship
@@ -98,7 +99,7 @@ class User(db.Model):
 
     user_id = Column(Integer, primary_key=True, unique=True, nullable=False)
     username = Column(String(80), nullable=False, index=True)
-    password_hash = Column('password', String(40), default=None)
+    password_hash = Column('password', String(128), default=None)
     password_ts = Column(DateTime, default=None)
     password_recovery = Column(String(40), default=None)
     password_recovery_ts = Column(DateTime, default=None)
@@ -153,13 +154,19 @@ class User(db.Model):
 
     @password.setter
     def password(self, password):
-        password_hash = _password_hash(password)
+        password_hash = generate_password_hash(password)
         if password_hash != self.password_hash:
             self.password_ts = datetime.datetime.utcnow()
         self.password_hash = password_hash
 
     def verify_password(self, password):
-        return self.password_hash == _password_hash(password)
+        # on success, upgrade the old hashing function to the new secure one
+        if len(self.password_hash) == 40:
+            if self.password_hash != _password_hash(password):
+                return False
+            self.password = password
+            return True
+        return check_password_hash(self.password_hash, password)
 
     def check_acl(self, action=None):
 
