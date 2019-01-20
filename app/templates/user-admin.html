@@ -123,6 +123,14 @@
           </label>
         </span>
 {% endif %}
+{% if g.user.check_acl('@add-attribute-manager') %}
+        <span class="switch mt-3 mb-3">
+          <input class="switch mt-3" type="checkbox" name="is_otp_enabled" id="is_otp_enabled" value="1" {{'checked' if u.is_otp_enabled}}>
+          <label for="is_otp_enabled">
+            Two factor authentication is required
+          </label>
+        </span>
+{% endif %}
       </div>
     </div>
   </fieldset>

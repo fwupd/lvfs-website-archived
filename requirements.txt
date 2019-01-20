@@ -8,3 +8,5 @@ humanize
 sqlalchemy
 blinker
 python-gnupg
+pyqrcode
+onetimepass

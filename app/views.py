@@ -342,6 +342,15 @@ def login():
             flash('Failed to log in as %s: User account is disabled' % request.form['username'], 'danger')
         return redirect(url_for('.index'))
 
+    # check OTP
+    if user.is_otp_enabled:
+        if not request.form['otp']:
+            flash('Failed to log in: 2FA OTP required', 'danger')
+            return redirect(url_for('.index'))
+        if not user.verify_totp(request.form['otp']):
+            flash('Failed to log in: Incorrect 2FA OTP', 'danger')
+            return redirect(url_for('.index'))
+
     # success
     login_user(user, remember=False)
     g.user = user

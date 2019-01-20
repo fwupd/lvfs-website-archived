@@ -10,6 +10,8 @@ import datetime
 import fnmatch
 import re
 
+import onetimepass
+
 from gi.repository import AppStreamGlib
 
 from flask import g, url_for
@@ -19,7 +21,7 @@ from sqlalchemy import Column, Integer, String, Text, Boolean, DateTime, Foreign
 from sqlalchemy.orm import relationship
 
 from app import db
-from .hash import _qa_hash, _password_hash
+from .hash import _qa_hash, _password_hash, _otp_hash
 from .util import _generate_password, _xml_from_markdown, _get_update_description_problems
 
 class SecurityClaim(object):
@@ -103,6 +105,7 @@ class User(db.Model):
     password_ts = Column(DateTime, default=None)
     password_recovery = Column(String(40), default=None)
     password_recovery_ts = Column(DateTime, default=None)
+    otp_secret = Column(String(16))
     display_name = Column(Unicode, default=None)
     vendor_id = Column(Integer, ForeignKey('vendors.vendor_id'), nullable=False)
     auth_type = Column(Text, default='disabled')
@@ -113,6 +116,8 @@ class User(db.Model):
     is_vendor_manager = Column(Boolean, default=False)
     is_approved_public = Column(Boolean, default=False)
     is_admin = Column(Boolean, default=False)
+    is_otp_enabled = Column(Boolean, default=False)
+    is_otp_working = Column(Boolean, default=False)
     agreement_id = Column(Integer, ForeignKey('agreements.agreement_id'))
     ctime = Column(DateTime, nullable=False, default=datetime.datetime.utcnow)
     mtime = Column(DateTime, nullable=False, default=datetime.datetime.utcnow)
@@ -135,7 +140,8 @@ class User(db.Model):
 
     def __init__(self, username, password_hash=None, display_name=None,
                  vendor_id=None, auth_type='disabled', is_analyst=False, is_qa=False,
-                 is_admin=False, is_vendor_manager=False, is_approved_public=False):
+                 is_admin=False, is_vendor_manager=False, is_approved_public=False,
+                 is_otp_enabled=False):
         """ Constructor for object """
         self.username = username
         self.password_hash = password_hash
@@ -147,6 +153,11 @@ class User(db.Model):
         self.is_admin = is_admin
         self.is_vendor_manager = is_vendor_manager
         self.is_approved_public = is_approved_public
+        self.is_otp_enabled = is_otp_enabled
+
+        # generate a random secret
+        if self.otp_secret is None:
+            self.otp_secret = _otp_hash()
 
     @property
     def password(self):
@@ -167,6 +178,13 @@ class User(db.Model):
             self.password = password
             return True
         return check_password_hash(self.password_hash, password)
+
+    def get_totp_uri(self):
+        return 'otpauth://totp/LVFS:{0}?secret={1}&issuer=LVFS' \
+            .format(self.username, self.otp_secret)
+
+    def verify_totp(self, token):
+        return onetimepass.valid_totp(token, self.otp_secret)
 
     def check_acl(self, action=None):
 

@@ -37,10 +37,67 @@
     </div>
 {% endif %}
     <div class="form-group row">
+      <div class="col-sm-2">Two Factor Auth</div>
+      <div class="col-sm-10">
+        <span class="switch mt-3 mb-3">
+          <input class="switch mt-3" type="checkbox" name="is_otp_enabled" id="is_otp_enabled" value="1" {{'checked' if u.is_otp_enabled}} {{'disabled' if not u.is_otp_working}}>
+          <label for="is_otp_enabled">
+            Using OTP secures your account more than using just using a password.
+          </label>
+        </span>
+{% if g.user.is_otp_working %}
+        <button type="button" class="btn btn-secondary float-right" data-toggle="modal" data-target="#otpSetupModal">
+          Show QR Code
+        </button>
+{% else %}
+        <button type="button" class="btn btn-secondary float-right" data-toggle="modal" data-target="#otpSetupModal">
+          Set up using QR code
+        </button>
+{% endif %}
+      </div>
+    </div>
+    <div class="form-group row">
       <div class="col-sm-2"></div>
       <div class="col-sm-10">
     <input type="submit" class="btn btn-primary btn-large" class="submit" value="Modify">
       </div>
     </div>
   </form>
+
+<!-- Modal -->
+<div class="modal" id="otpSetupModal" tabindex="-1" role="dialog" aria-labelledby="otpSetupModalLabel" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="otpSetupModalLabel">Setup OTP</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <p>
+          Please use <a href="https://freeotp.github.io/">FreeOTP</a>,
+          <a href="https://play.google.com/store/apps/details?id=com.google.android.apps.authenticator2">Google Authenticator</a>
+          or any other suitable OTP application to scan this QR code:
+        </p>
+        <p class="text-center">
+          <img id="qrcode" src="{{ url_for('user_qrcode') }}">
+        </p>
+        <form method="post" action="{{url_for('.user_otp_test')}}">
+          <div class="form-group">
+            <label for="otp">Test your OTP code:</label>
+            <input id="otp" class="form-control" type="password" name="otp" placeholder="123456" aria-label="OTP">
+          </div>
+          <button class="btn btn-primary btn-block" type="submit">
+            <b>Test OTP</b>
+          </button>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 {% endblock %}

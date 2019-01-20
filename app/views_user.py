@@ -6,6 +6,9 @@
 
 import datetime
 
+from io import BytesIO
+import pyqrcode
+
 from flask import request, flash, url_for, redirect, render_template, g
 from flask_login import login_required
 
@@ -69,6 +72,15 @@ def user_modify(user_id):
     # password_ts is only updated if it's different
     user.password = password
 
+    # unchecked checkbuttons are not included in the form data
+    for key in ['is_otp_enabled']:
+        setattr(user, key, True if key in request.form else False)
+
+    # user has to have tested OTP before it can be enabled
+    if user.is_otp_enabled and not user.is_otp_working:
+        flash('Failed to modify profile: OTP has not been tested', 'warning')
+        return redirect(url_for('.profile'), 302)
+
     # verify name
     display_name = request.form['display_name']
     if len(display_name) < 3:
@@ -90,6 +102,48 @@ def user_modify(user_id):
     user.mtime = datetime.datetime.utcnow()
     db.session.commit()
     flash('Updated profile', 'info')
+    return redirect(url_for('.profile'))
+
+@app.route('/lvfs/user/qrcode')
+@login_required
+def user_qrcode():
+
+    # security check
+    if not g.user.check_acl('@view-profile'):
+        return _error_permission_denied('Unable to view profile as account locked')
+
+    # render qrcode for FreeTOTP
+    url = pyqrcode.create(g.user.get_totp_uri())
+    stream = BytesIO()
+    url.svg(stream, scale=5)
+    return stream.getvalue(), 200, {
+        'Content-Type': 'image/svg+xml',
+        'Cache-Control': 'no-cache, no-store, must-revalidate',
+        'Pragma': 'no-cache',
+        'Expires': '0'}
+
+@app.route('/lvfs/user/otp_test', methods=['POST'])
+@login_required
+def user_otp_test():
+
+    # security check
+    if not g.user.check_acl('@view-profile'):
+        return _error_permission_denied('Unable to view profile as account locked')
+
+    # check was sent
+    if not 'otp' in request.form or not request.form['otp']:
+        flash('2FA OTP not set, cannot test', 'warning')
+        return redirect(url_for('.profile'))
+
+    # do dummy test
+    if not g.user.verify_totp(request.form['otp']):
+        flash('Incorrect 2FA OTP, please check time and date', 'warning')
+        return redirect(url_for('.profile'))
+
+    # success
+    g.user.is_otp_working = True
+    db.session.commit()
+    flash('Correct 2FA OTP, it worked!', 'success')
     return redirect(url_for('.profile'))
 
 @app.route('/lvfs/user/<int:user_id>/reset_by_admin')
@@ -181,7 +235,8 @@ def user_modify_by_admin(user_id):
             user.human_user_id = None
 
     # unchecked checkbuttons are not included in the form data
-    for key in ['is_qa', 'is_analyst', 'is_vendor_manager', 'is_approved_public', 'is_robot', 'is_admin']:
+    for key in ['is_qa', 'is_analyst', 'is_vendor_manager',
+                'is_approved_public', 'is_robot', 'is_admin', 'is_otp_enabled']:
         setattr(user, key, True if key in request.form else False)
 
     # password is optional, and hashed
