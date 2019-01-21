@@ -179,6 +179,18 @@ def _generate_metadata_kind(filename, fws, firmware_baseuri='', local=False):
             if md.release_description:
                 rel.append(_xml_from_markdown(md.release_description))
 
+            # add details URL if set
+            if md.details_url:
+                child = ET.SubElement(rel, 'url')
+                child.set('type', 'details')
+                child.text = md.details_url
+
+            # add source URL if set
+            if md.source_url:
+                child = ET.SubElement(rel, 'url')
+                child.set('type', 'source')
+                child.text = md.source_url
+
             # add sizes if set
             if md.release_installed_size:
                 sz = ET.SubElement(rel, 'size')

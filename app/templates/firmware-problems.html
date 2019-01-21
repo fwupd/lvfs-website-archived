@@ -100,6 +100,13 @@
         <code>{{problem.description}}</code>
       </p>
     </td>
+{% elif problem.kind == 'no-source' %}
+    <td class="col-sm-7">
+      <p class="card-text">
+        Firmware that uses the GNU General Public License has to provide a link
+        to the source code used to build the firmware.
+      </p>
+    </td>
 {% else %}
     <td class="col-sm-7">
       <p class="card-text">

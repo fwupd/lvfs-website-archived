@@ -110,6 +110,12 @@ def firmware_component_modify(component_id):
     if 'description' in request.form:
         md.release_description = _sanitize_markdown_text(request.form['description'])
         page = 'update'
+    if 'details_url' in request.form:
+        md.details_url = request.form['details_url']
+        page = 'update'
+    if 'source_url' in request.form:
+        md.source_url = request.form['source_url']
+        page = 'update'
 
     # ensure the test has been added for the new firmware type
     ploader.ensure_test_for_fw(md.fw)

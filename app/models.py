@@ -70,6 +70,8 @@ class Problem(object):
             return 'Firmware is not valid'
         if self.kind == 'test-pending':
             return 'Firmware tests are pending'
+        if self.kind == 'no-source':
+            return 'No source code link'
         return 'Unknown problem %s' % self.kind
 
     @property
@@ -755,6 +757,8 @@ class Component(db.Model):
     summary = Column(Unicode, default=None)
     description = Column(Unicode, default=None)         # markdown format
     release_description = Column(Unicode, default=None) # markdown format
+    details_url = Column(Text, default=None)
+    source_url = Column(Text, default=None)
     url_homepage = Column(Unicode, default=None)
     metadata_license = Column(Text, default=None)
     project_license = Column(Text, default=None)
@@ -801,6 +805,8 @@ class Component(db.Model):
         self.checksum_contents = None       # SHA1 of the firmware.bin
         self.release_description = None
         self.release_timestamp = 0
+        self.details_url = None
+        self.source_url = None
         self.developer_name = None
         self.metadata_license = None
         self.project_license = None
@@ -837,6 +843,12 @@ class Component(db.Model):
         if self.checksum_contents:
             sc.add_attr('contents-checksum', 'Added to the LVFS by %s' % self.fw.vendor.display_name)
         return sc
+
+    @property
+    def requires_source_url(self):
+        if self.project_license.find('GPL') != -1:
+            return True
+        return False
 
     @property
     def version_display(self):
@@ -902,6 +914,15 @@ class Component(db.Model):
                               'Update protocol is not public')
             problem.url = url_for('.firmware_component_show',
                                   component_id=self.component_id)
+            problems.append(problem)
+
+        # some firmware requires a source URL
+        if self.requires_source_url and not self.source_url:
+            problem = Problem('no-source',
+                              'Update does not link to source code')
+            problem.url = url_for('.firmware_component_show',
+                                  component_id=self.component_id,
+                                  page='update')
             problems.append(problem)
 
         # set the URL for the component

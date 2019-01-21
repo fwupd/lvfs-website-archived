@@ -145,8 +145,10 @@ def anonymize_db(db):
             md.name = device_names_existing[md.name]
             md.summary = 'Firmware for the ' + md.name
             md.description = None
+            md.source_url = None
             md.release_description = 'This fixes some bugs'
             md.url_homepage = 'https://www.' + fw.vendor.username_glob[2:]
+            md.details_url = 'https://www.' + fw.vendor.username_glob[2:]
             md.developer_name = fw.vendor.display_name
             md.filename_contents = 'firmware.bin'
             md.release_timestamp = 0

@@ -24,6 +24,18 @@
     <th class="col-sm-3">Update Description</th>
     <td class="col-sm-9">{{md.release_description}}</td>
   </tr>
+{% if md.details_url %}
+  <tr class="row">
+    <th class="col-sm-3">Update URL</th>
+    <td class="col-sm-9">{{md.details_url}}</td>
+  </tr>
+{% endif %}
+{% if md.source_url %}
+  <tr class="row">
+    <th class="col-sm-3">Source URL</th>
+    <td class="col-sm-9">{{md.source_url}}</td>
+  </tr>
+{% endif %}
   <tr class="row">
     <th class="col-sm-3">Update Requirements</th>
     <td class="col-sm-9">{{md.requirements|join(',')}}</td>
@@ -69,6 +81,26 @@
       </p>
     </td>
   </tr>
+  <tr class="row table-borderless">
+    <th class="col-sm-3">Update URL</th>
+    <td class="col-sm-9">
+      <input class="form-control" type="test" name="details_url" value="{{md.details_url if md.details_url}}"/>
+      <p class="text-secondary">
+        The optional URL listed here should refer specifically to this firmware release.
+      </p>
+    </td>
+  </tr>
+{% if md.requires_source_url %}
+  <tr class="row table-borderless">
+    <th class="col-sm-3">Source URL</th>
+    <td class="col-sm-9">
+      <input class="form-control" type="test" name="source_url" value="{{md.source_url if md.source_url}}"/>
+      <p class="text-secondary">
+        The source URL listed here should refer specifically to the code used to built this exact firmware release.
+      </p>
+    </td>
+  </tr>
+{% endif %}
   <tr class="row table-borderless">
     <th class="col-sm-3">Install Duration</th>
     <td class="col-sm-9">
