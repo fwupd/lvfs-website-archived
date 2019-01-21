@@ -65,7 +65,7 @@
 {% endif %}
     </td>
     <td class="col-sm-11">
-      <a href="/lvfs/component/{{md.component_id}}/all">Firmware: {{md.name}}</a><br/>
+      <a href="{{url_for('.device_guid', guid=md.guids[0].value)}}">Firmware: {{md.name}}</a><br/>
       Vendor: {{md.developer_name}}<br/>
       Latest Version: {{md.version}}
     </td>

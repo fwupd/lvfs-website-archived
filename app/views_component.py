@@ -11,7 +11,7 @@ from sqlalchemy import func
 
 from app import app, db, ploader
 
-from .models import Requirement, Component, Keyword, Firmware, Checksum
+from .models import Requirement, Component, Keyword, Checksum
 from .models import Protocol, Report, ReportAttribute
 from .util import _error_internal, _error_permission_denied
 
@@ -57,29 +57,6 @@ def firmware_component_problems():
             continue
         mds.append(md)
     return render_template('component-problems.html', mds=mds)
-
-@app.route('/lvfs/component/<int:component_id>/all')
-def firmware_component_all(component_id):
-
-    # get firmware component
-    md = db.session.query(Component).filter(Component.component_id == component_id).first()
-    if not md:
-        return _error_internal('No component matched!')
-
-    # get all the firmwares that target this component
-    fws = []
-    for fw in db.session.query(Firmware).\
-                    order_by(Firmware.timestamp.desc()).all():
-        if not fw.remote.is_public:
-            continue
-        if not fw.mds:
-            continue
-        for md_tmp in fw.mds:
-            if md_tmp.appstream_id != md.appstream_id:
-                continue
-            fws.append(fw)
-            break
-    return render_template('device.html', fws=fws)
 
 def _is_sha1(text):
     if len(text) != 40:
