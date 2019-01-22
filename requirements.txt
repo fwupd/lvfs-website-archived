@@ -1,0 +1,10 @@
+flask-mail
+flask-migrate
+flask-wtf
+flask-login
+flask_oauthlib
+lxml
+humanize
+sqlalchemy
+blinker
+python-gnupg
