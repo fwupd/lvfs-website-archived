@@ -1,0 +1,56 @@
+{% extends "default.html" %}
+{% block title %}Sign In{% endblock %}
+
+{% block content %}
+
+<form method="post" action="{{url_for('.login')}}">
+  <input type="hidden" name="username" value="{{u.username}}">
+
+<div class="card w-75 mx-auto mt-5 mb-5">
+  <div class="card-body">
+
+    <div class="media p-1">
+      <img class="d-flex mr-3" src="/avatar.png" width="96" alt="LVFS Logo">
+      <div class="media-body">
+        <h5 class="mt-0">Sign in as <code>{{u.username}}</code></h5>
+      <a class="text-secondary" href="{{url_for('.user_recover')}}">Forgot password?</a>
+      </div>
+    </div>
+    <div class="form-group input-group mt-4">
+      <div class="input-group-prepend">
+        <span class="input-group-text" id="inputGroup-password">Password</span>
+      </div>
+      <input id="password" class="form-control" type="password" name="password" placeholder="Password"
+        aria-label="Password" aria-describedby="inputGroup-password" required>
+    </div>
+{% if u.is_otp_enabled %}
+    <div class="form-group input-group mt-1">
+      <div class="input-group-prepend">
+        <span class="input-group-text" id="inputGroup-otp">2FA OTP</span>
+      </div>
+      <input id="password" class="form-control" type="password" name="otp" placeholder="123456"
+        aria-label="OTP" aria-describedby="inputGroup-otp" required>
+    </div>
+{% endif %}
+
+    <table class="table mb-0 mt-5">
+      <tr class="row table-borderless">
+        <td class="col-sm-4 pt-0 pb-0">
+          <a class="btn btn-block btn-outline-secondary" href="{{url_for('.login1')}}">
+            Cancel
+          </a>
+        </th>
+        <td class="col-sm-4 pt-0 pb-0">&nbsp;</th>
+        <td class="col-sm-4 pt-0 pb-0">
+          <button class="btn btn-primary btn-block" type="submit">
+            Next
+          </button>
+        </th>
+      </tr>
+    </table>
+  </div>
+</div>
+
+</form>
+
+{% endblock %}

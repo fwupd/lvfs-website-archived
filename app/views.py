@@ -314,6 +314,26 @@ def _create_user_for_oauth_username(username):
             break
     return user
 
+# unauthenticed
+@app.route('/lvfs/login1')
+def login1():
+    if hasattr(g, 'user') and g.user:
+        flash('You are already logged in', 'warning')
+        return redirect(url_for('.index'))
+    return render_template('login1.html')
+
+# unauthenticed
+@app.route('/lvfs/login1', methods=['POST'])
+def login1_response():
+    if 'username' not in request.form:
+        flash('Username not specified', 'warning')
+        return redirect(url_for('.login1'))
+    user = db.session.query(User).filter(User.username == request.form['username']).first()
+    if not user:
+        flash('Failed to log in: Incorrect username %s' % request.form['username'], 'danger')
+        return redirect(url_for('.login1'))
+    return render_template('login2.html', u=user)
+
 @app.route('/lvfs/login', methods=['POST'])
 def login():
     """ A login screen to allow access to the LVFS main page """
@@ -325,7 +345,7 @@ def login():
             return redirect(url_for('.index'))
         if not user.verify_password(request.form['password']):
             flash('Failed to log in: Incorrect password for %s' % request.form['username'], 'danger')
-            return redirect(url_for('.index'))
+            return redirect(url_for('.login1'))
     else:
         # check OAuth, user is NOT added to the database
         user = _create_user_for_oauth_username(request.form['username'])
@@ -344,12 +364,12 @@ def login():
 
     # check OTP
     if user.is_otp_enabled:
-        if not request.form['otp']:
+        if 'otp' not in request.form or not request.form['otp']:
             flash('Failed to log in: 2FA OTP required', 'danger')
-            return redirect(url_for('.index'))
+            return redirect(url_for('.login1'))
         if not user.verify_totp(request.form['otp']):
             flash('Failed to log in: Incorrect 2FA OTP', 'danger')
-            return redirect(url_for('.index'))
+            return redirect(url_for('.login1'))
 
     # success
     login_user(user, remember=False)

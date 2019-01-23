@@ -23,3 +23,10 @@ input[type=text].fixed-width
     font-family: monospace;
     font-size: 110%;
 }
+
+.input-group>.input-group-prepend {
+    flex: 0 0 30%;
+}
+.input-group .input-group-text {
+    width: 100%;
+}
