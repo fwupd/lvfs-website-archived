@@ -12,6 +12,9 @@ Password: {{ password }}
 If you have any questions about how to use this web service don't hesistate to ask for help. You should also change your password when you log in for the first time clicking menu items 'Profile' then 'User'.
 Here you can also optionally enable two factor authentication which is highly recommended.
 
+We also have an optional low-volume mailing list which is used to notify users of the LVFS about planned downtime and new features.
+Please subscribe to this list if this might be useful to you: https://lists.linuxfoundation.org/mailman/listinfo/lvfs-announce
+
 If you have not requested access to the LVFS please reply to this message to let us know that something has gone wrong.
 
 Regards,
