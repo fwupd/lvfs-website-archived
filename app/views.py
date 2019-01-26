@@ -253,7 +253,7 @@ def docs_vendors():
 @app.route('/lvfs/docs/metainfo')
 @app.route('/lvfs/docs/metainfo/<page>')
 def docs_metainfo(page='intro'):
-    if page not in ['intro', 'style', 'restrict', 'protocol', 'version']:
+    if page not in ['intro', 'style', 'restrict', 'protocol', 'version', 'urls']:
         return _error_internal('No metainfo page name %s' % page)
     protocols = db.session.query(Protocol).order_by(Protocol.protocol_id.asc()).all()
     return render_template('docs-metainfo-%s.html' % page,

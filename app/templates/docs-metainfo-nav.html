@@ -13,6 +13,9 @@
       <a class="nav-link {% if page == 'version' %}active{% endif %}" href="{{url_for('.docs_metainfo', page='version')}}">Version Format</a>
     </li>
     <li class="nav-item">
+      <a class="nav-link {% if page == 'urls' %}active{% endif %}" href="{{url_for('.docs_metainfo', page='urls')}}">URLs</a>
+    </li>
+    <li class="nav-item">
       <a class="nav-link {% if page == 'style' %}active{% endif %}" href="{{url_for('.docs_metainfo', page='style')}}">Style Guide</a>
     </li>
   </ul>
