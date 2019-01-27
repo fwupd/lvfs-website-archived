@@ -1,4 +1,4 @@
-#!/usr/bin/python2
+#!/usr/bin/python3
 # -*- coding: utf-8 -*-
 #
 # Copyright (C) 2018 Richard Hughes <richard@hughsie.com>
@@ -24,7 +24,7 @@ def agreement_show(agreement_id=None):
         agreement = db.session.query(Agreement).\
                         order_by(Agreement.version.desc()).first()
     if not agreement:
-        agreement = Agreement(version=1, text=u'No agreement text found')
+        agreement = Agreement(version=1, text='No agreement text found')
         db.session.add(agreement)
         db.session.commit()
     return render_template('agreement.html', agreement=agreement)
@@ -50,7 +50,7 @@ def agreement_create():
         return _error_permission_denied('Only admin is allowed to create agreements')
 
     # create something
-    agreement = Agreement(version=1, text=u'New agreement text')
+    agreement = Agreement(version=1, text='New agreement text')
     db.session.add(agreement)
     db.session.commit()
     flash('Created agreement')

@@ -18,4 +18,4 @@ def upgrade():
     op.drop_column('users', 'username_old')
 
 def downgrade():
-    op.add_column('users', sa.Column('username_old', mysql.TEXT(charset=u'utf8'), nullable=True))
+    op.add_column('users', sa.Column('username_old', mysql.TEXT(charset='utf8'), nullable=True))

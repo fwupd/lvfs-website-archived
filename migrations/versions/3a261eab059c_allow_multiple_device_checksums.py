@@ -25,8 +25,8 @@ def upgrade():
     sa.UniqueConstraint('checksum_id'),
     mysql_character_set='utf8mb4'
     )
-    op.drop_column(u'components', 'checksum_device')
+    op.drop_column('components', 'checksum_device')
 
 def downgrade():
-    op.add_column(u'components', sa.Column('checksum_device', mysql.VARCHAR(length=40), nullable=True))
+    op.add_column('components', sa.Column('checksum_device', mysql.VARCHAR(length=40), nullable=True))
     op.drop_table('checksums')

@@ -1,4 +1,4 @@
-#!/usr/bin/python2
+#!/usr/bin/python3
 # -*- coding: utf-8 -*-
 #
 # Copyright (C) 2017-2018 Richard Hughes <richard@hughsie.com>
@@ -124,7 +124,7 @@ def analytics_user_agents(timespan_days=30):
 
     # find most popular user agent strings
     most_popular = []
-    for key, value in sorted(cnt_total.iteritems(), key=lambda (k, v): (v, k), reverse=True):
+    for key, value in sorted(iter(cnt_total.items()), key=lambda k_v: (k_v[1], k_v[0]), reverse=True):
         most_popular.append(key)
         if len(most_popular) >= 6:
             break

@@ -1,12 +1,10 @@
-#!/usr/bin/python2
+#!/usr/bin/python3
 # -*- coding: utf-8 -*-
 #
 # Copyright (C) 2018 Richard Hughes <richard@hughsie.com>
 # Licensed under the GNU General Public License Version 2
 #
 # pylint: disable=no-self-use
-
-from __future__ import print_function
 
 import os
 import datetime
@@ -52,7 +50,8 @@ class Plugin(PluginBase):
 
         # read in the file and do substititons
         try:
-            template = open(settings['info_readme_template'], 'rb').read()
+            with open(settings['info_readme_template'], 'rb') as f:
+                template = f.read().decode('utf-8')
         except IOError as e:
             raise PluginError(e)
         for key in metadata:

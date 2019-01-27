@@ -1,4 +1,4 @@
-#!/usr/bin/python2
+#!/usr/bin/python3
 # -*- coding: utf-8 -*-
 #
 # Copyright (C) 2017-2018 Richard Hughes <richard@hughsie.com>
@@ -38,7 +38,6 @@ def _sanitize_markdown_text(txt):
     for line in txt.split('\n'):
         new_lines.append(line.strip())
     return '\n'.join(new_lines)
-
 
 @app.route('/lvfs/component/problems')
 @login_required

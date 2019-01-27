@@ -1,12 +1,10 @@
-#!/usr/bin/python2
+#!/usr/bin/python3
 # -*- coding: utf-8 -*-
 #
 # Copyright (C) 2015-2018 Richard Hughes <richard@hughsie.com>
 # Licensed under the GNU General Public License Version 2
 #
 # pylint: disable=too-many-locals
-
-from __future__ import print_function
 
 import os
 import datetime
@@ -68,22 +66,22 @@ def _create_fw_from_uploaded_file(ufile):
     for component in ufile.get_components():
         md = Component()
         md.appstream_id = component.get_id()
-        md.name = unicode(component.get_name())
-        md.summary = unicode(component.get_comment())
-        md.developer_name = unicode(component.get_developer_name())
+        md.name = str(component.get_name())
+        md.summary = str(component.get_comment())
+        md.developer_name = str(component.get_developer_name())
         md.metadata_license = component.get_metadata_license()
         md.project_license = component.get_project_license()
-        md.url_homepage = unicode(component.get_url_item(AppStreamGlib.UrlKind.HOMEPAGE))
-        md.description = _markdown_from_xml(unicode(component.get_description()))
+        md.url_homepage = str(component.get_url_item(AppStreamGlib.UrlKind.HOMEPAGE))
+        md.description = _markdown_from_xml(str(component.get_description()))
         md.priority = component.get_priority()
 
         # fix up the vendor
         if md.developer_name == 'LenovoLtd.':
-            md.developer_name = u'Lenovo Ltd.'
+            md.developer_name = 'Lenovo Ltd.'
 
         # add manually added keywords
         for keyword in component.get_keywords():
-            md.add_keywords_from_string(unicode(keyword), priority=5)
+            md.add_keywords_from_string(str(keyword), priority=5)
 
         # add from the provided free text
         if md.developer_name:
@@ -107,15 +105,15 @@ def _create_fw_from_uploaded_file(ufile):
             md.install_duration = rel.get_install_duration()
         else:
             md.install_duration = 0
-        md.release_description = _markdown_from_xml(unicode(rel.get_description()))
+        md.release_description = _markdown_from_xml(str(rel.get_description()))
         md.release_timestamp = rel.get_timestamp()
         md.release_installed_size = rel.get_size(AppStreamGlib.SizeKind.INSTALLED)
         md.release_download_size = rel.get_size(AppStreamGlib.SizeKind.DOWNLOAD)
         md.release_urgency = AppStreamGlib.urgency_kind_to_string(rel.get_urgency())
         if hasattr(AppStreamGlib.UrlKind, 'DETAILS'):
-            md.details_url = unicode(rel.get_url(AppStreamGlib.UrlKind.DETAILS)) # pylint: disable=no-member
+            md.details_url = str(rel.get_url(AppStreamGlib.UrlKind.DETAILS)) # pylint: disable=no-member
         if hasattr(AppStreamGlib.UrlKind, 'SOURCE'):
-            md.source_url = unicode(rel.get_url(AppStreamGlib.UrlKind.SOURCE)) # pylint: disable=no-member
+            md.source_url = str(rel.get_url(AppStreamGlib.UrlKind.SOURCE)) # pylint: disable=no-member
 
         # from requires
         for req in component.get_requires():
@@ -141,7 +139,7 @@ def _create_fw_from_uploaded_file(ufile):
             md.screenshot_caption = tmp
             if len(ss.get_images()) > 0:
                 im = ss.get_images()[0]
-                md.screenshot_url = unicode(im.get_url())
+                md.screenshot_url = str(im.get_url())
 
         # from the content checksum
         csum = rel.get_checksum_by_target(AppStreamGlib.ChecksumTarget.CONTENT)
@@ -156,7 +154,6 @@ def _create_fw_from_uploaded_file(ufile):
                         md.device_checksums.append(Checksum(csum.get_value(), 'SHA1'))
                     elif csum.get_kind() == GLib.ChecksumType.SHA256:
                         md.device_checksums.append(Checksum(csum.get_value(), 'SHA256'))
-
 
         fw.mds.append(md)
 
@@ -244,7 +241,7 @@ def upload():
         ufile = UploadedFile()
         ufile.parse(os.path.basename(fileitem.filename), fileitem.read())
     except (FileTooLarge, FileTooSmall, FileNotSupported, MetadataInvalid) as e:
-        flash('Failed to upload file: ' + unicode(e), 'danger')
+        flash('Failed to upload file: ' + str(e), 'danger')
         return redirect(request.url)
 
     # check the file does not already exist
@@ -331,7 +328,8 @@ def upload():
     if not os.path.exists(download_dir):
         os.mkdir(download_dir)
     fn = os.path.join(download_dir, ufile.filename_new)
-    open(fn, 'wb').write(cab_data)
+    with open(fn, 'wb') as f:
+        f.write(cab_data)
 
     # create parent firmware object
     target = request.form['target']
@@ -364,7 +362,6 @@ def upload():
                     filter(Protocol.value == metadata['LVFS::UpdateProtocol']).first()
             if pr:
                 md.protocol_id = pr.protocol_id
-
 
     # add to database
     fw.events.append(FirmwareEvent(remote.remote_id, g.user.user_id))
@@ -422,5 +419,6 @@ def upload_hwinfo():
     fn = os.path.join(hwinfo_dir, '%s' % request.form['machine_id'])
     if os.path.exists(fn):
         return _json_error('already reported from this machine-id')
-    open(fn, 'wb').write(filebuf)
+    with open(fn, 'wb') as f:
+        f.write(filebuf)
     return _json_success()

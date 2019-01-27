@@ -1,4 +1,4 @@
-#!/usr/bin/python2
+#!/usr/bin/python3
 # -*- coding: utf-8 -*-
 #
 # Copyright (C) 2017-2018 Richard Hughes <richard@hughsie.com>
@@ -147,7 +147,7 @@ def device_list():
         if desc in devices_seen:
             continue
         devices_seen[desc] = fw
-    devices = sorted(devices_seen.values(), key=lambda fw: fw.timestamp, reverse=True)
+    devices = sorted(list(devices_seen.values()), key=lambda fw: fw.timestamp, reverse=True)
 
     return render_template('devicelist.html',
                            vendors=sorted(vendors),

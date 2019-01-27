@@ -1,12 +1,10 @@
-#!/usr/bin/python2
+#!/usr/bin/python3
 # -*- coding: utf-8 -*-
 #
 # Copyright (C) 2015-2018 Richard Hughes <richard@hughsie.com>
 # Licensed under the GNU General Public License Version 2
 #
 # pylint: disable=singleton-comparison
-
-from __future__ import print_function
 
 import os
 import sys
@@ -36,9 +34,8 @@ def create_metadata(archive_dir, basename, metadata_fn):
                 continue
             print('Processing %s...' % filename)
             ufile = UploadedFile()
-            ufile.parse(filename,
-                        open(os.path.join(root, filename), 'r').read(),
-                        use_hashed_prefix=False)
+            with open(os.path.join(root, filename), 'r') as f:
+                ufile.parse(filename, f.read(), use_hashed_prefix=False)
             firmware = _create_fw_from_uploaded_file(ufile)
             fws.append(firmware)
 

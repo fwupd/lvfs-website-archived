@@ -1,4 +1,4 @@
-#!/usr/bin/python2
+#!/usr/bin/python3
 # -*- coding: utf-8 -*-
 #
 # Copyright (C) 2015-2018 Richard Hughes <richard@hughsie.com>
@@ -11,7 +11,7 @@ import hashlib
 import shutil
 import subprocess
 import tempfile
-import ConfigParser
+import configparser
 
 from gi.repository import GCab
 from gi.repository import Gio
@@ -80,12 +80,12 @@ def _repackage_archive(filename, buf, tmpdir=None):
     cffolder = GCab.Folder.new(GCab.Compression.MSZIP)
     arc.add_folder(cffolder)
     for fn in _listdir_recurse(dest_fn):
-        contents = open(fn).read()
+        with open(fn, 'rb') as f:
+            contents = f.read()
         cffile = GCab.File.new_with_bytes(_get_basename_safe(fn),
                                           GLib.Bytes.new(contents))
         cffolder.add_file(cffile, False)
     shutil.rmtree(dest_fn)
-    src.close()
     return arc
 
 def detect_encoding_from_bom(b):
@@ -105,7 +105,7 @@ def detect_encoding_from_bom(b):
     # fallback
     return "cp1252"
 
-class UploadedFile(object):
+class UploadedFile:
 
     def __init__(self):
         """ default public attributes """
@@ -150,17 +150,17 @@ class UploadedFile(object):
         cfg = InfParser()
         try:
             cfg.read_data(contents)
-        except ConfigParser.MissingSectionHeaderError as _:
+        except configparser.MissingSectionHeaderError as _:
             raise MetadataInvalid('The inf file could not be parsed')
         try:
             tmp = cfg.get('Version', 'Class')
-        except (ConfigParser.NoOptionError, ConfigParser.NoSectionError) as _:
+        except (configparser.NoOptionError, configparser.NoSectionError) as _:
             raise MetadataInvalid('The inf file Version:Class was missing')
         if tmp.lower() != 'firmware':
             raise MetadataInvalid('The inf file Version:Class was invalid')
         try:
             tmp = cfg.get('Version', 'ClassGuid')
-        except ConfigParser.NoOptionError as _:
+        except configparser.NoOptionError as _:
             raise MetadataInvalid('The inf file Version:ClassGuid was missing')
         if tmp.lower() != '{f2e7dd72-6468-4e36-b6f1-6488f42c1b52}':
             raise MetadataInvalid('The inf file Version:ClassGuid was invalid')
@@ -169,7 +169,7 @@ class UploadedFile(object):
             if len(tmp) != 2:
                 raise MetadataInvalid('The inf file Version:DriverVer was invalid')
             self.version_display = tmp[1]
-        except ConfigParser.NoOptionError as _:
+        except configparser.NoOptionError as _:
             pass
 
         # this is optional, but if supplied must match the version in the XML
@@ -180,7 +180,7 @@ class UploadedFile(object):
                 self._version_inf = str(int(self._version_inf[2:], 16))
             if self._version_inf == '0':
                 self._version_inf = None
-        except (ConfigParser.NoOptionError, ConfigParser.NoSectionError) as _:
+        except (configparser.NoOptionError, configparser.NoSectionError) as _:
             pass
 
     def _verify_infs(self):
@@ -216,7 +216,7 @@ class UploadedFile(object):
             try:
                 msg = e.message.decode('utf-8')
             except AttributeError:
-                msg = unicode(e)
+                msg = str(e)
             raise MetadataInvalid('The metadata %s could not be parsed: %s' % (cf.get_name(), msg))
 
         # add to the archive

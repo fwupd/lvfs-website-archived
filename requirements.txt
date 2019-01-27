@@ -11,4 +11,4 @@ python-gnupg
 pyqrcode
 onetimepass
 PyGObject
-mysqlclient
+PyMySQL

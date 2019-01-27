@@ -1,12 +1,10 @@
-#!/usr/bin/env python2
+#!/usr/bin/python3
 # -*- coding: utf-8 -*-
 #
 # Copyright (C) 2018 Richard Hughes <richard@hughsie.com>
 # Licensed under the GNU General Public License Version 2
 #
 # pylint: disable=too-few-public-methods,no-self-use
-
-from __future__ import print_function
 
 import os
 import sys
@@ -16,14 +14,14 @@ from .util import _event_log
 class PluginError(Exception):
     pass
 
-class PluginSettingText(object):
+class PluginSettingText:
 
     def __init__(self, key, name, default=''):
         self.key = key
         self.name = name
         self.default = default
 
-class PluginSettingBool(object):
+class PluginSettingBool:
 
     def __init__(self, key, name, default=False):
         self.key = key
@@ -33,7 +31,7 @@ class PluginSettingBool(object):
         else:
             self.default = 'disabled'
 
-class PluginBase(object):
+class PluginBase:
 
     def __init__(self, plugin_id=None):
         self.id = plugin_id
@@ -71,7 +69,7 @@ class PluginGeneral(PluginBase):
                                    'nvme'))
         return s
 
-class Pluginloader(object):
+class Pluginloader:
 
     def __init__(self, dirname='.'):
         self._dirname = dirname

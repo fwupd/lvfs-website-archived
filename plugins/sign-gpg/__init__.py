@@ -1,12 +1,10 @@
-#!/usr/bin/python2
+#!/usr/bin/python3
 # -*- coding: utf-8 -*-
 #
 # Copyright (C) 2018 Richard Hughes <richard@hughsie.com>
 # Licensed under the GNU General Public License Version 2
 #
 # pylint: disable=no-self-use
-
-from __future__ import print_function
 
 import os
 import gnupg
@@ -16,7 +14,7 @@ from app import ploader
 from app.util import _get_settings
 from app.util import _get_basename_safe, _archive_add, _archive_get_files_from_glob
 
-class Affidavit(object):
+class Affidavit:
 
     """ A quick'n'dirty signing server """
     def __init__(self, key_uid=None, homedir='/tmp'):
@@ -47,9 +45,10 @@ class Affidavit(object):
 
     def create_detached(self, filename):
         """ Create a detached signature file """
-        data = open(filename).read()
-        with open(filename + '.asc', 'w') as f:
-            f.write(self.create(data))
+        with open(filename) as fin:
+            data = fin.read()
+            with open(filename + '.asc', 'w') as f:
+                f.write(self.create(data))
         return filename + '.asc'
 
     def verify(self, data):
@@ -96,8 +95,8 @@ class Plugin(PluginBase):
         affidavit = Affidavit(settings['sign_gpg_metadata_uid'], settings['sign_gpg_keyring_dir'])
         if not affidavit:
             return
-        blob = open(fn, 'rb').read()
-        blob_asc = affidavit.create(blob)
+        with open(fn, 'rb').read() as blob:
+            blob_asc = affidavit.create(blob)
         fn_asc = fn + '.asc'
         with open(fn_asc, 'w') as f:
             f.write(blob_asc)

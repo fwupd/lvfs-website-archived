@@ -28,14 +28,14 @@ The official instance is set up using puppet on RHEL 7, on which you could use:
 
 You can set up the database manually using:
 
-    FLASK_APP=app/__init__.py flask-2 initdb
-    FLASK_APP=app/__init__.py flask-2 modifydb
+    FLASK_APP=app/__init__.py flask-3 initdb
+    FLASK_APP=app/__init__.py flask-3 modifydb
 
 ## Running locally ##
 
-    python2 -m virtualenv .env2
-    source .env2/bin/activate
-    pip2 install -r requirements.txt
+    python3 -m virtualenv .env3
+    source .env3/bin/activate
+    pip3 install -r requirements.txt
     FLASK_DEBUG=1 ./app.wsgi
 
 ## Generating a SSL certificate ##

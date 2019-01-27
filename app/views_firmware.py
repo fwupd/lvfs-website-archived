@@ -1,4 +1,4 @@
-#!/usr/bin/python2
+#!/usr/bin/python3
 # -*- coding: utf-8 -*-
 #
 # Copyright (C) 2017-2018 Richard Hughes <richard@hughsie.com>
@@ -316,7 +316,6 @@ def firmware_limit_add():
     db.session.commit()
     flash('Added limit', 'info')
     return redirect(url_for('.firmware_limits', firmware_id=fl.firmware_id))
-
 
 @app.route('/lvfs/firmware/<int:firmware_id>/affiliation')
 @login_required

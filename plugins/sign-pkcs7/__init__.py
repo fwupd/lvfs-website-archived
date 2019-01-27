@@ -1,12 +1,10 @@
-#!/usr/bin/python2
+#!/usr/bin/python3
 # -*- coding: utf-8 -*-
 #
 # Copyright (C) 2018 Richard Hughes <richard@hughsie.com>
 # Licensed under the GNU General Public License Version 2
 #
 # pylint: disable=no-self-use
-
-from __future__ import print_function
 
 import subprocess
 import tempfile
@@ -73,12 +71,14 @@ class Plugin(PluginBase):
             raise PluginError('Failed to sign: %s' % ps.stderr.read())
 
         # read back the temp file
-        return open(dst.name, 'rb').read()
+        with open(dst.name, 'rb') as f:
+            return f.read()
 
     def _metadata_modified(self, fn):
 
         # read in the file
-        blob = open(fn, 'rb').read()
+        with open(fn, 'rb') as fin:
+            blob = fin.read()
         blob_p7b = self._sign_blob(blob)
         if not blob_p7b:
             return

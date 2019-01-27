@@ -30,15 +30,15 @@ def upgrade():
         if event.message == 'Logged in' or event.message == 'Logged in, and created account':
             if not event.user.atime:
                 event.user.atime = event.timestamp
-                print('setting %s atime to %s' % (event.user.username, event.timestamp))
+                print(('setting %s atime to %s' % (event.user.username, event.timestamp)))
         elif event.message == 'Updated profile':
             if event.user.username not in user_mtimes:
                 event.user.mtime = event.timestamp
-                print('setting %s mtime to %s' % (event.user.username, event.timestamp))
+                print(('setting %s mtime to %s' % (event.user.username, event.timestamp)))
                 user_mtimes[event.user.username] = 1
         user_ctimes[event.user] = event.timestamp
     for user in user_ctimes:
-        print('setting %s ctime to %s' % (user.username, user_ctimes[user]))
+        print(('setting %s ctime to %s' % (user.username, user_ctimes[user])))
         user.ctime = user_ctimes[user]
     db.session.commit()
 

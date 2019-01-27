@@ -1,4 +1,4 @@
-#!/usr/bin/python2
+#!/usr/bin/python3
 # -*- coding: utf-8 -*-
 #
 # Copyright (C) 2018 Richard Hughes <richard@hughsie.com>
@@ -7,17 +7,15 @@
 # pylint: disable=fixme,too-many-public-methods,line-too-long,too-many-lines
 # pylint: disable=too-many-instance-attributes
 
-from __future__ import print_function
-
 import os
 import unittest
 import tempfile
 import subprocess
 import gzip
-import cStringIO
+import io
 
 def _gzip_decompress_buffer(buf):
-    fgz = cStringIO.StringIO()
+    fgz = io.BytesIO()
     fgz.write(buf)
     fgz.seek(0)
     with gzip.GzipFile(fileobj=fgz, mode='rb') as gzip_obj:
@@ -42,18 +40,17 @@ class LvfsTestCase(unittest.TestCase):
 
         # write out custom settings file
         self.cfg_fd, self.cfg_filename = tempfile.mkstemp()
-        cfgfile = open(self.cfg_filename, 'w')
-        cfgfile.write('\n'.join([
-            "SQLALCHEMY_DATABASE_URI = '%s'" % self.db_uri,
-            "DEBUG = True",
-            "RESTORE_DIR = '/tmp'",
-            "DOWNLOAD_DIR = '/tmp'",
-            "SECRET_PASSWORD_SALT = 'lvfs%%%'",
-            "SECRET_ADDR_SALT = 'addr%%%'",
-            "SECRET_VENDOR_SALT = 'vendor%%%'",
-            "MAIL_SUPPRESS_SEND = True",
-            ]))
-        cfgfile.close()
+        with open(self.cfg_filename, 'w') as cfgfile:
+            cfgfile.write('\n'.join([
+                "SQLALCHEMY_DATABASE_URI = '%s'" % self.db_uri,
+                "DEBUG = True",
+                "RESTORE_DIR = '/tmp'",
+                "DOWNLOAD_DIR = '/tmp'",
+                "SECRET_PASSWORD_SALT = 'lvfs%%%'",
+                "SECRET_ADDR_SALT = 'addr%%%'",
+                "SECRET_VENDOR_SALT = 'vendor%%%'",
+                "MAIL_SUPPRESS_SEND = True",
+                ]))
 
         # create instance
         import app as lvfs
@@ -117,7 +114,7 @@ class LvfsTestCase(unittest.TestCase):
             username=username,
             password_new=password,
             group_id=group_id,
-            display_name=u'Generic Name',
+            display_name='Generic Name',
         ), follow_redirects=True)
 
     def add_user(self, username='testuser@fwupd.org', group_id='testgroup',
@@ -125,7 +122,7 @@ class LvfsTestCase(unittest.TestCase):
                  is_vendor_manager=False, is_approved_public=False, is_robot=False):
         rv = self._add_user(username, group_id, password)
         assert b'Added user' in rv.data, rv.data
-        user_id_idx = rv.data.find('Added user ')
+        user_id_idx = rv.data.decode('utf-8').find('Added user ')
         assert user_id_idx != -1, rv.data
         user_id = int(rv.data[user_id_idx+11:user_id_idx+12])
         assert user_id != 0, rv.data
@@ -146,14 +143,14 @@ class LvfsTestCase(unittest.TestCase):
             assert b'Updated profile' in rv.data, rv.data
 
     def _upload(self, filename='contrib/hughski-colorhug2-2.0.3.cab', target='private', vendor_id=None):
-        fd = open(filename, 'rb')
-        data = {
-            'target': target,
-            'file': (fd, filename)
-        }
-        if vendor_id:
-            data['vendor_id'] = vendor_id
-        return self.app.post('/lvfs/upload', data=data, follow_redirects=True)
+        with open(filename, 'rb') as fd:
+            data = {
+                'target': target,
+                'file': (fd, filename)
+            }
+            if vendor_id:
+                data['vendor_id'] = vendor_id
+            return self.app.post('/lvfs/upload', data=data, follow_redirects=True)
 
     def _ensure_checksums_from_upload(self):
         # peek into the database to get the checksums
@@ -172,16 +169,16 @@ class LvfsTestCase(unittest.TestCase):
     def test_login_logout(self):
 
         # test logging in and out
-        rv = self._login('sign-test@fwupd.org', u'Pa$$w0rd')
+        rv = self._login('sign-test@fwupd.org', 'Pa$$w0rd')
         assert b'/lvfs/upload' in rv.data, rv.data
         rv = self._logout()
-        rv = self._login('sign-test@fwupd.org', u'Pa$$w0rd')
+        rv = self._login('sign-test@fwupd.org', 'Pa$$w0rd')
         assert b'/lvfs/upload' in rv.data, rv.data
         rv = self._logout()
         assert b'/lvfs/upload' not in rv.data, rv.data
-        rv = self._login('sign-test@fwupd.orgx', u'default')
+        rv = self._login('sign-test@fwupd.orgx', 'default')
         assert b'Incorrect username' in rv.data, rv.data
-        rv = self._login('sign-test@fwupd.org', u'defaultx')
+        rv = self._login('sign-test@fwupd.org', 'defaultx')
         assert b'Incorrect password' in rv.data, rv.data
 
     def test_upload_invalid(self):
@@ -201,12 +198,12 @@ class LvfsTestCase(unittest.TestCase):
         self._ensure_checksums_from_upload()
         assert self.checksum_upload in rv.data.decode('utf-8'), rv.data
         rv = self.app.get('/lvfs/firmware/1')
-        assert b'>☠ Nuke ☠<' not in rv.data, rv.data
+        assert '>☠ Nuke ☠<' not in rv.data.decode('utf-8'), rv.data
         rv = self.app.get('/lvfs/firmware/1/nuke', follow_redirects=True)
         assert b'Cannot nuke file not yet deleted' in rv.data, rv.data
         self.delete_firmware()
         rv = self.app.get('/lvfs/firmware/1')
-        assert b'>☠ Nuke ☠<' in rv.data, rv.data
+        assert '>☠ Nuke ☠<' in rv.data.decode('utf-8'), rv.data
         rv = self.app.get('/lvfs/firmware/1/nuke', follow_redirects=True)
         assert b'No firmware has been uploaded' in rv.data, rv.data
 
@@ -671,15 +668,15 @@ class LvfsTestCase(unittest.TestCase):
 
         # login then add invalid users
         self.login()
-        rv = self._add_user('testuser@fwupd.org', 'testgroup', u'unsuitable')
+        rv = self._add_user('testuser@fwupd.org', 'testgroup', 'unsuitable')
         assert b'requires at least one uppercase character' in rv.data, rv.data
-        rv = self._add_user('testuser', 'testgroup', u'Pa$$w0rd')
+        rv = self._add_user('testuser', 'testgroup', 'Pa$$w0rd')
         assert b'Invalid email address' in rv.data, rv.data
-        rv = self._add_user('testuser@fwupd.org', 'XX', u'Pa$$w0rd')
+        rv = self._add_user('testuser@fwupd.org', 'XX', 'Pa$$w0rd')
         assert b'QA group invalid' in rv.data, rv.data
 
         # add a good user, and check the user and group was created
-        rv = self._add_user('testuser@fwupd.org', 'testgroup', u'Pa$$w0rd')
+        rv = self._add_user('testuser@fwupd.org', 'testgroup', 'Pa$$w0rd')
         assert b'Added user' in rv.data, rv.data
         rv = self.app.get('/lvfs/userlist')
         assert b'testuser' in rv.data, rv.data
@@ -759,14 +756,14 @@ class LvfsTestCase(unittest.TestCase):
         # try to add new user to new vendor with non-matching domain (fail)
         rv = self.app.post('/lvfs/vendor/2/user/add', data=dict(
             username='bob@hotmail.com',
-            display_name=u'Generic Name',
+            display_name='Generic Name',
         ), follow_redirects=True)
         assert b'Email address does not match account policy' in rv.data, rv.data
 
         # add new user with matching domain
         rv = self.app.post('/lvfs/vendor/2/user/add', data=dict(
             username='clara@testvendor.com',
-            display_name=u'Generic Name',
+            display_name='Generic Name',
         ), follow_redirects=True)
         assert b'Added user' in rv.data, rv.data
 
@@ -967,7 +964,7 @@ class LvfsTestCase(unittest.TestCase):
         # edit the description and severity
         rv = self.app.post('/lvfs/component/1/modify', data=dict(
             urgency='critical',
-            description=u'Not enough cats!',
+            description='Not enough cats!',
         ), follow_redirects=True)
         assert b'Component updated' in rv.data, rv.data
 
@@ -1190,7 +1187,7 @@ class LvfsTestCase(unittest.TestCase):
         # check bob can change the update description and severity
         rv = self.app.post('/lvfs/component/1/modify', data=dict(
             urgency='critical',
-            description=u'Not enough cats!',
+            description='Not enough cats!',
         ), follow_redirects=True)
         assert b'Component updated' in rv.data, rv.data
 
@@ -1275,12 +1272,12 @@ class LvfsTestCase(unittest.TestCase):
         # verify the firmware is present for the odm
         rv = self.app.get('/downloads/firmware-6f8926be2d4543878d451be96eb7221eb4313dda.xml.gz')
         xml = _gzip_decompress_buffer(rv.data)
-        assert 'com.hughski.ColorHug2.firmware' in xml, xml
+        assert 'com.hughski.ColorHug2.firmware' in xml.decode('utf-8'), xml
 
         # verify the firmware is present for the oem
         rv = self.app.get('/downloads/firmware-ce7d5a03f067ff4ec73901dbacd378785dea1176.xml.gz')
         xml = _gzip_decompress_buffer(rv.data)
-        assert 'com.hughski.ColorHug2.firmware' in xml, xml
+        assert 'com.hughski.ColorHug2.firmware' in xml.decode('utf-8'), xml
 
         # remove affiliation as admin
         self.login()
@@ -1407,15 +1404,15 @@ class LvfsTestCase(unittest.TestCase):
         ), follow_redirects=True)
         assert b'Added issue' in rv.data, rv.data
         rv = self.app.get('/lvfs/issue/all')
-        assert url in rv.data, rv.data
+        assert url in rv.data.decode('utf-8'), rv.data
         rv = self.app.get('/lvfs/issue/%i/details' % issue_id, follow_redirects=True)
-        assert url in rv.data, rv.data
+        assert url in rv.data.decode('utf-8'), rv.data
 
         # modify the description
         data = {'name': name,
                 'description': 'Matches updating ColorHug on Fedora'}
         rv = self.app.post('/lvfs/issue/%i/modify' % issue_id, data=data, follow_redirects=True)
-        assert name in rv.data, rv.data
+        assert name in rv.data.decode('utf-8'), rv.data
         assert b'Matches updating ColorHug on Fedora' in rv.data, rv.data
 
     def _enable_issue(self, issue_id=1):
@@ -1615,7 +1612,7 @@ class LvfsTestCase(unittest.TestCase):
         # modify the agreement
         rv = self.app.post('/lvfs/agreement/1/modify', data=dict(
             version=12345,
-            text=u'DONOTSIGN',
+            text='DONOTSIGN',
         ), follow_redirects=True)
         assert b'Modified agreement' in rv.data, rv.data
         assert b'12345' in rv.data, rv.data
@@ -1641,7 +1638,7 @@ class LvfsTestCase(unittest.TestCase):
         rv = self.app.get('/lvfs/eventlog/1/2')
         self.logout()
         found_token = False
-        for tok in str(rv.data).split():
+        for tok in rv.data.decode('utf-8').split():
             if found_token:
                 return tok
             if tok == token_before:
@@ -1659,11 +1656,11 @@ class LvfsTestCase(unittest.TestCase):
         rv = self.app.get('/lvfs/user/recover', follow_redirects=True)
         assert b'password recovery link' in rv.data, rv.data
         rv = self.app.post('/lvfs/user/recover', data=dict(
-            username=u'NOBODY@fwupd.org',
+            username='NOBODY@fwupd.org',
         ), follow_redirects=True)
         assert b'Unable to recover password as no username' in rv.data, rv.data
         rv = self.app.post('/lvfs/user/recover', data=dict(
-            username=u'testuser@fwupd.org',
+            username='testuser@fwupd.org',
         ), follow_redirects=True)
         assert b'email has been sent with a recovery link' in rv.data, rv.data
 
@@ -1675,7 +1672,7 @@ class LvfsTestCase(unittest.TestCase):
 
         # get the login link to check the email was sent
         password = self._get_token_from_eventlog('Password:')
-        assert password, password
+        assert password is not None, password
 
         # try to use recovery link again
         rv = self.app.get(uri, follow_redirects=True)

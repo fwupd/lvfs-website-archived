@@ -30,7 +30,7 @@ def upgrade():
         sa.UniqueConstraint('protocol_id'),
         mysql_character_set='utf8mb4'
         )
-        op.add_column(u'components', sa.Column('protocol_id', sa.Integer(), nullable=True))
+        op.add_column('components', sa.Column('protocol_id', sa.Integer(), nullable=True))
         op.create_foreign_key('components_ibfk_2', 'components', 'protocol', ['protocol_id'], ['protocol_id'])
 
     # add the protocols we understand now
@@ -172,11 +172,11 @@ def upgrade():
         elif md.appstream_id.startswith('com.tw.supermicro.'):
             md.protocol_id = proto_id_for_value['org.uefi.capsule']
         else:
-            print('unknown protocol for', md.appstream_id)
+            print(('unknown protocol for', md.appstream_id))
             md.protocol_id = proto_id_for_value['unknown']
     db.session.commit()
 
 def downgrade():
     op.drop_constraint('components_ibfk_2', 'components', type_='foreignkey')
-    op.drop_column(u'components', 'protocol_id')
+    op.drop_column('components', 'protocol_id')
     op.drop_table('protocol')

@@ -57,12 +57,12 @@ def downgrade():
     sa.Column('ended_ts', mysql.DATETIME(), nullable=True),
     sa.Column('waived_ts', mysql.DATETIME(), nullable=True),
     sa.Column('waived_user_id', mysql.INTEGER(display_width=11), autoincrement=False, nullable=True),
-    sa.CheckConstraint(u'`waivable` in (0,1)', name=u'CONSTRAINT_1'),
-    sa.ForeignKeyConstraint(['component_id'], [u'components.component_id'], name=u'assays_ibfk_1'),
-    sa.ForeignKeyConstraint(['waived_user_id'], [u'users.user_id'], name=u'assays_ibfk_2'),
+    sa.CheckConstraint('`waivable` in (0,1)', name='CONSTRAINT_1'),
+    sa.ForeignKeyConstraint(['component_id'], ['components.component_id'], name='assays_ibfk_1'),
+    sa.ForeignKeyConstraint(['waived_user_id'], ['users.user_id'], name='assays_ibfk_2'),
     sa.PrimaryKeyConstraint('assay_id'),
-    mysql_default_charset=u'utf8mb4',
-    mysql_engine=u'InnoDB'
+    mysql_default_charset='utf8mb4',
+    mysql_engine='InnoDB'
     )
     op.create_index('assay_id', 'assays', ['assay_id'], unique=True)
     op.create_table('assay_attributes',
@@ -71,11 +71,11 @@ def downgrade():
     sa.Column('title', mysql.TEXT(), nullable=False),
     sa.Column('message', mysql.TEXT(), nullable=True),
     sa.Column('success', mysql.TINYINT(display_width=1), autoincrement=False, nullable=True),
-    sa.CheckConstraint(u'`success` in (0,1)', name=u'CONSTRAINT_1'),
-    sa.ForeignKeyConstraint(['assay_id'], [u'assays.assay_id'], name=u'assay_attributes_ibfk_1'),
+    sa.CheckConstraint('`success` in (0,1)', name='CONSTRAINT_1'),
+    sa.ForeignKeyConstraint(['assay_id'], ['assays.assay_id'], name='assay_attributes_ibfk_1'),
     sa.PrimaryKeyConstraint('assay_attribute_id'),
-    mysql_default_charset=u'utf8mb4',
-    mysql_engine=u'InnoDB'
+    mysql_default_charset='utf8mb4',
+    mysql_engine='InnoDB'
     )
     op.create_index('assay_attribute_id', 'assay_attributes', ['assay_attribute_id'], unique=True)
     op.drop_table('test_attributes')

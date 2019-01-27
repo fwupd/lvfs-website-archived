@@ -1,12 +1,10 @@
-#!/usr/bin/python2
+#!/usr/bin/python3
 # -*- coding: utf-8 -*-
 #
 # Copyright (C) 2015-2018 Richard Hughes <richard@hughsie.com>
 # Licensed under the GNU General Public License Version 2
 #
 # pylint: disable=singleton-comparison,wrong-import-position
-
-from __future__ import print_function
 
 import os
 import sys
@@ -99,7 +97,8 @@ def _sign_fw(fw):
     download_dir = app.config['DOWNLOAD_DIR']
     fn = os.path.join(download_dir, fw.filename)
     try:
-        data = open(fn, 'rb').read()
+        with open(fn, 'rb') as f:
+            data = f.read()
     except IOError as e:
         raise NotImplementedError('cannot read %s: %s' % (fn, str(e)))
     istream = Gio.MemoryInputStream.new_from_bytes(GLib.Bytes.new(data))
@@ -123,7 +122,8 @@ def _sign_fw(fw):
     cab_data = Gio.MemoryOutputStream.steal_as_bytes(ostream).get_data()
 
     # overwrite old file
-    open(fn, 'wb').write(cab_data)
+    with open(fn, 'wb') as f:
+        f.write(cab_data)
 
     # inform the plugin loader
     ploader.file_modified(fn)

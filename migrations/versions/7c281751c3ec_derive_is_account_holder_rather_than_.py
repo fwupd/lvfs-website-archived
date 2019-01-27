@@ -18,4 +18,4 @@ def upgrade():
     op.drop_column('vendors', 'is_account_holder')
 
 def downgrade():
-    op.add_column('vendors', sa.Column('is_account_holder', mysql.VARCHAR(charset=u'utf8', length=16), server_default=sa.text(u"'no'"), nullable=False))
+    op.add_column('vendors', sa.Column('is_account_holder', mysql.VARCHAR(charset='utf8', length=16), server_default=sa.text("'no'"), nullable=False))

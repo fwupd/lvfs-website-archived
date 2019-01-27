@@ -1,12 +1,10 @@
-#!/usr/bin/python2
+#!/usr/bin/python3
 # -*- coding: utf-8 -*-
 #
 # Copyright (C) 2015-2018 Richard Hughes <richard@hughsie.com>
 # Licensed under the GNU General Public License Version 2
 #
 # pylint: disable=wrong-import-position
-
-from __future__ import print_function
 
 import os
 import datetime
@@ -179,7 +177,7 @@ def utility_processor():
         return humanize.naturaltime(tmp).replace(' from now', '')
 
     def format_size(num, suffix='B'):
-        if not isinstance(num, int) and not isinstance(num, long):
+        if not isinstance(num, int) and not isinstance(num, int):
             return "???%s???" % num
         for unit in ['', 'Ki', 'Mi', 'Gi', 'Ti', 'Pi', 'Ei', 'Zi']:
             if abs(num) < 1024.0:
@@ -284,13 +282,10 @@ def index():
     user = db.session.query(User).filter(User.username == 'admin').first()
     settings = _get_settings()
     default_admin_password = False
-    if user and user.password_hash == u'5459dbe5e9aa80e077bfa40f3fb2ca8368ed09b4':
+    if user and user.password_hash == '5459dbe5e9aa80e077bfa40f3fb2ca8368ed09b4':
         default_admin_password = True
-    server_warning = ''
-    if 'server_warning' in settings:
-        server_warning = settings['server_warning']
     return render_template('index.html',
-                           server_warning=server_warning,
+                           server_warning=settings.get('server_warning', None),
                            default_admin_password=default_admin_password)
 
 @app.route('/lvfs/newaccount')
@@ -303,7 +298,7 @@ def _create_user_for_oauth_username(username):
 
     # does this username match any globs specified by the vendor
     user = None
-    for v in db.session.query(Vendor).filter(Vendor.oauth_domain_glob != None).all():
+    for v in db.session.query(Vendor).filter(Vendor.oauth_domain_glob != None).all(): # pylint: disable=singleton-comparison
         if not fnmatch.fnmatch(username.lower(), v.oauth_domain_glob):
             continue
         if v.oauth_unknown_user == 'create':
@@ -375,9 +370,9 @@ def login():
     login_user(user, remember=False)
     g.user = user
     if user.password_ts:
-        flash(u'Logged in', 'info')
+        flash('Logged in', 'info')
     else:
-        flash(u'Logged in, now change your password using Profile ⇒ User', 'info')
+        flash('Logged in, now change your password using Profile ⇒ User', 'info')
 
     # set the access time
     user.atime = datetime.datetime.utcnow()

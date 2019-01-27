@@ -16,7 +16,7 @@ from sqlalchemy.dialects import mysql
 
 def upgrade():
     op.alter_column('users', 'password',
-               existing_type=mysql.TEXT(charset=u'utf8mb4'),
+               existing_type=mysql.TEXT(charset='utf8mb4'),
                type_=sa.String(length=40),
                existing_nullable=True)
     op.alter_column('users', 'username',
@@ -35,5 +35,5 @@ def downgrade():
                existing_nullable=False)
     op.alter_column('users', 'password',
                existing_type=sa.String(length=40),
-               type_=mysql.TEXT(charset=u'utf8mb4'),
+               type_=mysql.TEXT(charset='utf8mb4'),
                existing_nullable=True)

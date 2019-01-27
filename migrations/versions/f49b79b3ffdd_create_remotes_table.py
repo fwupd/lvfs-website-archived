@@ -35,9 +35,9 @@ def upgrade():
     sa.PrimaryKeyConstraint('remote_id'),
     sa.UniqueConstraint('remote_id')
     )
-    op.add_column(u'firmware', sa.Column('remote_id', sa.Integer(), nullable=False))
-    op.add_column(u'firmware_events', sa.Column('remote_id', sa.Integer(), nullable=False))
-    op.add_column(u'vendors', sa.Column('remote_id', sa.Integer(), nullable=False))
+    op.add_column('firmware', sa.Column('remote_id', sa.Integer(), nullable=False))
+    op.add_column('firmware_events', sa.Column('remote_id', sa.Integer(), nullable=False))
+    op.add_column('vendors', sa.Column('remote_id', sa.Integer(), nullable=False))
 
     # create first three remotes that have to exist
     db.session.add(Remote(name='stable', is_public=True))
@@ -80,16 +80,16 @@ def upgrade():
     op.create_foreign_key(None, 'vendors', 'remotes', ['remote_id'], ['remote_id'])
 
     # no longer required
-    op.drop_column(u'firmware', 'target')
-    op.drop_column(u'firmware_events', 'target')
+    op.drop_column('firmware', 'target')
+    op.drop_column('firmware_events', 'target')
 
 def downgrade():
     op.drop_constraint(None, 'vendors', type_='foreignkey')
-    op.drop_column(u'vendors', 'remote_id')
-    op.add_column(u'firmware_events', sa.Column('target', mysql.TEXT(), nullable=False))
+    op.drop_column('vendors', 'remote_id')
+    op.add_column('firmware_events', sa.Column('target', mysql.TEXT(), nullable=False))
     op.drop_constraint(None, 'firmware_events', type_='foreignkey')
-    op.drop_column(u'firmware_events', 'remote_id')
-    op.add_column(u'firmware', sa.Column('target', mysql.VARCHAR(length=255), nullable=False))
+    op.drop_column('firmware_events', 'remote_id')
+    op.add_column('firmware', sa.Column('target', mysql.VARCHAR(length=255), nullable=False))
     op.drop_constraint(None, 'firmware', type_='foreignkey')
-    op.drop_column(u'firmware', 'remote_id')
+    op.drop_column('firmware', 'remote_id')
     op.drop_table('remotes')

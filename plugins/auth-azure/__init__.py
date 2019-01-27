@@ -1,4 +1,4 @@
-#!/usr/bin/python2
+#!/usr/bin/python3
 # -*- coding: utf-8 -*-
 #
 # Copyright (C) 2018 Richard Hughes <richard@hughsie.com>
@@ -80,7 +80,7 @@ class Plugin(PluginBase):
             raise PluginError('State has been messed with, end authentication')
 
         # save the access token -- treat as a password
-        session['auth_azure_token'] = (oauth_response['access_token'], '') # fixme user.access_token not in db?
+        session['auth_azure_token'] = (oauth_response['access_token'], '')
 
         # get the profile ID
         resp = remote_app.get('me')

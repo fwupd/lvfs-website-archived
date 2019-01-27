@@ -1,12 +1,10 @@
-#!/usr/bin/python2
+#!/usr/bin/python3
 # -*- coding: utf-8 -*-
 #
 # Copyright (C) 2015 Richard Hughes <richard@hughsie.com>
 # Licensed under the GNU General Public License Version 2
 #
 # pylint: disable=wrong-import-position
-
-from __future__ import print_function
 
 import os
 import json
@@ -125,7 +123,7 @@ def _check_para(problems, txt):
 
 def _check_li(problems, txt):
     _check_both(problems, txt)
-    if txt == 'Nothing.' or txt == 'Not applicable.':
+    if txt in ('Nothing.', 'Not applicable.'):
         _add_problem(problems, 'List elements cannot be empty', txt)
     if _check_is_fake_li(txt):
         _add_problem(problems, 'List elements cannot start with bullets', txt)

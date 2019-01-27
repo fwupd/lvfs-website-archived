@@ -1,4 +1,4 @@
-#!/usr/bin/python2
+#!/usr/bin/python3
 # -*- coding: utf-8 -*-
 #
 # Copyright (C) 2015-2018 Richard Hughes <richard@hughsie.com>
@@ -24,7 +24,7 @@ from app import db
 from .hash import _qa_hash, _password_hash, _otp_hash
 from .util import _generate_password, _xml_from_markdown, _get_update_description_problems
 
-class SecurityClaim(object):
+class SecurityClaim:
 
     def __init__(self):
         self.attrs = {}
@@ -46,7 +46,7 @@ class SecurityClaim(object):
     def __repr__(self):
         return "SecurityClaim object %s" % self.attrs
 
-class Problem(object):
+class Problem:
     def __init__(self, kind, description=None, url=None):
         self.kind = kind
         self.description = description
@@ -203,35 +203,35 @@ class User(db.Model):
             return False
         if action == '@view-protocols':
             return False
-        elif action == '@view-profile':
+        if action == '@view-profile':
             return self.auth_type == 'local'
-        elif action == '@view-analytics':
+        if action == '@view-analytics':
             if self.is_qa or self.is_analyst:
                 return True
             return False
-        elif action == '@add-attribute-manager':
+        if action == '@add-attribute-manager':
             if not self.vendor.check_acl('@manage-users'):
                 return False
             return self.is_vendor_manager
-        elif action == '@add-attribute-approved':
+        if action == '@add-attribute-approved':
             if not self.vendor.check_acl('@manage-users'):
                 return False
             return self.is_approved_public
-        elif action == '@add-attribute-analyst':
+        if action == '@add-attribute-analyst':
             if not self.vendor.check_acl('@manage-users'):
                 return False
             return self.is_analyst
-        elif action == '@add-attribute-qa':
+        if action == '@add-attribute-qa':
             if not self.vendor.check_acl('@manage-users'):
                 return False
             return self.is_qa
-        elif action == '@add-attribute-admin':
+        if action == '@add-attribute-admin':
             if not self.vendor.check_acl('@manage-users'):
                 return False
             return self.is_admin
-        elif action == '@add-attribute-robot':
+        if action == '@add-attribute-robot':
             return self.vendor.check_acl('@manage-users')
-        elif action in ('@view-eventlog', '@view-issues'):
+        if action in ('@view-eventlog', '@view-issues'):
             return self.is_qa
         raise NotImplementedError('unknown security check type: %s' % self)
 
@@ -428,21 +428,21 @@ class Vendor(db.Model):
             if self.is_affiliate(user.vendor_id):
                 return True
             return False
-        elif action == '@view-metadata':
+        if action == '@view-metadata':
             # all members of a group can generate the metadata file
             if user.vendor_id == self.vendor_id:
                 return True
             return False
-        elif action == '@manage-users':
+        if action == '@manage-users':
             # manager user can modify any users in his group
             if user.is_vendor_manager and user.vendor_id == self.vendor_id:
                 return True
             return False
-        elif action == '@modify-oauth':
+        if action == '@modify-oauth':
             return False
-        elif action == '@view-affiliations':
+        if action == '@view-affiliations':
             return user.is_qa
-        elif action == '@modify-affiliations':
+        if action == '@modify-affiliations':
             return False
         raise NotImplementedError('unknown security check action: %s:%s' % (self, action))
 
@@ -859,18 +859,18 @@ class Component(db.Model):
                                                 (v & 0x00ff0000) >> 16,
                                                 (v & 0x0000ff00) >> 8,
                                                 v & 0x000000ff)
-            elif self.version_format == 'triplet':
+            if self.version_format == 'triplet':
                 return '%02i.%02i.%04i' % ((v & 0xff000000) >> 24,
                                            (v & 0x00ff0000) >> 16,
                                            v & 0x0000ffff)
-            elif self.version_format == 'pair':
+            if self.version_format == 'pair':
                 return '%02i.%02i' % ((v & 0xffff0000) >> 16, v & 0x0000ffff)
-            elif self.version_format == 'intel-me':
+            if self.version_format == 'intel-me':
                 return '%i.%i.%i.%i' % (((v & 0xe0000000) >> 29) + 0x0b,
                                         (v & 0x1f000000) >> 24,
                                         (v & 0x00ff0000) >> 16,
                                         v &  0x0000ffff)
-            elif self.version_format == 'intel-me2':
+            if self.version_format == 'intel-me2':
                 return '%i.%i.%i.%i' % ((v & 0xf0000000) >> 28,
                                         (v & 0x0f000000) >> 24,
                                         (v & 0x00ff0000) >> 16,
@@ -982,7 +982,7 @@ class Component(db.Model):
                 if self.fw._is_owner(user):
                     return True
             return False
-        elif action in ('@modify-keywords', '@modify-requirements', '@modify-checksums'):
+        if action in ('@modify-keywords', '@modify-requirements', '@modify-checksums'):
             if user.is_qa and self.fw._is_vendor(user):
                 return True
             if self.fw._is_owner(user) and not self.fw.remote.is_public:
@@ -1262,11 +1262,11 @@ class Firmware(db.Model):
             if self._is_owner(user) and not self.remote.is_public:
                 return True
             return False
-        elif action == '@nuke':
+        if action == '@nuke':
             if not self.is_deleted:
                 return False
             return False
-        elif action == '@view':
+        if action == '@view':
             if user.is_qa and self._is_vendor(user):
                 return True
             if user.is_analyst and self._is_vendor(user):
@@ -1274,23 +1274,23 @@ class Firmware(db.Model):
             if self._is_owner(user):
                 return True
             return False
-        elif action == '@view-analytics':
+        if action == '@view-analytics':
             if not self.check_acl('@view', user):
                 return False
             if user.is_qa or user.is_analyst:
                 return True
             return False
-        elif action == '@undelete':
+        if action == '@undelete':
             if user.is_qa and self._is_vendor(user):
                 return True
             if self._is_owner(user):
                 return True
             return False
-        elif action in ('@promote-stable', '@promote-testing'):
+        if action in ('@promote-stable', '@promote-testing'):
             if user.is_approved_public and self._is_vendor(user):
                 return True
             return False
-        elif action.startswith('@promote-'):
+        if action.startswith('@promote-'):
             if user.is_qa and self._is_vendor(user):
                 return True
             # is original file uploader can move private<->embargo
@@ -1304,17 +1304,17 @@ class Firmware(db.Model):
                 if old in ('private', 'embargo') and new in ('private', 'embargo'):
                     return True
             return False
-        elif action == '@add-limit':
+        if action == '@add-limit':
             if user.is_qa and self._is_vendor(user):
                 return True
             if self._is_owner(user):
                 return True
             return False
-        elif action == '@remove-limit':
+        if action == '@remove-limit':
             if user.is_qa and self._is_vendor(user):
                 return True
             return False
-        elif action == '@modify-affiliation':
+        if action == '@modify-affiliation':
             if not self.vendor.affiliations_for:
                 return False
             # is original file uploader and uploaded to ODM group
@@ -1459,11 +1459,11 @@ class Issue(db.Model):
         # depends on the action requested
         if action == '@create':
             return user.is_qa
-        elif action == '@modify':
+        if action == '@modify':
             if user.is_qa and user.vendor_id == self.vendor_id:
                 return True
             return False
-        elif action == '@view':
+        if action == '@view':
             if user.is_qa and user.vendor_id == self.vendor_id:
                 return True
             # any issues owned by admin can be viewed by a QA user
@@ -1507,7 +1507,7 @@ class Report(db.Model):
     state = Column(Integer, default=0)
     machine_id = Column(String(64), nullable=False)
     firmware_id = Column(Integer, ForeignKey('firmware.firmware_id'), nullable=False, index=True)
-    checksum = Column(String(64), nullable=False) #fixme remove?
+    checksum = Column(String(64), nullable=False) # remove?
     issue_id = Column(Integer, default=0)
 
     # link using foreign keys
@@ -1564,7 +1564,7 @@ class Report(db.Model):
         if action == '@delete':
             # only admin
             return False
-        elif action == '@view':
+        if action == '@view':
             # QA user can modify any issues matching vendor_id
             if user.is_qa and self.fw._is_vendor(user):
                 return True

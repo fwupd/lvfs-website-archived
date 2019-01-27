@@ -19,5 +19,5 @@ def upgrade():
     op.drop_column('users', 'is_locked')
 
 def downgrade():
-    op.add_column('users', sa.Column('is_locked', mysql.TINYINT(display_width=4), server_default=sa.text(u'0'), autoincrement=False, nullable=True))
-    op.add_column('users', sa.Column('is_enabled', mysql.INTEGER(display_width=11), server_default=sa.text(u'0'), autoincrement=False, nullable=True))
+    op.add_column('users', sa.Column('is_locked', mysql.TINYINT(display_width=4), server_default=sa.text('0'), autoincrement=False, nullable=True))
+    op.add_column('users', sa.Column('is_enabled', mysql.INTEGER(display_width=11), server_default=sa.text('0'), autoincrement=False, nullable=True))

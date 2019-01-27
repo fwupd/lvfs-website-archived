@@ -1,4 +1,4 @@
-#!/usr/bin/python2
+#!/usr/bin/python3
 # -*- coding: utf-8 -*-
 #
 # Copyright (C) 2015-2018 Richard Hughes <richard@hughsie.com>
@@ -297,12 +297,12 @@ def _metadata_update_pulp():
             continue
 
         # filename,sha256,size
-        sha256 = _hashfile(open(fn, 'rb'), hashlib.sha256())
+        with open(fn, 'rb') as f:
+            sha256 = _hashfile(f, hashlib.sha256())
         fn_sz = os.path.getsize(fn)
         data.append('%s,%s,%i\n' % (f, sha256, fn_sz))
 
     # write file
     filename = os.path.join(download_dir, 'PULP_MANIFEST')
-    f = open(filename, 'w')
-    f.writelines(data)
-    f.close()
+    with open(filename, 'w') as f:
+        f.writelines(data)

@@ -24,10 +24,10 @@ def upgrade():
     sa.UniqueConstraint('agreement_id'),
     mysql_character_set='utf8mb4'
     )
-    op.add_column(u'users', sa.Column('agreement_id', sa.Integer(), nullable=True))
+    op.add_column('users', sa.Column('agreement_id', sa.Integer(), nullable=True))
     op.create_foreign_key(None, 'users', 'agreements', ['agreement_id'], ['agreement_id'])
 
 def downgrade():
     op.drop_constraint(None, 'users', type_='foreignkey')
-    op.drop_column(u'users', 'agreement_id')
+    op.drop_column('users', 'agreement_id')
     op.drop_table('agreements')

@@ -1,4 +1,4 @@
-#!/usr/bin/python2
+#!/usr/bin/python3
 # -*- coding: utf-8 -*-
 #
 # Copyright (C) 2017 Richard Hughes <richard@hughsie.com>
@@ -54,7 +54,7 @@ def _count_vendor_fws_devices(vendor, remote_name):
                     guids[gu.value] = 1
     return len(guids)
 
-class VendorStat(object):
+class VendorStat:
     def __init__(self, stable, testing):
         self.stable = stable
         self.testing = testing
@@ -82,7 +82,7 @@ def _get_vendorlist_stats(vendors, fn):
     labels = []
     data_stable = []
     data_testing = []
-    vendors = sorted(display_names.items(),
+    vendors = sorted(list(display_names.items()),
                      key=lambda k: k[1].stable + k[1].testing,
                      reverse=True)
     for display_name, stat in vendors[:10]:
@@ -130,12 +130,31 @@ def vendor_list_analytics(page):
                                data_testing=data_testing)
     return _error_internal('Vendorlist kind invalid')
 
+def cmp_to_key(mycmp):
+    'Convert a cmp= function into a key= function'
+    class K:
+        def __init__(self, obj, *_args):
+            self.obj = obj
+        def __lt__(self, other):
+            return mycmp(self.obj, other.obj) < 0
+        def __gt__(self, other):
+            return mycmp(self.obj, other.obj) > 0
+        def __eq__(self, other):
+            return mycmp(self.obj, other.obj) == 0
+        def __le__(self, other):
+            return mycmp(self.obj, other.obj) <= 0
+        def __ge__(self, other):
+            return mycmp(self.obj, other.obj) >= 0
+        def __ne__(self, other):
+            return mycmp(self.obj, other.obj) != 0
+    return K
+
 @app.route('/status')
 @app.route('/vendorlist') # deprecated
 @app.route('/lvfs/vendorlist')
 def vendor_list():
     vendors = db.session.query(Vendor).order_by(Vendor.display_name).all()
-    vendors.sort(_sort_vendor_func)
+    vendors.sort(key=cmp_to_key(_sort_vendor_func))
     return render_template('vendorlist.html', vendors=vendors, page='overview')
 
 @app.route('/lvfs/vendor/add', methods=['GET', 'POST'])
@@ -362,7 +381,8 @@ def vendor_upload(vendor_id):
     # write the pixmap
     buf = request.files['file'].read()
     fn = os.path.join(app.config['UPLOAD_DIR'], 'vendor-%s.png' % vendor_id)
-    open(fn, 'wb').write(buf)
+    with open(fn, 'wb') as f:
+        f.write(buf)
 
     vendor.icon = os.path.basename(fn)
     db.session.commit()

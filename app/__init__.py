@@ -1,4 +1,4 @@
-#!/usr/bin/python2
+#!/usr/bin/python3
 # -*- coding: utf-8 -*-
 #
 # Copyright (C) 2015-2018 Richard Hughes <richard@hughsie.com>
@@ -53,7 +53,7 @@ def flash_save_eventlog(unused_sender, message, category, **unused_extra):
     is_important = False
     if category in ['danger', 'warning']:
         is_important = True
-    _event_log(unicode(message), is_important)
+    _event_log(str(message), is_important)
 
 message_flashed.connect(flash_save_eventlog, app)
 

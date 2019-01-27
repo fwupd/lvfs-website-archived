@@ -1,14 +1,17 @@
-#!/usr/bin/python2
+#!/usr/bin/python3
 # -*- coding: utf-8 -*-
 #
 # Copyright (C) 2018 Richard Hughes <richard@hughsie.com>
 # Licensed under the GNU General Public License Version 2
 #
-# pylint: disable=no-self-use,protected-access
+# pylint: disable=no-self-use,protected-access,wrong-import-position
 
 import unittest
 import zipfile
-import StringIO
+import io
+import gi
+
+gi.require_version('GCab', '1.0')
 
 from gi.repository import GCab
 from gi.repository import Gio
@@ -17,11 +20,11 @@ from app.uploadedfile import UploadedFile, FileTooSmall, FileNotSupported, Metad
 from app.util import _archive_get_files_from_glob, _archive_add
 
 def _get_valid_firmware():
-    return 'fubar'.ljust(1024)
+    return 'fubar'.ljust(1024).encode('utf-8')
 
 def _get_valid_metainfo(release_description='This stable release fixes bugs',
                         version_format='quad'):
-    return """
+    txt = """
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- Copyright 2015 Richard Hughes <richard@hughsie.com> -->
 <component type="firmware">
@@ -48,15 +51,19 @@ def _get_valid_metainfo(release_description='This stable release fixes bugs',
   </custom>
 </component>
 """ % (release_description, version_format)
+    return txt.encode('utf-8')
 
 def _archive_to_contents(arc):
     ostream = Gio.MemoryOutputStream.new_resizable()
     arc.write_simple(ostream)
     return Gio.MemoryOutputStream.steal_as_bytes(ostream).get_data()
 
-class InMemoryZip(object):
+class InMemoryZip:
     def __init__(self):
-        self.in_memory_zip = StringIO.StringIO()
+        self.in_memory_zip = io.BytesIO()
+
+    def __del__(self):
+        self.in_memory_zip.close()
 
     def append(self, filename_in_zip, file_contents):
         zf = zipfile.ZipFile(self.in_memory_zip, "a", zipfile.ZIP_STORED, False)
@@ -97,7 +104,7 @@ class TestStringMethods(unittest.TestCase):
     def test_metainfo_invalid(self):
         arc = GCab.Cabinet.new()
         _archive_add(arc, 'firmware.bin', _get_valid_firmware())
-        _archive_add(arc, 'firmware.metainfo.xml', '<compoXXXXnent/>')
+        _archive_add(arc, 'firmware.metainfo.xml', b'<compoXXXXnent/>')
         with self.assertRaises(MetadataInvalid):
             ufile = UploadedFile()
             ufile.parse('foo.cab', _archive_to_contents(arc))
@@ -106,8 +113,8 @@ class TestStringMethods(unittest.TestCase):
     def test_inf_invalid(self):
         arc = GCab.Cabinet.new()
         _archive_add(arc, 'firmware.bin', _get_valid_firmware())
-        _archive_add(arc, 'firmware.metainfo.xml', '<component/>')
-        _archive_add(arc, 'firmware.inf', 'fubar')
+        _archive_add(arc, 'firmware.metainfo.xml', b'<component/>')
+        _archive_add(arc, 'firmware.inf', b'fubar')
         with self.assertRaises(MetadataInvalid):
             ufile = UploadedFile()
             ufile.parse('foo.cab', _archive_to_contents(arc))
@@ -194,7 +201,7 @@ class TestStringMethods(unittest.TestCase):
         arc = GCab.Cabinet.new()
         _archive_add(arc, 'firmware.bin', _get_valid_firmware())
         _archive_add(arc, 'firmware.metainfo.xml', _get_valid_metainfo())
-        _archive_add(arc, 'README.txt', 'fubar')
+        _archive_add(arc, 'README.txt', b'fubar')
         ufile = UploadedFile()
         ufile.parse('foo.cab', _archive_to_contents(arc))
         arc2 = ufile.get_repacked_cabinet()

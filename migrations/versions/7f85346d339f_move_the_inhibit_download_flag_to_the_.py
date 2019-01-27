@@ -36,5 +36,5 @@ def upgrade():
     op.drop_column('firmware', 'inhibit_download')
 
 def downgrade():
-    op.add_column('firmware', sa.Column('inhibit_download', mysql.TINYINT(display_width=1), server_default=sa.text(u'0'), autoincrement=False, nullable=True))
+    op.add_column('firmware', sa.Column('inhibit_download', mysql.TINYINT(display_width=1), server_default=sa.text('0'), autoincrement=False, nullable=True))
     op.drop_column('components', 'inhibit_download')

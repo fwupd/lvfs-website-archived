@@ -1,10 +1,8 @@
-#!/usr/bin/python2
+#!/usr/bin/python3
 # -*- coding: utf-8 -*-
 #
 # Copyright (C) 2018 Richard Hughes <richard@hughsie.com>
 # Licensed under the GNU General Public License Version 2
-
-from __future__ import print_function
 
 import os
 import sys
@@ -29,7 +27,7 @@ def main():
             continue
         if fn.find('.env') != -1:
             continue
-        argv = ['pylint-2', '--rcfile=contrib/pylintrc', fn]
+        argv = ['pylint-3', '--rcfile=contrib/pylintrc', fn]
         print('Checking %s' % fn)
         ps = subprocess.Popen(argv, env=env_safe)
         if ps.wait() != 0:

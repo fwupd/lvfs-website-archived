@@ -1,12 +1,10 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 # -*- coding: utf-8 -*-
 #
 # Copyright (C) 2015-2018 Richard Hughes <richard@hughsie.com>
 # Licensed under the GNU General Public License Version 2
 #
 # pylint: disable=too-many-locals,too-many-statements,too-few-public-methods
-
-from __future__ import print_function
 
 import gzip
 import hashlib
@@ -23,7 +21,7 @@ def _execute_count_star(q):
 def _make_boring(val):
     out = ''
     for v in val.lower():
-        if v >= 'a' and v <= 'z':
+        if 'a' <= v <= 'z':
             out += v
         elif v == ' ' and not out.endswith('_'):
             out += '_'
@@ -89,12 +87,12 @@ def anonymize_db(db):
     random.shuffle(device_names)
 
     # get some random words for keywords
-    f = open('/usr/share/dict/words', 'r')
     generic_words = []
-    for ln in f.read().split('\n'):
-        if not ln:
-            continue
-        generic_words.append(ln.decode('utf-8'))
+    with open('/usr/share/dict/words', 'r') as f:
+        for ln in f.read().split('\n'):
+            if not ln:
+                continue
+            generic_words.append(ln.decode('utf-8'))
     random.shuffle(generic_words)
 
     # anonymize vendors
@@ -106,8 +104,8 @@ def anonymize_db(db):
             continue
         v.display_name = vendor_names[idx_vendor_names]
         v.group_id = _make_boring(v.display_name)
-        v.description = u'Vendor has not released an official statement'
-        v.comments = u'We pass no judgement'
+        v.description = 'Vendor has not released an official statement'
+        v.comments = 'We pass no judgement'
         v.icon = 'vendor-1.png'
         v.keywords = generic_words[idx_generic_words]
         v.plugins = 'generichid >= 0.9.9'
@@ -198,15 +196,15 @@ def init_db(db):
         db.session.add(remote)
         db.session.commit()
         vendor = Vendor('admin')
-        vendor.display_name = u'Acme Corp.'
-        vendor.description = u'A fake vendor used for testing firmware'
+        vendor.display_name = 'Acme Corp.'
+        vendor.description = 'A fake vendor used for testing firmware'
         vendor.remote_id = remote.remote_id
         db.session.add(vendor)
         db.session.commit()
         db.session.add(User(username='sign-test@fwupd.org',
-                            password_hash=u'5459dbe5e9aa80e077bfa40f3fb2ca8368ed09b4',
+                            password_hash='5459dbe5e9aa80e077bfa40f3fb2ca8368ed09b4',
                             auth_type='local',
-                            display_name=u'Admin User',
+                            display_name='Admin User',
                             vendor_id=vendor.vendor_id,
                             is_admin=True,
                             is_qa=True,
@@ -214,7 +212,7 @@ def init_db(db):
         db.session.commit()
     if not db.session.query(User).filter(User.username == 'anonymous').first():
         db.session.add(User(username='anonymous@fwupd.org',
-                            display_name=u'Anonymous User',
+                            display_name='Anonymous User',
                             vendor_id=1))
         db.session.commit()
 

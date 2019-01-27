@@ -24,7 +24,7 @@ def upgrade():
         fws[fw.firmware_id] = fw
     for rprt in db.session.query(Report).all():
         if rprt.firmware_id not in fws:
-            print('deleting report for missing firmware %s' % rprt.firmware_id)
+            print(('deleting report for missing firmware %s' % rprt.firmware_id))
             for attr in rprt.attributes:
                 db.session.delete(attr)
             db.session.delete(rprt)
@@ -123,11 +123,11 @@ def upgrade():
     op.alter_column('vendors', 'description',
                existing_type=mysql.VARCHAR(length=255),
                nullable=True,
-               existing_server_default=sa.text(u"''"))
+               existing_server_default=sa.text("''"))
     op.alter_column('vendors', 'display_name',
                existing_type=mysql.VARCHAR(length=128),
                nullable=True,
-               existing_server_default=sa.text(u"''"))
+               existing_server_default=sa.text("''"))
     op.create_index(op.f('ix_vendors_group_id'), 'vendors', ['group_id'], unique=False)
     op.drop_index('id', table_name='vendors')
     op.create_unique_constraint(None, 'vendors', ['vendor_id'])

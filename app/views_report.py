@@ -1,4 +1,4 @@
-#!/usr/bin/python2
+#!/usr/bin/python3
 # -*- coding: utf-8 -*-
 #
 # Copyright (C) 2018 Richard Hughes <richard@hughsie.com>
@@ -77,7 +77,7 @@ def firmware_report():
     try:
         item = json.loads(request.data.decode('utf8'))
     except ValueError as e:
-        return _json_error(str(e))
+        return _json_error('No JSON object could be decoded: ' + str(e))
 
     # check we got enough data
     for key in ['ReportVersion', 'MachineId', 'Reports', 'Metadata']:
@@ -120,7 +120,8 @@ def firmware_report():
                 for md_key in md:
                     data[md_key] = md[md_key]
                 continue
-            data[key] = unicode(report[key]).encode('ascii', 'ignore')
+            #data[key] = str(report[key]).encode('ascii', 'ignore')
+            data[key] = report[key]
 
         # try to find the checksum_upload (which might not exist on this server)
         fw = db.session.query(Firmware).filter(Firmware.checksum_signed == report['Checksum']).first()

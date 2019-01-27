@@ -1,28 +1,26 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 # -*- coding: utf-8 -*-
 #
 # Copyright (C) 2015 Richard Hughes <richard@hughsie.com>
 # Licensed under the GNU General Public License Version 2
 #
-# pylint: disable=arguments-differ
-
-from __future__ import print_function
+# pylint: disable=arguments-differ,too-many-ancestors,no-member
 
 import sys
-import ConfigParser
-import StringIO
+import configparser
+import io
 
-class InfParser(ConfigParser.RawConfigParser):
+class InfParser(configparser.ConfigParser):
 
     def __init__(self):
-        ConfigParser.RawConfigParser.__init__(self, allow_no_value=True)
+        configparser.ConfigParser.__init__(self, allow_no_value=True, interpolation=None)
 
     def get(self, group, key):
-        val = ConfigParser.RawConfigParser.get(self, group, key)
+        val = configparser.ConfigParser.get(self, group, key, raw=True)
 
         # handle things in localised 'Strings'
         if val.endswith('%') and val.startswith('%'):
-            val = ConfigParser.RawConfigParser.get(self, 'Strings', val[1:-1])
+            val = configparser.ConfigParser.get(self, 'Strings', val[1:-1])
 
         # format multiline comments
         fixed = []
@@ -40,8 +38,8 @@ class InfParser(ConfigParser.RawConfigParser):
         return '\n'.join(fixed)
 
     def read(self, fn):
-        fd = open(fn)
-        self.read_data(fd.read())
+        with open(fn) as fd:
+            self.read_data(fd.read())
 
     def read_data(self, contents):
 
@@ -53,8 +51,8 @@ class InfParser(ConfigParser.RawConfigParser):
                 ln = '%s->%s=%s' % (sect[0].strip(), sect[2].strip(), sect[4].strip())
             contents_new.append(ln)
 
-        buf = StringIO.StringIO('\n'.join(contents_new))
-        self.readfp(buf)
+        buf = io.StringIO('\n'.join(contents_new))
+        self.read_file(buf)
 
 def main():
     cfg = InfParser()
@@ -62,8 +60,14 @@ def main():
         cfg.read(fn)
         for section in cfg.sections():
             print(cfg.items(section))
-        print(cfg.get("Version", "CatalogFile"))
-        print(cfg.get("Version", "Provider"))
+        try:
+            print(cfg.get("Version", "CatalogFile"))
+        except configparser.NoOptionError as _:
+            pass
+        try:
+            print(cfg.get("Version", "Provider"))
+        except configparser.NoOptionError as _:
+            pass
         print(cfg.get("Firmware_AddReg", "HKR->FirmwareId"))
         print(cfg.get("Firmware_AddReg", "HKR->FirmwareVersion"))
         print(cfg.get("Firmware_AddReg", "HKR->FirmwareFilename"))
