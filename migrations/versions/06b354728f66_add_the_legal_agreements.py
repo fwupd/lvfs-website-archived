@@ -19,7 +19,7 @@ def upgrade():
     sa.Column('agreement_id', sa.Integer(), nullable=False),
     sa.Column('created', sa.DateTime(), nullable=False),
     sa.Column('version', sa.Integer(), nullable=False),
-    sa.Column('text', sa.Unicode(), nullable=True),
+    sa.Column('text', sa.Text(), nullable=True),
     sa.PrimaryKeyConstraint('agreement_id'),
     sa.UniqueConstraint('agreement_id'),
     mysql_character_set='utf8mb4'

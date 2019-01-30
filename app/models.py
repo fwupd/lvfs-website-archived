@@ -17,7 +17,7 @@ from gi.repository import AppStreamGlib
 from flask import g, url_for
 from werkzeug.security import generate_password_hash, check_password_hash
 
-from sqlalchemy import Column, Integer, String, Text, Boolean, DateTime, ForeignKey, Unicode, Index
+from sqlalchemy import Column, Integer, String, Text, Boolean, DateTime, ForeignKey, Index
 from sqlalchemy.orm import relationship
 
 from app import db
@@ -91,7 +91,7 @@ class Agreement(db.Model):
     agreement_id = Column(Integer, primary_key=True, unique=True, nullable=False)
     created = Column(DateTime, nullable=False, default=datetime.datetime.utcnow)
     version = Column(Integer, nullable=False)
-    text = Column(Unicode, default=None)
+    text = Column(Text, default=None)
 
 class User(db.Model):
 
@@ -108,7 +108,7 @@ class User(db.Model):
     password_recovery = Column(String(40), default=None)
     password_recovery_ts = Column(DateTime, default=None)
     otp_secret = Column(String(16))
-    display_name = Column(Unicode, default=None)
+    display_name = Column(Text, default=None)
     vendor_id = Column(Integer, ForeignKey('vendors.vendor_id'), nullable=False)
     auth_type = Column(Text, default='disabled')
     auth_warning = Column(Text, default=None)
@@ -322,17 +322,17 @@ class Vendor(db.Model):
 
     vendor_id = Column(Integer, primary_key=True, unique=True)
     group_id = Column(Text, nullable=False, index=True)
-    display_name = Column(Unicode, default=None)
+    display_name = Column(Text, default=None)
     plugins = Column(Text, default=None)
-    description = Column(Unicode, default=None)
+    description = Column(Text, default=None)
     visible = Column(Boolean, default=False)
     visible_for_search = Column(Boolean, default=False)
     is_embargo_default = Column(Boolean, default=False)
     is_fwupd_supported = Column(String(16), nullable=False, default='no')
     is_uploading = Column(String(16), nullable=False, default='no')
-    comments = Column(Unicode, default=None)
+    comments = Column(Text, default=None)
     icon = Column(Text, default=None)
-    keywords = Column(Unicode, default=None)
+    keywords = Column(Text, default=None)
     oauth_unknown_user = Column(Text, default=None)
     oauth_domain_glob = Column(Text, default=None)
     remote_id = Column(Integer, ForeignKey('remotes.remote_id'), nullable=False)
@@ -460,7 +460,7 @@ class Event(db.Model):
     user_id = Column(Integer, ForeignKey('users.user_id'), nullable=False)
     vendor_id = Column(Integer, ForeignKey('vendors.vendor_id'), nullable=False)
     address = Column('addr', String(40), nullable=False)
-    message = Column(Unicode, default=None)
+    message = Column(Text, default=None)
     is_important = Column(Integer, default=0)
     request = Column(Text, default=None)
 
@@ -537,7 +537,7 @@ class Keyword(db.Model):
     keyword_id = Column(Integer, primary_key=True, unique=True, nullable=False)
     component_id = Column(Integer, ForeignKey('components.component_id'), nullable=False)
     priority = Column(Integer, default=0)
-    value = Column(Unicode, nullable=False)
+    value = Column(Text, nullable=False)
 
     # link back to parent
     md = relationship("Component", back_populates="keywords")
@@ -753,24 +753,24 @@ class Component(db.Model):
     protocol_id = Column(Integer, ForeignKey('protocol.protocol_id'))
     checksum_contents = Column(String(40), nullable=False)
     appstream_id = Column(Text, nullable=False)
-    name = Column(Unicode, default=None)
-    summary = Column(Unicode, default=None)
-    description = Column(Unicode, default=None)         # markdown format
-    release_description = Column(Unicode, default=None) # markdown format
+    name = Column(Text, default=None)
+    summary = Column(Text, default=None)
+    description = Column(Text, default=None)            # markdown format
+    release_description = Column(Text, default=None)    # markdown format
     details_url = Column(Text, default=None)
     source_url = Column(Text, default=None)
-    url_homepage = Column(Unicode, default=None)
+    url_homepage = Column(Text, default=None)
     metadata_license = Column(Text, default=None)
     project_license = Column(Text, default=None)
-    developer_name = Column(Unicode, default=None)
+    developer_name = Column(Text, default=None)
     filename_contents = Column(Text, nullable=False)
     release_timestamp = Column(Integer, default=0)
     version = Column(Text, nullable=False)
     release_installed_size = Column(Integer, default=0)
     release_download_size = Column(Integer, default=0)
     release_urgency = Column(Text, default=None)
-    screenshot_url = Column(Unicode, default=None)
-    screenshot_caption = Column(Unicode, default=None)
+    screenshot_url = Column(Text, default=None)
+    screenshot_caption = Column(Text, default=None)
     inhibit_download = Column(Boolean, default=False)
     version_format = Column(String(10), default=None) # usually 'triplet' or 'quad'
     priority = Column(Integer, default=0)
@@ -1694,7 +1694,7 @@ class SearchEvent(db.Model):
     search_event_id = Column(Integer, primary_key=True, unique=True, nullable=False)
     timestamp = Column(DateTime, nullable=False, default=datetime.datetime.utcnow)
     addr = Column(String(40), nullable=False)
-    value = Column(Unicode, nullable=False)
+    value = Column(Text, nullable=False)
     count = Column(Integer, default=0)
     method = Column(Text, default=None)
 
