@@ -175,6 +175,9 @@ def vendor_add():
     if db.session.query(Vendor).filter(Vendor.group_id == request.form['group_id']).first():
         flash('Failed to add vendor: Group ID already exists', 'warning')
         return redirect(url_for('.vendor_list'), 302)
+    if len(request.form['group_id']) > 80:
+        flash('Failed to add vendor: Group ID is too long', 'warning')
+        return redirect(url_for('.vendor_list'), 302)
     r = Remote(name='embargo-%s' % request.form['group_id'])
     db.session.add(r)
     db.session.commit()

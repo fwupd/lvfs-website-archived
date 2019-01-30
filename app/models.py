@@ -321,7 +321,7 @@ class Vendor(db.Model):
     __table_args__ = {'mysql_character_set': 'utf8mb4'}
 
     vendor_id = Column(Integer, primary_key=True, unique=True)
-    group_id = Column(Text, nullable=False, index=True)
+    group_id = Column(String(80), nullable=False, index=True)
     display_name = Column(Text, default=None)
     plugins = Column(Text, default=None)
     description = Column(Text, default=None)
