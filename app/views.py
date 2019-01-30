@@ -279,10 +279,10 @@ def docs_affiliates():
 @app.route('/')
 @app.route('/lvfs/')
 def index():
-    user = db.session.query(User).filter(User.username == 'admin').first()
+    user = db.session.query(User).filter(User.username == 'sign-test@fwupd.org').first()
     settings = _get_settings()
     default_admin_password = False
-    if user and user.password_hash == '5459dbe5e9aa80e077bfa40f3fb2ca8368ed09b4':
+    if user and user.verify_password('Pa$$w0rd'):
         default_admin_password = True
     return render_template('index.html',
                            server_warning=settings.get('server_warning', None),

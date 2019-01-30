@@ -31,6 +31,8 @@ You can set up the database manually using:
     FLASK_APP=app/__init__.py flask-3 initdb
     FLASK_APP=app/__init__.py flask-3 modifydb
 
+The admin user is set as `sign-test@fwupd.org` with password `Pa$$w0rd`.
+
 ## Running locally ##
 
     python3 -m virtualenv .env3

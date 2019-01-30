@@ -191,7 +191,7 @@ def init_db(db):
         db.session.add(Remote(name='private'))
         db.session.add(Remote(name='deleted'))
         db.session.commit()
-    if not db.session.query(User).filter(User.username == 'admin').first():
+    if not db.session.query(User).filter(User.username == 'sign-test@fwupd.org').first():
         remote = Remote(name='embargo-admin')
         db.session.add(remote)
         db.session.commit()
@@ -201,16 +201,17 @@ def init_db(db):
         vendor.remote_id = remote.remote_id
         db.session.add(vendor)
         db.session.commit()
-        db.session.add(User(username='sign-test@fwupd.org',
-                            password_hash='5459dbe5e9aa80e077bfa40f3fb2ca8368ed09b4',
-                            auth_type='local',
-                            display_name='Admin User',
-                            vendor_id=vendor.vendor_id,
-                            is_admin=True,
-                            is_qa=True,
-                            is_analyst=True))
+        u = User(username='sign-test@fwupd.org',
+                 auth_type='local',
+                 display_name='Admin User',
+                 vendor_id=vendor.vendor_id,
+                 is_admin=True,
+                 is_qa=True,
+                 is_analyst=True)
+        u.password = "Pa$$w0rd"
+        db.session.add(u)
         db.session.commit()
-    if not db.session.query(User).filter(User.username == 'anonymous').first():
+    if not db.session.query(User).filter(User.username == 'anonymous@fwupd.org').first():
         db.session.add(User(username='anonymous@fwupd.org',
                             display_name='Anonymous User',
                             vendor_id=1))
