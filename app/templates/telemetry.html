@@ -25,6 +25,7 @@
 </div>
 {% endif %}
 
+{% if firmware|length > 0 %}
 <h2>Telemetry for group {{group_id}}</h2>
 <div class="container mt-3">
 <table class="table">
@@ -89,4 +90,10 @@
     <td class="col-sm-1"><b>{{total_issue}}</b></td>
   </tr>
 </table>
+{% else %}
+<p class="text-secondary">
+  No firmware analytics available.
+</p>
+{% endif %}
+
 {% endblock %}

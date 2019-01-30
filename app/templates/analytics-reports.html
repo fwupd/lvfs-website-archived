@@ -4,6 +4,8 @@
 {% block nav %}{% include 'analytics-nav.html' %}{% endblock %}
 
 {% block content %}
+
+{% if reports|length > 0 %}
 <table class="table">
   <tr class="row table-borderless">
     <th class="col-sm-2">Timestamp</th>
@@ -47,4 +49,11 @@
   </tr>
 {% endfor %}
 </table>
+
+{% else %}
+<p class="text-secondary">
+  No reports exist.
+</p>
+{% endif %}
+
 {% endblock %}
