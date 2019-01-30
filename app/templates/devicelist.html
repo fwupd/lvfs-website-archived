@@ -29,6 +29,7 @@
 </p>
 
 <!-- news -->
+{% if devices|length > 0 %}
 <h2>Most Recent Devices Added</h2>
 <div class="card-columns">
 {% for fw in devices %}
@@ -47,9 +48,10 @@
 </div>
 
 <hr/>
+{% endif %}
 
-<h2>All Supported Devices</h2>
 {% if vendors|length > 0 %}
+<h2>All Supported Devices</h2>
 {% for vendor in vendors %}
 <h3 class="mt-3">
   {{vendor}}
