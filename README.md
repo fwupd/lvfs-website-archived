@@ -29,7 +29,8 @@ The official instance is set up using puppet on RHEL 7, on which you could use:
 You can set up the database manually using:
 
     FLASK_APP=app/__init__.py flask-3 initdb
-    FLASK_APP=app/__init__.py flask-3 modifydb
+    FLASK_APP=app/__init__.py flask-3 db stamp
+    FLASK_APP=app/__init__.py flask-3 db upgrade
 
 The admin user is set as `sign-test@fwupd.org` with password `Pa$$w0rd`.
 
