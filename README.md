@@ -31,6 +31,13 @@ You can set up the database manually using:
     FLASK_APP=app/__init__.py flask-2 initdb
     FLASK_APP=app/__init__.py flask-2 modifydb
 
+## Running locally ##
+
+    python2 -m virtualenv .env2
+    source .env2/bin/activate
+    pip2 install -r requirements.txt
+    FLASK_DEBUG=1 ./app.wsgi
+
 ## Generating a SSL certificate ##
 
 IMPORTANT: The LVFS needs to be hosted over SSL.

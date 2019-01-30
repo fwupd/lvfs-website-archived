@@ -27,7 +27,9 @@ def main():
     for fn in sorted(filenames):
         if fn.find('migrations/') != -1:
             continue
-        argv = ['/usr/bin/pylint-2', '--rcfile=contrib/pylintrc', fn]
+        if fn.find('.env') != -1:
+            continue
+        argv = ['pylint-2', '--rcfile=contrib/pylintrc', fn]
         print('Checking %s' % fn)
         ps = subprocess.Popen(argv, env=env_safe)
         if ps.wait() != 0:
