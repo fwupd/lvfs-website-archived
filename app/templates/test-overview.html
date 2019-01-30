@@ -5,6 +5,7 @@
 
 {% block content %}
 
+{% if plugin_ids|length > 0 %}
 {% for plugin_id in plugin_ids %}
 <h3>{{plugins[plugin_id].name()}}</h3>
 <p class="text-secondary">{{plugins[plugin_id].summary()}}</p>
@@ -54,5 +55,10 @@
 <hr/>
 {% endfor %}
 
+{% else %}
+<p class="text-secondary">
+  No tests exist.
+</p>
+{% endif %}
 
 {% endblock %}
