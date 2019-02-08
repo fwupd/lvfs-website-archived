@@ -61,7 +61,7 @@
   </tr>
   </form>
 {% if md.screenshot_url %}
-  <form class="form-inline" method="post" action="/lvfs/component/{{md.component_id}}/modify" method="POST">
+  <form class="form-inline" action="/lvfs/component/{{md.component_id}}/modify" method="POST">
   <tr class="row">
     <th class="col-sm-3">Screenshot URL</th>
 {% if md.fw.remote.name != 'stable' or g.user.check_acl('@admin') %}
@@ -78,7 +78,7 @@
   </form>
 {% endif %}
 {% if md.screenshot_caption %}
-  <form class="form-inline" method="post" action="/lvfs/component/{{md.component_id}}/modify" method="POST">
+  <form class="form-inline" action="/lvfs/component/{{md.component_id}}/modify" method="POST">
   <tr class="row">
     <th class="col-sm-3">Screenshot Caption</th>
 {% if md.fw.remote.name != 'stable' or g.user.check_acl('@admin') %}

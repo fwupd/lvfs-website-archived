@@ -148,7 +148,7 @@
 {% else %}
   <input type="hidden" name="send_email" value="1">
 {% endif %}
-  <input type="submit" class="btn btn-primary btn-large" class="submit" value="Modify">
+  <input type="submit" class="btn btn-primary btn-large" value="Modify">
   <div class="float-right">
     <a class="btn btn-warning" href="/lvfs/user/{{u.user_id}}/reset_by_admin">Reset Password</a>
 {% if g.user.check_acl('@admin') and u.group_id != 'admin' %}
