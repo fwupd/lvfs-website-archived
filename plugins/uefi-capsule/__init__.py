@@ -6,7 +6,6 @@
 #
 # pylint: disable=no-self-use,wrong-import-position
 
-import os
 import struct
 import uuid
 

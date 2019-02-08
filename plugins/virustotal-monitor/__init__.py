@@ -6,7 +6,6 @@
 #
 # pylint: disable=no-self-use
 
-import os
 import requests
 
 from app.pluginloader import PluginBase, PluginError, PluginSettingBool, PluginSettingText
