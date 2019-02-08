@@ -39,10 +39,10 @@
       <div class="collapse navbar-collapse" id="navbarSupportedContent">
         <ul class="navbar-nav mr-auto">
           <li class="nav-item dropdown">
-            <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+            <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownHome" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
               Home
             </a>
-            <div class="dropdown-menu" aria-labelledby="navbarDropdown">
+            <div class="dropdown-menu" aria-labelledby="navbarDropdownHome">
               <a class="dropdown-item" href="{{url_for('.docs_introduction')}}">Introduction</a>
               <a class="dropdown-item" href="{{url_for('.docs_vendors')}}">Hardware Vendors</a>
               <a class="dropdown-item" href="{{url_for('.docs_users')}}">End Users</a>
@@ -61,10 +61,10 @@
           </li>
 {% if g.user is defined %}
           <li class="nav-item dropdown">
-            <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+            <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownFirmware" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
               Firmware
             </a>
-            <div class="dropdown-menu" aria-labelledby="navbarDropdown">
+            <div class="dropdown-menu" aria-labelledby="navbarDropdownFirmware">
               <a class="dropdown-item" href="/lvfs/upload">Upload new</a>
               <div class="dropdown-divider"></div>
               <a class="dropdown-item" href="/lvfs/firmware">Show all</a>
@@ -80,10 +80,10 @@
 {% endif %}
 {% if g.user is defined and g.user.check_acl('@admin') %}
           <li class="nav-item dropdown">
-            <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+            <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownAdmin" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
               Admin
             </a>
-            <div class="dropdown-menu" aria-labelledby="navbarDropdown">
+            <div class="dropdown-menu" aria-labelledby="navbarDropdownAdmin">
               <a class="dropdown-item" href="/lvfs/userlist">Users</a>
               <a class="dropdown-item" href="/lvfs/vendorlist">Vendors</a>
               <div class="dropdown-divider"></div>
@@ -97,10 +97,10 @@
 {% endif %}
 {% if g.user is defined and (g.user.check_acl('@view-profile') or g.user.check_acl('@view-eventlog')) %}
           <li class="nav-item dropdown">
-            <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+            <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownProfile" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
               Profile
             </a>
-            <div class="dropdown-menu" aria-labelledby="navbarDropdown">
+            <div class="dropdown-menu" aria-labelledby="navbarDropdownProfile">
 {% if g.user.check_acl('@view-profile') %}
               <a class="dropdown-item" href="/lvfs/profile">User</a>
 {% endif %}
