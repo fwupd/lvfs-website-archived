@@ -822,7 +822,13 @@ class Component(db.Model):
 
     @property
     def developer_name_display(self):
-        return self.developer_name.split(' ')[0]
+        if not self.developer_name:
+            return None
+        tmp = str(self.developer_name)
+        for suffix in [' Limited', ' Ltd.', ' Inc.', ' Corp']:
+            if tmp.endswith(suffix):
+                return tmp[:-len(suffix)]
+        return tmp
 
     @property
     def name_display(self):

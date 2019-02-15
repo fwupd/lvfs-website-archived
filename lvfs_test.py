@@ -662,7 +662,7 @@ class LvfsTestCase(unittest.TestCase):
         # ensure user can still view firmware
         self.login('alice@acme.com', accept_agreement=False)
         rv = self.app.get('/lvfs/firmware')
-        assert b'Hughski Limited ColorHug2 Device Update' in rv.data, rv.data
+        assert b'ColorHug2 Device Update' in rv.data, rv.data
 
     def test_users(self):
 
@@ -1182,7 +1182,7 @@ class LvfsTestCase(unittest.TestCase):
         rv = self.app.get('/lvfs/firmware/1')
         assert '/downloads/' + self.checksum_upload in rv.data.decode('utf-8'), rv.data
         rv = self.app.get('/lvfs/firmware')
-        assert b'Hughski Limited ColorHug2 Device Update' in rv.data, rv.data
+        assert b'ColorHug2 Device Update' in rv.data, rv.data
 
         # check bob can change the update description and severity
         rv = self.app.post('/lvfs/component/1/modify', data=dict(
