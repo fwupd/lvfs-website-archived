@@ -173,6 +173,13 @@ def utility_processor():
             return 'n/a'
         return humanize.naturaltime(tmp)
 
+    def format_humanize_intchar(tmp):
+        if tmp > 1000000:
+            return '%.0fM' % (float(tmp) / 1000000)
+        if tmp > 1000:
+            return '%.0fK' % (float(tmp) / 1000)
+        return tmp
+
     def format_timedelta_approx(tmp):
         return humanize.naturaltime(tmp).replace(' from now', '')
 
@@ -204,6 +211,7 @@ def utility_processor():
     return dict(format_size=format_size,
                 format_humanize_naturalday=format_humanize_naturalday,
                 format_humanize_naturaltime=format_humanize_naturaltime,
+                format_humanize_intchar=format_humanize_intchar,
                 format_timedelta_approx=format_timedelta_approx,
                 format_html_from_markdown=format_html_from_markdown,
                 format_timestamp=format_timestamp)

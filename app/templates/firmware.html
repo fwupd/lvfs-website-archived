@@ -5,7 +5,7 @@
 <h1>Existing Firmware</h1>
 
 {% if fw_by_name|length == 0 %}
-<p>
+<p class="text-muted">
 {% if g.user.is_qa %}
   No firmware has been uploaded to the &lsquo;{{g.user.vendor.group_id}}&rsquo; QA group yet.
 {% else %}
@@ -15,38 +15,68 @@
 
 {% else %}
 
-<p>
-  The following firmware files have been uploaded to the
-  &lsquo;{{g.user.vendor.group_id}}&rsquo; QA group.
+<p class="text-muted">
 {% if not show_all %}
-  By default only one firmware per device is shown in each state.
-  To show all files for all devices, <a href="/lvfs/firmware_all">click here</a>.
+  Showing one firmware per device in each state.
+  <a href="/lvfs/firmware_all">Show all</a>.
 {% endif %}
 </p>
 
-{% for name in names_sorted %}
-<h2>{{name}}</h2>
 <table class="table">
-  <tr class="row">
-    <th class="col-sm-3">Version</th>
-    <th class="col-sm-3">Submitted</th>
-    <th class="col-sm-4">Remote</th>
-    <th class="col-sm-2">&nbsp;</th>
-  </tr>
+{% for name in names_sorted %}
 {% for fw in fw_by_name[name] %}
 {% if show_all or fw.is_newest_in_state %}
   <tr class="row">
-    <td class="col-sm-3">{{fw.version_display}}</td>
-    <td class="col-sm-3">{{fw.timestamp}}</td>
-    <td class="col-sm-4">{{fw.remote.name}}</td>
+    <td class="col-sm-8">
+      <h4 class="list-group-item-title">{{name}} v{{fw.version_display}}</h4>
+      <p class="text-muted">
+        Uploaded {{format_humanize_naturaltime(fw.timestamp)}}
+      </p>
+    </td>
+    <td class="col-sm-1">
+{% if fw.remote.name == 'private' %}
+      <img src="/img/symbolic-stable.svg" width="24"
+        alt="{{fw.remote.name}}"
+        title="This firmware is only available to you"/>
+{% elif fw.remote.name == 'testing' %}
+      <img src="/img/symbolic-testing.svg" width="24"
+        alt="{{fw.remote.name}}"
+        title="This firmware is available to the public"/>
+{% elif fw.remote.name == 'stable' %}
+      <img src="/img/symbolic-stable.svg" width="24"
+        alt="{{fw.remote.name}}"
+        title="This firmware is available to the public"/>
+{% elif fw.remote.name == 'deleted' %}
+      <img src="/img/symbolic-trash.svg" width="24"
+        alt="{{fw.remote.name}}"
+        title="This firmware has been deleted"/>
+{% elif fw.remote.name.startswith('embargo') %}
+      <img src="/img/symbolic-embargo.svg" width="24"
+        alt="{{fw.remote.name}}"
+        title="This firmware has been embargoed"/>
+{% else %}
+      {{fw.remote.name}}
+{% endif %}
+{% if fw.problems|length %}
+      <img src="/img/symbolic-problem.svg" width="24"
+        title="{{fw.problems|length}} problems"/>
+{% endif %}
+    </td>
+    <td class="col-sm-1">
+      <span class="text-muted">
+        <img src="/img/symbolic-download.svg" width="24" alt="download icon"/>
+        {{format_humanize_intchar(fw.download_cnt)}}
+      </span>
+    </td>
     <td class="col-sm-2 text-right">
-      <a class="btn btn-info btn-block" href="/lvfs/firmware/{{fw.firmware_id}}">Details</a>
+      <a class="btn btn-info btn-block"
+        href="/lvfs/firmware/{{fw.firmware_id}}">Details</a>
     </td>
   </tr>
 {% endif %}
 {% endfor %}
-</table>
 {% endfor %}
+</table>
 
 {% endif %}
 {% endblock %}
