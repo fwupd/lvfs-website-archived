@@ -2,32 +2,30 @@
 {% block title %}Event Log{% endblock %}
 
 {% block content %}
-<table class="table">
-  <tr class="row table-borderless">
-    <th class="col-sm-2">Timestamp</th>
-    <th class="col-sm-2">Address</th>
-    <th class="col-sm-3">User</th>
-    <th class="col-sm-5">Message</th>
-  </tr>
-{% for e in events %}
-  <tr class="row">
-    <td class="col-sm-2">{{e.timestamp}}</td>
-    <td class="col-sm-2"><code>{{e.address}}</code></td>
-    <td class="col-sm-3">{{e.user.username}}</td>
-    <td class="col-sm-5">
-{% if e.is_important %}
-      &#x272a;
-{% endif %}
-      {{e.message}}
-{% if e.request %}
-      <code>{{e.request}}</code>
-{% endif %}
-    </td>
-  </tr>
-{% endfor %}
-</table>
 
-<ul class="pagination">
+<div class="list-group">
+{% for e in events %}
+  <div class="list-group-item list-group-item-action {{'list-group-item-warning' if e.is_important}}">
+    <h4>{{e.message}}</h4>
+    <p class="text-secondary">
+{% if e.user.username != 'anon@fwupd.org' %}
+      {{e.user.username}}
+{% else %}
+      Anonymous user
+{% endif %}
+{% if e.request and e.request != '/' %}
+      called <code>{{e.request}}</code>
+{% endif %}
+      {{format_humanize_naturaltime(e.timestamp)}}
+{% if e.address != '127.0.0.1' %}
+      from <code>{{e.address}}</code>
+{% endif %}
+      </p>
+  </div>
+{% endfor %}
+</div>
+
+<ul class="pagination mt-3">
 {% if start >= page_length %}
   <li class="page-item">
     <a class="page-link" href="/lvfs/eventlog/{{start-page_length}}/{{page_length}}" tabindex="-1">Previous</a>

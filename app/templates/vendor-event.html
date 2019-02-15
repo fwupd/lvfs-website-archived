@@ -5,30 +5,27 @@
 
 {% block content %}
 
-<table class="table">
-  <tr class="row table-borderless">
-    <th class="col-sm-2">Timestamp</th>
-    <th class="col-sm-2">Address</th>
-    <th class="col-sm-3">User</th>
-    <th class="col-sm-5">Message</th>
-  </tr>
+<div class="list-group">
 {% for e in v.events.limit(1000) %}
-  <tr class="row">
-    <td class="col-sm-2">{{e.timestamp}}</td>
-    <td class="col-sm-2"><code>{{e.address}}</code></td>
-    <td class="col-sm-3">{{e.user.username}}</td>
-    <td class="col-sm-5">
-{% if e.is_important %}
-      &#x272a;
+  <div class="list-group-item list-group-item-action {{'list-group-item-warning' if e.is_important}}">
+    <h4>{{e.message}}</h4>
+    <p class="text-secondary">
+{% if e.user.username != 'anon@fwupd.org' %}
+      {{e.user.username}}
+{% else %}
+      Anonymous user
 {% endif %}
-      {{e.message}}
-{% if e.request %}
-      <code>{{e.request}}</code>
+{% if e.request and e.request != '/' %}
+      called <code>{{e.request}}</code>
 {% endif %}
-    </td>
-  </tr>
+      {{format_humanize_naturaltime(e.timestamp)}}
+{% if e.address != '127.0.0.1' %}
+      from <code>{{e.address}}</code>
+{% endif %}
+      </p>
+  </div>
 {% endfor %}
-</table>
+</div>
 
 {% endblock %}
 
