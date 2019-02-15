@@ -28,9 +28,12 @@
 {% if show_all or fw.is_newest_in_state %}
   <tr class="row">
     <td class="col-sm-8">
-      <h4 class="list-group-item-title">{{name}} v{{fw.version_display}}</h4>
+      <h4 class="list-group-item-title">
+        {{fw.mds[0].developer_name_display}}
+        {{fw.mds[0].name}}
+      </h4>
       <p class="text-muted">
-        Uploaded {{format_humanize_naturaltime(fw.timestamp)}}
+        Version {{fw.version_display}} uploaded {{format_humanize_naturaltime(fw.timestamp)}}
       </p>
     </td>
     <td class="col-sm-1">
