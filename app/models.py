@@ -1566,21 +1566,24 @@ class Report(db.Model):
     firmware_id = Column(Integer, ForeignKey('firmware.firmware_id'), nullable=False, index=True)
     checksum = Column(String(64), nullable=False) # remove?
     issue_id = Column(Integer, default=0)
+    user_id = Column(Integer, ForeignKey('users.user_id'), default=None)
 
     # link using foreign keys
     fw = relationship('Firmware', foreign_keys=[firmware_id])
+    user = relationship('User', foreign_keys=[user_id])
     attributes = relationship("ReportAttribute",
                               back_populates="report",
                               lazy='joined',
                               cascade='all,delete-orphan')
 
-    def __init__(self, firmware_id, machine_id=None, state=0, checksum=None, issue_id=0):
+    def __init__(self, firmware_id, machine_id=None, state=0, checksum=None, issue_id=0, user_id=None):
         """ Constructor for object """
         self.timestamp = None
         self.state = state
         self.machine_id = machine_id
         self.firmware_id = firmware_id
         self.issue_id = issue_id
+        self.user_id = user_id
         self.checksum = checksum
 
     def to_flat_dict(self):

@@ -88,6 +88,7 @@ def firmware_report():
         return _json_error('No data')
 
     # find user and verify
+    crt = None
     if signature:
         info = _pkcs7_signature_info(signature)
         if not info:
@@ -181,6 +182,10 @@ def firmware_report():
                        issue_id=issue_id,
                        state=report['UpdateState'],
                        checksum=report['Checksum'])
+
+        # update the LVFS user
+        if crt:
+            r.user_id = crt.user_id
 
         # save all the report entries
         for key in data:
