@@ -326,3 +326,75 @@ def _pkcs7_certificate_info(text):
         except ValueError as _:
             pass
     return info
+
+def _pkcs7_signature_info(text):
+
+    # write signature to temp file
+    sig = tempfile.NamedTemporaryFile(mode='wb',
+                                      prefix='pkcs7_',
+                                      suffix=".txt",
+                                      dir=None,
+                                      delete=True)
+    sig.write(text.encode('utf8'))
+    sig.flush()
+
+    # parse
+    argv = ['certtool', '--p7-verify', '--infile', sig.name]
+    ps = subprocess.Popen(argv, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    out, _ = ps.communicate()
+    info = {}
+    for line in out.decode('utf8').split('\n'):
+        try:
+            key, value = line.strip().split(':', 2)
+            if key == 'Signer\'s serial':
+                info['serial'] = value.strip()
+        except ValueError as _:
+            pass
+    return info
+
+def _pkcs7_signature_verify(certificate, payload, signature):
+
+    # check the signature against the client cert
+    crt = tempfile.NamedTemporaryFile(mode='wb',
+                                      prefix='pkcs7_',
+                                      suffix=".p7b",
+                                      dir=None,
+                                      delete=True)
+    crt.write(certificate.text.encode('utf8'))
+    crt.flush()
+
+    # write payload to temp file
+    pay = tempfile.NamedTemporaryFile(mode='wb',
+                                      prefix='pkcs7_',
+                                      suffix=".json",
+                                      dir=None,
+                                      delete=True)
+    pay.write(payload.encode('utf8'))
+    pay.flush()
+
+    # write signature to temp file
+    sig = tempfile.NamedTemporaryFile(mode='wb',
+                                      prefix='pkcs7_',
+                                      suffix=".p7b",
+                                      dir=None,
+                                      delete=True)
+    sig.write(signature.encode('utf8'))
+    sig.flush()
+
+    # verify
+    status = None
+    argv = ['certtool', '--p7-verify',
+            '--load-certificate', crt.name,
+            '--infile', sig.name,
+            '--load-data', pay.name]
+    ps = subprocess.Popen(argv, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    _, err = ps.communicate()
+    for line in err.decode('utf8').split('\n'):
+        try:
+            key, value = line.strip().split(':', 2)
+            print(key, value)
+            if key == 'Signature status':
+                status = value.strip()
+        except ValueError as _:
+            pass
+    return status == 'ok'

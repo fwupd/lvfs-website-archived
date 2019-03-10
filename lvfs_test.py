@@ -839,41 +839,123 @@ class LvfsTestCase(unittest.TestCase):
         assert b'Moved firmware' in rv.data, rv.data
         assert b'>private<' in rv.data, rv.data
 
-    def _report(self, updatestate=2, distro_id='fedora', checksum=None):
+    def _report(self, updatestate=2, distro_id='fedora', checksum=None, signed=False, signature_valid=True):
         if not checksum:
             checksum = self.checksum_signed
-        return self.app.post('/lvfs/firmware/report', data=
-                             '{'
-                             '  "ReportVersion" : 2,'
-                             '  "MachineId" : "abc",'
-                             '  "Metadata" : {'
-                             '    "DistroId" : "%s",'
-                             '    "DistroVersion" : "27",'
-                             '    "DistroVariant" : "workstation"'
-                             '  },'
-                             '  "Reports" : ['
-                             '    {'
-                             '      "Checksum" : "%s",'
-                             '      "UpdateState" : %i,'
-                             '      "UpdateError" : "UEFI firmware update failed: failed to make /boot/efi/EFI/arch/fw: No such file or directory",'
-                             '      "Guid" : "7514fc4b0e1a306337de78c58f10e9e68f791de2",'
-                             '      "Plugin" : "colorhug",'
-                             '      "VersionOld" : "2.0.0",'
-                             '      "VersionNew" : "2.0.3",'
-                             '      "Flags" : 34,'
-                             '      "Created" : 1518212684,'
-                             '      "Modified" : 1518212754,'
-                             '      "Metadata" : {'
-                             '        "AppstreamGlibVersion" : "0.7.5",'
-                             '        "CpuArchitecture" : "x86_64",'
-                             '        "FwupdVersion" : "1.0.5",'
-                             '        "GUsbVersion" : "0.2.11",'
-                             '        "BootTime" : "1518082325",'
-                             '        "KernelVersion" : "4.14.16-300.fc27.x86_64"'
-                             '      }'
-                             '    }'
-                             '  ]'
-                             '}' % (distro_id, checksum, updatestate))
+        payload = """
+{
+  "ReportVersion" : 2,
+  "MachineId" : "abc",
+  "Metadata" : {
+    "DistroId" : "%s",
+    "DistroVersion" : "27",
+    "DistroVariant" : "workstation"
+  },
+  "Reports" : [
+    {
+      "Checksum" : "%s",
+      "UpdateState" : %i,
+      "UpdateError" : "UEFI firmware update failed: failed to make /boot/efi/EFI/arch/fw: No such file or directory",
+      "Guid" : "7514fc4b0e1a306337de78c58f10e9e68f791de2",
+      "Plugin" : "colorhug",
+      "VersionOld" : "2.0.0",
+      "VersionNew" : "2.0.3",
+      "Flags" : 34,
+      "Created" : 1518212684,
+      "Modified" : 1518212754,
+      "Metadata" : {
+        "AppstreamGlibVersion" : "0.7.5",
+        "CpuArchitecture" : "x86_64",
+        "FwupdVersion" : "1.0.5",
+        "GUsbVersion" : "0.2.11",
+        "BootTime" : "1518082325",
+        "KernelVersion" : "4.14.16-300.fc27.x86_64"
+      }
+    }
+  ]
+} """ % (distro_id, checksum, updatestate)
+
+        # legacy
+        if not signed:
+            return self.app.post('/lvfs/firmware/report', data=payload)
+
+        # to recreate, use:
+        # with open('payload.txt', 'w') as f:
+        #     f.write(payload)
+        # sudo certtool --p7-detached-sign --p7-time --no-p7-include-cert \
+        # --load-certificate ~/.root/var/lib/fwupd/pki/client.pem
+        # --load-privkey ~/.root/var/lib/fwupd/pki/secret.key
+        # --infile payload.txt --outfile test.p7b
+
+        # signed
+        if signature_valid:
+            signature = """
+-----BEGIN PKCS7-----
+MIICYgYJKoZIhvcNAQcCoIICUzCCAk8CAQExDTALBglghkgBZQMEAgEwCwYJKoZI
+hvcNAQcBMYICLDCCAigCAQEwGDAAAhRfEaI3uZSTG774ab0BUyNYdPqPizALBglg
+hkgBZQMEAgGgaTAYBgkqhkiG9w0BCQMxCwYJKoZIhvcNAQcBMBwGCSqGSIb3DQEJ
+BTEPFw0xOTAzMTAxODE0NDZaMC8GCSqGSIb3DQEJBDEiBCAjrzlnN1jIPwgx+PIX
+rgjtG90OyX7mqgQjd8TpbOryPTANBgkqhkiG9w0BAQEFAASCAYA4tyiiUpKfeaCt
+Mm5M8d4hU2plPPCkS/9LCq2MHUZ+rsAdA5Lt9sPqeK91/wRJWvkL6GJrni6RnaqH
+VpLtGTHu8k2abwQFxGt9mQ/dNQOGUaLK7m+WMZ2rKXGxEesTMgUfSLo+y/2AQOqI
+ZccT3xCq64GDOYWyx5z0GIupFLo8/YFVWXYC2H2c7mZzDUFdKIQd4YCNKlTMrer5
+koM2vKddvwgd6twVmuQayHdXpROvS64trva6rgJgFzv/3mahPiNSwGjYwftLD/TB
+LJtXoGeZ5pQ2wzuDpu8N5nUp3CnXEtvKrUE+L+1+opcSVvptRYTYj/FHRMzcKN9L
+CBgXoVb0aPKxvlf78Bxs383VEf7Ss0ix6flLA/qMBY3CPeyr4SwC1cyBskdcIZ7c
+DCop6yKKg3zeQIDcSmkDQjOktRl4w0ivt2TriAYsE9oywG/va6Tzmr3Xuj6PiGwz
+BFIZ3jryYH96GuSiNmEOBgB6oFR3u9w/1+f5nIVltrlG4eYqfdg=
+-----END PKCS7-----
+"""
+        else:
+            # signing some crazy thing
+            signature = """
+-----BEGIN PKCS7-----
+MIICYgYJKoZIhvcNAQcCoIICUzCCAk8CAQExDTALBglghkgBZQMEAgEwCwYJKoZI
+hvcNAQcBMYICLDCCAigCAQEwGDAAAhRfEaI3uZSTG774ab0BUyNYdPqPizALBglg
+hkgBZQMEAgGgaTAYBgkqhkiG9w0BCQMxCwYJKoZIhvcNAQcBMBwGCSqGSIb3DQEJ
+BTEPFw0xOTAzMTAxNzU1MjBaMC8GCSqGSIb3DQEJBDEiBCA5srgWrdr1OV1vxW0m
+Q7zNvoxFlVkp1mrAIrVQCpUekzANBgkqhkiG9w0BAQEFAASCAYADec2WR6u++SnR
+zNwZ44reU3TaVe2zCELE07aPN9pAk9V3ez8ZSGRSKo2hPWl5wzqBP8rGv4D/vTgr
+r+42OHYoiAQ4113D1adMHvAmyPt20yzrWAP138C2ajeX1m7vDT0guLlEBoJPigB7
+6nVYa1LCM9+EpJI+JrAEIXXTeuXIIeEROu0vvGrg1uvQeLg5ZdvqJUfbs0/fD29R
+LEgNMCeQo0yqGx+511hQDybQnx1pNtSUTTsQ6o5h6W8ELLD924C0Yqd3bRf5JOdm
+qWhfysGJNGlQubM4nyjks+9b5DPiZWxNdsUE+l9xQZc4gR+wJg3dfocbZ6kfo/pI
+Dbskni3KiRc13+HmUBdbjhdLWYS4hirSVuyZ2n8UjIS4Pp/S2cPDe47YJwCbOn97
+WmOPP+2xuvr/sTV8AAbcAZgK2TBBVUjZMJeCBcLIba8O9mJJVHE4I1PzXcf+l6D7
+ma+I7fM5pmgsEL4tkCZAg0+CPTyhHkMV/cWuOZUjqTsYbDq1pZI=
+-----END PKCS7-----
+"""
+        data = {
+            'payload': payload,
+            'signature': signature,
+        }
+        return self.app.post('/lvfs/firmware/report', data=data,
+                             content_type='multipart/form-data')
+
+    def test_reports_signed(self):
+
+        # upload a firmware that can receive a report
+        self.login()
+        self.upload(target='testing')
+
+        # send empty
+        rv = self.app.post('/lvfs/firmware/report')
+        assert b'No data' in rv.data, rv.data
+
+        # a signed report that does not exist for user -- invalid is ignored
+        rv = self._report(signed=True, signature_valid=False)
+        assert b'"success": true' in rv.data, rv.data
+
+        # set certificate for user
+        self._add_certificate()
+
+        # send a valid signed report
+        rv = self._report(signed=True)
+        assert b'"success": true' in rv.data, rv.data
+
+        # send an invalid signed report
+        rv = self._report(signed=True, signature_valid=False)
+        assert b'Signature did not validate' in rv.data, rv.data
 
     def test_reports(self):
 
@@ -883,7 +965,7 @@ class LvfsTestCase(unittest.TestCase):
 
         # send empty
         rv = self.app.post('/lvfs/firmware/report')
-        assert b'No JSON object could be decoded' in rv.data, rv.data
+        assert b'No data' in rv.data, rv.data
 
         # self less than what we need
         rv = self.app.post('/lvfs/firmware/report', data='{"MachineId" : "abc"}')

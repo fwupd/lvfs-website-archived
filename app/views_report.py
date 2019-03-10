@@ -11,9 +11,9 @@ from flask_login import login_required
 
 from app import app, db
 
-from .models import Firmware, Report, ReportAttribute, Issue
+from .models import Firmware, Report, ReportAttribute, Issue, Certificate
 from .util import _error_internal, _error_permission_denied
-from .util import _json_success, _json_error
+from .util import _json_success, _json_error, _pkcs7_signature_info, _pkcs7_signature_verify
 
 @app.route('/lvfs/report/<report_id>')
 @login_required
@@ -73,9 +73,33 @@ def firmware_report():
     if request.method != 'POST':
         return _json_error('only POST supported')
 
+    # parse both content types, either application/json or multipart/form-data
+    signature = None
+    if request.data:
+        payload = request.data.decode('utf8')
+    elif request.form:
+        data = request.form.to_dict()
+        if 'payload' not in data:
+            return _json_error('No payload in multipart/form-data')
+        payload = data['payload']
+        if 'signature' in data:
+            signature = data['signature']
+    else:
+        return _json_error('No data')
+
+    # find user and verify
+    if signature:
+        info = _pkcs7_signature_info(signature)
+        if not info:
+            return _json_error('Signature invalid')
+        crt = db.session.query(Certificate).filter(Certificate.serial == info['serial']).first()
+        if crt:
+            if not _pkcs7_signature_verify(crt, payload, signature):
+                return _json_error('Signature did not validate')
+
     # parse JSON data
     try:
-        item = json.loads(request.data.decode('utf8'))
+        item = json.loads(payload)
     except ValueError as e:
         return _json_error('No JSON object could be decoded: ' + str(e))
 
