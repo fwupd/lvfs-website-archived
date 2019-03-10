@@ -11,9 +11,10 @@ from flask_login import login_required
 
 from app import app, db
 
-from .models import Firmware, Report, ReportAttribute, Issue, Certificate
-from .util import _error_internal, _error_permission_denied
+from .models import Firmware, Report, ReportAttribute, Issue, Certificate, Checksum
+from .util import _error_internal, _error_permission_denied, _event_log
 from .util import _json_success, _json_error, _pkcs7_signature_info, _pkcs7_signature_verify
+from .hash import _is_sha1, _is_sha256
 
 @app.route('/lvfs/report/<report_id>')
 @login_required
@@ -156,6 +157,30 @@ def firmware_report():
         if not fw:
             msgs.append('%s did not match any known firmware archive' % report['Checksum'])
             continue
+
+        # update the device checksums if there is only one component
+        if crt and crt.user.is_qa and 'ChecksumDevice' in data and len(fw.mds) == 1:
+            md = fw.mds[0]
+            found = False
+
+            # fwupd v1.2.6 sends an array of strings, before that just a string
+            checksums = data['ChecksumDevice']
+            if not isinstance(checksums, list):
+                checksums = [checksums]
+
+            # does the submitted checksum already exist as a device checksum
+            for checksum in checksums:
+                for csum in md.device_checksums:
+                    if csum.value == checksum:
+                        found = True
+                        break
+                if found:
+                    continue
+                _event_log('added device checksum %s to firmware %s' % (checksum, md.fw.checksum_upload))
+                if _is_sha1(checksum):
+                    md.device_checksums.append(Checksum(checksum, 'SHA1'))
+                elif _is_sha256(checksum):
+                    md.device_checksums.append(Checksum(checksum, 'SHA256'))
 
         # find any matching report
         issue_id = 0
