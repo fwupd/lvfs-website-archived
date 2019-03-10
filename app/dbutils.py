@@ -124,6 +124,9 @@ def anonymize_db(db):
             u.display_name = user_names[idx_user_names]
             u.username = _make_boring(u.display_name) + u.vendor.username_glob[1:]
             idx_user_names += 1
+            for crt in u.certificates:
+                crt.serial = 'deadbeefdeadbeefdeadbeefdeadbeefdeadbeef'
+                crt.text = '-----BEGIN CERTIFICATE-----\nFUBAR\n-----END CERTIFICATE-----'
         idx_vendor_names += 1
 
     # anonymize firmware

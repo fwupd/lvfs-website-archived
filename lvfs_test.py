@@ -1498,6 +1498,43 @@ class LvfsTestCase(unittest.TestCase):
         rv = self.app.get('/lvfs/issue/1/delete', follow_redirects=True)
         assert b'No issue found' in rv.data, rv.data
 
+    def _add_certificate(self, filename='contrib/test.p7b'):
+        with open(filename, 'rb') as fd:
+            data = {
+                'file': (fd, filename)
+            }
+            return self.app.post('/lvfs/user/certificate/add', data=data, follow_redirects=True)
+
+    def test_user_certificates(self):
+
+        self.login()
+
+        rv = self.app.get('/lvfs/profile_crts')
+        assert b'No client certificates have been uploaded' in rv.data, rv.data
+
+        # upload invalid
+        rv = self._add_certificate('contrib/Dockerfile')
+        assert b'Certificate invalid, expected BEGIN CERTIFICATE' in rv.data, rv.data
+        rv = self._add_certificate('contrib/bad.p7b')
+        assert b'Certificate invalid, cannot parse' in rv.data, rv.data
+
+        # upload valid
+        rv = self._add_certificate()
+        assert b'Added client certificate with serial 5f11a237b994931bbef869bd0153235874fa8f8b' in rv.data, rv.data
+
+        # check exists
+        rv = self.app.get('/lvfs/profile_crts')
+        assert b'5f11a237b994931bbef869bd0153235874fa8f8b' in rv.data, rv.data
+        assert b'No client certificates have been uploaded' not in rv.data, rv.data
+
+        # remove
+        rv = self.app.get('/lvfs/user/certificate/remove/1', follow_redirects=True)
+        assert b'Deleted certificate' in rv.data, rv.data
+        rv = self.app.get('/lvfs/profile_crts')
+        assert b'5f11a237b994931bbef869bd0153235874fa8f8b' not in rv.data, rv.data
+
+        self.logout()
+
     def test_issues_as_qa(self):
 
         # create QA:alice, QA:bob

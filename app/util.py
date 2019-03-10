@@ -12,6 +12,8 @@ import calendar
 import datetime
 import string
 import random
+import subprocess
+import tempfile
 
 from glob import fnmatch
 
@@ -299,3 +301,28 @@ def _email_check(value):
 
 def _generate_password(size=10, chars=string.ascii_letters + string.digits):
     return ''.join(random.choice(chars) for _ in range(size))
+
+def _pkcs7_certificate_info(text):
+
+    # write certificate to temp file
+    crt = tempfile.NamedTemporaryFile(mode='wb',
+                                      prefix='pkcs7_',
+                                      suffix=".p7b",
+                                      dir=None,
+                                      delete=True)
+    crt.write(text.encode('utf8'))
+    crt.flush()
+
+    # get signature
+    argv = ['certtool', '--certificate-info', '--infile', crt.name]
+    ps = subprocess.Popen(argv, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    out, _ = ps.communicate()
+    info = {}
+    for line in out.decode('utf8').split('\n'):
+        try:
+            key, value = line.strip().split(':', 2)
+            if key == 'Serial Number (hex)':
+                info['serial'] = value.strip()
+        except ValueError as _:
+            pass
+    return info

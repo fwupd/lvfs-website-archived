@@ -1,6 +1,8 @@
 {% extends "default.html" %}
 {% block title %}Home{% endblock %}
 
+{% block nav %}{% include 'profile-nav.html' %}{% endblock %}
+
 {% block content %}
 <h1>Modify Local User</h1>
   <form class="form" method="post" action="/lvfs/user/{{g.user.user_id}}/modify">

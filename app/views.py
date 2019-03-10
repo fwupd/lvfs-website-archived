@@ -526,6 +526,14 @@ def profile():
         return _error_permission_denied('Unable to view profile as account locked')
     return render_template('profile.html', u=g.user)
 
+@app.route('/lvfs/profile_crts')
+@login_required
+def profile_crts():
+    # security check
+    if not g.user.check_acl('@view-profile'):
+        return _error_permission_denied('Unable to view profile as account locked')
+    return render_template('profile-crts.html', u=g.user)
+
 # old names used on the static site
 @app.route('/users.html')
 def users_html():

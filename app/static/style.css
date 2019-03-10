@@ -14,6 +14,11 @@ input[type=text].fixed-width
     font-size: 110%;
 }
 
+textarea.fixed-width
+{
+    font-family: monospace;
+}
+
 .input-group>.input-group-prepend {
     flex: 0 0 30%;
 }

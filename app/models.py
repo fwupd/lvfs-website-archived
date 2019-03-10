@@ -139,6 +139,9 @@ class User(db.Model):
                           order_by="desc(Event.timestamp)",
                           lazy='dynamic',
                           cascade='all,delete-orphan')
+    certificates = relationship("Certificate",
+                                order_by="desc(Certificate.ctime)",
+                                cascade='all,delete-orphan')
 
     def __init__(self, username, password_hash=None, display_name=None,
                  vendor_id=None, auth_type='disabled', is_analyst=False, is_qa=False,
@@ -481,6 +484,46 @@ class Event(db.Model):
         self.is_important = is_important
     def __repr__(self):
         return "Event object %s" % self.message
+
+class Certificate(db.Model):
+
+    # sqlalchemy metadata
+    __tablename__ = 'certificates'
+    __table_args__ = {'mysql_character_set': 'utf8mb4'}
+
+    certificate_id = Column(Integer, primary_key=True, nullable=False, unique=True)
+    user_id = Column(Integer, ForeignKey('users.user_id'), nullable=False)
+    ctime = Column(DateTime, nullable=False, default=datetime.datetime.utcnow)
+    serial = Column(String(40), nullable=False)
+    text = Column(Text, default=None)
+
+    # link using foreign keys
+    user = relationship('User', foreign_keys=[user_id])
+
+    def __init__(self, user_id, serial=None, text=None):
+        """ Constructor for object """
+        self.user_id = user_id
+        self.serial = serial
+        self.text = text
+
+
+    def check_acl(self, action, user=None):
+
+        # fall back
+        if not user:
+            user = g.user
+        if user.is_admin:
+            return True
+
+        # depends on the action requested
+        if action == '@delete':
+            if self.user_id == user.user_id:
+                return True
+            return False
+        raise NotImplementedError('unknown security check action: %s:%s' % (self, action))
+
+    def __repr__(self):
+        return "Certificate object %s" % self.serial
 
 class Requirement(db.Model):
 

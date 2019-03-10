@@ -5,6 +5,7 @@ RUN yum -y install epel-release
 RUN yum -y install \
 	bsdtar \
 	geolite2-country \
+	gnutls-utils \
 	libappstream-glib \
 	libgcab1 \
 	libstemmer \

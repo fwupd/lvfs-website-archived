@@ -16,7 +16,8 @@ from app import app, db
 
 from .emails import send_email
 from .util import _error_internal, _error_permission_denied, _email_check, _generate_password
-from .models import User, Vendor, Remote, Firmware, Event, FirmwareEvent
+from .util import _pkcs7_certificate_info
+from .models import User, Vendor, Remote, Firmware, Event, FirmwareEvent, Certificate
 
 def _password_check(value):
     """ Check the password for suitability """
@@ -370,6 +371,73 @@ def user_recover():
                render_template('email-recover.txt', user=user))
     flash('An email has been sent with a recovery link', 'info')
     return redirect(url_for('.index'), 302)
+
+@app.route('/lvfs/user/certificate/remove/<int:certificate_id>')
+@login_required
+def user_certificate_remove(certificate_id):
+
+    # check cert exists
+    crt = db.session.query(Certificate).filter(Certificate.certificate_id == certificate_id).first()
+    if not crt:
+        return _error_internal('No certificate found!')
+
+    # security check
+    if not crt.check_acl('@delete'):
+        return _error_permission_denied('Unable to delete certificate')
+
+    # delete
+    db.session.delete(crt)
+    db.session.commit()
+    flash('Deleted certificate', 'info')
+    return redirect(url_for('.profile_crts'))
+
+@app.route('/lvfs/user/certificate/add', methods=['GET', 'POST'])
+@login_required
+def user_certificate_add():
+
+    # only accept form data
+    if request.method != 'POST':
+        return redirect(url_for('.profile_crts'), code=302)
+
+    # security check
+    if not g.user.check_acl('@view-profile'):
+        return _error_permission_denied('Unable to add certificate as account locked')
+
+    # check was sent
+    if not 'file' in request.files:
+        return _error_internal('No file')
+    fileitem = request.files['file']
+    if not fileitem:
+        return _error_internal('No file object')
+    text = fileitem.read().decode('utf8')
+    if not text:
+        flash('No data recieved', 'warning')
+        return redirect(url_for('.profile_crts'), code=302)
+    if text.find('BEGIN CERTIFICATE') == -1:
+        flash('Certificate invalid, expected BEGIN CERTIFICATE', 'warning')
+        return redirect(url_for('.profile_crts'), code=302)
+
+    # get serial for blob
+    info = _pkcs7_certificate_info(text)
+    if not info:
+        flash('Certificate invalid, cannot parse', 'warning')
+        return redirect(url_for('.profile_crts'), code=302)
+    if 'serial' not in info:
+        flash('Certificate invalid, cannot parse serial', 'warning')
+        return redirect(url_for('.profile_crts'), code=302)
+
+    # check cert exists
+    crt = db.session.query(Certificate).filter(Certificate.serial == info['serial']).first()
+    if crt:
+        flash('Certificate already in use', 'warning')
+        return redirect(url_for('.profile_crts'), code=302)
+
+    # success
+    crt = Certificate(g.user.user_id, info['serial'], text)
+    db.session.add(crt)
+    db.session.commit()
+    flash('Added client certificate with serial %s' % info['serial'], 'success')
+    return redirect(url_for('.profile_crts'), code=302)
 
 @app.route('/lvfs/user/add', methods=['GET', 'POST'])
 @login_required
