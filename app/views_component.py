@@ -14,6 +14,7 @@ from app import app, db, ploader
 from .models import Requirement, Component, Keyword, Checksum
 from .models import Protocol, Report, ReportAttribute
 from .util import _error_internal, _error_permission_denied
+from .hash import _is_sha1, _is_sha256
 
 def _validate_guid(guid):
     """ Validates if the string is a valid GUID """
@@ -56,24 +57,6 @@ def firmware_component_problems():
             continue
         mds.append(md)
     return render_template('component-problems.html', mds=mds)
-
-def _is_sha1(text):
-    if len(text) != 40:
-        return False
-    try:
-        _ = int(text, 16)
-    except ValueError:
-        return False
-    return True
-
-def _is_sha256(text):
-    if len(text) != 64:
-        return False
-    try:
-        _ = int(text, 16)
-    except ValueError:
-        return False
-    return True
 
 @app.route('/lvfs/component/<int:component_id>/modify', methods=['POST'])
 @login_required

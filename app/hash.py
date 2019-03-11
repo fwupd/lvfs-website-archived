@@ -28,3 +28,21 @@ def _password_hash(value):
 def _otp_hash():
     """ Generate a random OTP secret """
     return base64.b32encode(os.urandom(10)).decode('utf-8')
+
+def _is_sha1(text):
+    if len(text) != 40:
+        return False
+    try:
+        _ = int(text, 16)
+    except ValueError:
+        return False
+    return True
+
+def _is_sha256(text):
+    if len(text) != 64:
+        return False
+    try:
+        _ = int(text, 16)
+    except ValueError:
+        return False
+    return True
