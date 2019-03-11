@@ -30,6 +30,12 @@
       Can verify checksum on device
     </label>
   </div>
+  <div class="form-group">
+    <label for="has_header">
+      <input class="checkbox" type="checkbox" name="has_header" value="1" {{'checked' if protocol.has_header}} {{'disabled' if not protocol.check_acl('@modify')}}/>
+      Has header or footer requirement that can be tested, e.g. <code>CAPSULE_HEADER</code> or <code>UFD</code>
+    </label>
+  </div>
 {% if protocol.check_acl('@modify') %}
   <input type="submit" class="btn btn-primary btn-large" value="Modify">
   <button type="button" class="btn btn-danger" data-toggle="modal" data-target="#deleteModal">Delete</button>

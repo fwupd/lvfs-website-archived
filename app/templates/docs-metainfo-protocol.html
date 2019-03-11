@@ -30,6 +30,7 @@
     <th class="col-sm-3">Value</th>
     <th class="col-sm-5">Name</th>
     <th class="col-sm-1">Signed?</th>
+    <th class="col-sm-1">Header?</th>
   </tr>
 {% for pr in protocols %}
 {% if pr.is_public %}
@@ -37,10 +38,78 @@
     <td class="col-sm-3"><code>{{pr.value}}</code></td>
     <td class="col-sm-5">{{pr.name}}</td>
     <td class="col-sm-1">{{'Yes' if pr.is_signed else 'No'}}</td>
+    <td class="col-sm-1">
+{% if pr.has_header %}
+      <a href="#{{pr.value}}">Yes</a>
+{% else %}
+      No
+{% endif %}
+    </td>
   </tr>
 {% endif %}
 {% endfor %}
 </table>
+
+<h2>Firmware Formats</h2>
+<p>
+  When a firmware format is set in the <code>metainfo.xml</code> file
+  various tests are performed on the firmware.
+  This includes checking file headers, magic numbers or CRCs for the chosen
+  update protocol.
+</p>
+<p>
+  The update protocol can be changed on the LVFS website, and the correct tests
+  will be run automatically.
+  Firmware that has unresolved test failures cannot be pushed to the
+  <code>testing</code> or <code>stable</code> remotes.
+  For some tests the failure can be <em>waived</em> by a QA user.
+</p>
+
+<div class="card-deck mb-3">
+  <div class="card">
+    <div class="card-body">
+      <h4 class="card-title"><a id="org.uefi.capsule"></a>UEFI Capsule Tests</h4>
+      <p class="card-text">
+        Capsule updates should be uploaded with a valid <code>CAPSULE_HEADER</code>
+        that contains a GUID listed in the <code>metainfo.xml</code> file.
+      </p>
+      <p class="card-text">
+        For reference, the UEFI capsule header is defined like this:
+      </p>
+      <pre class="card-text">
+typedef struct {
+    EFI_GUID   CapsuleGuid;
+    UINT32     HeaderSize;
+    UINT32     Flags;
+    UINT32     CapsuleImageSize;
+} EFI_CAPSULE_HEADER;
+      </pre>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-body">
+      <h4 class="card-title"><a id="org.usb.dfu">DFU Capsule Tests</h4>
+      <p class="card-text">
+        DFU updates must be uploaded with a valid <code>UFD</code> footer
+        that matches the device revision number with a correct CRC value.
+      </p>
+      <p class="card-text">
+        Additional metadata can also be specified using this
+        <a href="https://raw.githubusercontent.com/hughsie/fwupd/master/docs/dfu-metadata-store.md">
+        specification</a>.
+      </p>
+      <p class="card-text">
+        <code>dfu-tool</code> from the <code>fwupd</code> project can convert
+        a <em>raw</em> firmware image to include a DFU header, for example:
+      </p>
+      <pre class="card-text">
+$ dfu-tool convert dfu old.raw new.dfu
+$ dfu-tool set-vendor new.dfu 0xabcd
+$ dfu-tool set-product new.dfu 0x1234
+      </pre>
+    </div>
+  </div>
+</div>
 
 <h2>Firmware Signing</h2>
 <p>

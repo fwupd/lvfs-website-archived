@@ -1649,6 +1649,7 @@ class Protocol(db.Model):
     is_signed = Column(Boolean, default=False)
     is_public = Column(Boolean, default=False)
     can_verify = Column(Boolean, default=False)
+    has_header = Column(Boolean, default=False)
 
     def check_acl(self, action, user=None):
 
@@ -1680,13 +1681,14 @@ class Protocol(db.Model):
             sc.add_attr('no-verify-firmware', 'Firmware cannot be verified after flashing')
         return sc
 
-    def __init__(self, value, name=None, is_signed=False, can_verify=False, is_public=True):
+    def __init__(self, value, name=None, is_signed=False, can_verify=False, is_public=True, has_header=False):
         """ Constructor for object """
         self.value = value
         self.name = name
         self.is_signed = is_signed
         self.is_public = is_public
         self.can_verify = can_verify
+        self.has_header = has_header
 
     def __repr__(self):
         return "Protocol object %i:%s" % (self.protocol_id, self.value)

@@ -92,6 +92,7 @@ def protocol_modify(protocol_id):
     protocol.is_signed = True if 'is_signed' in request.form else False
     protocol.is_public = True if 'is_public' in request.form else False
     protocol.can_verify = True if 'can_verify' in request.form else False
+    protocol.has_header = True if 'has_header' in request.form else False
     for key in ['name']:
         if key in request.form:
             setattr(protocol, key, request.form[key])

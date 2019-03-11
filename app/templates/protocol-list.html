@@ -14,19 +14,21 @@
 <table class="table">
   <tr class="row">
     <th class="col-sm-3">Value</th>
-    <th class="col-sm-4">Name</th>
+    <th class="col-sm-3">Name</th>
     <th class="col-sm-1">Signed</th>
     <th class="col-sm-1">Public</th>
     <th class="col-sm-1">Verify</th>
+    <th class="col-sm-1">Header</th>
     <th class="col-sm-2">&nbsp;</th>
   </tr>
 {% for pr in protocols %}
   <tr class="row">
     <td class="col-sm-3"><code>{{pr.value}}</code></td>
-    <td class="col-sm-4">{{pr.name}}</td>
+    <td class="col-sm-3">{{pr.name}}</td>
     <td class="col-sm-1">{{ 'Yes' if pr.is_signed else 'No' }}</td>
     <td class="col-sm-1">{{ 'Yes' if pr.is_public else 'No' }}</td>
     <td class="col-sm-1">{{ 'Yes' if pr.can_verify else 'No' }}</td>
+    <td class="col-sm-1">{{ 'Yes' if pr.has_header else 'No' }}</td>
     <td class="col-sm-2">
       <a class="btn btn-info btn-block"
          href="/lvfs/protocol/{{pr.protocol_id}}/details"
