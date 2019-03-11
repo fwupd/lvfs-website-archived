@@ -120,8 +120,11 @@ def firmware_report():
                 for md_key in md:
                     data[md_key] = md[md_key]
                 continue
-            #data[key] = str(report[key]).encode('ascii', 'ignore')
-            data[key] = report[key]
+            # allow array of strings for any of the keys
+            if isinstance(report[key], list):
+                data[key] = ','.join(report[key])
+            else:
+                data[key] = report[key]
 
         # try to find the checksum_upload (which might not exist on this server)
         fw = db.session.query(Firmware).filter(Firmware.checksum_signed == report['Checksum']).first()
