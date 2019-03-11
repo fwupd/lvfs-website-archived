@@ -108,8 +108,6 @@ class Plugin(PluginBase):
             # check the header size
             if data[1] == 0:
                 test.add_fail('HeaderSize', '0x%x' % data[1])
-            elif data[1] % 4096 != 0:
-                test.add_fail('HeaderSize', '0x%x not aligned to 4kB' % data[1])
             else:
                 test.add_pass('HeaderSize', '0x%x' % data[1])
 
