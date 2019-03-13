@@ -61,6 +61,25 @@ def firmware(show_all=False):
 def firmware_all():
     return firmware(True)
 
+@app.route('/lvfs/firmware/new')
+@app.route('/lvfs/firmware/new/<int:limit>')
+def firmware_new(limit=200):
+
+    # get a sorted list of vendors
+    fwevs = db.session.query(FirmwareEvent).\
+                order_by(FirmwareEvent.timestamp.desc()).\
+                limit(limit).all()
+    fwevs_public = []
+    fws = []
+    for fwev in fwevs:
+        if not fwev.fw.remote.name == 'stable':
+            continue
+        if fwev.fw in fws:
+            continue
+        fwevs_public.append(fwev)
+        fws.append(fwev.fw)
+    return render_template('firmware-new.html', fwevs=fwevs_public, limit=limit)
+
 @app.route('/lvfs/firmware/<int:firmware_id>/undelete')
 @login_required
 def firmware_undelete(firmware_id):

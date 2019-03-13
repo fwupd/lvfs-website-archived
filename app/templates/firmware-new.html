@@ -1,0 +1,38 @@
+{% extends "default.html" %}
+{% block title %}New Firmware{% endblock %}
+
+{% block content %}
+<h1>New Firmware</h1>
+<p>
+  This list show the last {{limit}} public firmwares available on the LVFS.
+</p>
+
+{% if fwevs|length == 0 %}
+<p class="text-muted">
+  No firmware has been uploaded yet.
+{% else %}
+<table class="table">
+  <tr class="row">
+    <th class="col-sm-2">When</th>
+    <th class="col-sm-5">Hardware</th>
+    <th class="col-sm-3">Version</th>
+    <th class="col-sm-2">&nbsp;</th>
+  </tr>
+{% for fwev in fwevs %}
+  <tr class="row">
+    <td class="col-sm-2">{{format_humanize_naturaltime(fwev.timestamp)}}</td>
+    <td class="col-sm-5">
+      {{fwev.fw.mds[0].developer_name_display}}
+      {{fwev.fw.mds[0].name_display}}
+    </td>
+    <td class="col-sm-3">{{fwev.fw.version_display}}</td>
+    <td class="col-sm-2">
+      <a href="/lvfs/device/{{fwev.fw.mds[0].guids[0].value}}"
+         class="btn btn-info btn-block">Details</a>
+    </td>
+  </tr>
+{% endfor %}
+</table>
+{% endif %}
+
+{% endblock %}
