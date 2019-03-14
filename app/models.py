@@ -1520,6 +1520,7 @@ class Report(db.Model):
     fw = relationship('Firmware', foreign_keys=[firmware_id])
     attributes = relationship("ReportAttribute",
                               back_populates="report",
+                              lazy='joined',
                               cascade='all,delete-orphan')
 
     def __init__(self, firmware_id, machine_id=None, state=0, checksum=None, issue_id=0):
