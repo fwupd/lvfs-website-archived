@@ -207,11 +207,15 @@ class UploadedFile:
 
         component = AppStreamGlib.App.new()
         try:
+            # check this is valid UTF-8
+            cf.get_bytes().get_data().decode('utf-8')
             component.parse_data(cf.get_bytes(), AppStreamGlib.AppParseFlags.NONE)
             fmt = AppStreamGlib.Format.new()
             fmt.set_kind(AppStreamGlib.FormatKind.METAINFO)
             component.add_format(fmt)
             component.validate(AppStreamGlib.AppValidateFlags.NONE)
+        except UnicodeDecodeError as e:
+            raise MetadataInvalid('The metadata %s could not be parsed: %s' % (cf.get_name(), str(e)))
         except Exception as e:
             try:
                 msg = e.message.decode('utf-8')
