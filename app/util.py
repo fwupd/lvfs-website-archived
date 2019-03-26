@@ -320,7 +320,9 @@ def _pkcs7_certificate_info(text):
     # get signature
     argv = _get_certtool() + ['--certificate-info', '--infile', crt.name]
     ps = subprocess.Popen(argv, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-    out, _ = ps.communicate()
+    out, err = ps.communicate()
+    if ps.returncode != 0:
+        raise IOError(err)
     info = {}
     for line in out.decode('utf8').split('\n'):
         try:
@@ -331,7 +333,7 @@ def _pkcs7_certificate_info(text):
             pass
     return info
 
-def _pkcs7_signature_info(text):
+def _pkcs7_signature_info(text, check_rc=True):
 
     # write signature to temp file
     sig = tempfile.NamedTemporaryFile(mode='wb',
@@ -345,7 +347,9 @@ def _pkcs7_signature_info(text):
     # parse
     argv = _get_certtool() + ['--p7-verify', '--infile', sig.name]
     ps = subprocess.Popen(argv, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-    out, _ = ps.communicate()
+    out, err = ps.communicate()
+    if check_rc and ps.returncode != 0:
+        raise IOError(out, err)
     info = {}
     for line in out.decode('utf8').split('\n'):
         try:
@@ -393,6 +397,8 @@ def _pkcs7_signature_verify(certificate, payload, signature):
                               '--load-data', pay.name]
     ps = subprocess.Popen(argv, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     _, err = ps.communicate()
+    if ps.returncode != 0:
+        raise IOError(err)
     for line in err.decode('utf8').split('\n'):
         try:
             key, value = line.strip().split(':', 2)

@@ -418,9 +418,10 @@ def user_certificate_add():
         return redirect(url_for('.profile_crts'), code=302)
 
     # get serial for blob
-    info = _pkcs7_certificate_info(text)
-    if not info:
-        flash('Certificate invalid, cannot parse', 'warning')
+    try:
+        info = _pkcs7_certificate_info(text)
+    except IOError as e:
+        flash('Certificate invalid, cannot parse: %s' % str(e), 'warning')
         return redirect(url_for('.profile_crts'), code=302)
     if 'serial' not in info:
         flash('Certificate invalid, cannot parse serial', 'warning')

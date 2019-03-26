@@ -91,12 +91,15 @@ def firmware_report():
     # find user and verify
     crt = None
     if signature:
-        info = _pkcs7_signature_info(signature)
-        if not info:
-            return _json_error('Signature invalid')
+        try:
+            info = _pkcs7_signature_info(signature, check_rc=False)
+        except IOError as e:
+            return _json_error('Signature invalid: %s' % str(e))
         crt = db.session.query(Certificate).filter(Certificate.serial == info['serial']).first()
         if crt:
-            if not _pkcs7_signature_verify(crt, payload, signature):
+            try:
+                _pkcs7_signature_verify(crt, payload, signature)
+            except IOError as _:
                 return _json_error('Signature did not validate')
 
     # parse JSON data
