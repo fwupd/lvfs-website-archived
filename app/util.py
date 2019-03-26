@@ -302,6 +302,10 @@ def _email_check(value):
 def _generate_password(size=10, chars=string.ascii_letters + string.digits):
     return ''.join(random.choice(chars) for _ in range(size))
 
+def _get_certtool():
+    from app import app
+    return app.config['CERTTOOL'].split(' ')
+
 def _pkcs7_certificate_info(text):
 
     # write certificate to temp file
@@ -314,7 +318,7 @@ def _pkcs7_certificate_info(text):
     crt.flush()
 
     # get signature
-    argv = ['certtool', '--certificate-info', '--infile', crt.name]
+    argv = _get_certtool() + ['--certificate-info', '--infile', crt.name]
     ps = subprocess.Popen(argv, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     out, _ = ps.communicate()
     info = {}
@@ -339,7 +343,7 @@ def _pkcs7_signature_info(text):
     sig.flush()
 
     # parse
-    argv = ['certtool', '--p7-verify', '--infile', sig.name]
+    argv = _get_certtool() + ['--p7-verify', '--infile', sig.name]
     ps = subprocess.Popen(argv, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     out, _ = ps.communicate()
     info = {}
@@ -383,10 +387,10 @@ def _pkcs7_signature_verify(certificate, payload, signature):
 
     # verify
     status = None
-    argv = ['certtool', '--p7-verify',
-            '--load-certificate', crt.name,
-            '--infile', sig.name,
-            '--load-data', pay.name]
+    argv = _get_certtool() + ['--p7-verify',
+                              '--load-certificate', crt.name,
+                              '--infile', sig.name,
+                              '--load-data', pay.name]
     ps = subprocess.Popen(argv, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     _, err = ps.communicate()
     for line in err.decode('utf8').split('\n'):
