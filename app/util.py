@@ -401,7 +401,7 @@ def _pkcs7_signature_verify(certificate, payload, signature):
         raise IOError(err)
     for line in err.decode('utf8').split('\n'):
         try:
-            key, value = line.strip().split(':', 2)
+            key, value = line.strip().split(':', 1)
             print(key, value)
             if key == 'Signature status':
                 status = value.strip()
