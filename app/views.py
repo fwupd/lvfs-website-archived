@@ -304,7 +304,10 @@ def index():
     default_admin_password = False
     if user and user.verify_password('Pa$$w0rd'):
         default_admin_password = True
-    return render_template('index.html',
+    vendors = db.session.query(Vendor).\
+                filter(Vendor.visible_on_landing).\
+                order_by(Vendor.display_name).limit(10).all()
+    return render_template('index.html', vendors=vendors,
                            server_warning=settings.get('server_warning', None),
                            default_admin_password=default_admin_password)
 

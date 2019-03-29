@@ -70,6 +70,13 @@
     </select>
   </div>
   <div class="form-group">
+    <label for="email">Visible on landing page:</label>
+    <select class="form-control" name="visible_on_landing">
+      <option value="0" {{ 'selected' if v.visible_on_landing == 0 }}>No</option>
+      <option value="1" {{ 'selected' if v.visible_on_landing == 1 }}>Yes</option>
+    </select>
+  </div>
+  <div class="form-group">
     <label for="email">Is embargo the default upload target:</label>
     <select class="form-control" name="is_embargo_default">
       <option value="0" {{ 'selected' if v.is_embargo_default == 0 }}>No</option>

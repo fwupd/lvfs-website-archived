@@ -25,19 +25,13 @@
 
 <div class="container">
 
-  <div class="card mb-3">
-    <h3 class="card-header list-group-item-warning">
-      Looking for firmware to fix the Spectre security issue?
-      <img src="/img/spectre.min.svg" alt="spectre logo" height="32"/>
-    </h3>
-    <div class="card-body">
-      <p class="card-text">
-        The LVFS only redistributes vendor-provided firmware, and also relies on
-        the vendor writing release notes that accurately describe the firmware update.
-        If your hardware vendor is <a class="text-dark" href="/vendorlist">not already using the LVFS</a>
-        you should write to them and ask them where to get the new firmware from.
-      </p>
+  <!-- list of logos -->
+  <div class="row mb-4 justify-content-center align-items-center">
+{% for v in vendors %}
+    <div class="col-3 col-sm-auto my-1 my-sm-3">
+      <img class="grayscale" src="/uploads/{{v.icon}}" width="64"/>
     </div>
+{% endfor %}
   </div>
 
   <div class="row">

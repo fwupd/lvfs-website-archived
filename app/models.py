@@ -330,6 +330,7 @@ class Vendor(db.Model):
     description = Column(Text, default=None)
     visible = Column(Boolean, default=False)
     visible_for_search = Column(Boolean, default=False)
+    visible_on_landing = Column(Boolean, default=False)
     is_embargo_default = Column(Boolean, default=False)
     is_fwupd_supported = Column(String(16), nullable=False, default='no')
     is_uploading = Column(String(16), nullable=False, default='no')
