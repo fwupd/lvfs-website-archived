@@ -11,7 +11,7 @@
   </tr>
   <tr class="row">
     <th class="col-sm-3">Name</th>
-    <td class="col-sm-9"><code>{{md.name}}</code></td>
+    <td class="col-sm-9"><code>{{md.name_with_scope}}</code></td>
   </tr>
   <tr class="row">
     <th class="col-sm-3">Summary</th>
@@ -57,6 +57,23 @@
     </td>
 {% else %}
     <td class="col-sm-7"><code>{{md.protocol.value}}</code></td>
+{% endif %}
+  </tr>
+  <tr class="row">
+    <th class="col-sm-3">Scope</th>
+{% if md.fw.remote.name != 'stable' or g.user.check_acl('@admin') %}
+    <td class="col-sm-7">
+      <select class="form-control" name="scope_id">
+{% for sco in scopes %}
+        <option value="{{sco.scope_id}}" {{ 'selected' if md.scope and md.scope.value == sco.value }}>{{ sco.name if sco.name else sco.value}}</option>
+{% endfor %}
+      </select>
+    </td>
+    <td class="col-sm-2">
+      <input type="submit" class="btn btn-secondary btn-block" value="Set"/>
+    </td>
+{% else %}
+    <td class="col-sm-7"><code>{{md.scope.value}}</code></td>
 {% endif %}
   </tr>
   </form>

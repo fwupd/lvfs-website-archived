@@ -42,7 +42,8 @@ def _generate_metadata_kind(filename, fws, firmware_baseuri='', local=False):
         component = ET.SubElement(root, 'component')
         component.set('type', 'firmware')
         ET.SubElement(component, 'id').text = md.appstream_id
-        ET.SubElement(component, 'name').text = md.name
+        # until all front ends support LVFS::UpdateScope append the suffix */
+        ET.SubElement(component, 'name').text = md.name_with_scope
         ET.SubElement(component, 'summary').text = md.summary
         ET.SubElement(component, 'developer_name').text = md.developer_name
         if md.description:
@@ -232,6 +233,7 @@ def _generate_metadata_kind(filename, fws, firmware_baseuri='', local=False):
                 child.set('key', 'LVFS::VersionFormat')
                 child.text = md.version_format
                 elements['LVFS::VersionFormat'] = child
+            # deliberately not including LVFS::UpdateScope here...
         if elements:
             parent = ET.SubElement(component, 'custom')
             for key in elements:

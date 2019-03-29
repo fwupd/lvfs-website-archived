@@ -1,0 +1,51 @@
+{% extends "default.html" %}
+{% block title %}Scope Details{% endblock %}
+
+{% block content %}
+<h2>Scope Details</h2>
+<form method="post" action="/lvfs/scope/{{sco.scope_id}}/modify">
+  <div class="form-group">
+    <label for="group_id">Value:</label>
+    <input type="text" class="form-control" name="value" value="{{sco.value}}" required {{'disabled' if not sco.check_acl('@modify')}}>
+  </div>
+  <div class="form-group">
+    <label for="display_name">Name:</label>
+    <input type="text" class="form-control" name="name" value="{{sco.name if sco.name}}" required {{'disabled' if not sco.check_acl('@modify')}}>
+  </div>
+{% if sco.check_acl('@modify') %}
+  <input type="submit" class="btn btn-primary btn-large" value="Modify">
+  <button type="button" class="btn btn-danger" data-toggle="modal" data-target="#deleteModal">Delete</button>
+{% endif %}
+</form>
+
+<!-- modal dialog -->
+<div class="modal" id="deleteModal" tabindex="-1" role="dialog" aria-labelledby="deleteModalLabel" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="deleteModalLabel">Really Delete Scope?</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        Once deleted, scopes can not be recovered.
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+        <a class="btn btn-danger" href="/lvfs/scope/{{sco.scope_id}}/delete" role="button">Delete</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock %}
+
+{% block breadcrumb %}
+<nav aria-label="breadcrumb">
+  <ol class="breadcrumb mt-3">
+    <li class="breadcrumb-item"><a href="{{url_for('.scope_all')}}">Scopes</a></li>
+    <li class="breadcrumb-item active" aria-current="page">{{sco.value}}</li>
+  </ol>
+</nav>
+{% endblock %}

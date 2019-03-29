@@ -26,7 +26,7 @@ from app import app, db, lm, ploader
 from .dbutils import _execute_count_star
 from .pluginloader import PluginError
 
-from .models import Firmware, Requirement, Component, Vendor, Protocol
+from .models import Firmware, Requirement, Component, Vendor, Protocol, Scope
 from .models import User, Analytic, Client, Event, Useragent, _get_datestr_from_datetime
 from .hash import _addr_hash
 from .util import _get_client_address, _get_settings, _xml_from_markdown
@@ -271,11 +271,13 @@ def docs_vendors():
 @app.route('/lvfs/docs/metainfo')
 @app.route('/lvfs/docs/metainfo/<page>')
 def docs_metainfo(page='intro'):
-    if page not in ['intro', 'style', 'restrict', 'protocol', 'version', 'urls']:
+    if page not in ['intro', 'style', 'restrict', 'protocol', 'version', 'urls', 'scope']:
         return _error_internal('No metainfo page name %s' % page)
     protocols = db.session.query(Protocol).order_by(Protocol.protocol_id.asc()).all()
+    scopes = db.session.query(Scope).order_by(Scope.scope_id.asc()).all()
     return render_template('docs-metainfo-%s.html' % page,
                            protocols=protocols,
+                           scopes=scopes,
                            page=page)
 
 @app.route('/lvfs/docs/composite')

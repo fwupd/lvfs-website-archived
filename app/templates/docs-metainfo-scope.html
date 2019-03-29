@@ -1,0 +1,44 @@
+{% extends "default.html" %}
+
+{% block title %}MetaInfo Files : Update Scope{% endblock %}
+
+{% block nav %}{% include 'docs-metainfo-nav.html' %}{% endblock %}
+
+{% block content %}
+<p>
+  By telling the LVFS the firmware scope to use for the component the front end can
+  correctly translate the update type in the UI.
+  Also for this reason, <code>.metainfo.xml</code> files <strong>should not</strong>
+  include the words <code>ME</code>, <code>EC</code>, <code>BIOS</code>, <code>Firmware</code>,
+  <code>Device</code> or <code>Update</code> in the component name and they will
+  be removed if included.
+</p>
+<p>
+  The component scope can be set as part of the <code>metainfo.xml</code> file
+  or set from the LVFS web console.
+  Most users will want to include the extra metadata to make the upload process
+  quicker for QA engineers.
+  To do this, add this to the metainfo file:
+</p>
+<pre>
+  &lt;custom&gt;
+    &lt;value key="LVFS::UpdateScope"&gt;some-value-here&lt;/value&gt;
+  &lt;/custom&gt;
+</pre>
+<p>
+  Allowed values for <code>LVFS::UpdateScope</code> are currently:
+</p>
+<table class="table">
+  <tr class="row table-borderless">
+    <th class="col-sm-5">Value</th>
+    <th class="col-sm-5">Displayed Name</th>
+  </tr>
+{% for sco in scopes %}
+  <tr class="row">
+    <td class="col-sm-5"><code>{{sco.value}}</code></td>
+    <td class="col-sm-5">{{sco.name}}</td>
+  </tr>
+{% endfor %}
+</table>
+
+{% endblock %}

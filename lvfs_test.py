@@ -72,6 +72,10 @@ class LvfsTestCase(unittest.TestCase):
             value='com.hughski.colorhug',
         ), follow_redirects=True)
         assert b'Added protocol' in rv.data, rv.data
+        rv = self.app.post('/lvfs/scope/add', data=dict(
+            value='device',
+        ), follow_redirects=True)
+        assert b'Added scope' in rv.data, rv.data
         rv = self.app.post('/lvfs/settings/modify', data=dict(
             clamav_enable='disabled',
         ), follow_redirects=True)
@@ -664,7 +668,7 @@ class LvfsTestCase(unittest.TestCase):
         # ensure user can still view firmware
         self.login('alice@acme.com', accept_agreement=False)
         rv = self.app.get('/lvfs/firmware')
-        assert b'ColorHug2 Device Update' in rv.data, rv.data
+        assert b'ColorHug2' in rv.data, rv.data
 
     def test_users(self):
 
@@ -883,7 +887,7 @@ class LvfsTestCase(unittest.TestCase):
 
         # to recreate, use:
         # with open('payload.txt', 'w') as f:
-        #     f.write(payload)
+        #    f.write(payload)
         # sudo certtool --p7-detached-sign --p7-time --no-p7-include-cert \
         # --load-certificate ~/.root/var/lib/fwupd/pki/client.pem
         # --load-privkey ~/.root/var/lib/fwupd/pki/secret.key
@@ -896,16 +900,16 @@ class LvfsTestCase(unittest.TestCase):
 MIICYgYJKoZIhvcNAQcCoIICUzCCAk8CAQExDTALBglghkgBZQMEAgEwCwYJKoZI
 hvcNAQcBMYICLDCCAigCAQEwGDAAAhRfEaI3uZSTG774ab0BUyNYdPqPizALBglg
 hkgBZQMEAgGgaTAYBgkqhkiG9w0BCQMxCwYJKoZIhvcNAQcBMBwGCSqGSIb3DQEJ
-BTEPFw0xOTAzMTAxODE0NDZaMC8GCSqGSIb3DQEJBDEiBCAjrzlnN1jIPwgx+PIX
-rgjtG90OyX7mqgQjd8TpbOryPTANBgkqhkiG9w0BAQEFAASCAYA4tyiiUpKfeaCt
-Mm5M8d4hU2plPPCkS/9LCq2MHUZ+rsAdA5Lt9sPqeK91/wRJWvkL6GJrni6RnaqH
-VpLtGTHu8k2abwQFxGt9mQ/dNQOGUaLK7m+WMZ2rKXGxEesTMgUfSLo+y/2AQOqI
-ZccT3xCq64GDOYWyx5z0GIupFLo8/YFVWXYC2H2c7mZzDUFdKIQd4YCNKlTMrer5
-koM2vKddvwgd6twVmuQayHdXpROvS64trva6rgJgFzv/3mahPiNSwGjYwftLD/TB
-LJtXoGeZ5pQ2wzuDpu8N5nUp3CnXEtvKrUE+L+1+opcSVvptRYTYj/FHRMzcKN9L
-CBgXoVb0aPKxvlf78Bxs383VEf7Ss0ix6flLA/qMBY3CPeyr4SwC1cyBskdcIZ7c
-DCop6yKKg3zeQIDcSmkDQjOktRl4w0ivt2TriAYsE9oywG/va6Tzmr3Xuj6PiGwz
-BFIZ3jryYH96GuSiNmEOBgB6oFR3u9w/1+f5nIVltrlG4eYqfdg=
+BTEPFw0xOTAzMjkxMDE2NDRaMC8GCSqGSIb3DQEJBDEiBCDjngPEsDp4BUgR3cTs
+EK6ytC3OZTFW1+oWjJbSBFAsbTANBgkqhkiG9w0BAQEFAASCAYCeR2qllWwt2gW0
+2kx8C/4sNGsajpwjV9B+0ArdJJL+rnXk1W9q2nwLwcTVlP/cMcFHfrGovwchtxTC
+a2XNdxCdQ5gU1L/WKVFcnh75Bu86O8ouqgbXrSM8a6AsBQiw0aL+rf5tblxMQeHe
+dS+rc4ip+BAVvsEUkUPgWs9aZ7W2So7qQFujUdHK8AgOA/QQLW6JS8M0qIqdNIm1
+MO8MAb/3DAueDO68xQ0Mec6ndehmamKl54u8UQrXqKMJXxPwZvmHikDaf0O1XKTz
+bDim/zoBQjCaAcmtIoWbdAVpbNLDTleP9BotFbX0S3OmImMypsGpFUwREM1cUS6K
+NwjZc3hKzhLT+aGrxkbxzr7+22DwD14nDAgkcFmLJjyedh19y1A1P+LMHJ0mWN+n
+/VMiFVr7Zr20ecwNKm3DQgtnpLsALuf8MwTWOP0dBaQ1u2hebch6r+gKYjiai8oI
+CwGVvYznsud2y0yZwW2yTagi8YycUBf/JwqUQcyy1FWjJZqp0UA=
 -----END PKCS7-----
 """
         else:
@@ -997,7 +1001,7 @@ ma+I7fM5pmgsEL4tkCZAg0+CPTyhHkMV/cWuOZUjqTsYbDq1pZI=
 
         # check the report appeared on the telemetry page
         rv = self.app.get('/lvfs/telemetry')
-        assert b'ColorHug2 Device Update' in rv.data, rv.data
+        assert b'ColorHug2' in rv.data, rv.data
         assert b'>1<' in rv.data, rv.data
 
         # delete the report
@@ -1266,7 +1270,7 @@ ma+I7fM5pmgsEL4tkCZAg0+CPTyhHkMV/cWuOZUjqTsYbDq1pZI=
         rv = self.app.get('/lvfs/firmware/1')
         assert '/downloads/' + self.checksum_upload in rv.data.decode('utf-8'), rv.data
         rv = self.app.get('/lvfs/firmware')
-        assert b'ColorHug2 Device Update' in rv.data, rv.data
+        assert b'ColorHug2' in rv.data, rv.data
 
         # check bob can change the update description and severity
         rv = self.app.post('/lvfs/component/1/modify', data=dict(
@@ -1408,15 +1412,15 @@ ma+I7fM5pmgsEL4tkCZAg0+CPTyhHkMV/cWuOZUjqTsYbDq1pZI=
 
         # search for one defined keyword
         rv = self.app.get('/lvfs/search?value=Alice')
-        assert b'ColorHug2 Device Update' in rv.data, rv.data
+        assert b'ColorHug2' in rv.data, rv.data
 
         # search for one defined keyword, again
         rv = self.app.get('/lvfs/search?value=Alice')
-        assert b'ColorHug2 Device Update' in rv.data, rv.data
+        assert b'ColorHug2' in rv.data, rv.data
 
         # search for a keyword and a name match
         rv = self.app.get('/lvfs/search?value=Alice+Edward+ColorHug2')
-        assert b'ColorHug2 Device Update' in rv.data, rv.data
+        assert b'ColorHug2' in rv.data, rv.data
 
     def test_anon_search_not_promoted(self):
 

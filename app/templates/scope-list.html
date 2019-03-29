@@ -1,0 +1,50 @@
+{% extends "default.html" %}
+{% block title %}Scopes{% endblock %}
+
+{% block content %}
+<h1>Known Scopes</h1>
+
+{% if scopes|length == 0 %}
+<p>
+  No scopes have been created.
+</p>
+
+{% else %}
+
+<table class="table">
+  <tr class="row">
+    <th class="col-sm-5">Value</th>
+    <th class="col-sm-5">Name</th>
+    <th class="col-sm-2">&nbsp;</th>
+  </tr>
+{% for sco in scopes %}
+  <tr class="row">
+    <td class="col-sm-5"><code>{{sco.value}}</code></td>
+    <td class="col-sm-5">{{sco.name}}</td>
+    <td class="col-sm-2">
+      <a class="btn btn-info btn-block"
+         href="/lvfs/scope/{{sco.scope_id}}/details"
+         role="button">Details &raquo;</a>
+    </td>
+  </tr>
+{% endfor %}
+</table>
+
+{% endif %}
+
+<hr/>
+
+<h2>Create a new update scope</h2>
+<form method="post" action="/lvfs/scope/add" class="form-inline">
+  <div class="table">
+    <div class="row">
+      <div class="col-sm-10">
+        <input class="form-control" type="text" size="100" name="value" placeholder="Value" required>
+      </div>
+      <div class="col-sm-2">
+        <input class="btn btn-primary btn-block" type="submit" value="Add">
+      </div>
+    </div>
+  </div>
+</form>
+{% endblock %}

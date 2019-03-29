@@ -66,6 +66,8 @@ class Problem:
             return 'No valid update description'
         if self.kind == 'no-protocol':
             return 'No update protocol set'
+        if self.kind == 'no-scope':
+            return 'No firmware scope set'
         if self.kind == 'test-failed':
             return 'Firmware is not valid'
         if self.kind == 'test-pending':
@@ -789,6 +791,41 @@ class Test(db.Model):
     def __repr__(self):
         return "Test object %s(%s)" % (self.kind, self.has_passed)
 
+class Scope(db.Model):
+
+    # sqlalchemy metadata
+    __tablename__ = 'scopes'
+    __table_args__ = {'mysql_character_set': 'utf8mb4'}
+
+    scope_id = Column(Integer, primary_key=True, nullable=False, unique=True)
+    value = Column(Text, nullable=False)        # 'system-update'
+    name = Column(Text, default=None)           # 'System Update'
+
+    def __init__(self, value, name=None):
+        """ Constructor for object """
+        self.value = value
+        self.name = name
+
+    def check_acl(self, action, user=None):
+
+        # fall back
+        if not user:
+            user = g.user
+        if user.is_admin:
+            return True
+
+        # depends on the action requested
+        if action == '@view':
+            return False
+        if action == '@create':
+            return False
+        if action == '@modify':
+            return False
+        raise NotImplementedError('unknown security check action: %s:%s' % (self, action))
+
+    def __repr__(self):
+        return "Scope object %i:%s" % (self.scope_id, self.value)
+
 class Component(db.Model):
 
     # sqlalchemy metadata
@@ -798,6 +835,7 @@ class Component(db.Model):
     component_id = Column(Integer, primary_key=True, unique=True, nullable=False, index=True)
     firmware_id = Column(Integer, ForeignKey('firmware.firmware_id'), nullable=False, index=True)
     protocol_id = Column(Integer, ForeignKey('protocol.protocol_id'))
+    scope_id = Column(Integer, ForeignKey('scopes.scope_id'))
     checksum_contents = Column(String(40), nullable=False)
     appstream_id = Column(Text, nullable=False)
     name = Column(Text, default=None)
@@ -841,6 +879,7 @@ class Component(db.Model):
                             back_populates="md",
                             cascade='all,delete-orphan')
     protocol = relationship('Protocol', foreign_keys=[protocol_id])
+    scope = relationship('Scope', foreign_keys=[scope_id])
 
     def __init__(self):
         """ Constructor for object """
@@ -868,6 +907,14 @@ class Component(db.Model):
         self.priority = 0
 
     @property
+    def name_with_scope(self):
+        if not self.scope:
+            return self.name
+        if not self.scope.name:
+            return self.name + ' ' + self.scope.value
+        return self.name + ' ' + self.scope.name
+
+    @property
     def developer_name_display(self):
         if not self.developer_name:
             return None
@@ -876,10 +923,6 @@ class Component(db.Model):
             if tmp.endswith(suffix):
                 return tmp[:-len(suffix)]
         return tmp
-
-    @property
-    def name_display(self):
-        return self.name.replace(' System Update', '')
 
     @property
     def security_claim(self):
@@ -957,6 +1000,14 @@ class Component(db.Model):
         if not self.protocol or self.protocol.value == 'unknown':
             problem = Problem('no-protocol',
                               'Update protocol has not been set')
+            problem.url = url_for('.firmware_component_show',
+                                  component_id=self.component_id)
+            problems.append(problem)
+
+        # we are going to be uing this in the UI soon
+        if not self.scope or self.scope.value == 'unknown':
+            problem = Problem('no-scope',
+                              'Firmware scope has not been set')
             problem.url = url_for('.firmware_component_show',
                                   component_id=self.component_id)
             problems.append(problem)
