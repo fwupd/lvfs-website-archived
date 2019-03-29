@@ -389,7 +389,7 @@ def user_certificate_remove(certificate_id):
     db.session.delete(crt)
     db.session.commit()
     flash('Deleted certificate', 'info')
-    return redirect(url_for('.profile_crts'))
+    return redirect(url_for('.profile'))
 
 @app.route('/lvfs/user/certificate/add', methods=['GET', 'POST'])
 @login_required
@@ -397,7 +397,7 @@ def user_certificate_add():
 
     # only accept form data
     if request.method != 'POST':
-        return redirect(url_for('.profile_crts'), code=302)
+        return redirect(url_for('.profile'), code=302)
 
     # security check
     if not g.user.check_acl('@view-profile'):
@@ -409,36 +409,40 @@ def user_certificate_add():
     fileitem = request.files['file']
     if not fileitem:
         return _error_internal('No file object')
-    text = fileitem.read().decode('utf8')
+    try:
+        text = fileitem.read().decode('utf8')
+    except UnicodeDecodeError as e:
+        flash('Invalid data recieved: %s' % str(e), 'warning')
+        return redirect(url_for('.profile'), code=302)
     if not text:
         flash('No data recieved', 'warning')
-        return redirect(url_for('.profile_crts'), code=302)
+        return redirect(url_for('.profile'), code=302)
     if text.find('BEGIN CERTIFICATE') == -1:
         flash('Certificate invalid, expected BEGIN CERTIFICATE', 'warning')
-        return redirect(url_for('.profile_crts'), code=302)
+        return redirect(url_for('.profile'), code=302)
 
     # get serial for blob
     try:
         info = _pkcs7_certificate_info(text)
     except IOError as e:
         flash('Certificate invalid, cannot parse: %s' % str(e), 'warning')
-        return redirect(url_for('.profile_crts'), code=302)
+        return redirect(url_for('.profile'), code=302)
     if 'serial' not in info:
         flash('Certificate invalid, cannot parse serial', 'warning')
-        return redirect(url_for('.profile_crts'), code=302)
+        return redirect(url_for('.profile'), code=302)
 
     # check cert exists
     crt = db.session.query(Certificate).filter(Certificate.serial == info['serial']).first()
     if crt:
         flash('Certificate already in use', 'warning')
-        return redirect(url_for('.profile_crts'), code=302)
+        return redirect(url_for('.profile'), code=302)
 
     # success
     crt = Certificate(g.user.user_id, info['serial'], text)
     db.session.add(crt)
     db.session.commit()
     flash('Added client certificate with serial %s' % info['serial'], 'success')
-    return redirect(url_for('.profile_crts'), code=302)
+    return redirect(url_for('.profile'), code=302)
 
 @app.route('/lvfs/user/add', methods=['GET', 'POST'])
 @login_required

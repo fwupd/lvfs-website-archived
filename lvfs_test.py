@@ -1593,7 +1593,7 @@ ma+I7fM5pmgsEL4tkCZAg0+CPTyhHkMV/cWuOZUjqTsYbDq1pZI=
 
         self.login()
 
-        rv = self.app.get('/lvfs/profile_crts')
+        rv = self.app.get('/lvfs/profile')
         assert b'No client certificates have been uploaded' in rv.data, rv.data
 
         # upload invalid
@@ -1607,14 +1607,14 @@ ma+I7fM5pmgsEL4tkCZAg0+CPTyhHkMV/cWuOZUjqTsYbDq1pZI=
         assert b'Added client certificate with serial 5f11a237b994931bbef869bd0153235874fa8f8b' in rv.data, rv.data
 
         # check exists
-        rv = self.app.get('/lvfs/profile_crts')
+        rv = self.app.get('/lvfs/profile')
         assert b'5f11a237b994931bbef869bd0153235874fa8f8b' in rv.data, rv.data
         assert b'No client certificates have been uploaded' not in rv.data, rv.data
 
         # remove
         rv = self.app.get('/lvfs/user/certificate/remove/1', follow_redirects=True)
         assert b'Deleted certificate' in rv.data, rv.data
-        rv = self.app.get('/lvfs/profile_crts')
+        rv = self.app.get('/lvfs/profile')
         assert b'5f11a237b994931bbef869bd0153235874fa8f8b' not in rv.data, rv.data
 
         self.logout()
