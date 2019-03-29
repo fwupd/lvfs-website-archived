@@ -48,16 +48,27 @@
               <a class="dropdown-item" href="{{url_for('.docs_users')}}">End Users</a>
               <a class="dropdown-item" href="{{url_for('.docs_developers')}}">Developers</a>
               <div class="dropdown-divider"></div>
-              <a class="dropdown-item" href="{{url_for('.docs_metainfo')}}">Metainfo Files</a>
-              <a class="dropdown-item" href="{{url_for('.docs_composite')}}">Composite Devices</a>
-              <a class="dropdown-item" href="{{url_for('.docs_telemetry')}}">Telemetry</a>
-              <a class="dropdown-item" href="{{url_for('.docs_affiliates')}}">Affiliates</a>
-              <div class="dropdown-divider"></div>
               <a class="dropdown-item" href="{{url_for('.firmware_new')}}">New Firmware</a>
               <a class="dropdown-item" href="{{url_for('.device_list')}}">Supported Devices</a>
               <a class="dropdown-item" href="{{url_for('.vendor_list')}}">Vendor List</a>
               <a class="dropdown-item" href="{{url_for('.docs_donations')}}">Donating to the LVFS</a>
               <a class="dropdown-item" href="{{url_for('.docs_privacy')}}">Privacy Report</a>
+            </div>
+          </li>
+          <li class="nav-item dropdown">
+            <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownDocumentation" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+              Documentation
+            </a>
+            <div class="dropdown-menu" aria-labelledby="navbarDropdownDocumentation">
+              <a class="dropdown-item" href="{{url_for('.docs_metainfo')}}">MetaInfo Files</a>
+              <a class="dropdown-item" href="{{url_for('.docs_metainfo', page='restrict')}}">Adding Restrictions</a>
+              <a class="dropdown-item" href="{{url_for('.docs_metainfo', page='protocol')}}">Update Protocol</a>
+              <a class="dropdown-item" href="{{url_for('.docs_metainfo', page='version')}}">Version Format</a>
+              <a class="dropdown-item" href="{{url_for('.docs_metainfo', page='urls')}}">Source URLs</a>
+              <a class="dropdown-item" href="{{url_for('.docs_metainfo', page='style')}}">Style Guide</a>
+              <a class="dropdown-item" href="{{url_for('.docs_composite')}}">Composite Devices</a>
+              <a class="dropdown-item" href="{{url_for('.docs_telemetry')}}">Telemetry</a>
+              <a class="dropdown-item" href="{{url_for('.docs_affiliates')}}">Affiliates</a>
             </div>
           </li>
 {% if g.user is defined %}
