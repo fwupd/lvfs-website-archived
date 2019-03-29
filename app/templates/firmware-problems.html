@@ -55,6 +55,18 @@
         <code>&lt;custom&gt;<br/>&nbsp;&nbsp;&lt;value key="LVFS::UpdateProtocol"&gt;org.uefi.capsule&lt;/value&gt;<br/>&lt;/custom&gt;</code>
       </p>
     </td>
+{% elif problem.kind == 'no-category' %}
+    <td class="col-sm-7">
+      <p class="card-text">
+        All components should have a defined update category before being moved
+        to stable.
+      </p>
+      <p class="card-text">
+        For future firmware uploads, this can be set automatically using this
+        in the <a href="/metainfo"><code>.metainfo.xml</code></a> file:<br/>
+        <code>&lt;categories&gt;<br/>&nbsp;&nbsp;&lt;category&gt;X-Device&lt;/category&gt;<br/>&lt;/categories&gt;</code>
+      </p>
+    </td>
 {% elif problem.kind == 'invalid-release-description' %}
     <td class="col-sm-7">
       <p class="card-text">

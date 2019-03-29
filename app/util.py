@@ -25,6 +25,18 @@ gi.require_version('GCab', '1.0')
 from gi.repository import GCab
 from gi.repository import GLib
 
+def _fix_component_name(name, developer_name=None):
+    if not name:
+        return None
+    words_new = []
+    words_banned = ['firmware', 'update', 'system', 'device', 'bios', 'me', 'controller']
+    if developer_name:
+        words_banned.append(developer_name.lower())
+    for word in name.split(' '):
+        if word.lower() not in words_banned:
+            words_new.append(word)
+    return ' '.join(words_new)
+
 def _unwrap_xml_text(txt):
     txt = txt.replace('\r', '')
     new_lines = []

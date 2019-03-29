@@ -11,7 +11,7 @@
   </tr>
   <tr class="row">
     <th class="col-sm-3">Name</th>
-    <td class="col-sm-9"><code>{{md.name}}</code></td>
+    <td class="col-sm-9"><code>{{md.name_with_category}}</code></td>
   </tr>
   <tr class="row">
     <th class="col-sm-3">Summary</th>
@@ -57,6 +57,23 @@
     </td>
 {% else %}
     <td class="col-sm-7"><code>{{md.protocol.value}}</code></td>
+{% endif %}
+  </tr>
+  <tr class="row">
+    <th class="col-sm-3">Category</th>
+{% if md.fw.remote.name != 'stable' or g.user.check_acl('@admin') %}
+    <td class="col-sm-7">
+      <select class="form-control" name="category_id">
+{% for cat in categories %}
+        <option value="{{cat.category_id}}" {{ 'selected' if md.category and md.category.value == cat.value }}>{{ cat.name if cat.name else cat.value}}</option>
+{% endfor %}
+      </select>
+    </td>
+    <td class="col-sm-2">
+      <input type="submit" class="btn btn-secondary btn-block" value="Set"/>
+    </td>
+{% else %}
+    <td class="col-sm-7"><code>{{md.category.value}}</code></td>
 {% endif %}
   </tr>
   </form>

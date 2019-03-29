@@ -72,6 +72,10 @@ class LvfsTestCase(unittest.TestCase):
             value='com.hughski.colorhug',
         ), follow_redirects=True)
         assert b'Added protocol' in rv.data, rv.data
+        rv = self.app.post('/lvfs/category/add', data=dict(
+            value='X-Device',
+        ), follow_redirects=True)
+        assert b'Added category' in rv.data, rv.data
         rv = self.app.post('/lvfs/settings/modify', data=dict(
             clamav_enable='disabled',
         ), follow_redirects=True)
@@ -664,7 +668,7 @@ class LvfsTestCase(unittest.TestCase):
         # ensure user can still view firmware
         self.login('alice@acme.com', accept_agreement=False)
         rv = self.app.get('/lvfs/firmware')
-        assert b'ColorHug2 Device Update' in rv.data, rv.data
+        assert b'ColorHug2' in rv.data, rv.data
 
     def test_users(self):
 
@@ -992,7 +996,7 @@ ma+I7fM5pmgsEL4tkCZAg0+CPTyhHkMV/cWuOZUjqTsYbDq1pZI=
 
         # check the report appeared on the telemetry page
         rv = self.app.get('/lvfs/telemetry')
-        assert b'ColorHug2 Device Update' in rv.data, rv.data
+        assert b'ColorHug2' in rv.data, rv.data
         assert b'>1<' in rv.data, rv.data
 
         # delete the report
@@ -1261,7 +1265,7 @@ ma+I7fM5pmgsEL4tkCZAg0+CPTyhHkMV/cWuOZUjqTsYbDq1pZI=
         rv = self.app.get('/lvfs/firmware/1')
         assert '/downloads/' + self.checksum_upload in rv.data.decode('utf-8'), rv.data
         rv = self.app.get('/lvfs/firmware')
-        assert b'ColorHug2 Device Update' in rv.data, rv.data
+        assert b'ColorHug2' in rv.data, rv.data
 
         # check bob can change the update description and severity
         rv = self.app.post('/lvfs/component/1/modify', data=dict(
@@ -1403,15 +1407,15 @@ ma+I7fM5pmgsEL4tkCZAg0+CPTyhHkMV/cWuOZUjqTsYbDq1pZI=
 
         # search for one defined keyword
         rv = self.app.get('/lvfs/search?value=Alice')
-        assert b'ColorHug2 Device Update' in rv.data, rv.data
+        assert b'ColorHug2' in rv.data, rv.data
 
         # search for one defined keyword, again
         rv = self.app.get('/lvfs/search?value=Alice')
-        assert b'ColorHug2 Device Update' in rv.data, rv.data
+        assert b'ColorHug2' in rv.data, rv.data
 
         # search for a keyword and a name match
         rv = self.app.get('/lvfs/search?value=Alice+Edward+ColorHug2')
-        assert b'ColorHug2 Device Update' in rv.data, rv.data
+        assert b'ColorHug2' in rv.data, rv.data
 
     def test_anon_search_not_promoted(self):
 

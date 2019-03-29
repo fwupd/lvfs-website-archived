@@ -20,9 +20,9 @@ from flask_login import login_required
 from app import app, db, ploader
 
 from .models import Firmware, Component, Requirement, Guid, FirmwareEvent
-from .models import Vendor, Remote, Agreement, Affiliation, Checksum, Protocol
+from .models import Vendor, Remote, Agreement, Affiliation, Checksum, Protocol, Category
 from .uploadedfile import UploadedFile, FileTooLarge, FileTooSmall, FileNotSupported, MetadataInvalid
-from .util import _get_client_address, _get_settings, _markdown_from_xml
+from .util import _get_client_address, _get_settings, _markdown_from_xml, _fix_component_name
 from .util import _error_internal, _error_permission_denied
 from .util import _json_success, _json_error
 from .views_firmware import _firmware_delete
@@ -170,6 +170,16 @@ def _create_fw_from_uploaded_file(ufile):
                     filter(Protocol.value == metadata['LVFS::UpdateProtocol']).first()
             if pr:
                 md.protocol_id = pr.protocol_id
+
+        # allows OEM to specify category
+        for category in component.get_categories():
+            cat = db.session.query(Category).filter(Category.value == category).first()
+            if cat:
+                md.category_id = cat.category_id
+                break
+        # fallback to device -- DROP THIS 2020-01-01
+        if not md.category_id:
+            md.category_id = db.session.query(Category).filter(Category.value == 'X-Device').first().category_id
 
         # allows OEM to set banned country codes
         if 'LVFS::BannedCountryCodes' in metadata:
@@ -367,6 +377,13 @@ def upload():
     fw.remote_id = remote.remote_id
     fw.checksum_signed = hashlib.sha1(cab_data).hexdigest()
     fw.is_dirty = True
+
+    # fix name
+    for md in fw.mds:
+        name_fixed = _fix_component_name(md.name, md.developer_name_display)
+        if name_fixed != md.name:
+            flash('Fixed component name from "%s" to "%s"' % (md.name, name_fixed), 'warning')
+            md.name = name_fixed
 
     # fall back to a version format when unspecified and not semver
     for md in fw.mds:

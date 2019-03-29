@@ -11,7 +11,7 @@ from sqlalchemy import func
 
 from app import app, db, ploader
 
-from .models import Requirement, Component, Keyword, Checksum
+from .models import Requirement, Component, Keyword, Checksum, Category
 from .models import Protocol, Report, ReportAttribute
 from .util import _error_internal, _error_permission_denied
 from .hash import _is_sha1, _is_sha256
@@ -78,6 +78,8 @@ def firmware_component_modify(component_id):
         md.screenshot_url = request.form['screenshot_url']
     if 'protocol_id' in request.form:
         md.protocol_id = request.form['protocol_id']
+    if 'category_id' in request.form:
+        md.category_id = request.form['category_id']
     if 'screenshot_caption' in request.form:
         md.screenshot_caption = _sanitize_markdown_text(request.form['screenshot_caption'])
     if 'install_duration' in request.form:
@@ -165,8 +167,9 @@ def firmware_component_show(component_id, page='overview'):
         page = 'requires-advanced'
 
     protocols = db.session.query(Protocol).order_by(Protocol.protocol_id.asc()).all()
+    categories = db.session.query(Category).order_by(Category.category_id.asc()).all()
     return render_template('component-' + page + '.html',
-                           protocols=protocols, md=md, page=page)
+                           protocols=protocols, categories=categories, md=md, page=page)
 
 @app.route('/lvfs/component/<int:component_id>/requirement/delete/<requirement_id>')
 @login_required

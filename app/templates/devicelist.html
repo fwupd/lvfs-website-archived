@@ -36,7 +36,7 @@
   <div class="card">
     <div class="card-body">
       <p class="card-text">
-        Support for the <a href="/lvfs/device/{{fw.md_prio.guids[0].value}}">{{fw.md_prio.name_display}}</a>
+        Support for the <a href="/lvfs/device/{{fw.md_prio.guids[0].value}}">{{fw.md_prio.name}}</a>
         was added by {{fw.md_prio.developer_name_display}}.
       </p>
     </div>
@@ -59,7 +59,7 @@
 <ul class="list-group">
 {% for md in mds_by_vendor[vendor] %}
   <li class="list-group-item">
-    <a href="/lvfs/device/{{md.guids[0].value}}">{{md.name}}</a>
+    <a href="/lvfs/device/{{md.guids[0].value}}">{{md.name_with_category}}</a>
   </li>
 {% endfor %}
 </ul>

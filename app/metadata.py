@@ -4,7 +4,7 @@
 # Copyright (C) 2015-2018 Richard Hughes <richard@hughsie.com>
 # Licensed under the GNU General Public License Version 2
 #
-# pylint: disable=too-many-statements
+# pylint: disable=too-many-statements,too-many-locals,too-many-nested-blocks
 
 import os
 import hashlib
@@ -42,7 +42,8 @@ def _generate_metadata_kind(filename, fws, firmware_baseuri='', local=False):
         component = ET.SubElement(root, 'component')
         component.set('type', 'firmware')
         ET.SubElement(component, 'id').text = md.appstream_id
-        ET.SubElement(component, 'name').text = md.name
+        # until all front ends support <category> append the suffix */
+        ET.SubElement(component, 'name').text = md.name_with_category
         ET.SubElement(component, 'summary').text = md.summary
         ET.SubElement(component, 'developer_name').text = md.developer_name
         if md.description:
@@ -200,6 +201,23 @@ def _generate_metadata_kind(filename, fws, firmware_baseuri='', local=False):
                 sz = ET.SubElement(rel, 'size')
                 sz.set('type', 'download')
                 sz.text = str(md.release_download_size)
+
+        # deliberately not including <category> here until 2020-01-01
+        if False:                       # pylint: disable=using-constant-test
+            cats = []
+            for md in mds:
+                if not md.category:
+                    continue
+                if md.category.value not in cats:
+                    cats.append(md.category.value)
+                if md.category.fallbacks:
+                    for fallback in md.category.fallbacks.split(','):
+                        if fallback not in cats:
+                            cats.append(fallback)
+            if cats:
+                categories = ET.SubElement(root, 'categories')
+                for cat in cats:
+                    ET.SubElement(categories, 'category').text = cat
 
         # provides shared by all releases
         elements = {}
