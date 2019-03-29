@@ -1,23 +1,6 @@
 {% extends "default.html" %}
 {% block title %}Telemetry{% endblock %}
 
-{% block nav %}
-<nav>
-  <ul class="nav nav-tabs">
-    <div><h3></h3></div>
-    <li class="nav-item">
-      <a class="nav-link {{'active' if age == 0}}" href="/lvfs/telemetry/0/{{sort_key}}/{{sort_direction}}">All</a>
-    </li>
-    <li class="nav-item">
-      <a class="nav-link {{'active' if age == 30}}" href="/lvfs/telemetry/30/{{sort_key}}/{{sort_direction}}">Last 30 days</a>
-    </li>
-    <li class="nav-item">
-      <a class="nav-link {{'active' if age == 180}}" href="/lvfs/telemetry/180/{{sort_key}}/{{sort_direction}}">Last 6 months</a>
-    </li>
-  </ul>
-</nav>
-{% endblock %}
-
 {% block content %}
 {% if show_duplicate_warning %}
 <div class="alert alert-info" role="alert">
