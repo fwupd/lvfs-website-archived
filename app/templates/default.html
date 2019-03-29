@@ -91,8 +91,6 @@
               <a class="dropdown-item" href="{{url_for('.protocol_all')}}">Flashing Protocols</a>
               <a class="dropdown-item" href="{{url_for('.test_overview')}}">Runtime Tests</a>
               <a class="dropdown-item" href="{{url_for('.agreement_list')}}">Agreements</a>
-              <div class="dropdown-divider"></div>
-              <a class="dropdown-item" href="/lvfs/analytics">Analytics</a>
             </div>
           </li>
           <li class="nav-item dropdown">
@@ -104,6 +102,20 @@
               <a class="dropdown-item" href="{{url_for('.vendor_list_analytics', page='publicfw')}}">Total Firmware</a>
               <a class="dropdown-item" href="{{url_for('.vendor_list_analytics', page='downloads')}}">Client Downloads</a>
               <a class="dropdown-item" href="{{url_for('.vendor_list_analytics', page='devices')}}">Supported Devices</a>
+            </div>
+          </li>
+          <li class="nav-item dropdown">
+            <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownAnalytics" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+              Analytics
+            </a>
+            <div class="dropdown-menu" aria-labelledby="navbarDropdownAnalytics">
+              <a class="dropdown-item" href="{{url_for('.analytics_month')}}">Download Month</a>
+              <a class="dropdown-item" href="{{url_for('.analytics_year')}}">Download Year</a>
+              <a class="dropdown-item" href="{{url_for('.analytics_user_agents')}}">User Agents</a>
+              <a class="dropdown-item" href="{{url_for('.analytics_clients')}}">Recent Downloads</a>
+              <a class="dropdown-item" href="{{url_for('.analytics_reports')}}">Recent Reports</a>
+              <a class="dropdown-item" href="{{url_for('.analytics_search_history')}}">Recent Searches</a>
+              <a class="dropdown-item" href="{{url_for('.analytics_search_stats')}}">Popular Searches</a>
             </div>
           </li>
 {% endif %}
