@@ -63,8 +63,21 @@
       <p><a class="btn btn-secondary" href="/developers" role="button">More information &raquo;</a></p>
     </div>
   </div>
-
 </div> <!-- /container -->
+
+<!-- quotes -->
+<div class="card-deck">
+{% for v in vendors %}
+{% if v.quote_text %}
+  <div class="card">
+    <div class="card-body">
+      <h4 class="card-title">“{{v.quote_text}}”</h4>
+      <h6 class="card-subtitle mb-2 text-muted">- {{v.quote_author}}, {{v.display_name}}</h6>
+    </div>
+  </div>
+{% endif %}
+{% endfor %}
+</div>
 
 {% if default_admin_password %}
 <div class="container mt-3">

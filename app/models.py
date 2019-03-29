@@ -328,6 +328,8 @@ class Vendor(db.Model):
     display_name = Column(Text, default=None)
     plugins = Column(Text, default=None)
     description = Column(Text, default=None)
+    quote_text = Column(Text, default=None)
+    quote_author = Column(Text, default=None)
     visible = Column(Boolean, default=False)
     visible_for_search = Column(Boolean, default=False)
     visible_on_landing = Column(Boolean, default=False)

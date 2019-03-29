@@ -29,6 +29,14 @@
     <input type="text" class="form-control" name="plugins" value="{{v.plugins}}" required>
   </div>
   <div class="form-group">
+    <label for="display_name">Quote Text:</label>
+    <input type="text" class="form-control" name="quote_text" value="{{v.quote_text if v.quote_text}}" required>
+  </div>
+  <div class="form-group">
+    <label for="display_name">Quote Author:</label>
+    <input type="text" class="form-control" name="quote_author" value="{{v.quote_author if v.quote_author}}" required>
+  </div>
+  <div class="form-group">
     <label for="display_name">Keywords:</label>
     <input type="text" class="form-control" name="keywords" value="{{ v.keywords if v.keywords }}">
   </div>

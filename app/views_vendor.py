@@ -342,6 +342,8 @@ def vendor_modify_by_admin(vendor_id):
         return redirect(url_for('.vendor_list'), 302)
     for key in ['display_name',
                 'plugins',
+                'quote_text',
+                'quote_author',
                 'description',
                 'is_fwupd_supported',
                 'is_uploading',
