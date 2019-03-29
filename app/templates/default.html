@@ -89,7 +89,6 @@
               <div class="dropdown-divider"></div>
               <a class="dropdown-item" href="/lvfs/settings">Server Settings</a>
               <a class="dropdown-item" href="{{url_for('.protocol_all')}}">Flashing Protocols</a>
-              <a class="dropdown-item" href="{{url_for('.test_overview')}}">Runtime Tests</a>
               <a class="dropdown-item" href="{{url_for('.agreement_list')}}">Agreements</a>
             </div>
           </li>
@@ -116,6 +115,19 @@
               <a class="dropdown-item" href="{{url_for('.analytics_reports')}}">Recent Reports</a>
               <a class="dropdown-item" href="{{url_for('.analytics_search_history')}}">Recent Searches</a>
               <a class="dropdown-item" href="{{url_for('.analytics_search_stats')}}">Popular Searches</a>
+            </div>
+          </li>
+          <li class="nav-item dropdown">
+            <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownTests" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+              Runtime Tests
+            </a>
+            <div class="dropdown-menu" aria-labelledby="navbarDropdownTests">
+              <a class="dropdown-item" href="{{url_for('.test_overview')}}">Overview</a>
+              <a class="dropdown-item" href="{{url_for('.test_pending')}}">Pending</a>
+              <a class="dropdown-item" href="{{url_for('.test_running')}}">Running</a>
+              <a class="dropdown-item" href="{{url_for('.test_failed')}}">Failed</a>
+              <a class="dropdown-item" href="{{url_for('.test_waived')}}">Waived</a>
+              <a class="dropdown-item" href="{{url_for('.test_recent')}}">Recent</a>
             </div>
           </li>
 {% endif %}
