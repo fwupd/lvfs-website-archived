@@ -885,33 +885,28 @@ class LvfsTestCase(unittest.TestCase):
         if not signed:
             return self.app.post('/lvfs/firmware/report', data=payload)
 
-        # to recreate, use:
-        # with open('payload.txt', 'w') as f:
-        #    f.write(payload)
-        # sudo certtool --p7-detached-sign --p7-time --no-p7-include-cert \
-        # --load-certificate ~/.root/var/lib/fwupd/pki/client.pem
-        # --load-privkey ~/.root/var/lib/fwupd/pki/secret.key
-        # --infile payload.txt --outfile test.p7b
-
         # signed
         if signature_valid:
-            signature = """
------BEGIN PKCS7-----
-MIICYgYJKoZIhvcNAQcCoIICUzCCAk8CAQExDTALBglghkgBZQMEAgEwCwYJKoZI
-hvcNAQcBMYICLDCCAigCAQEwGDAAAhRfEaI3uZSTG774ab0BUyNYdPqPizALBglg
-hkgBZQMEAgGgaTAYBgkqhkiG9w0BCQMxCwYJKoZIhvcNAQcBMBwGCSqGSIb3DQEJ
-BTEPFw0xOTAzMjkxMDE2NDRaMC8GCSqGSIb3DQEJBDEiBCDjngPEsDp4BUgR3cTs
-EK6ytC3OZTFW1+oWjJbSBFAsbTANBgkqhkiG9w0BAQEFAASCAYCeR2qllWwt2gW0
-2kx8C/4sNGsajpwjV9B+0ArdJJL+rnXk1W9q2nwLwcTVlP/cMcFHfrGovwchtxTC
-a2XNdxCdQ5gU1L/WKVFcnh75Bu86O8ouqgbXrSM8a6AsBQiw0aL+rf5tblxMQeHe
-dS+rc4ip+BAVvsEUkUPgWs9aZ7W2So7qQFujUdHK8AgOA/QQLW6JS8M0qIqdNIm1
-MO8MAb/3DAueDO68xQ0Mec6ndehmamKl54u8UQrXqKMJXxPwZvmHikDaf0O1XKTz
-bDim/zoBQjCaAcmtIoWbdAVpbNLDTleP9BotFbX0S3OmImMypsGpFUwREM1cUS6K
-NwjZc3hKzhLT+aGrxkbxzr7+22DwD14nDAgkcFmLJjyedh19y1A1P+LMHJ0mWN+n
-/VMiFVr7Zr20ecwNKm3DQgtnpLsALuf8MwTWOP0dBaQ1u2hebch6r+gKYjiai8oI
-CwGVvYznsud2y0yZwW2yTagi8YycUBf/JwqUQcyy1FWjJZqp0UA=
------END PKCS7-----
-"""
+            if 'LVFS_RECREATE_CERT' in os.environ:
+                dat = tempfile.NamedTemporaryFile(mode='wb',
+                                                  prefix='pkcs7_',
+                                                  suffix=".cab",
+                                                  dir=None,
+                                                  delete=True)
+                dat.write(payload.encode('utf8'))
+                dat.flush()
+                argv = ['sudo', 'certtool', '--p7-detached-sign',
+                        '--p7-time', '--no-p7-include-cert',
+                        '--load-certificate', 'contrib/client.pem',
+                        '--load-privkey', 'contrib/secret.key',
+                        '--infile', dat.name,
+                        '--outfile', 'contrib/test.p7b']
+                ps = subprocess.Popen(argv, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+                _, err = ps.communicate()
+                if ps.returncode != 0:
+                    raise IOError(err)
+            with open('contrib/test.p7b', 'rb') as f:
+                signature = f.read().decode('utf8')
         else:
             # signing some crazy thing
             signature = """
@@ -1586,7 +1581,7 @@ ma+I7fM5pmgsEL4tkCZAg0+CPTyhHkMV/cWuOZUjqTsYbDq1pZI=
         rv = self.app.get('/lvfs/issue/1/delete', follow_redirects=True)
         assert b'No issue found' in rv.data, rv.data
 
-    def _add_certificate(self, filename='contrib/test.p7b'):
+    def _add_certificate(self, filename='contrib/client.pem'):
         with open(filename, 'rb') as fd:
             data = {
                 'file': (fd, filename)
