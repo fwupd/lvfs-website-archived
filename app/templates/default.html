@@ -86,7 +86,6 @@
             </a>
             <div class="dropdown-menu" aria-labelledby="navbarDropdownAdmin">
               <a class="dropdown-item" href="/lvfs/userlist">Users</a>
-              <a class="dropdown-item" href="/lvfs/vendorlist">Vendors</a>
               <div class="dropdown-divider"></div>
               <a class="dropdown-item" href="/lvfs/settings">Server Settings</a>
               <a class="dropdown-item" href="{{url_for('.protocol_all')}}">Flashing Protocols</a>
@@ -94,6 +93,17 @@
               <a class="dropdown-item" href="{{url_for('.agreement_list')}}">Agreements</a>
               <div class="dropdown-divider"></div>
               <a class="dropdown-item" href="/lvfs/analytics">Analytics</a>
+            </div>
+          </li>
+          <li class="nav-item dropdown">
+            <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownVendors" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+              Vendors
+            </a>
+            <div class="dropdown-menu" aria-labelledby="navbarDropdownVendors">
+              <a class="dropdown-item" href="{{url_for('.vendor_list')}}">Overview</a>
+              <a class="dropdown-item" href="{{url_for('.vendor_list_analytics', page='publicfw')}}">Total Firmware</a>
+              <a class="dropdown-item" href="{{url_for('.vendor_list_analytics', page='downloads')}}">Client Downloads</a>
+              <a class="dropdown-item" href="{{url_for('.vendor_list_analytics', page='devices')}}">Supported Devices</a>
             </div>
           </li>
 {% endif %}
