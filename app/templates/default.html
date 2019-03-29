@@ -91,6 +91,7 @@
               <a class="dropdown-item" href="/lvfs/settings">Server Settings</a>
               <a class="dropdown-item" href="{{url_for('.protocol_all')}}">Flashing Protocols</a>
               <a class="dropdown-item" href="{{url_for('.test_overview')}}">Runtime Tests</a>
+              <a class="dropdown-item" href="{{url_for('.agreement_list')}}">Agreements</a>
               <div class="dropdown-divider"></div>
               <a class="dropdown-item" href="/lvfs/analytics">Analytics</a>
             </div>
@@ -107,9 +108,6 @@
 {% endif %}
 {% if g.user.vendor.check_acl('@manage-users') %}
               <a class="dropdown-item" href="/lvfs/vendor/{{g.user.vendor_id}}/users">Vendor</a>
-{% endif %}
-{% if g.user.check_acl('@admin') %}
-              <a class="dropdown-item" href="/lvfs/agreement/list">Agreements</a>
 {% endif %}
 {% if g.user.check_acl('@view-eventlog') %}
               <a class="dropdown-item" href="/lvfs/eventlog">Events</a>
