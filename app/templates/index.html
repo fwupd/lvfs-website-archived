@@ -1,75 +1,133 @@
-{% extends "default.html" %}
+{% extends "public.html" %}
 {% block title %}Home{% endblock %}
 
-{% block content %}
+{% block head %}
+<link rel="stylesheet" href="/owl.carousel.css">
+{% endblock %}
 
-<div class="jumbotron">
+{% block script %}
+<script src="/stickyfill.min.js"></script>
+<script src="/sticky-kit.js"></script>
+<script src="/owl.carousel.js"></script>
+{% endblock %}
+
+{% block content2 %}
+
+<!-- jumbotron -->
+<section class="py-0 overflow-hidden" id="banner">
+  <div class="bg-holder overlay" style="background-image:url(/bg-2.jpg);background-position: center bottom;">
+  </div>
   <div class="container">
-    <h1 class="display-3">Linux Vendor Firmware Service</h1>
-    <p>
-      The Linux Vendor Firmware Service is a secure portal which allows
-      hardware vendors to upload firmware updates.
-      This site is used by all major Linux distributions to provide metadata
-      for clients such as fwupdmgr and GNOME Software.
-      There is no charge to vendors for the hosting or distribution of content.
-    </p>
-  </div>
-</div>
-
-<div class="container">
-
-  <!-- list of logos -->
-  <div class="row mb-4 justify-content-center align-items-center">
-{% for v in vendors %}
-    <div class="col-3 col-sm-auto my-1 my-sm-3">
-      <img class="grayscale" src="/uploads/{{v.icon}}" width="64"/>
+    <div class="row justify-content-center align-items-center pt-6 pt-lg-8 pb-lg-9 pb-xl-0">
+      <div class="col-md-11 col-lg-8 col-xl-4 pb-7 pb-xl-9 text-center text-xl-left">
+        <h1 class="text-white font-weight-light">Linux Vendor Firmware Service</h1>
+        <p class="lead text-400">
+          The Linux Vendor Firmware Service is a secure portal which allows hardware vendors to upload firmware updates.
+        </p>
+        <p class="lead text-400">
+          This site is used by all major Linux distributions to provide metadata for clients such as fwupdmgr and GNOME Software.
+        </p>
+        <p class="lead text-400">
+          There is no charge to vendors for the hosting or distribution of content.
+        </p>
+      </div>
+      <div class="col-xl-7 offset-xl-1 align-self-end">
+        <a class="img-landing-bannar" href="{{url_for('.docs_introduction')}}">
+          <img class="img-fluid" src="/img/dashboard.png" alt="" />
+        </a>
+      </div>
     </div>
+  </div>
+</section>
+
+<!-- list of logos -->
+<section class="py-3 bg-light shadow-sm">
+  <div class="container">
+    <div class="row justify-content-center align-items-center">
+{% for v in vendors_logo %}
+      <div class="col-3 col-sm-auto my-1 my-sm-3">
+        <img class="landing-cta-img grayscale" height="64" width="64" src="/uploads/{{v.icon}}" alt="{{v.display_name}}" />
+      </div>
 {% endfor %}
+    </div>
   </div>
+</section>
 
-  <div class="row">
-    <div class="col-md-4">
-      <h2>Hardware Vendors</h2>
-      <p>
-        Hardware vendors upload redistributable firmware to the LVFS site
-        packaged up in an industry-standard <code>.cab</code> archive along
-        with a Linux-specific metadata file.
-      </p>
-      <p><a class="btn btn-secondary" href="/vendors" role="button">More information &raquo;</a></p>
-    </div>
-    <div class="col-md-4">
-      <h2>End Users</h2>
-      <p>
-        The fwupd daemon allows session software to update device firmware on
-        the local machine.
-        Designed for desktops, it is also usable on phones, tablets and on servers.
-      </p>
-      <p><a class="btn btn-secondary" href="/users" role="button">More information &raquo;</a></p>
-    </div>
-    <div class="col-md-4">
-      <h2>Developers</h2>
-      <p>
-        The LVFS and fwupd daemon are Open Source projects with contributions
-        from dozens of people from many different companies.
-        Plugins allow many different update protocols to be supported.
-      </p>
-      <p><a class="btn btn-secondary" href="/developers" role="button">More information &raquo;</a></p>
+<!-- vendors, users, developers -->
+<section class="bg-light text-center">
+  <div class="container">
+    <div class="row mt-0">
+      <div class="col-lg-4">
+        <div class="card card-span h-100">
+          <div class="card-span-img">
+            <span class="fas fa-user-tie fs-5 text-info"></span>
+          </div>
+          <div class="card-body pt-6 pb-4">
+            <h5 class="mb-2">Hardware Vendors</h5>
+            <p class="card-text">
+              Hardware vendors upload redistributable firmware to the LVFS site
+              packaged up in an industry-standard <code>.cab</code> archive along
+              with a Linux-specific metadata file.
+            </p>
+            <a href="{{url_for('docs_vendors')}}" class="card-link">More information &raquo;</a>
+          </div>
+        </div>
+      </div>
+      <div class="col-lg-4 mt-6 mt-lg-0">
+        <div class="card card-span h-100">
+          <div class="card-span-img">
+            <span class="fas fa-users fs-5 text-success"></span>
+          </div>
+          <div class="card-body pt-6 pb-4">
+            <h5 class="mb-2">End Users</h5>
+            <p class="card-text">
+              The fwupd daemon allows session software to update device firmware on
+              the local machine.
+              Designed for desktops, it is also usable on phones, tablets and on servers.
+            </p>
+            <a href="{{url_for('docs_users')}}" class="card-link">More information &raquo;</a>
+          </div>
+        </div>
+      </div>
+      <div class="col-lg-4 mt-6 mt-lg-0">
+        <div class="card card-span h-100">
+          <div class="card-span-img">
+            <span class="fas fa-user-cog fs-5 text-danger"></span>
+          </div>
+          <div class="card-body pt-6 pb-4">
+            <h5 class="mb-2">Developers</h5>
+            <p class="card-text">
+              LVFS and fwupd are Open Source projects with contributions
+              from dozens of people from different companies.
+              Plugins allow many different protocols to be supported.
+            </p>
+            <a href="{{url_for('docs_developers')}}" class="card-link">More information &raquo;</a>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
-</div> <!-- /container -->
+</section>
 
 <!-- quotes -->
-<div class="card-deck">
-{% for v in vendors %}
-{% if v.quote_text %}
-  <div class="card">
-    <div class="card-body">
-      <h4 class="card-title">“{{v.quote_text}}”</h4>
-      <h6 class="card-subtitle mb-2 text-muted">- {{v.quote_author}}, {{v.display_name}}</h6>
+<section class="bg-200 text-center">
+  <div class="container">
+    <div class="row justify-content-center">
+      <div class="col-lg-9 col-xl-8">
+        <div class="owl-carousel owl-theme owl-theme-dark" data-options='{"margin":30,"nav":true,"autoplay":true,"autoplayHoverPause":true,"loop":true,"dots":false,"items":1}'>
+{% for v in vendors_quote %}
+          <div class="px-5 px-sm-6">
+            <p class="fs-sm-1 fs-md-2 font-italic text-dark">
+              “{{v.quote_text}}”
+            </p>
+            <p class="fs-0 text-600">- {{v.quote_author}}, {{v.display_name}}</p>
+            <img class="w-auto mx-auto" src="/uploads/{{v.icon}}" alt="" height="64" />
+          </div>
+{% endfor %}
+        </div>
+      </div>
     </div>
   </div>
-{% endif %}
-{% endfor %}
-</div>
+</section>
 
 {% endblock %}

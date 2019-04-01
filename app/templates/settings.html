@@ -3,42 +3,41 @@
 
 {% block nav %}
 <nav>
-  <ul class="nav nav-tabs">
+  <div class="text-center mb-3">
+    <div class="btn-group" role="group">
 {% for plugin in plugins %}
-    <div><h3></h3></div>
-    <li class="nav-item">
-{% if plugin_id == plugin.id %}
-      <a class="nav-link active" href="/lvfs/settings/{{plugin.id}}">{{plugin.name()}}</a>
-{% else %}
-      <a class="nav-link" href="/lvfs/settings/{{plugin.id}}">{{plugin.name()}}</a>
-{% endif %}
-    </li>
+      <a class="btn btn-falcon-{{'primary' if plugin_id == plugin.id else 'default'}}"
+        href="{{url_for('.settings_view', plugin_id=plugin.id)}}">{{plugin.name()}}</a>
 {% endfor %}
-  </ul>
+    </div>
+  </div>
 </nav>
 {% endblock %}
 
 {% block content %}
+<div class="card">
+  <div class="card-body">
   <form class="form" method="post" action="/lvfs/settings/modify/{{plugin_id}}">
 
 {% for plugin in plugins %}
 {% if plugin.id == plugin_id %}
-    <div><p>{{plugin.summary()}}</p></div>
+    <h3 class="card-title">{{plugin.name()}}</h3>
+    <p class="card-text">{{plugin.summary()}}</p>
 {% for s in plugin.settings() %}
-    <div class="form-group row">
-      <label for="name" class="col-sm-2 col-form-label">{{s.name}}</label>
-      <div class="col-sm-10">
+    <div class="form-group">
 {% if s.__class__.__name__ == 'PluginSettingBool' %}
-{% if settings[s.key] == 'enabled' %}
-        <input type="checkbox" class="form-check" name="{{s.key}}" value="enabled" checked>
-{% else %}
-        <input type="checkbox" class="form-check" name="{{s.key}}" value="enabled">
-{% endif %}
-        <input type="hidden" name="{{s.key}}" value="disabled">
-{% else %}
-        <input type="text" class="form-control" name="{{s.key}}" value="{{settings[s.key]}}">
-{% endif %}
+      <div class="custom-control custom-switch">
+        <input class="custom-control-input" type="checkbox" id="{{s.key}}"
+          name="{{s.key}}" value="enabled" {{'checked' if settings[s.key] == 'enabled'}}/>
+        <label class="custom-control-label" for="{{s.key}}">
+          {{s.name}}
+        </label>
       </div>
+      <input type="hidden" name="{{s.key}}" value="disabled"/>
+{% else %}
+      <label>{{s.name}}</label>
+      <input type="text" class="form-control" name="{{s.key}}" value="{{settings[s.key]}}">
+{% endif %}
     </div>
 {% endfor %}
 {% endif %}
@@ -50,4 +49,6 @@
       </div>
     </div>
   </form>
+  </div>
+</div>
 {% endblock %}

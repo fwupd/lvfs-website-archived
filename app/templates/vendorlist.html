@@ -3,12 +3,15 @@
 {% block title %}Vendor Status{% endblock %}
 
 {% block content %}
+<div class="card">
+  <div class="card-body">
+  <h1 class="card-title">Vendors contacted by the LVFS team</h1>
 <table class="table">
   <tr class="row table-borderless">
     <th class="col-sm-3">Vendor</th>
-    <th class="col-sm-1">fwupd support</th>
-    <th class="col-sm-1">LVFS account</th>
-    <th class="col-sm-1">Uploaded firmware</th>
+    <th class="col-sm-1">fwupd</th>
+    <th class="col-sm-1">Account</th>
+    <th class="col-sm-1">Uploads</th>
 {% if g.user is defined and g.user.check_acl('@admin') %}
     <th class="col-sm-5">Comments</th>
     <th class="col-sm-1">&nbsp;</th>
@@ -77,12 +80,18 @@
 {% endfor %}
   </tr>
 </table>
+  </div>
+</div>
 
 {% if g.user is defined and g.user.check_acl('@admin') %}
-<h1>Create a new vendor</h1>
+<div class="card mt-3">
+  <div class="card-body">
+    <h1 class="card-title">Create a new vendor</h1>
 <form method="post" action="/lvfs/vendor/add" class="form-inline">
   <input class="form-control" type="text" size="20" name="group_id" placeholder="Group ID" required>
   <input class="btn btn-primary" type="submit" value="Add">
 </form>
 {% endif %}
+  </div>
+</div>
 {% endblock %}

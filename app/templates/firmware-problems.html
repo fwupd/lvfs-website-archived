@@ -6,6 +6,9 @@
 {% endblock %}
 
 {% block content %}
+<div class="card">
+  <div class="card-body">
+    <h4 class="card-title">Problems</h4>
 <table class="table">
   <tr class="row table-borderless">
     <th class="col-sm-3">Name</th>
@@ -134,7 +137,8 @@
   </tr>
 {% endfor %}
 </table>
-
+  </div>
+</div>
 {% endblock %}
 
 {% block breadcrumb %}{% include 'firmware-breadcrumb.html' %}{% endblock %}

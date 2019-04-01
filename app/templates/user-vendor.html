@@ -9,6 +9,8 @@
   Moving a user from one vendor should be done carefully.
 </div>
 
+<div class="card mt-3">
+  <div class="card-body">
 <form method="post" action="/lvfs/user/{{u.user_id}}/modify_by_admin">
 {% if u.is_qa %}
   <input type="hidden" name="is_qa" value="1">
@@ -50,6 +52,8 @@
   </div>
   <input type="submit" class="btn btn-primary btn-danger" value="Modify">
 </form>
+  </div>
+</div>
 
 {% endblock %}
 

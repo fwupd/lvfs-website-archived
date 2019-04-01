@@ -4,6 +4,9 @@
 {% block nav %}{% include 'firmware-nav.html' %}{% endblock %}
 
 {% block content %}
+<div class="card">
+  <div class="card-body">
+    <h4 class="card-title">Reports</h4>
 {% if reports|length > 0 %}
 <table class="table">
   <tr class="row table-borderless">
@@ -49,6 +52,8 @@
 </div>
 
 {% endif %}
+  </div>
+</div>
 
 {% endblock %}
 

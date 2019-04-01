@@ -4,6 +4,9 @@
 {% block nav %}{% include 'firmware-nav.html' %}{% endblock %}
 
 {% block content %}
+<div class="card">
+  <div class="card-body">
+    <h4 class="card-title">Downloads</h4>
 <table class="table">
   <tr class="row table-borderless">
     <th class="col-sm-2">Timestamp</th>
@@ -18,7 +21,8 @@
   </tr>
 {% endfor %}
 </table>
-
+  </div>
+</div>
 {% endblock %}
 
 {% block breadcrumb %}{% include 'firmware-breadcrumb.html' %}{% endblock %}

@@ -70,6 +70,43 @@ def _add_search_event(ev):
     db.session.add(ev)
     db.session.commit()
 
+@app.route('/lvfs/firmware/search', methods=['GET', 'POST'])
+@login_required
+def search_fw(max_results=100):
+
+    if 'value' not in request.args:
+        return _error_internal('No search value!')
+
+    # there must be a more efficient way to do this...
+    fws = []
+    kws_fw = {}
+    keywords = _split_search_string(request.args['value'])
+    for keyword in keywords:
+        fws_for_this_keyword = []
+        kws = db.session.query(Keyword).\
+                        filter(Keyword.value == keyword).\
+                        order_by(Keyword.keyword_id.desc()).all()
+        for kw in kws:
+            fw = kw.md.fw
+            if fw in fws_for_this_keyword:
+                continue
+            if not fw.check_acl('@view'):
+                continue
+            if fw in kws_fw:
+                kws_fw[fw] += 1
+            else:
+                kws_fw[fw] = 1
+            fws_for_this_keyword.append(fw)
+    for fw in kws_fw:
+        if kws_fw[fw] == len(keywords):
+            fws.append(fw)
+
+    return render_template('firmware-search.html',
+                           category='firmware',
+                           state='search',
+                           remote=None,
+                           fws=fws[:max_results])
+
 @app.route('/lvfs/search', methods=['GET', 'POST'])
 @app.route('/lvfs/search/<int:max_results>', methods=['POST'])
 def search(max_results=19):

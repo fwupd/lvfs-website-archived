@@ -3,16 +3,20 @@
 {% block title %}Users{% endblock %}
 
 {% block content %}
-<h1>Introduction</h1>
-<p>
+<div class="card">
+  <div class="card-body">
+    <h1 class="card-title">Introduction</h1>
+<p class="card-text">
   To update a BIOS or device firmware in Linux traditionally meant
   rebooting into Microsoft Windows, or preparing a MS-DOS floppy disk (!) and
   hoping that everything would work after the update.
   Periodically searching a vendor website for updates is a manual and
   error-prone task and not something we should ask users to do.
 </p>
+  </div>
+</div>
 
-<div class="card mb-3">
+<div class="card mt-3">
   <h3 class="card-header list-group-item-info">Is my hardware supported?</h3>
   <div class="card-body">
     <p class="card-text">
@@ -27,8 +31,10 @@
   </div>
 </div>
 
-<h2>fwupd</h2>
-<p>
+<div class="card mt-3">
+  <div class="card-body">
+    <h2 class="card-title">fwupd</h2>
+<p class="card-text">
   fwupd is a simple daemon to allow session software to update device firmware on
   your local machine. It's designed for desktops, but also usable on phones and
   headless servers.
@@ -49,19 +55,22 @@ Unifying Receiver
   Version:              RQR24.05_B0029
   VersionBootloader:    BOT03.01_B0008
 </pre>
-<p>
+<p class="card-text">
 You can see all the command line options using <code>--help</code>:
 </p>
-<hr/>
+  </div>
+</div>
 
-<h2>GNOME Software</h2>
-<p>
+<div class="card mt-3">
+  <div class="card-body">
+    <h2 class="card-title">GNOME Software</h2>
+<p class="card-text">
   GNOME Software is an application store designed to make installing, removing
   and updating both easy and beautiful.
   It is available for Linux and used by millions of people on RHEL &ge; 7.4,
   Fedora &ge; 22, Ubuntu &ge; 16.04 and Debian &ge; 9.
 </p>
-<p>
+<p class="card-text">
   When required, metadata files are automatically downloaded from the LVFS and
   submitted into fwupd over D-Bus.
   If there are updates that need applying then they are downloaded and the user
@@ -73,9 +82,13 @@ You can see all the command line options using <code>--help</code>:
   <img src="/img/gnome-software1.png" class="p-3 border border-info rounded figure-img img-fluid rounded" alt="gnome-software updates panel">
   <figcaption class="figure-caption">New versions of GNOME Software will show and auto-download updates automatically.</figcaption>
 </figure>
+  </div>
+</div>
 
-<h2>KDE Discover</h2>
-<p>
+<div class="card mt-3">
+  <div class="card-body">
+    <h2 class="card-title">KDE Discover</h2>
+<p class="card-text">
   Discover is intended for users and distros where the terminal isn't the optimal
   solution for installation of apps and add-ons or updates. 
   It comes Pre-installled with many Linux distro's such as KDE Neon, Kubuntu and is generally
@@ -86,9 +99,13 @@ You can see all the command line options using <code>--help</code>:
   <img src="/img/discover-software.png" class="p-3 border border-info rounded figure-img img-fluid rounded" alt="discover-software updates panel">
   <figcaption class="figure-caption">Discover 5.14.8 onwards, the updates section will also show firmware updates via fwupd</figcaption>
 </figure>
+  </div>
+</div>
 
-<h2>Search Using The LVFS</h2>
-<p>
+<div class="card mt-3">
+  <div class="card-body">
+    <h2 class="card-title">Search Using The LVFS</h2>
+<p class="card-text">
   You can search for firmware and hardware vendors
   <a href="/lvfs/search">directly on the LVFS</a>:
 </p>
@@ -96,9 +113,13 @@ You can see all the command line options using <code>--help</code>:
   <img src="/img/lvfs-search.png" class="p-3 border border-info rounded figure-img img-fluid rounded" alt="LVFS Search Results">
   <figcaption class="figure-caption">Showing vendor and model search results</figcaption>
 </figure>
+  </div>
+</div>
 
-<h2>Using the D-Bus API</h2>
-<p>
+<div class="card mt-3">
+  <div class="card-body">
+    <h2 class="card-title">Using the D-Bus API</h2>
+<p class="card-text">
   The fwupd daemon is launched when queried for the first time.
   This exports an interface that can be queried from any language with
   a D-Bus binding such as C, Python or Java.
@@ -112,8 +133,10 @@ $ $ gdbus call --system --dest org.freedesktop.fwupd --object-path / --method or
     'Version': &lt;'4.0.0'&gt;,
     'Flags': &lt;uint64 6&gt;}},)
 </pre>
+  </div>
+</div>
 
-<div class="card mb-3">
+<div class="card mt-3">
   <h3 class="card-header list-group-item-info">Do I always need the root password to update?</h3>
   <div class="card-body">
     <p class="card-text">

@@ -39,7 +39,9 @@ def agreement_list():
 
     # find the right version
     agreements = db.session.query(Agreement).all()
-    return render_template('agreement-list.html', agreements=agreements)
+    return render_template('agreement-list.html',
+                           category='admin',
+                           agreements=agreements)
 
 @app.route('/lvfs/agreement/create')
 @login_required

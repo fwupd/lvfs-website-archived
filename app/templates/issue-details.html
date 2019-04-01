@@ -4,7 +4,9 @@
 {% block nav %}{% include 'issue-nav.html' %}{% endblock %}
 
 {% block content %}
-<h2>Issue Details</h2>
+<div class="card">
+  <div class="card-body">
+    <h2 class="card-title">Issue Details</h2>
 <form method="post" action="/lvfs/issue/{{issue.issue_id}}/modify">
   <div class="form-group">
     <label for="group_id">URL:</label>
@@ -64,4 +66,6 @@
     <li class="breadcrumb-item active" aria-current="page">Issue #{{issue.issue_id}}</li>
   </ol>
 </nav>
+  </div>
+</div>
 {% endblock %}

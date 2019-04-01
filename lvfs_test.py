@@ -710,17 +710,23 @@ class LvfsTestCase(unittest.TestCase):
         assert b'/lvfs/upload' in rv.data, rv.data
         assert b'Caveat Emptor' in rv.data, rv.data
 
-        # ensure the user can change thier own password
+        # ensure the user can change thier own display name
         rv = self.app.post('/lvfs/user/3/modify', data=dict(
-            password_old='not-even-close',
-            password_new='Hi$$t0ry',
             display_name='Something Funky',
         ), follow_redirects=True)
+        assert b'Updated profile' in rv.data, rv.data
+        rv = self.app.get('/lvfs/profile')
+        assert b'Something Funky' in rv.data, rv.data
+
+        # ensure the user can change thier own password
+        rv = self.app.post('/lvfs/user/3/password', data=dict(
+            password_old='not-even-close',
+            password_new='Hi$$t0ry',
+        ), follow_redirects=True)
         assert b'Incorrect existing password' in rv.data, rv.data
-        rv = self.app.post('/lvfs/user/3/modify', data=dict(
+        rv = self.app.post('/lvfs/user/3/password', data=dict(
             password_old='Pa$$w0rd',
             password_new='Hi$$t0ry',
-            display_name='Something Funky',
         ), follow_redirects=True)
         assert b'Updated profile' in rv.data, rv.data
         rv = self.app.get('/lvfs/profile')
@@ -1013,12 +1019,12 @@ ma+I7fM5pmgsEL4tkCZAg0+CPTyhHkMV/cWuOZUjqTsYbDq1pZI=
         self.login()
         rv = self.app.get('/lvfs/settings')
         assert b'General server settings' in rv.data, rv.data
-        assert b'Windows Update' in rv.data, rv.data
+        assert b'ClamAV' in rv.data, rv.data
 
         # dig into the Windows Update page
         rv = self.app.get('/lvfs/settings/wu-copy')
         assert b'Copy files generated' in rv.data, rv.data
-        assert b'value="enabled" checked>' in rv.data, rv.data
+        assert b'value="enabled" checked/>' in rv.data, rv.data
 
         # change both values to False
         rv = self.app.post('/lvfs/settings/modify/wu-copy', data=dict(
@@ -1026,14 +1032,14 @@ ma+I7fM5pmgsEL4tkCZAg0+CPTyhHkMV/cWuOZUjqTsYbDq1pZI=
             wu_copy_cat='disabled',
         ), follow_redirects=True)
         assert b'Copy files generated' in rv.data, rv.data
-        assert b'value="enabled">' in rv.data, rv.data
+        assert b'value="enabled" />' in rv.data, rv.data
 
         # and back to True
         rv = self.app.post('/lvfs/settings/modify/wu-copy', data=dict(
             wu_copy_inf='enabled',
             wu_copy_cat='enabled',
         ), follow_redirects=True)
-        assert b'value="enabled" checked>' in rv.data, rv.data
+        assert b'value="enabled" checked/>' in rv.data, rv.data
 
     def test_updateinfo(self):
 
@@ -1235,7 +1241,7 @@ ma+I7fM5pmgsEL4tkCZAg0+CPTyhHkMV/cWuOZUjqTsYbDq1pZI=
 
         # no affiliations
         rv = self.app.get('/lvfs/vendor/2/affiliations')
-        assert b'No existing affiliations exist' in rv.data, rv.data
+        assert b'No affiliations exist' in rv.data, rv.data
 
         # add affiliation (as admin)
         self.add_affiliation(2, 3)
@@ -1275,7 +1281,7 @@ ma+I7fM5pmgsEL4tkCZAg0+CPTyhHkMV/cWuOZUjqTsYbDq1pZI=
         assert b'Component updated' in rv.data, rv.data
 
         # check bob can move the firmware to the embargo remote for the *OEM*
-        rv = self.app.get('/lvfs/firmware/1')
+        rv = self.app.get('/lvfs/firmware/1/target')
         assert b'/promote/embargo' in rv.data, rv.data
         rv = self.app.get('/lvfs/firmware/1/promote/embargo',
                           follow_redirects=True)
@@ -1294,7 +1300,7 @@ ma+I7fM5pmgsEL4tkCZAg0+CPTyhHkMV/cWuOZUjqTsYbDq1pZI=
         rv = self.app.get('/lvfs/vendor/2/affiliation/1/delete', follow_redirects=True)
         assert b'Deleted affiliation' in rv.data, rv.data
         rv = self.app.get('/lvfs/vendor/2/affiliations')
-        assert b'No existing affiliations exist' in rv.data, rv.data
+        assert b'No affiliations exist' in rv.data, rv.data
 
     def test_affiliated_qa_user_cannot_promote(self):
 
@@ -1367,7 +1373,7 @@ ma+I7fM5pmgsEL4tkCZAg0+CPTyhHkMV/cWuOZUjqTsYbDq1pZI=
         rv = self.app.get('/lvfs/vendor/2/affiliation/1/delete', follow_redirects=True)
         assert b'Deleted affiliation' in rv.data, rv.data
         rv = self.app.get('/lvfs/vendor/2/affiliations')
-        assert b'No existing affiliations exist' in rv.data, rv.data
+        assert b'No affiliations exist' in rv.data, rv.data
 
     def test_keywords(self):
 
@@ -1773,7 +1779,7 @@ ma+I7fM5pmgsEL4tkCZAg0+CPTyhHkMV/cWuOZUjqTsYbDq1pZI=
 
         # not logged in
         rv = self.app.get('/lvfs/user/recover', follow_redirects=True)
-        assert b'password recovery link' in rv.data, rv.data
+        assert b'Forgot your password' in rv.data, rv.data
         rv = self.app.post('/lvfs/user/recover', data=dict(
             username='NOBODY@fwupd.org',
         ), follow_redirects=True)

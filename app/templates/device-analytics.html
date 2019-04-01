@@ -4,15 +4,19 @@
 {% block nav %}{% include 'device-nav.html' %}{% endblock %}
 
 {% block content %}
-<h2>{{fws[0].md_prio.name}}</h2>
+<div class="card">
+  <div class="card-body">
+    <h2 class="card-title">{{fws[0].md_prio.name}}</h2>
 
-<p>This page show all the firmware releases in each quarter.</p>
+<p class="card-text">This page show all the firmware releases in each quarter.</p>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.7.1/Chart.js" integrity="sha256-t3+U9BqykoMN9cqZmJ5Z53TvPv4V7S9AmjUcIWNNyxo=" crossorigin="anonymous"></script>
 <script>
 Chart.defaults.global.animation = false;
 </script>
 <canvas id="ChartDevice" width="1000" height="400"></canvas>
+  </div>
+</div>
 <script>
 var ctx = document.getElementById("ChartDevice").getContext("2d");
 var data = {

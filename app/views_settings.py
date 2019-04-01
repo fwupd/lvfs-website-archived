@@ -23,6 +23,7 @@ def settings_view(plugin_id='general'):
     if not g.user.check_acl('@admin'):
         return _error_permission_denied('Only admin is allowed to change settings')
     return render_template('settings.html',
+                           category='admin',
                            settings=_get_settings(),
                            plugins=ploader.get_all(),
                            plugin_id=plugin_id)

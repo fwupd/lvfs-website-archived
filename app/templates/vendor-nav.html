@@ -1,30 +1,26 @@
 <nav>
-  <ul class="nav nav-tabs">
+  <div class="text-center mb-3">
+    <div class="btn-group" role="group">
 {% if g.user.check_acl('@admin') %}
-    <li class="nav-item">
-      <a class="nav-link {% if request.url_rule.endpoint == 'vendor_details' %}active{% endif %}" href="/lvfs/vendor/{{v.vendor_id}}/details">Details</a>
-    </li>
+      <a class="btn btn-falcon-{{'primary' if request.url_rule.endpoint == 'vendor_details' else 'default'}}"
+        href="{{url_for('.vendor_details', vendor_id=v.vendor_id)}}">Details</a>
 {% endif %}
-    <li class="nav-item">
-      <a class="nav-link {% if request.url_rule.endpoint == 'vendor_users' %}active{% endif %}" href="/lvfs/vendor/{{v.vendor_id}}/users">Users</a>
-    </li>
+      <a class="btn btn-falcon-{{'primary' if request.url_rule.endpoint == 'vendor_users' else 'default'}}"
+        href="{{url_for('.vendor_users', vendor_id=v.vendor_id)}}">Users</a>
 {% if v.check_acl('@modify-oauth') %}
-    <li class="nav-item">
-      <a class="nav-link {% if request.url_rule.endpoint == 'vendor_oauth' %}active{% endif %}" href="/lvfs/vendor/{{v.vendor_id}}/oauth">OAuth</a>
-    </li>
+      <a class="btn btn-falcon-{{'primary' if request.url_rule.endpoint == 'vendor_oauth' else 'default'}}"
+        href="{{url_for('.vendor_oauth', vendor_id=v.vendor_id)}}">OAuth</a>
 {% endif %}
 {% if g.user.check_acl('@admin') %}
-    <li class="nav-item">
-      <a class="nav-link {% if request.url_rule.endpoint == 'vendor_restrictions' %}active{% endif %}" href="/lvfs/vendor/{{v.vendor_id}}/restrictions">Restrictions</a>
-    </li>
+      <a class="btn btn-falcon-{{'primary' if request.url_rule.endpoint == 'vendor_restrictions' else 'default'}}"
+        href="{{url_for('.vendor_restrictions', vendor_id=v.vendor_id)}}">Restrictions</a>
 {% endif %}
 {% if v.check_acl('@view-affiliations') %}
-    <li class="nav-item">
-      <a class="nav-link {% if request.url_rule.endpoint == 'vendor_affiliations' %}active{% endif %}" href="/lvfs/vendor/{{v.vendor_id}}/affiliations">Affiliates</a>
-    </li>
+      <a class="btn btn-falcon-{{'primary' if request.url_rule.endpoint == 'vendor_affiliations' else 'default'}}"
+        href="{{url_for('.vendor_affiliations', vendor_id=v.vendor_id)}}">Affiliates</a>
 {% endif %}
-    <li class="nav-item">
-      <a class="nav-link {% if page == 'event' %}active{% endif %}" href="/lvfs/vendor/{{v.vendor_id}}/event">Event Log</a>
-    </li>
-  </ul>
+      <a class="btn btn-falcon-{{'primary' if request.url_rule.endpoint == 'vendor_event' else 'default'}}"
+        href="{{url_for('.vendor_event', vendor_id=v.vendor_id)}}">Event Log</a>
+    </div>
+  </div>
 </nav>

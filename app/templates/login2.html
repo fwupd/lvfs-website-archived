@@ -3,54 +3,44 @@
 
 {% block content %}
 
-<form method="post" action="{{url_for('.login')}}">
-  <input type="hidden" name="username" value="{{u.username}}">
-
-<div class="card w-75 mx-auto mt-5 mb-5">
-  <div class="card-body">
-
-    <div class="media p-1">
-      <img class="d-flex mr-3" src="/avatar.png" width="96" alt="LVFS Logo">
-      <div class="media-body">
-        <h5 class="mt-0">Sign in as <code>{{u.username}}</code></h5>
-      <a class="text-secondary" href="{{url_for('.user_recover')}}">Forgot password?</a>
-      </div>
-    </div>
-    <div class="form-group input-group mt-4">
-      <div class="input-group-prepend">
-        <span class="input-group-text" id="inputGroup-password">Password</span>
-      </div>
-      <input id="password" class="form-control" type="password" name="password" placeholder="Password"
-        aria-label="Password" aria-describedby="inputGroup-password" required>
-    </div>
+<div class="container">
+  <div class="row flex-center min-vh-100 py-6">
+    <div class="col-sm-10 col-md-8 col-lg-6 col-xl-5 col-xxl-4">
+      <a class="d-block text-center mb-3" href="/">
+        <div class="d-inline-flex flex-center">
+          <img class="mr-2" src="/avatar.png" alt="" width="58" />
+          <span class="text-sans-serif font-weight-extra-bold fs-5 d-inline-block">LVFS</span>
+        </div>
+      </a>
+      <div class="card">
+        <div class="card-body p-5">
+          <div class="row text-left justify-content-between">
+            <div class="col-auto">
+              <h5> Log in as <code>{{u.username}}</code></h5>
+            </div>
+          </div>
+          <form method="post" action="{{url_for('.login')}}">
+            <input type="hidden" name="username" value="{{u.username}}">
+            <div class="form-group mt-3">
+              <input class="form-control" type="password" name="password" placeholder="Password" />
+            </div>
 {% if u.is_otp_enabled %}
-    <div class="form-group input-group mt-1">
-      <div class="input-group-prepend">
-        <span class="input-group-text" id="inputGroup-otp">2FA OTP</span>
-      </div>
-      <input id="otp" class="form-control" type="password" name="otp" placeholder="123456"
-        aria-label="OTP" aria-describedby="inputGroup-otp" required>
-    </div>
+            <div class="form-group">
+              <input class="form-control" type="password" name="otp" placeholder="2FA OTP" />
+            </div>
 {% endif %}
-
-    <table class="table mb-0 mt-5">
-      <tr class="row table-borderless">
-        <td class="col-sm-4 pt-0 pb-0">
-          <a class="btn btn-block btn-outline-secondary" href="{{url_for('.login1')}}">
-            Cancel
-          </a>
-        </th>
-        <td class="col-sm-4 pt-0 pb-0">&nbsp;</th>
-        <td class="col-sm-4 pt-0 pb-0">
-          <button class="btn btn-primary btn-block" type="submit">
-            Next
-          </button>
-        </th>
-      </tr>
-    </table>
+            <div class="row justify-content-between">
+              <div class="col-auto"><a class="fs--1" href="{{url_for('.user_recover')}}">Forget Password?</a></div>
+            </div>
+            <div class="form-group mb-0">
+              <button class="btn btn-primary btn-block mt-3" type="submit" name="submit">Login</button>
+              <a class="btn btn-outline-secondary btn-block mt-3" href="{{url_for('.login1')}}">Cancel</a>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
   </div>
 </div>
-
-</form>
 
 {% endblock %}

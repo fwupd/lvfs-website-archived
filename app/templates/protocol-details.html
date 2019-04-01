@@ -2,7 +2,9 @@
 {% block title %}Protocol Details{% endblock %}
 
 {% block content %}
-<h2>Protocol Details</h2>
+<div class="card">
+  <div class="card-body">
+    <h2 class="card-title">Protocol Details</h2>
 <form method="post" action="/lvfs/protocol/{{protocol.protocol_id}}/modify">
   <div class="form-group">
     <label for="group_id">Value:</label>
@@ -41,6 +43,8 @@
   <button type="button" class="btn btn-danger" data-toggle="modal" data-target="#deleteModal">Delete</button>
 {% endif %}
 </form>
+  </div>
+</div>
 
 <!-- modal dialog -->
 <div class="modal" id="deleteModal" tabindex="-1" role="dialog" aria-labelledby="deleteModalLabel" aria-hidden="true">

@@ -4,7 +4,9 @@
 {% block nav %}{% include 'issue-nav.html' %}{% endblock %}
 
 {% block content %}
-<h2>Reports matching this issue ({{reports_cnt}})</h2>
+<div class="card">
+  <div class="card-body">
+    <h2 class="card-title">Reports matching this issue ({{reports_cnt}})</h2>
 {% if reports_cnt > 0 %}
 <table class="table">
   <tr class="row">
@@ -38,4 +40,6 @@
     <li class="breadcrumb-item active" aria-current="page">Issue #{{issue.issue_id}}</li>
   </ol>
 </nav>
+  </div>
+</div>
 {% endblock %}

@@ -4,6 +4,9 @@
 {% block nav %}{% include 'component-nav.html' %}{% endblock %}
 
 {% block content %}
+<div class="card">
+  <div class="card-body">
+    <h4 class="card-title">Search Keywords</h4>
 <table class="table">
 {% for kw in md.keywords %}
   <tr class="row {% if kw == md.keywords[0] %}table-borderless{% endif %}">
@@ -32,6 +35,8 @@
   </form>
 {% endif %}
 </table>
+  </div>
+</div>
 {% endblock %}
 
 {% block breadcrumb %}{% include 'component-breadcrumb.html' %}{% endblock %}

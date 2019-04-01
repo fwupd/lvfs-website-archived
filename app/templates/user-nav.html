@@ -1,20 +1,18 @@
 <nav>
-  <ul class="nav nav-tabs">
-    <li class="nav-item">
-      <a class="nav-link {% if page == 'admin' %}active{% endif %}" href="/lvfs/user/{{u.user_id}}/admin">Overview</a>
-    </li>
+  <div class="text-center mb-3">
+    <div class="btn-group" role="group">
+      <a class="btn btn-falcon-{{'primary' if request.url_rule.endpoint == 'user_admin' and page == 'admin' else 'default'}}"
+        href="{{url_for('.user_admin', user_id=u.user_id, page='admin')}}">Overview</a>
 {% if u.fws|length > 0 %}
-    <li class="nav-item">
-      <a class="nav-link {% if page == 'firmware' %}active{% endif %}" href="/lvfs/user/{{u.user_id}}/firmware">Uploaded Firmware</a>
-    </li>
+      <a class="btn btn-falcon-{{'primary' if request.url_rule.endpoint == 'user_admin' and page == 'firmware' else 'default'}}"
+        href="{{url_for('.user_admin', user_id=u.user_id, page='firmware')}}">Uploaded Firmware</a>
 {% endif %}
 {% if g.user.check_acl('@admin') and u.user_id != g.user.user_id %}
-    <li class="nav-item">
-      <a class="nav-link {% if page == 'vendor' %}active{% endif %}" href="/lvfs/user/{{u.user_id}}/vendor">Change Vendor</a>
-    </li>
+      <a class="btn btn-falcon-{{'primary' if request.url_rule.endpoint == 'user_admin' and page == 'vendor' else 'default'}}"
+        href="{{url_for('.user_admin', user_id=u.user_id, page='vendor')}}">Change Vendor</a>
 {% endif %}
-    <li class="nav-item">
-      <a class="nav-link {% if page == 'event' %}active{% endif %}" href="/lvfs/user/{{u.user_id}}/event">Event Log</a>
-    </li>
-  </ul>
+      <a class="btn btn-falcon-{{'primary' if request.url_rule.endpoint == 'user_admin' and page == 'event' else 'default'}}"
+        href="{{url_for('.user_admin', user_id=u.user_id, page='event')}}">Event Log</a>
+    </div>
+  </div>
 </nav>

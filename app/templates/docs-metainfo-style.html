@@ -3,73 +3,84 @@
 {% block title %}MetaInfo Files : Style Guide{% endblock %}
 
 {% block content %}
-<h2>Style Guide</h2>
-<table class="table">
-  <tr class="row table-borderless">
-    <th class="col-sm-2"><code>&lt;id&gt;</code></th>
-    <td class="col-sm-10">
-      <ul>
-        <li>
-          Use a reverse-DNS vendor prefix similar to Java, e.g.
-          <code>com.hughski</code> or <code>org.freedesktop</code>
-        </li>
-        <li>
-          The ID has to be totally specific to the device.
-          You can use the partial GUID appended if this helps, e.g.
-          <code>com.hughski.ColorHug84f40464.firmware</code>
-        </li>
-        <li>
-          Always use a <code>.firmware</code> suffix
-        </li>
-      </ul>
-    </td>
-  </tr>
-  <tr class="row">
-    <th class="col-sm-2"><code>&lt;name&gt;</code></th>
-    <td class="col-sm-10">
-      <ul>
-        <li>Use a short device name, e.g. <em>"ThinkPad"</em> or <em>"ColorHug"</em>.</li>
-        <li>Use a UTF-8 character (e.g. ™ or ®) rather than <code>(R)</code> if required</li>
-        <li>Don't include the vendor name</li>
-      </ul>
-    </td>
-  </tr>
-  <tr class="row">
-    <th class="col-sm-2"><code>&lt;summary&gt;</code></th>
-    <td class="col-sm-10">
-      <ul>
-        <li>Refer to the type of hardware, e.g. <em>"Firmware for the Hughski ColorHug Colorimeter"</em></li>
-        <li>Include the vendor name before the full device description</li>
-        <li>Use a UTF-8 character (e.g. ™ or ®) rather than <code>(R)</code> if required</li>
-      </ul>
-    </td>
-  </tr>
-  <tr class="row">
-    <th class="col-sm-2"><code>&lt;description&gt;</code></th>
-    <td class="col-sm-10">
-      <ul>
-        <li>
-          Try to avoid explaining the implementation details of the fix, e.g.
-          <em>"Ensure accurate color profile creation with high screen brightness."</em>
-          rather than
-          <em>"Fix overflow in counter when over 500 Lux detected."</em>
-        </li>
-        <li>
-          Do not use overly technical descriptions when simpler text would suffice, e.g. use
-          <em>"Fix LED color during system start up."</em> rather than
-          <em>"Fix LED color during POST."</em>
-        </li>
-        <li>
-          Try to describe fixed bugs and new features from the point of view of the user
-          and how it affects them
-        </li>
-        <li>
-          For security or important updates also include the effect of not applying the update, e.g.
-          <em>"Disk corruption resulting in possible data loss may occur until this update is installed."</em>
-        </li>
-      </ul>
-    </td>
-  </tr>
-</table>
+<div class="card">
+  <div class="card-body">
+    <h2 class="card-title">Style Guide</h2>
+    <p class="card-text">
+      When all vendors use the same style everything looks more consistent for
+      the end user.
+      Here are some of our suggestions:
+    </p>
+  </div>
+</div>
+
+<div class="card mt-3">
+  <div class="card-body">
+    <h2 class="card-title"><code>&lt;id&gt;</code></h2>
+    <ul class="card-text">
+      <li>
+        Use a reverse-DNS vendor prefix similar to Java, e.g.
+        <code>com.hughski</code> or <code>org.freedesktop</code>
+      </li>
+      <li>
+        The ID has to be totally specific to the device.
+        You can use the partial GUID appended if this helps, e.g.
+        <code>com.hughski.ColorHug84f40464.firmware</code>
+      </li>
+      <li>
+        Always use a <code>.firmware</code> suffix
+      </li>
+    </ul>
+  </div>
+</div>
+
+<div class="card mt-3">
+  <div class="card-body">
+    <h2 class="card-title"><code>&lt;name&gt;</code></h2>
+    <ul class="card-text">
+      <li>Use a short device name, e.g. <em>"ThinkPad"</em> or <em>"ColorHug"</em>.</li>
+      <li>Use a UTF-8 character (e.g. ™ or ®) rather than <code>(R)</code> if required</li>
+      <li>Don't include the vendor name</li>
+    </ul>
+  </div>
+</div>
+
+<div class="card mt-3">
+  <div class="card-body">
+    <h2 class="card-title"><code>&lt;summary&gt;</code></h2>
+    <ul class="card-text">
+      <li>Refer to the type of hardware, e.g. <em>"Firmware for the Hughski ColorHug Colorimeter"</em></li>
+      <li>Include the vendor name before the full device description</li>
+      <li>Use a UTF-8 character (e.g. ™ or ®) rather than <code>(R)</code> if required</li>
+    </ul>
+  </div>
+</div>
+
+<div class="card mt-3">
+  <div class="card-body">
+    <h2 class="card-title"><code>&lt;description&gt;</code></h2>
+    <ul class="card-text">
+      <li>
+        Try to avoid explaining the implementation details of the fix, e.g.
+        <em>"Ensure accurate color profile creation with high screen brightness."</em>
+        rather than
+        <em>"Fix overflow in counter when over 500 Lux detected."</em>
+      </li>
+      <li>
+        Do not use overly technical descriptions when simpler text would suffice, e.g. use
+        <em>"Fix LED color during system start up."</em> rather than
+        <em>"Fix LED color during POST."</em>
+      </li>
+      <li>
+        Try to describe fixed bugs and new features from the point of view of the user
+        and how it affects them
+      </li>
+      <li>
+        For security or important updates also include the effect of not applying the update, e.g.
+        <em>"Disk corruption resulting in possible data loss may occur until this update is installed."</em>
+      </li>
+    </ul>
+  </div>
+</div>
 
 {% endblock %}

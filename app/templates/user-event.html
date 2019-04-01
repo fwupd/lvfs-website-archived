@@ -4,7 +4,8 @@
 {% block nav %}{% include 'user-nav.html' %}{% endblock %}
 
 {% block content %}
-
+<div class="card">
+  <div class="card-body">
 <table class="table">
   <tr class="row table-borderless">
     <th class="col-sm-2">Timestamp</th>
@@ -27,7 +28,8 @@
   </tr>
 {% endfor %}
 </table>
-
+  </div>
+</div>
 {% endblock %}
 
 {% block breadcrumb %}{% include 'user-breadcrumb.html' %}{% endblock %}

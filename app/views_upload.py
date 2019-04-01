@@ -219,7 +219,10 @@ def upload():
                 vendor_ids.append(res.value)
         affiliations = db.session.query(Affiliation).\
                         filter(Affiliation.vendor_id_odm == g.user.vendor_id).all()
-        return render_template('upload.html', vendor_ids=vendor_ids, affiliations=affiliations)
+        return render_template('upload.html',
+                               category='firmware',
+                               vendor_ids=vendor_ids,
+                               affiliations=affiliations)
 
     # verify the user can upload
     if not _user_can_upload(g.user):

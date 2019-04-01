@@ -6,34 +6,28 @@
 {% endblock %}
 
 {% block content %}
-
 {% if fw.is_deleted and fw.target_duration.total_seconds() > 60*60*24*30 %}
 <div class="alert alert-warning mt-1" role="alert">
   This firmware will be purged after 6 months in the deleted state.
 </div>
 {% endif %}
 
-<table class="table">
+<div class="card mt-3">
+  <div class="card-body">
+    <h4 class="card-title">Details</h4>
+<table class="table card-text">
   <tr class="row table-borderless">
     <th class="col-sm-3 align-middle">Filename</th>
-    <td class="col-sm-7 align-middle">
+    <td class="col-sm-9 align-middle">
       <a href="/downloads/{{fw.filename}}">{{fw.filename[41:]}}</a>
 {% if fw.inhibit_download %}
-      <span class="text-muted">(direct link for download not available for end-users)</span>
-{% endif %}
-    </td>
-    <td class="col-sm-2 text-right">
-{% if not fw.is_deleted and fw.check_acl('@delete') %}
-      <button type="button" class="btn btn-block btn-danger" data-toggle="modal" data-target="#deleteModal">Delete</button>
-{% endif %}
-{% if fw.is_deleted and fw.check_acl('@nuke') %}
-      <button type="button" class="btn btn-block btn-danger" data-toggle="modal" data-target="#nukeModal">☠ Nuke ☠</button>
+      <p class="text-muted">Direct link for download not available for end-users.</p>
 {% endif %}
     </td>
   </tr>
   <tr class="row">
     <th class="col-sm-3 align-middle">Current Target</th>
-    <td class="col-sm-7 align-middle">
+    <td class="col-sm-9 align-middle">
 {% if fw.remote.is_signed and fw.is_dirty %}
       <div class="alert alert-warning" role="alert">
         The <code>{{fw.remote.name}}</code> metadata will be regenerated to
@@ -44,53 +38,6 @@
 {% if fw.target_duration.total_seconds() > 5 %}
       (moved {{format_timedelta_approx(fw.target_duration)}})
 {% endif %}
-{% endif %}
-    </td>
-    <td class="col-sm-2 align-middle text-right">
-{% if fw.is_deleted and fw.check_acl('@undelete') %}
-      <a class="btn btn-block btn-danger" href="/lvfs/firmware/{{fw.firmware_id}}/undelete" role="button">Undelete</a>
-{% endif %}
-
-{% if fw.remote.name == 'private' %}
-{% if fw.check_acl('@promote-embargo') %}
-      <a class="btn btn-block btn-primary" href="/lvfs/firmware/{{fw.firmware_id}}/promote/embargo" role="button">&#8594; Embargo</a>
-{% endif %}
-{% if fw.check_acl('@promote-testing') %}
-      <a class="btn btn-block btn-primary" href="/lvfs/firmware/{{fw.firmware_id}}/promote/testing" role="button">&#8594; Testing</a>
-      <button type="button" class="btn btn-block btn-primary" data-toggle="modal" data-target="#promoteStableModal">&#8594; Stable</button>
-{% endif %}
-
-{% elif fw.remote.name.startswith('embargo') %}
-{% if not fw.vendor.is_embargo_default %}
-      <a class="btn btn-block btn-secondary" href="/lvfs/firmware/{{fw.firmware_id}}/promote/private" role="button">&#8592; Private</a>
-{% endif %}
-{% if fw.check_acl('@promote-testing') %}
-      <a class="btn btn-block btn-primary" href="/lvfs/firmware/{{fw.firmware_id}}/promote/testing" role="button">&#8594; Testing</a>
-      <button type="button" class="btn btn-block btn-primary" data-toggle="modal" data-target="#promoteStableModal">&#8594; Stable</button>
-{% endif %}
-
-{% elif fw.remote.name == 'testing' %}
-{% if fw.check_acl('@promote-private') %}
-      <a class="btn btn-block btn-secondary" href="/lvfs/firmware/{{fw.firmware_id}}/promote/private" role="button">&#8592; Private</a>
-{% endif %}
-{% if fw.check_acl('@promote-embargo') %}
-      <a class="btn btn-block btn-secondary" href="/lvfs/firmware/{{fw.firmware_id}}/promote/embargo" role="button">&#8592; Embargo</a>
-{% endif %}
-{% if fw.check_acl('@promote-stable') %}
-      <button type="button" class="btn btn-block btn-primary" data-toggle="modal" data-target="#promoteStableModal">&#8594; Stable</button>
-{% endif %}
-
-{% elif fw.remote.name == 'stable' %}
-{% if fw.check_acl('@promote-private') %}
-      <a class="btn btn-block btn-secondary" href="/lvfs/firmware/{{fw.firmware_id}}/promote/private" role="button">&#8592; Private</a>
-{% endif %}
-{% if fw.check_acl('@promote-embargo') %}
-      <a class="btn btn-block btn-secondary" href="/lvfs/firmware/{{fw.firmware_id}}/promote/embargo" role="button">&#8592; Embargo</a>
-{% endif %}
-{% if fw.check_acl('@promote-testing') %}
-      <button type="button" class="btn btn-block btn-danger" data-toggle="modal" data-target="#demoteTestingModal">&#8592; Testing</button>
-{% endif %}
-
 {% endif %}
     </td>
   </tr>
@@ -140,6 +87,17 @@
     </td>
   </tr>
 </table>
+{% if not fw.is_deleted and fw.check_acl('@delete') %}
+      <button type="button" class="btn btn-danger card-link" data-toggle="modal" data-target="#deleteModal">Delete</button>
+{% endif %}
+{% if fw.is_deleted and fw.check_acl('@undelete') %}
+      <a class="btn btn-warning card-link" href="/lvfs/firmware/{{fw.firmware_id}}/undelete" role="button">Undelete</a>
+{% endif %}
+{% if fw.is_deleted and fw.check_acl('@nuke') %}
+      <button type="button" class="btn btn-danger card-link" data-toggle="modal" data-target="#nukeModal">☠ Nuke ☠</button>
+{% endif %}
+  </div>
+</div>
 
 <!-- modal dialog -->
 <div class="modal" id="deleteModal" tabindex="-1" role="dialog" aria-labelledby="deleteModalLabel" aria-hidden="true">
@@ -152,7 +110,7 @@
         </button>
       </div>
       <div class="modal-body">
-        <p>
+        <p class="card-text">
           Unless you are required to delete this file for legal or compliance reasons,
           removing a firmware is not recommended for the following reasons:
         </p>
@@ -186,7 +144,7 @@
       </div>
       <div class="modal-footer">
         <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
-        <a class="btn btn-danger" href="/lvfs/firmware/{{fw.firmware_id}}/delete">Irrevocably Remove Firmware</a>
+        <a class="btn btn-danger" href="/lvfs/firmware/{{fw.firmware_id}}/delete">Delete Firmware</a>
       </div>
     </div>
   </div>
@@ -204,7 +162,7 @@
         </button>
       </div>
       <div class="modal-body">
-        <p>
+        <p class="card-text">
           This will delete the firmware file and remove all audit history about
           the upload (including client downloads) PERMANENTLY.
           There is no way to recover the information short of reinstalling from
@@ -220,61 +178,6 @@
   </div>
 </div>
 {% endif %}
-
-<!-- modal dialog -->
-<div class="modal" id="demoteTestingModal" tabindex="-1" role="dialog" aria-labelledby="demoteTestingModalLabel" aria-hidden="true">
-  <div class="modal-dialog" role="document">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title" id="demoteTestingModalLabel">Important Note</h5>
-        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-          <span aria-hidden="true">&times;</span>
-        </button>
-      </div>
-      <div class="modal-body">
-        <p>
-          Demoting a firmware from stable to testing means that references to
-          the file are removed from the LVFS metadata.
-        </p>
-        <p>
-          Unless the firmware is deleted, users could still automatically
-          download the file until new metadata files are downloaded.
-        </p>
-      </div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
-        <a class="btn btn-danger" href="/lvfs/firmware/{{fw.firmware_id}}/promote/testing" role="button">Demote back to testing</a>
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- modal dialog -->
-<div class="modal" id="promoteStableModal" tabindex="-1" role="dialog" aria-labelledby="promoteStableModalLabel" aria-hidden="true">
-  <div class="modal-dialog" role="document">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title" id="promoteStableModalLabel">Important Note</h5>
-        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-          <span aria-hidden="true">&times;</span>
-        </button>
-      </div>
-      <div class="modal-body">
-        <p>
-          Pushing the firmware to the stable remote means it becomes available to
-          millions of people.
-        </p>
-        <p>
-          Only tested firmware should be pushed to stable.
-        </p>
-      </div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
-        <a class="btn btn-primary" href="/lvfs/firmware/{{fw.firmware_id}}/promote/stable" role="button">Promote to stable</a>
-      </div>
-    </div>
-  </div>
-</div>
 
 {% endblock %}
 

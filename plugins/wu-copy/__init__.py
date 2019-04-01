@@ -15,7 +15,7 @@ class Plugin(PluginBase):
         PluginBase.__init__(self)
 
     def name(self):
-        return 'Windows Update'
+        return 'WU'
 
     def summary(self):
         return 'Copy files generated using Windows Update.'

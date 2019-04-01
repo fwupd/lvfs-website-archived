@@ -2,7 +2,8 @@
 {% block title %}Analytics{% endblock %}
 
 {% block content %}
-
+<div class="card">
+  <div class="card-body">
 {% if search_events|length > 0 %}
 <table class="table">
   <tr class="row table-borderless">
@@ -32,5 +33,7 @@
   No searches exist.
 </p>
 {% endif %}
+  </div>
+</div>
 
 {% endblock %}

@@ -1,5 +1,7 @@
 *.pyc
 *.pyo
+.env3
+deleted
 downloads
 gnupg
 app/custom.cfg

@@ -121,6 +121,7 @@ def telemetry(age=0, sort_key='downloads', sort_direction='up'):
         fwlines.sort(key=lambda x: x['downloads'], reverse=True)
         fwlines.sort(key=lambda x: x[sort_key], reverse=True)
     return render_template('telemetry.html',
+                           category='telemetry',
                            age=age,
                            sort_key=sort_key,
                            sort_direction=sort_direction,

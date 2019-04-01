@@ -2,7 +2,9 @@
 {% block title %}User List{% endblock %}
 
 {% block content %}
-<h1>Userlist</h1>
+<div class="card">
+  <div class="card-body">
+    <h1 class="card-title">Userlist</h1>
 {% if users|length > 0 %}
 <table class="table">
   <tr class="row table-borderless">
@@ -22,8 +24,12 @@
 {% endfor %}
 </table>
 {% endif %}
+  </div>
+</div>
 
-<h1>Create a new user</h1>
+<div class="card mt-3">
+  <div class="card-body">
+    <h1 class="card-title">Create a new user</h1>
 <form method="post" action="/lvfs/user/add" class="form">
   <div class="form-group">
     <label for="username">Username:</label>
@@ -46,5 +52,7 @@
   </div>
   <input class="btn btn-primary" type="submit" value="Add">
 </form>
+  </div>
+</div>
 
 {% endblock %}

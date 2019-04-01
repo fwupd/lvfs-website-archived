@@ -2,14 +2,20 @@
 {% block title %}New Account{% endblock %}
 
 {% block content %}
-<h1>Applying for a new account</h1>
-<p>
+
+<div class="container">
+  <div class="row flex-center min-vh-100 py-6">
+
+<div class="card mt-3">
+  <div class="card-body">
+    <h1 class="card-title">Applying for a new account</h1>
+<p class="card-text">
   Vendors who can submit automatic firmware updates are in a privileged position where files
   can be installed on end-user systems without authentication.
   This means we have to do careful checks on new requests, which may take a few days to complete.
 </p>
 
-<p>
+<p class="card-text">
   Three classes of user can be created for your organisation on the LVFS:
 </p>
 <ul>
@@ -17,7 +23,7 @@
   <li>Analyst users that can view failure reports for any firmware in the OEM group</li>
   <li>QA users that can upload files, and can move files from testing to stable</li>
 </ul>
-<p>
+<p class="card-text">
   We can create as many different users of each type as required, and
   each can have a different password.
   Some vendors just need one 'QA User' as the person uploading the
@@ -25,8 +31,12 @@
   testing to stable.
 </p>
 
-<p>
+<p class="card-text">
   If you would like to know more, or want to request a new account,
   please <a href="mailto:richard@hughsie.com">email me</a> for more details.
 </p>
+  </div>
+</div>
+  </div>
+</div>
 {% endblock %}

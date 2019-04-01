@@ -3,8 +3,10 @@
 {% block title %}MetaInfo Files : Restrictions{% endblock %}
 
 {% block content %}
-<h2>Restricting using CHID</h2>
-<p>
+<div class="card">
+  <div class="card-body">
+    <h2 class="card-title">Restricting using CHID</h2>
+<p class="card-text">
   Newer versions of fwupd can restrict updates to a specific
   <a href="https://docs.microsoft.com/en-us/windows-hardware/drivers/dashboard/using-chids">
   Computer Hardware ID</a>, much like Microsoft update:
@@ -16,7 +18,7 @@
     &lt;hardware&gt;6de5d951-d755-576b-bd09-c5cf66b27234&lt;/hardware&gt;
   &lt;/requires&gt;
 </pre>
-<p>
+<p class="card-text">
   If multiple <code>&lt;hardware&gt;</code> entries are specified then all must
   be present.
   Newer versions of fwupd can understand an OR requirement using a <code>|</code>
@@ -30,18 +32,21 @@
   &lt;/requires&gt;
 </pre>
 
-<p>
+<p class="card-text">
   CHIDs can also be added or removed in the LVFS web UI, but only before
   the firmware is published to stable channel.
 </p>
-<figure class="text-center">
+<figure class="text-center card-text">
   <img src="/img/component-requirements.png" class="p-3 border border-info rounded figure-img img-fluid" alt="component requirements">
   <figcaption class="figure-caption">Modifying requirements of an uploaded firmware.</figcaption>
 </figure>
+  </div>
+</div>
 
-<hr/>
-<h2><a id="requires-fw-versions"></a>Restricting using other firmware version</h2>
-<p>
+<div class="card mt-3">
+  <div class="card-body">
+    <h2 class="card-title"><a id="requires-fw-versions"></a>Restricting using other firmware version</h2>
+<p class="card-text">
   Newer versions of fwupd can restrict updates on one device depending on
   the version of firmware on another device.
   This is most useful when requiring a minimum EC controller version before
@@ -55,10 +60,13 @@
     &lt;firmware compare="ge" version="0.1.2"&gt;6de5d951-d755-576b-bd09-c5cf66b27234&lt;/firmware&gt;
   &lt;/requires&gt;
 </pre>
+  </div>
+</div>
 
-<hr/>
-<h2><a id="custom-direct-downloads"></a>Restricting direct downloads</h2>
-<p>
+<div class="card mt-3">
+  <div class="card-body">
+    <h2 class="card-title"><a id="custom-direct-downloads"></a>Restricting direct downloads</h2>
+<p class="card-text">
   If you'd rather not have users downloading the .cab archive directly you
   can opt to hide the direct download links in the LVFS search results.
   To do this, add this to the metainfo file:
@@ -69,5 +77,7 @@
     &lt;value key="LVFS::InhibitDownload"/&gt;
   &lt;/custom&gt;
 </pre>
+  </div>
+</div>
 
 {% endblock %}

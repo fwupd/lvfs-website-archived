@@ -8,8 +8,8 @@
   Due to the sensitive nature of providing firmware only vendors can install
   firmware on their own devices.
 </div>
-<p>
-</p>
+<div class="card mt-3">
+  <div class="card-body">
 <table class="table">
 {% if v.restrictions|length == 0 %}
   <tr class="row table-borderless">
@@ -41,6 +41,8 @@
     </form>
   </tr>
 </table>
+  </div>
+</div>
 {% endblock %}
 
 {% block breadcrumb %}{% include 'vendor-breadcrumb.html' %}{% endblock %}

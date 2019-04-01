@@ -110,6 +110,7 @@ def vendor_list_analytics(page):
     if page == 'publicfw':
         labels, data_stable, data_testing = _get_vendorlist_stats(vendors, _count_vendor_fws_public)
         return render_template('vendorlist-analytics.html', vendors=vendors,
+                               category='vendors',
                                title='Total number of public firmware files',
                                page=page, labels=labels,
                                data_stable=data_stable,
@@ -117,6 +118,7 @@ def vendor_list_analytics(page):
     if page == 'downloads':
         labels, data_stable, data_testing = _get_vendorlist_stats(vendors, _count_vendor_fws_downloads)
         return render_template('vendorlist-analytics.html', vendors=vendors,
+                               category='vendors',
                                title='Percentage of firmware downloads',
                                page=page, labels=labels,
                                data_stable=_abs_to_pc(data_stable, data_testing),
@@ -124,6 +126,7 @@ def vendor_list_analytics(page):
     if page == 'devices':
         labels, data_stable, data_testing = _get_vendorlist_stats(vendors, _count_vendor_fws_devices)
         return render_template('vendorlist-analytics.html', vendors=vendors,
+                               category='vendors',
                                title='Total number of supported devices',
                                page=page, labels=labels,
                                data_stable=data_stable,
@@ -155,7 +158,10 @@ def cmp_to_key(mycmp):
 def vendor_list():
     vendors = db.session.query(Vendor).order_by(Vendor.display_name).all()
     vendors.sort(key=cmp_to_key(_sort_vendor_func))
-    return render_template('vendorlist.html', vendors=vendors, page='overview')
+    return render_template('vendorlist.html',
+                           category='vendors',
+                           vendors=vendors,
+                           page='overview')
 
 @app.route('/lvfs/vendor/add', methods=['GET', 'POST'])
 @login_required

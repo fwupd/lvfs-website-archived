@@ -2,11 +2,15 @@
 {% block title %}Analytics{% endblock %}
 
 {% block content %}
+<div class="card">
+  <div class="card-body">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.7.1/Chart.js" integrity="sha256-t3+U9BqykoMN9cqZmJ5Z53TvPv4V7S9AmjUcIWNNyxo=" crossorigin="anonymous"></script>
 <script>
 Chart.defaults.global.animation = false;
 </script>
 <canvas id="metadataChartMonthsDays" width="1000" height="600"></canvas>
+  </div>
+</div>
 <script>
 var ctx = document.getElementById("metadataChartMonthsDays").getContext("2d");
 var data = {

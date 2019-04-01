@@ -2,8 +2,24 @@
 {% block title %}Metadata{% endblock %}
 
 {% block content %}
-<h1>Metadata</h1>
-<p>
+
+{% if g.user.is_qa %}
+<div class="alert alert-warning" role="alert">
+  Do not share the embargo URL with external users as the
+  private firmware should remain hidden from the public.
+</div>
+{% else %}
+<div class="alert alert-warning" role="alert">
+  End-to-end tests using the metadata can <strong>only</strong> be used with a
+  custom <code>/etc/fwupd/remotes.d/{{g.user.vendor.group_id}}-embargo.conf</code> file as this user account does not
+  yet have permission to push to <em>testing</em> or <em>stable</em>.
+</div>
+{% endif %}
+
+<div class="card">
+  <div class="card-body">
+    <h1 class="card-title">Metadata</h1>
+<p class="card-text">
   The metadata remotes can be used to perform end-to-end tests.
   Save the file to <code>/etc/fwupd/remotes.d</code> is you are using the distribution version of
   fwupd or to <code>/root/snap/fwupd/current/etc/fwupd/remotes.d</code> for the
@@ -11,18 +27,15 @@
   You also may need to do <code>fwupdmgr refresh</code> on each
   client to show new updates.
 </p>
-<div class="alert alert-warning mt-1" role="alert">
-  Do not share the embargo URL with external users as the
-  private firmware should remain hidden from the public.
-</div>
-
-<table class="table">
-  <tr class="row borderless">
+<table class="table table-borderless">
+  <tr class="row">
     <th class="col-sm-3">Description</th>
     <th class="col-sm-1">Public</th>
     <th class="col-sm-3">URL</th>
     <th class="col-sm-3">Custom Remote</th>
+{% if g.user.check_acl('@admin') %}
     <th class="col-sm-2">Action</th>
+{% endif %}
   </tr>
   <tr class="row">
     <td class="col-sm-3">Stable</td>
@@ -81,23 +94,21 @@
   </tr>
 {% endfor %}
 </table>
-
-{% if not g.user.is_qa %}
-<div class="alert alert-warning mt-1" role="alert">
-  End-to-end tests using the metadata can <strong>only</strong> be used with a
-  custom <code>/etc/fwupd/remotes.d/{{g.user.vendor.group_id}}-embargo.conf</code> file as this user account does not
-  yet have permission to push to <em>testing</em> or <em>stable</em>.
+  </div>
 </div>
-{% endif %}
 
 {% if g.user.check_acl('@admin') %}
 <!-- admin only actions -->
-<h2>Actions</h2>
-<p>
+<div class="card mt-3">
+  <div class="card-body">
+    <h2 class="card-title">Actions</h2>
+<p class="card-text">
   This rebuilds metadata for all targets and QA groups.
 </p>
 <form method=\"get\" action="/lvfs/metadata/rebuild">
 <button class="btn btn-warning">Rebuild Metadata</button>
 </form>
+  </div>
+</div>
 {% endif %}
 {% endblock %}

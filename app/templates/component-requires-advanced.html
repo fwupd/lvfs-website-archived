@@ -4,7 +4,8 @@
 {% block nav %}{% include 'component-nav.html' %}{% endblock %}
 
 {% block content %}
-
+<div class="card">
+  <div class="card-body">
 {% if md.has_complex_requirements %}
 <div class="alert alert-warning mt-1" role="alert">
   This firmware has complex requirements and care should be taken
@@ -160,6 +161,8 @@
 {% if not md.has_complex_requirements %}
 <a class="btn btn-info" href="{{url_for('.firmware_component_show', component_id=md.component_id, page='requires')}}">Show simple view</a>
 {% endif %}
+  </div>
+</div>
 
 {% endblock %}
 

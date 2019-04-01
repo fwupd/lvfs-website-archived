@@ -3,15 +3,18 @@
 {% block title %}Hardware Vendors{% endblock %}
 
 {% block content %}
-<h1>Hardware Vendors</h1>
-
-<p>
+<div class="card">
+  <div class="card-body">
+  <h1 class="card-title">Hardware Vendors</h1>
+<p class="card-text">
   This service should only be used to distribute files that are
   <em>flashed</em> onto non-volatile memory.
   <b>There is no charge to vendors for the hosting or distribution of content.</b>
 </p>
+  </div>
+</div>
 
-<div class="card mb-3">
+<div class="card mt-3">
   <h3 class="card-header list-group-item-info">Do I have to contribute any code?</h3>
   <div class="card-body">
     <p class="card-text">
@@ -23,15 +26,17 @@
   </div>
 </div>
 
-<h1>Upload Firmware</h1>
-<p>
+<div class="card mt-3">
+  <div class="card-body">
+    <h1 class="card-title">Upload Firmware</h1>
+<p class="card-text">
   Once you have <a href="{{url_for('.new_account')}}">requested an account on the LVFS</a>
   and have legal permission to redistribute the firmware, you can log in and
   upload files using the admin console.
   Files can be uploaded privately for testing and optionally embargoed until a specific date.
 </p>
 
-<p>
+<p class="card-text">
   All firmware is uploaded as a cabinet archive, which matches the
   <a href="https://msdn.microsoft.com/en-us/library/windows/hardware/dn917810%28v=vs.85%29.aspx">Microsoft Update</a> requirements.
   Along with the firmware binary, the LVFS expects the archive to contain at least
@@ -39,7 +44,7 @@
   You can create a cabinet archives using <code>makecab.exe</code> on Windows and <code>gcab</code>
   on Linux.
 </p>
-<p>
+<p class="card-text">
   It is recommended you name the archive with the vendor, device and version
   number, e.g. <code>hughski-colorhug-als-1.2.3.cab</code> and is suggested that
   the files inside the <code>cab</code> file have the
@@ -49,8 +54,10 @@
   <img src="/img/archive-basename.png" class="p-3 border border-info rounded figure-img img-fluid rounded" alt="cabinet archive example">
   <figcaption class="figure-caption">Files inside a typical archive</figcaption>
 </figure>
+  </div>
+</div>
 
-<div class="card mb-3">
+<div class="card mt-3">
   <h3 class="card-header list-group-item-info">Why does the LVFS project sign the archive?</h3>
   <div class="card-body">
     <p class="card-text">
@@ -65,7 +72,7 @@
   </div>
 </div>
 
-<div class="card mb-3">
+<div class="card mt-3">
   <h3 class="card-header list-group-item-info">Can I restrict downloads from embargoed and sanctioned countries?</h3>
   <div class="card-body">
     <p class="card-text">

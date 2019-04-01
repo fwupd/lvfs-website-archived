@@ -2,16 +2,19 @@
 {% block title %}New Firmware{% endblock %}
 
 {% block content %}
-<h1>New Firmware</h1>
-<p>
+<div class="card">
+  <div class="card-body">
+    <h1 class="card-title">New Firmware</h1>
+<p class="card-text">
   This list show the newest public firmwares available on the LVFS.
 </p>
 
 {% if fwevs|length == 0 %}
 <p class="text-muted">
   No firmware has been uploaded yet.
+</p>
 {% else %}
-<table class="table">
+<table class="table card-text">
   <tr class="row">
     <th class="col-sm-2">When</th>
     <th class="col-sm-5">Hardware</th>
@@ -34,5 +37,7 @@
 {% endfor %}
 </table>
 {% endif %}
+  </div>
+</div>
 
 {% endblock %}

@@ -62,6 +62,7 @@ def test_overview():
         plugins[plugin_id] = ploader.get_by_id(plugin_id)
 
     return render_template('test-overview.html',
+                           category='tests',
                            plugins=plugins,
                            plugin_ids=plugin_ids,
                            tests_pending=tests_pending,
@@ -80,7 +81,7 @@ def test_recent():
     tests = db.session.query(Test).\
                 options(joinedload('attributes')). \
                 order_by(Test.started_ts.desc()).limit(20).all()
-    return render_template('test-list.html', tests=tests)
+    return render_template('test-list.html', category='tests', tests=tests)
 
 @app.route('/lvfs/test/running')
 @login_required
@@ -94,7 +95,7 @@ def test_running():
                 filter(Test.ended_ts == None). \
                 options(joinedload('attributes')). \
                 order_by(Test.test_id.asc()).all()
-    return render_template('test-list.html', tests=tests)
+    return render_template('test-list.html', category='tests', tests=tests)
 
 @app.route('/lvfs/test/pending')
 @login_required
@@ -107,7 +108,7 @@ def test_pending():
                 filter(Test.started_ts == None). \
                 options(joinedload('attributes')). \
                 order_by(Test.test_id.asc()).all()
-    return render_template('test-list.html', tests=tests)
+    return render_template('test-list.html', category='tests', tests=tests)
 
 @app.route('/lvfs/test/failed')
 @login_required
@@ -125,7 +126,7 @@ def test_failed():
     for test in tests:
         if not test.success:
             tests_failed.append(test)
-    return render_template('test-list.html', tests=tests_failed)
+    return render_template('test-list.html', category='tests', tests=tests_failed)
 
 @app.route('/lvfs/test/waived')
 @login_required
@@ -139,7 +140,7 @@ def test_waived():
                 filter(Test.waived_ts != None). \
                 options(joinedload('attributes')). \
                 order_by(Test.test_id.asc()).all()
-    return render_template('test-list.html', tests=tests)
+    return render_template('test-list.html', category='tests', tests=tests)
 
 @app.route('/lvfs/test/retry/<int:test_id>')
 @login_required

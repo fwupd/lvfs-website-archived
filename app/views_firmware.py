@@ -21,46 +21,35 @@ from .util import _error_internal, _error_permission_denied, _event_log
 from .util import _get_chart_labels_months, _get_chart_labels_days
 
 @app.route('/lvfs/firmware')
+@app.route('/lvfs/firmware/state/<state>')
 @login_required
-def firmware(show_all=False):
+def firmware(state=None):
     """
-    Show all previsouly uploaded firmware for this user.
+    Show all firmware uploaded by this user or vendor.
     """
-
-    # group by the firmware name
-    names = {}
-    for fw in db.session.query(Firmware).\
-                order_by(Firmware.timestamp.desc()).all():
-        if not fw.check_acl('@view'):
-            continue
-        if len(fw.mds) == 0:
-            continue
-        name = fw.md_prio.developer_name + ' ' + fw.md_prio.name
-        if not name in names:
-            names[name] = []
-        names[name].append(fw)
-
-    # only show one version in each state
-    for name in sorted(names):
-        targets_seen = {}
-        for fw in names[name]:
-            if len(fw.mds) == 0:
-                continue
-            key = fw.remote.name + fw.md_prio.appstream_id
-            if key in targets_seen:
-                fw.is_newest_in_state = False
-            else:
-                fw.is_newest_in_state = True
-                targets_seen[key] = fw
-
-    return render_template('firmware.html',
-                           fw_by_name=names,
-                           names_sorted=sorted(names),
-                           show_all=show_all)
-
-@app.route('/lvfs/firmware_all')
-def firmware_all():
-    return firmware(True)
+    # pre-filter by user ID or vendor
+    if g.user.is_analyst or g.user.is_qa:
+        stmt = db.session.query(Firmware).\
+                    filter(Firmware.vendor_id == g.user.vendor.vendor_id)
+    else:
+        stmt = db.session.query(Firmware).\
+                    filter(Firmware.user_id == g.user.user_id)
+    if not state:
+        remote = None
+    elif state == 'embargo':
+        remote = g.user.vendor.remote
+        stmt = stmt.filter(Firmware.remote_id == remote.remote_id)
+    elif state in ['private', 'testing', 'stable', 'deleted']:
+        remote = db.session.query(Remote).filter(Remote.name == state).one()
+        stmt = stmt.filter(Firmware.remote_id == remote.remote_id)
+    else:
+        return _error_internal('no state of %s' % state)
+    fws = stmt.order_by(Firmware.timestamp.desc()).all()
+    return render_template('firmware-search.html',
+                           category='firmware',
+                           state=state,
+                           remote=remote,
+                           fws=fws)
 
 @app.route('/lvfs/firmware/new')
 @app.route('/lvfs/firmware/new/<int:limit>')
@@ -112,7 +101,7 @@ def firmware_undelete(firmware_id):
     db.session.commit()
 
     flash('Firmware undeleted', 'info')
-    return redirect(url_for('.firmware'))
+    return redirect(url_for('.firmware_show', firmware_id=firmware_id))
 
 def _firmware_delete(fw):
 
@@ -219,7 +208,7 @@ def firmware_promote(firmware_id, target):
             if problem.kind not in probs:
                 probs.append(problem.kind)
         flash('Firmware has problems that must be fixed first: %s' % ','.join(probs), 'warning')
-        return redirect(url_for('.firmware_show', firmware_id=firmware_id))
+        return redirect(url_for('.firmware_problems', firmware_id=firmware_id))
 
     # set new remote
     if target == 'embargo':
@@ -232,7 +221,7 @@ def firmware_promote(firmware_id, target):
     # same as before
     if fw.remote.remote_id == remote.remote_id:
         flash('Cannot move firmware: Firmware already in that target', 'info')
-        return redirect(url_for('.firmware_show', firmware_id=firmware_id))
+        return redirect(url_for('.firmware_target', firmware_id=firmware_id))
 
     # invalidate both the remote it came from and the one it's going to
     remote.is_dirty = True
@@ -251,7 +240,7 @@ def firmware_promote(firmware_id, target):
     db.session.commit()
     flash('Moved firmware', 'info')
 
-    return redirect(url_for('.firmware_show', firmware_id=firmware_id))
+    return redirect(url_for('.firmware_target', firmware_id=firmware_id))
 
 @app.route('/lvfs/firmware/<int:firmware_id>/components')
 @login_required
@@ -422,9 +411,9 @@ def firmware_problems(firmware_id):
 
     return render_template('firmware-problems.html', fw=fw)
 
-@app.route('/lvfs/firmware/<int:firmware_id>/history')
+@app.route('/lvfs/firmware/<int:firmware_id>/target')
 @login_required
-def firmware_history(firmware_id):
+def firmware_target(firmware_id):
 
     # get details about the firmware
     fw = db.session.query(Firmware).\
@@ -434,9 +423,9 @@ def firmware_history(firmware_id):
 
     # security check
     if not fw.check_acl('@view'):
-        return _error_permission_denied('Insufficient permissions to view components')
+        return _error_permission_denied('Insufficient permissions to view firmware')
 
-    return render_template('firmware-history.html', fw=fw)
+    return render_template('firmware-target.html', fw=fw)
 
 @app.route('/lvfs/firmware/<int:firmware_id>')
 @login_required

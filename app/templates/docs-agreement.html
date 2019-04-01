@@ -1,0 +1,25 @@
+{% extends "default.html" %}
+
+{% block title %}Vendor Agreement{% endblock %}
+
+{% block content %}
+<div class="card">
+  <div class="card-body">
+    <h1 class="card-title">Vendor Agreement with the LVFS</h1>
+    <p class="card-text">
+      {{agreement.text|safe}}
+    </p>
+  <p class="card-text">
+    This text is referred to as &lsquo;Agreement Version {{agreement.version}}&rsquo;,
+    and was modified {{agreement.created}}.
+  </p>
+  <p class="card-text">
+    Any changes to this agreement will force all user to re-agree to the new text
+    when uploading new firmware files.
+    Any planned changes will be discussed on the
+    <a href="https://lists.linuxfoundation.org/mailman/listinfo/lvfs-announce">mailing list</a>.
+  </p>
+  </div>
+</div>
+
+{% endblock %}

@@ -2,7 +2,8 @@
 {% block title %}Analytics{% endblock %}
 
 {% block content %}
-
+<div class="card">
+  <div class="card-body">
 {% if reports|length > 0 %}
 <table class="table">
   <tr class="row table-borderless">
@@ -53,5 +54,7 @@
   No reports exist.
 </p>
 {% endif %}
+  </div>
+</div>
 
 {% endblock %}

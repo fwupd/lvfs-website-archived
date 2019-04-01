@@ -45,6 +45,7 @@ def analytics_month():
         now -= datetime.timedelta(days=1)
 
     return render_template('analytics-month.html',
+                           category='analytics',
                            labels_days=_get_chart_labels_days()[::-1],
                            data_days=data[::-1])
 
@@ -76,6 +77,7 @@ def analytics_year():
         data.append(int(cnt))
 
     return render_template('analytics-year.html',
+                           category='analytics',
                            labels_months=_get_chart_labels_months()[::-1],
                            data_months=data[::-1])
 
@@ -156,6 +158,7 @@ def analytics_user_agents(timespan_days=30):
         dataset['data'] = '[' + ', '.join(data[::-1]) + ']'
         datasets.append(dataset)
     return render_template('analytics-user-agent.html',
+                           category='analytics',
                            labels_user_agent=_get_chart_labels_days(timespan_days)[::-1],
                            datasets=datasets)
 
@@ -170,7 +173,9 @@ def analytics_clients():
     clients = db.session.query(Client).\
                     order_by(Client.timestamp.desc()).\
                     limit(25).all()
-    return render_template('analytics-clients.html', clients=clients)
+    return render_template('analytics-clients.html',
+                           category='analytics',
+                           clients=clients)
 
 @app.route('/lvfs/analytics/reports')
 @login_required
@@ -183,7 +188,9 @@ def analytics_reports():
     reports = db.session.query(Report).\
                     order_by(Report.timestamp.desc()).\
                     limit(25).all()
-    return render_template('analytics-reports.html', reports=reports)
+    return render_template('analytics-reports.html',
+                           category='analytics',
+                           reports=reports)
 
 @app.route('/lvfs/analytics/search_history')
 @login_required
@@ -195,6 +202,7 @@ def analytics_search_history():
                         order_by(SearchEvent.timestamp.desc()).\
                         limit(1000).all()
     return render_template('analytics-search-history.html',
+                           category='analytics',
                            search_events=search_events)
 
 @app.route('/lvfs/analytics/search_stats')
@@ -228,4 +236,6 @@ def analytics_search_stats(limit=20):
     for res in results[0:limit]:
         labels.append(str(res[0]))
         data.append(res[1])
-    return render_template('analytics-search-stats.html', labels=labels, data=data)
+    return render_template('analytics-search-stats.html',
+                           category='analytics',
+                           labels=labels, data=data)

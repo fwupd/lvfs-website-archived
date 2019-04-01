@@ -3,25 +3,27 @@
 {% block title %}Telemetry from the LVFS{% endblock %}
 
 {% block content %}
-<h1>Telemetry from the LVFS</h1>
-<p>
+<div class="card">
+  <div class="card-body">
+    <h1 class="card-title">Telemetry from the LVFS</h1>
+<p class="card-text">
   By allowing fwupd to <em>phone home</em> after attempting a firmware update,
   it allows the hardware vendor that uploaded firmware know there are
   problems straight  away, rather than waiting for frustrated users to file bugs.
 </p>
-<p>
+<p class="card-text">
   The report containd information that identifies the machine and
   old/new firmware versions, and in the event of an error, enough debug
   information to actually be useful.
   It obviously involve sending the users IP address to the server too.
 </p>
-<p>
+<p class="card-text">
   We have to be exceptionally careful with users privacy and trust.
   We cannot just enable automated collection, and this document outlines what
   we implemented for fwupd >= 1.0.4.
   This functionality should be acceptable to even the most paranoid of users.
 </p>
-<p>
+<p class="card-text">
   The <code>fwupd</code> daemon stores the result of each attempted update in a local SQLite
   database.
   In the event there is a firmware update that has been attempted, we now ask the
@@ -29,7 +31,7 @@
   Using GNOME this would just be a slider in the control center privacy panel,
   although this feature is currently unimplemented.
 </p>
-<p>
+<p class="card-text">
   If the user is using the <code>fwupdmgr</code> tool this is what it shows:
 </p>
 <pre>
@@ -59,7 +61,7 @@ Payload:                 {
                          }
 Proceed with upload? [Y|n]:
 </pre>
-<p>
+<p class="card-text">
   Using this new information that the user volunteers, we display a few new
   sections in the LVFS web-console:
 </p>
@@ -69,14 +71,14 @@ Proceed with upload? [Y|n]:
   <figcaption class="figure-caption">Firmware view showing the report.</figcaption>
 </figure>
 
-<p>
+<p class="card-text">
   Which expands out to the report below:
 </p>
 <figure class="text-center">
   <img src="/img/report-details.png" class="p-3 border border-info rounded figure-img img-fluid" alt="alt">
   <figcaption class="figure-caption">Report details.</figcaption>
 </figure>
-<p>
+<p class="card-text">
   This means vendors using the LVFS know the approximate number of success and
   failures, and can add different tests to existing QA tests accordingly.
   This allows the LVFS to offer the same kind of staged deployment that Microsoft
@@ -88,7 +90,7 @@ Proceed with upload? [Y|n]:
   <img src="/img/telemetry-limits.png" class="p-3 border border-info rounded figure-img img-fluid" alt="alt">
   <figcaption class="figure-caption">Firmware limits.</figcaption>
 </figure>
-<p>
+<p class="card-text">
   Some key points:
 </p>
 <ul>
@@ -103,29 +105,36 @@ Proceed with upload? [Y|n]:
     i.e. locally built firmware archives will be ignored and not logged
   </li>
 </ul>
-<p>
+<p class="card-text">
   The user can disable the reporting functionality in all applications by
   editing <code>/etc/fwupd/remotes.d/*.conf</code>
 </p>
+  </div>
+</div>
 
-<h2>Vendor Telemetry Summary</h2>
-<p>
+<div class="card mt-3">
+  <div class="card-body">
+    <h2 class="card-title">Vendor Telemetry Summary</h2>
+<p class="card-text">
   Using firmware telemetry overview a vendor can see all the success and
   failure reports for all the firmware uploaded to their vendor:
 </p>
-<p>
+<p class="card-text">
 <figure class="text-center">
   <img src="/img/telemetry-vendor.png" class="p-3 border border-info rounded figure-img img-fluid" alt="alt">
   <figcaption class="figure-caption">Telemetry of all firmware.</figcaption>
 </figure>
-<p>
+<p class="card-text">
   Until more people are running the latest fwupd and volunteering to share their
   update history it is less useful, but still interesting until then.
 </p>
+  </div>
+</div>
 
-<hr/>
-<h2>Known Issues</h2>
-<p>
+<div class="card mt-3">
+  <div class="card-body">
+    <h2 class="card-title">Known Issues</h2>
+<p class="card-text">
   Known issues are problems we know about, and that can be triaged automatically
   on the LVFS.
   Of course, firmware updates should not ever fail, but in the real world they do,
@@ -133,7 +142,7 @@ Proceed with upload? [Y|n]:
   failure causes, and if we know hundreds of people are hitting an issue we
   already understand we can provide them with some help.
 </p>
-<p>
+<p class="card-text">
   A good example here is the user not being on AC power when rebooting, which
   causes a failure, albeit transient and non-fatal.
   Another example is if the user tries to do the update with an incorrect system
@@ -143,7 +152,7 @@ Proceed with upload? [Y|n]:
   <img src="/img/known-issue.png" class="p-3 border border-info rounded figure-img img-fluid" alt="alt">
   <figcaption class="figure-caption">Notifying the user about known issues.</figcaption>
 </figure>
-<p>
+<p class="card-text">
   The URL for the user to click on is the result of a rule engine being included
   in the LVFS.
   Users on the LVFS with the appropriate permissions can also create and view
@@ -157,9 +166,11 @@ Proceed with upload? [Y|n]:
   <img src="/img/issue-details.png" class="p-3 border border-info rounded figure-img img-fluid" alt="alt">
   <figcaption class="figure-caption">Issue details.</figcaption>
 </figure>
-<figure class="text-center">
+<figure class="text-center card-text">
   <img src="/img/issues-all.png" class="p-3 border border-info rounded figure-img img-fluid" alt="alt">
   <figcaption class="figure-caption">All issues.</figcaption>
 </figure>
+  </div>
+</div>
 
 {% endblock %}

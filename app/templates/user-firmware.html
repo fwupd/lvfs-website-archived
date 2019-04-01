@@ -4,7 +4,8 @@
 {% block nav %}{% include 'user-nav.html' %}{% endblock %}
 
 {% block content %}
-
+<div class="card">
+  <div class="card-body">
 {% if u.fws|length > 0 %}
 <table class="table">
   <tr class="row table-borderless">
@@ -27,8 +28,10 @@
 {% endfor %}
 </table>
 {% else %}
-<p>This user has uploaded no firmware.</p>
+<p class="card-text">This user has uploaded no firmware.</p>
 {% endif %}
+  </div>
+</div>
 
 {% endblock %}
 

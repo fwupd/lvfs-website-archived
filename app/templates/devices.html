@@ -2,10 +2,14 @@
 {% block title %}Devices{% endblock %}
 
 {% block content %}
-<h1>Devices</h1>
+<div class="card">
+  <div class="card-body">
+    <h1 class="card-title">Devices</h1>
 {% for device in devices %}
 <li><a href="/lvfs/device/{{device}}">{{device}}</a></li>
 {% else %}
-<p>No devices to show!</p>
+<p class="card-text">No devices to show!</p>
 {% endfor %}
+  </div>
+</div>
 {% endblock %}

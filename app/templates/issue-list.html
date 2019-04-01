@@ -2,10 +2,12 @@
 {% block title %}Issues{% endblock %}
 
 {% block content %}
-<h1>Known Issues</h1>
+<div class="card">
+  <div class="card-body">
+    <h1 class="card-title">Known Issues</h1>
 
 {% if issues|length == 0 %}
-<p>
+<p class="card-text">
   No issues have been created.
 </p>
 
@@ -51,10 +53,12 @@
 </table>
 
 {% endif %}
+  </div>
+</div>
 
-<hr/>
-
-<h2>Create a new issue</h2>
+<div class="card mt-3">
+  <div class="card-body">
+    <h2 class="card-title">Create a new issue</h2>
 <form method="post" action="/lvfs/issue/add" class="form-inline">
   <div class="table">
     <div class="row">
@@ -67,4 +71,6 @@
     </div>
   </div>
 </form>
+  </div>
+</div>
 {% endblock %}

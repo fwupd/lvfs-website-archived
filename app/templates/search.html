@@ -2,6 +2,8 @@
 {% block title %}Search Results{% endblock %}
 
 {% block content %}
+
+{% if not g.user is defined %}
 <form method="GET" class="form-inline justify-content-center" action="/lvfs/search">
   <div class="input-group">
     <input type="text" class="form-control" aria-label="search" name="value" required>
@@ -10,11 +12,14 @@
     </div>
   </div>
 </form>
+{% endif %}
 
+<div class="card mt-3">
+  <div class="card-body">
 {% if search_size < 0 %}
 <p class="text-muted">Search for firmware or hardware vendors&hellip;</p>
 
-<div class="card mb-3">
+<div class="card mt-3">
   <h3 class="card-header list-group-item-warning">
     Privacy warning!
   </h3>
@@ -30,14 +35,14 @@
 </div>
 
 {% elif mds|length == 0 and vendors|length == 0 %}
-<h3>No results found for <i>{{keywords_bad|join(',')}}</i>.</h3>
+    <h3 class="card-title">No results found for <i>{{keywords_bad|join(',')}}</i>.</h3>
 {% else %}
 {% if keywords_good|length > 0 and keywords_bad|length > 0 and vendors|length == 0 %}
-<h3>Showing {{mds|length}} of {{search_size}} results for <i>{{keywords_good|join(',')}},<strike>{{keywords_bad|join(',')}}</strike></i>:</h3>
+    <h3 class="card-title">Showing {{mds|length}} of {{search_size}} results for <i>{{keywords_good|join(',')}},<strike>{{keywords_bad|join(',')}}</strike></i>:</h3>
 {% else %}
-<h3>Showing {{mds|length + vendors|length}} of {{search_size + vendors|length}} results for <i>{{keywords_good|join(',')}}</i>:</h3>
+    <h3 class="card-title">Showing {{mds|length + vendors|length}} of {{search_size + vendors|length}} results for <i>{{keywords_good|join(',')}}</i>:</h3>
 {% endif %}
-<table class="table table-striped mt-3">
+<table class="table table-striped card-text">
 {% for vendor in vendors %}
   <tr class="row">
     <td class="col-sm-1">
@@ -73,9 +78,10 @@
 {% endfor %}
 </table>
 {% endif %}
+  </div>
 </div>
 
-{% if show_vendor_nag %}
+{% if show_vendor_nag and not g.user is defined %}
 <div class="card mt-3">
   <h3 class="card-header list-group-item-info">
     Not found what you were looking for?

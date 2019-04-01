@@ -2,8 +2,9 @@
 {% block title %}Legal Agreement{% endblock %}
 
 {% block content %}
-
-<h2>Legal Agreement</h2>
+<div class="card">
+  <div class="card-body">
+    <h2 class="card-title">Legal Agreement</h2>
 <form method="post" action="/lvfs/agreement/{{agreement.agreement_id}}/modify">
   <div class="form-group">
     <label for="version">Version (incrementing will prompt users):</label>
@@ -16,5 +17,7 @@
   <input type="submit" class="btn btn-primary" value="Modify">
   <a class="btn btn-danger" href="/lvfs/agreement/{{agreement.agreement_id}}/delete">Delete</a>
 </form>
+  </div>
+</div>
 
 {% endblock %}

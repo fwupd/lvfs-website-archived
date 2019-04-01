@@ -1,31 +1,32 @@
 {% extends "default.html" %}
-{% block title %}Firmware{% endblock %}
+{% block title %}{{title}}{% endblock %}
 
 {% block content %}
-<h1>Existing Firmware</h1>
-
-{% if fw_by_name|length == 0 %}
-<p class="text-muted">
-{% if g.user.is_qa %}
-  No firmware has been uploaded to the &lsquo;{{g.user.vendor.group_id}}&rsquo; QA group yet.
+{% if fws|length == 0 %}
+<div class="card">
+  <div class="card-body">
+{% if remote %}
+    <h1 class="card-title">Firmware in &lsquo;{{remote.name}}&rsquo;</h1>
 {% else %}
-  No firmware has been uploaded by the &lsquo;{{g.user.username}}&rsquo; account yet.
+    <h1 class="card-title">All Firmware</h1>
 {% endif %}
-</p>
+  <p class="card-text">
+    No firmware has been uploaded or is visible by this user.
+  </p>
+  </div>
+</div>
 
 {% else %}
 
-<p class="text-muted">
-{% if not show_all %}
-  Showing one firmware per device in each state.
-  <a href="/lvfs/firmware_all">Show all</a>.
+<div class="card mt-3">
+  <div class="card-body">
+{% if remote %}
+    <h1 class="card-title">Firmware in &lsquo;{{remote.name}}&rsquo; ({{fws|length}})</h1>
+{% else %}
+    <h1 class="card-title">All Firmware ({{fws|length}})</h1>
 {% endif %}
-</p>
-
-<table class="table">
-{% for name in names_sorted %}
-{% for fw in fw_by_name[name] %}
-{% if show_all or fw.is_newest_in_state %}
+<table class="table card-text">
+{% for fw in fws %}
   <tr class="row">
     <td class="col-sm-8">
       <h4 class="list-group-item-title">
@@ -56,10 +57,10 @@
         href="/lvfs/firmware/{{fw.firmware_id}}">Details</a>
     </td>
   </tr>
-{% endif %}
-{% endfor %}
 {% endfor %}
 </table>
+  </div>
+</div>
 
 {% endif %}
 {% endblock %}

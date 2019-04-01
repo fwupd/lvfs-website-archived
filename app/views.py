@@ -4,7 +4,7 @@
 # Copyright (C) 2015-2018 Richard Hughes <richard@hughsie.com>
 # Licensed under the GNU General Public License Version 2
 #
-# pylint: disable=wrong-import-position
+# pylint: disable=wrong-import-position,singleton-comparison
 
 import os
 import datetime
@@ -26,7 +26,7 @@ from app import app, db, lm, ploader
 from .dbutils import _execute_count_star
 from .pluginloader import PluginError
 
-from .models import Firmware, Requirement, Component, Vendor, Protocol, Category
+from .models import Firmware, Requirement, Component, Vendor, Protocol, Category, Agreement
 from .models import User, Analytic, Client, Event, Useragent, AnalyticVendor
 from .models import _get_datestr_from_datetime
 from .hash import _addr_hash
@@ -272,17 +272,26 @@ def docs_metainfo(page='intro'):
     protocols = db.session.query(Protocol).order_by(Protocol.protocol_id.asc()).all()
     categories = db.session.query(Category).order_by(Category.category_id.asc()).all()
     return render_template('docs-metainfo-%s.html' % page,
+                           category='documentation',
                            protocols=protocols,
                            categories=categories,
                            page=page)
 
 @app.route('/lvfs/docs/composite')
 def docs_composite():
-    return render_template('docs-composite.html')
+    return render_template('docs-composite.html', category='documentation')
 
 @app.route('/lvfs/docs/telemetry')
 def docs_telemetry():
-    return render_template('docs-telemetry.html')
+    return render_template('docs-telemetry.html', category='documentation')
+
+@app.route('/lvfs/docs/agreement')
+def docs_agreement():
+    agreement = db.session.query(Agreement).\
+                    order_by(Agreement.version.desc()).first()
+    return render_template('docs-agreement.html',
+                           category='documentation',
+                           agreement=agreement)
 
 @app.route('/lvfs/docs/introduction')
 def docs_introduction():
@@ -292,15 +301,20 @@ def docs_introduction():
 
 @app.route('/lvfs/docs/affiliates')
 def docs_affiliates():
-    return render_template('docs-affiliates.html')
+    return render_template('docs-affiliates.html', category='documentation')
 
 @app.route('/')
 @app.route('/lvfs/')
 def index():
-    vendors = db.session.query(Vendor).\
-                filter(Vendor.visible_on_landing).\
-                order_by(Vendor.display_name).limit(10).all()
-    return render_template('index.html', vendors=vendors)
+    vendors_logo = db.session.query(Vendor).\
+                            filter(Vendor.visible_on_landing).\
+                            order_by(Vendor.display_name).limit(10).all()
+    vendors_quote = db.session.query(Vendor).\
+                            filter(Vendor.quote_text != None).\
+                            order_by(Vendor.display_name).limit(10).all()
+    return render_template('index.html',
+                           vendors_logo=vendors_logo,
+                           vendors_quote=vendors_quote)
 
 @app.route('/lvfs/dashboard')
 @login_required
@@ -340,6 +354,7 @@ def dashboard():
                            labels_days=_get_chart_labels_days()[::-1],
                            data_days=data[::-1],
                            server_warning=settings.get('server_warning', None),
+                           category='home',
                            default_admin_password=default_admin_password)
 
 @app.route('/lvfs/newaccount')
@@ -546,7 +561,10 @@ def eventlog(start=0, length=20):
                         order_by(Event.id.desc()).\
                         offset(start).limit(length).all()
     return render_template('eventlog.html', events=events,
-                           start=start, page_length=length, total_length=eventlog_len)
+                           category='home',
+                           start=start,
+                           page_length=length,
+                           total_length=eventlog_len)
 
 @app.route('/lvfs/profile')
 @login_required

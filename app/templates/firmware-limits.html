@@ -6,21 +6,22 @@
 {% endblock %}
 
 {% block content %}
-<h2 class="mt-3">Download Limits</h2>
-
-<p>
+<div class="card">
+  <div class="card-body">
+  <h2 class="card-title">Download Limits</h2>
+<p class="card-text">
   By default there is no daily download limit set for each firmware, but for
   some firmware files a QA user may want to restrict the flow of updates
   for a few days or weeks in case of teething problems.
   Most vendors should not need to use this download limit functionality.
 </p>
-<p>
+<p class="card-text">
   Specifying a user agent like <code>gnome-software/*</code> will special-case the
   limit to only be enforced for desktop software.
   Using an empty user agent field will mean the limit will be applied for all
   clients, including web browsers.
 </p>
-<p>
+<p class="card-text">
   The response field can be used to give command line users some information
   about why the firmware is rate limited, or can be left blank to use the
   default client translated message.
@@ -75,6 +76,8 @@
   </tr>
   </form>
 </table>
+  </div>
+</div>
 {% endblock %}
 
 {% block breadcrumb %}{% include 'firmware-breadcrumb.html' %}{% endblock %}

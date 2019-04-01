@@ -3,47 +3,53 @@
 
 {% block content %}
 
-<form method="post" action="{{url_for('.login1_response')}}">
-
-<div class="card w-75 mx-auto mt-5 mb-5">
-  <div class="card-body">
-    <div class="media p-1">
-      <img class="d-flex mr-3" src="/avatar.png" width="96" alt="LVFS Logo">
-      <div class="media-body">
-        <h5 class="mt-0">Sign in to the LVFS</h5>
-        <p>
-          <a class="" href="/lvfs/devicelist">
-            No login is required to download firmware!
-          </a>
-          Accounts are only used by hardware vendors when uploading new firmware.
-        </p>
+<div class="container">
+  <div class="row flex-center min-vh-100 py-6">
+    <div class="col-sm-10 col-md-8 col-lg-6 col-xl-5 col-xxl-4">
+      <a class="d-block text-center mb-3" href="/">
+        <div class="d-inline-flex flex-center">
+          <img class="mr-2" src="/avatar.png" alt="" width="58" />
+          <span class="text-sans-serif font-weight-extra-bold fs-5 d-inline-block">LVFS</span>
+        </div>
+      </a>
+      <div class="card">
+        <div class="card-body p-5">
+          <div class="row text-left justify-content-between">
+            <div class="col-auto">
+              <h5> Log in</h5>
+            </div>
+            <div class="col-auto">
+              <p class="fs--1 text-600">or <a href="{{url_for('.new_account')}}">apply for an account</a></p>
+            </div>
+          </div>
+          <p class="card-text">
+            Accounts are only used by hardware vendors when uploading new firmware.
+          </p>
+          <form method="post" action="{{url_for('.login1_response')}}">
+            <div class="form-group">
+              <input class="form-control" type="email" name="username" placeholder="Email address" />
+            </div>
+            <div class="form-group">
+              <button class="btn btn-primary btn-block mt-3" type="submit" name="submit">Next</button>
+            </div>
+            <div class="w-100 position-relative text-center mt-3">
+              <hr class="text-300" />
+              <div class="position-absolute absolute-centered t-0 px-3 bg-white text-sans-serif fs--1 text-500 text-nowrap">or sign-in with</div>
+            </div>
+            <div class="form-group mb-0">
+              <div class="row no-gutters">
+                <div class="col-sm-12 pr-sm-1">
+                  <a class="btn btn-secondary btn-block mt-2" href="{{url_for('.login_oauth', plugin_id='auth-azure')}}">
+                    Azure AD
+                  </a>
+                </div>
+              </div>
+            </div>
+          </form>
+        </div>
       </div>
     </div>
-    <div class="form-group input-group mt-4">
-      <div class="input-group-prepend">
-        <span class="input-group-text" id="inputGroup-username">Username</span>
-      </div>
-      <input id="email" class="form-control" type="text" name="username" placeholder="email@address"
-        aria-label="Username" aria-describedby="inputGroup-username" required>
-    </div>
-    <table class="table mb-0 mt-5">
-      <tr class="row table-borderless">
-        <td class="col-sm-4 pt-0 pb-0">
-          <a class="btn btn-secondary btn-block" href="/lvfs/login/auth-azure">
-            Use Azure AD
-          </a>
-        </th>
-        <td class="col-sm-4 pt-0 pb-0">&nbsp;</th>
-        <td class="col-sm-4 pt-0 pb-0">
-          <button class="btn btn-primary btn-block" type="submit">
-            Next
-          </button>
-        </th>
-      </tr>
-    </table>
   </div>
 </div>
-
-</form>
 
 {% endblock %}

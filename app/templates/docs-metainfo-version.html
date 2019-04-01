@@ -3,8 +3,10 @@
 {% block title %}MetaInfo Files : Version Format{% endblock %}
 
 {% block content %}
-<h2>Version Format</h2>
-<p>
+<div class="card">
+  <div class="card-body">
+    <h2 class="card-title">Version Format</h2>
+<p class="card-text">
   Some hardware returns the version number as a string such as
   <code>1.23.4567</code>, and this is easily handled as a <a href="https://semver.org/">semantic version</a>.
   In other cases we are not so lucky, and the hardware returns a <code>uint16_t</code> or <code>uint32_t</code>
@@ -62,7 +64,7 @@
     <td class="col-sm-2"><code>&gt;=1.1.0</code></td>
   </tr>
 </table>
-<p>
+<p class="card-text">
   To override the default of <code>triplet</code> vendors can ship extra metadata
   in the <code>metainfo.xml</code> file:
 </p>
@@ -75,7 +77,7 @@
     &lt;value key="LVFS::VersionFormat"&gt;intel-me&lt;/value&gt;
   &lt;/custom&gt;
 </pre>
-<p>
+<p class="card-text">
   Various security teams also want us to always show the device firmware version
   with the correct format, even if an update is not available.
   This may be for audit reasons, or just so customers know the version of the
@@ -84,7 +86,7 @@
   version above <code>39.0.45.x</code> (formatted as a quad) and the user is running
   <code>39.0.11522</code> (formatted as a triplet) it is not clear to the user what to do.
 </p>
-<p>
+<p class="card-text">
   To change from the default <code>triplet</code> version format we can set
   a fwupd <em>quirk </em>on the hardware device.
   For instance, changing the UEFI
@@ -94,5 +96,7 @@
   <code>/usr/share/fwupd/quirks.d</code>.
   The fwupd daemon will detect the new file and refresh devices as required.
 </p>
+  </div>
+</div>
 
 {% endblock %}

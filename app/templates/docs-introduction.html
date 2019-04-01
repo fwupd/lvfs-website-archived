@@ -4,36 +4,43 @@
 
 {% block content %}
 
-<img src="/img/banner.png" alt="banner logo"/>
+<img class="mb-4" src="/img/banner.png" alt="banner logo"/>
 
-<h1 class="mt-4">Introduction</h1>
-<p>
-  Updating firmware on devices is traditionally difficult for users on Linux systems.
-  Not knowing exact hardware details, where to look for updates or how to run the
-  Windows-specific flashing tools makes it almost impossible to update firmware on
-  devices.
-  As a result, <em>“broken”</em> hardware is being returned to the vendor and customer
-  systems are left in an insecure state even when updates have been released that
-  fix the specific issues. Linux as the <abbr title="Operating System">OS</abbr> is now mainstream and vendors need to
-  support these customers.
-</p>
-<p>
-  The <abbr title="Linux Vendor Firmware Service">LVFS</abbr> is a secure web service that can be used by OEM's to upload firmware
-  archives and can also be used by users to securely download metadata about
-  available updates and optionally, the updates themselves.
-  Every month there are over ~50 million files being downloaded from ~10 million clients.
-  There are currently {{devices_cnt}} devices supported on the LVFS with
-  {{firmware_cnt}} available firmware versions.
-</p>
-<div class="container ht-note">
+<div class="card">
+  <div class="card-body">
+    <h1 class="card-title">Introduction</h1>
+    <p class="card-text">
+      Updating firmware on devices is traditionally difficult for users on Linux systems.
+      Not knowing exact hardware details, where to look for updates or how to run the
+      Windows-specific flashing tools makes it almost impossible to update firmware on
+      devices.
+      As a result, <em>“broken”</em> hardware is being returned to the vendor and customer
+      systems are left in an insecure state even when updates have been released that
+      fix the specific issues. Linux as the <abbr title="Operating System">OS</abbr> is now mainstream and vendors need to
+      support these customers.
+    </p>
+    <p class="card-text">
+      The <abbr title="Linux Vendor Firmware Service">LVFS</abbr> is a secure web service that can be used by OEM's to upload firmware
+      archives and can also be used by users to securely download metadata about
+      available updates and optionally, the updates themselves.
+      Every month there are over ~50 million files being downloaded from ~10 million clients.
+      There are currently {{devices_cnt}} devices supported on the LVFS with
+      {{firmware_cnt}} available firmware versions.
+    </p class="card-text">
+  </div>
+</div>
+
+<div class="container ht-note mt-3">
   <div class="alert alert-primary">
     Hundreds of thousands of customer devices are being updated every month
     thanks to the LVFS!
   </div>
 </div>
 
-<h2>The Problem</h2>
-<p>
+<div class="card">
+  <div class="card-body">
+    <h2 class="card-title">The Problem</h2>
+<p class="card-text">
   Linux users have traditionally had problems with keeping hardware up to date
   with firmware updates. There are three components to this problem:
 </p>
@@ -53,7 +60,7 @@
     This will not work for firmware update utilities that require low level hardware access.
 </li>
 </ul>
-<p>
+<p class="card-text">
   The fwupd project can query supported hardware for the current firmware versions
   and also deploy new firmware versions to devices, but requires metadata from the
   LVFS to know the details about available updates.
@@ -62,14 +69,14 @@
   <abbr title="Device Firmware Update">DFU</abbr> or
   <abbr title="Unified Extensible Firmware Interface">UEFI</abbr> UpdateCapsule.
 </p>
-<p>
+<p class="card-text">
   Using the information from from higher level software centers can show the user the update
   description in their own language and offer the update to be installed using
   just three clicks of the mouse.
   Security updates are handled in the same way as other OS updates meaning it is
   just one mechanism for the user to understand.
 </p>
-<p>
+<p class="card-text">
   The LVFS supplies the data in a secure format, allowing the fwupd project to
   install the update safely.
   Existing approaches have been <abbr title="Original Equipment Manufacturer
@@ -77,17 +84,20 @@
   engineering effort was required, making this approach only financially viable
   for enterprise use-cases.
 </p>
-<p>
+<p class="card-text">
   There are a significant number of legal problems with the redistribution of firmware,
   and we have been working with vendors finding acceptable methods of redistribution
   whilst ensuring confidentially throughout the process. Being backed by a large
   Linux vendor with heterogeneous support for many vendors and platforms puts the
   LVFS in exactly the right place to build this kind of shared infrastructure.
 </p>
+  </div>
+</div>
 
-<hr/>
-<h2>System Architecture</h2>
-<p>
+<div class="card mt-3">
+  <div class="card-body">
+    <h2 class="card-title">System Architecture</h2>
+<p class="card-text">
   The architecture is built into three layers: a presentation layer, a mechanism
   and a data-provider and each can be replaced as required as they all use standard
   protocols.
@@ -96,10 +106,13 @@
   <img src="/img/architecture-plan.png" class="p-3 border border-info rounded figure-img img-fluid" alt="architecture plan">
   <figcaption class="figure-caption">Architecture plan, showing each subsystem.</figcaption>
 </figure>
+  </div>
+</div>
 
-<hr/>
-<h3>GNOME Software</h3>
-<p>
+<div class="card mt-3">
+  <div class="card-body">
+    <h3 class="card-title">GNOME Software</h3>
+<p class="card-text">
   <a href="https://wiki.gnome.org/Apps/Software">GNOME Software</a> is an application store
   designed to make installing, removing and updating both easy and beautiful.
   It is available for Linux and used by millions of people on the following
@@ -113,7 +126,7 @@
   <li>openSUSE 15.0 or newer</li>
   <li>Arch from 2017-06-13</li>
 </ul>
-<p>
+<p class="card-text">
   For most desktop systems, at session start-up the metadata <abbr title="Extensible Markup Language">XML</abbr> and detached
   signatures are checked for a specified age, and if required newer files are
   automatically downloaded from the LVFS and pushed into fwupd over D-Bus.
@@ -128,10 +141,13 @@
   <img src="/img/gnome-software2.png" class="p-3 border border-info rounded figure-img img-fluid" alt="GNOME Software">
   <figcaption class="figure-caption">GNOME Software.</figcaption>
 </figure>
+  </div>
+</div>
 
-<hr/>
-<h3>fwupd</h3>
-<p>
+<div class="card mt-3">
+  <div class="card-body">
+    <h3 class="card-title">fwupd</h3>
+<p class="card-text">
   This project provides a system-activated daemon <code>fwupd</code> with a <a href="/lvfs/users">D-Bus interface</a>
   that can be used by unprivileged clients.
   Clients can perform system wide upgrades and downgrades according to a security
@@ -140,7 +156,7 @@
   the command line over SSH or using a management framework like Red Hat Satellite
   or <a href="https://www.cloudclientmanager.com/">Dell CCM</a>.
 </p>
-<p>
+<p class="card-text">
   The daemon parses metadata in <a href="https://www.freedesktop.org/software/appstream/docs/">AppStream</a>
   format from the LVFS along with a detached <abbr title="GNU Privacy Guard">GPG</abbr> or PKCS#7 signature.
   The <code>.cab</code> archives which must contain at least a <code>.metainfo.xml</code> file and a detached
@@ -148,7 +164,7 @@
   Other files are permitted in the archive which allows the same deliverable to be
   used for the Windows Update system.
 </p>
-<p>
+<p class="card-text">
   Internally fwupd creates a device with a unique ID, and then a number of
   <abbr title="Globally Unique Identifier">GUIDs</abbr> are assigned to the device by the provider.
   It is these GUIDs specified in the update metadata file that are used to match
@@ -159,7 +175,7 @@
   <a href="https://docs.microsoft.com/en-us/windows-hardware/drivers/dashboard/using-chids">
   <abbr title="Computer Hardware ID">CHID</abbr></a> GUIDs.
 </p>
-<p>
+<p class="card-text">
   The fwupd project ships a number of plugins:
 </p>
 <ul>
@@ -196,40 +212,47 @@
     <code>WacomHID</code>, which supports the Wacom update protocol
   </li>
 </ul>
-<p>
+<p class="card-text">
   Adding more plugins is of course possible, but where possible vendors should use
   the existing code and for instance add an
   <abbr title="EFI System Resource Table">ESRT</abbr> data table when building the
   system firmware.
 </p>
+  </div>
+</div>
 
-<h4>Offline Updates</h4>
-<p>
+<div class="card mt-3">
+  <div class="card-body">
+    <h4 class="card-title">Offline Updates</h4>
+<p class="card-text">
   When the user agrees to a UEFI firmware update the firmware is unpacked into the
   EFI System Partition, several UEFI keys are set and the system reboots.
   On reboot the <code>fwup.efi</code> binary is run before the bootloader is started and
   the firmware <code>UpdateCapsule</code> UEFI runtime source is called.
 </p>
-<p>
+<p class="card-text">
   For most devices (e.g. USB, Thunderbolt, Synaptics, etc.) the update is
   performed without requiring a reboot.
 </p>
+  </div>
+</div>
 
-<hr/>
-<h3>LVFS</h3>
-<p>
+<div class="card mt-3">
+  <div class="card-body">
+    <h3 class="card-title">LVFS</h3>
+<p class="card-text">
   The LVFS provides an OEM-facing website that requires a username and password
   to access the secure console.
   There is no charge to vendors for the hosting or distribution of content,
   although there are some terms of service to vendors distributing content.
 </p>
-<p>
+<p class="card-text">
   This service should only be used to distribute firmware that is flashed onto
   non-volatile memory.
   It is not designed for firmware that has to be uploaded to devices every time
   the device is used.
 </p>
-<p>
+<p class="card-text">
   When <code>.cab</code> firmware files are submitted the following actions are performed:
 </p>
 <ol>
@@ -249,12 +272,12 @@
     The metadata is added to our database.
   </li>
 </ol>
-<p>
+<p class="card-text">
   Many <abbr title="Original Device Manufacturer">ODMs</abbr> are distinct and decoupled from the OEM, and in most cases the ODM is
   allowed to upload new firmware but not make it available for users.
   For this use case, users on the LVFS can have different attributes, for example:
 </p>
-<p>
+<p class="card-text">
   <li>Unprivileged users that can upload files to the testing target
   <li>Read only access to all analytics data for a specific vendor
   <li><abbr title="Quality Assurance">QA</abbr> users that can modify all firmware uploaded to a specific vendor
@@ -266,10 +289,13 @@
   <img src="/img/user-perms.png" class="p-3 border border-info rounded figure-img img-fluid" alt="user permissions">
   <figcaption class="figure-caption">Admin controlling the user permissions.</figcaption>
 </figure>
+  </div>
+</div>
 
-<hr/>
-<h2>Performance</h2>
-<p>
+<div class="card mt-3">
+  <div class="card-body">
+    <h2 class="card-title">Performance</h2>
+<p class="card-text">
   The LVFS runs on a dedicated virtual private server and uses a
   <abbr title="Content Delivery Network">CDN</abbr> for the public metadata.
   Every month there are over 50 million files being downloaded from around
@@ -277,14 +303,17 @@
   About 5% of the firmware downloads are performed using the <code>fwupdmgr</code> command
   line client manually and 95% are done from the GNOME Software GUI program.
 </p>
-<p>
+<p class="card-text">
   There are currently over 160 devices supported on the LVFS with over 400
   different firmware versions and the system runs with a measured 99.95% uptime.
 </p>
+  </div>
+</div>
 
-<hr/>
-<h2>Conclusions</h2>
-<p>
+<div class="card mt-3">
+  <div class="card-body">
+    <h2 class="card-title">Conclusions</h2>
+<p class="card-text">
   The LVFS has grown to be an essential part of the Linux ecosystem and there
   are currently 26 vendors using the service, 11 of which are multi-billion
   dollar companies.
@@ -292,10 +321,13 @@
   returning users.
   The LVFS is a mature service providing important functionality for Linux users.
 </p>
+  </div>
+</div>
 
-<hr/>
-<h2>Future Work</h2>
-<p>
+<div class="card mt-3">
+  <div class="card-body">
+    <h2 class="card-title">Future Work</h2>
+<p class="card-text">
   Various vendors are working on custom plugins for fwupd as they either cannot
   retrofit older hardware with the ESRT data table, or because they want more
   control over the low level flashing protocol.
@@ -303,25 +335,30 @@
   to use a well-known standard like DFU or UEFI UpdateCapsule with ESRT as it
   means there is no application code to write.
 </p>
-<p>
+<p class="card-text">
   From a system administrators point of view, it will also soon be possible to get
   notified of updates and perform upgrades using the Cockpit framework as well as
   the usual client tools.
 </p>
+  </div>
+</div>
 
-<hr/>
-<h2>Related Work</h2>
-<p>
+<div class="card mt-3">
+  <div class="card-body">
+    <h2 class="card-title">Related Work</h2>
+<p class="card-text">
   The <a href="http://www.dell.com/support/article/us/en/04/SLN293301?c=us&l=en&s=bsd&cs=04">Dell Repository Manager</a>
   allows you to update the firmware on various models of Dell enterprise hardware.
   There are several software (e.g. the SSU and SBUU) and hardware elements
   specific to Dell (e.g., the LCC or USC) and most of the stack is proprietary.
 </p>
-<p>
+<p class="card-text">
   Microsoft provides a service called <a href="http://windows.microsoft.com/en-gb/windows/windows-update">Windows Update</a>
   which takes driver updates from vendors, optionally performs some quality
   control on the update, signs the firmware and then hosts the firmware on a CDN.
   The entire stack is proprietary and for Microsoft Windows only.
 </p>
+  </div>
+</div>
 
 {% endblock %}

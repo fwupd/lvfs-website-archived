@@ -22,7 +22,9 @@ def protocol_all():
 
     # only show protocols with the correct group_id
     protocols = db.session.query(Protocol).order_by(Protocol.protocol_id.asc()).all()
-    return render_template('protocol-list.html', protocols=protocols)
+    return render_template('protocol-list.html',
+                           category='admin',
+                           protocols=protocols)
 
 @app.route('/lvfs/protocol/add', methods=['POST'])
 @login_required

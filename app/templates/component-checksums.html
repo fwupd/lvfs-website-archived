@@ -4,8 +4,11 @@
 {% block nav %}{% include 'component-nav.html' %}{% endblock %}
 
 {% block content %}
-<p>All valid verification checksums should be added here.</p>
-<table class="table">
+<div class="card">
+  <div class="card-body">
+    <h4 class="card-title">Device Checksums</h4>
+<p class="card-text">Multiple device verification checksums can be added here.</p>
+<table class="table card-text">
 {% if md.device_checksums|length > 0 %}
   <tr class="row">
     <th class="col-sm-1">Type</th>
@@ -35,9 +38,6 @@
     <form class="form-inline" action="/lvfs/component/{{md.component_id}}/checksum/add" method="POST" >
       <td class="col-sm-10">
         <input type="text" class="form-control fixed-width" name="value" placeholder="12d9c307380c4410fddfdb613b5dfba8b336cf49"/>
-        <p class="text-secondary">
-          Add hashes here to define a device checksum for a specific machine.
-        </p>
       </td>
       <td class="col-sm-2">
         <input type="submit" class="btn btn-primary btn-block" value="Add"/>
@@ -46,8 +46,12 @@
   </tr>
 {% endif %}
 </table>
+  </div>
+</div>
 
-<h3 class="mt-3">User-Submitted Reports</h3>
+<div class="card mt-3">
+  <div class="card-body">
+    <h4 class="card-title">User-Submitted Reports</h4>
 
 {% if checksum_counts|length %}
 <table class="table">
@@ -77,10 +81,12 @@
 {% endfor %}
 </table>
 {% else %}
-<p class="text-secondary">
+<p class="card-text">
   No reports with device checksums.
 </p>
 {% endif %}
+  </div>
+</div>
 
 {% endblock %}
 

@@ -214,6 +214,10 @@ class User(db.Model):
             if self.is_qa or self.is_analyst:
                 return True
             return False
+        if action == '@manage-password':
+            if self.auth_type == 'local':
+                return True
+            return False
         if action == '@add-attribute-manager':
             if not self.vendor.check_acl('@manage-users'):
                 return False

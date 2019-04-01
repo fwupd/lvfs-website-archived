@@ -4,7 +4,6 @@
 {% block nav %}{% include 'vendor-nav.html' %}{% endblock %}
 
 {% block content %}
-
 {% if v.check_acl('@modify-affiliations') %}
 <div class="alert alert-warning mt-1" role="alert">
   Be <b>very careful</b> using this feature as ODMs will be able to upload to
@@ -16,35 +15,11 @@
 </div>
 {% endif %}
 
-<table class="table">
-{% if v.affiliations|length == 0 %}
-  <tr class="row table-borderless">
-    <td class="col-sm-12"><p class="text-muted">No existing affiliations exist.</p></td>
-  </tr>
-</p>
-{% else %}
-  <tr class="row table-borderless">
-    <th class="col-sm-10">ODMs acting on behalf of {{v.display_name}}</th>
-    <th class="col-sm-2">&nbsp;</th>
-  </tr>
-{% for r in v.affiliations %}
-  <tr class="row">
-    <td class="col-sm-10">
-{% if g.user.check_acl('@admin') %}
-      <a href="/lvfs/vendor/{{r.vendor_odm.vendor_id}}">{{r.vendor_odm.display_name}}</a>
-{% else %}
-      {{r.vendor_odm.display_name}}
-{% endif %}
-    </td>
-    <td class="col-sm-2">
 {% if v.check_acl('@modify-affiliations') %}
-      <a class="btn btn-block btn-danger" href="/lvfs/vendor/{{v.vendor_id}}/affiliation/{{r.affiliation_id}}/delete" role="button">Remove</a>
-{% endif %}
-    </td>
-  </tr>
-{% endfor %}
-{% endif %}
-{% if v.check_acl('@modify-affiliations') %}
+<div class="card mt-3">
+  <div class="card-body">
+  <h4 class="card-title">Add affiliation</h4>
+<table class="table table-borderless card-text">
   <tr class="row table-borderless">
     <form method="post" action="/lvfs/vendor/{{v.vendor_id}}/affiliation/add">
     <td class="col-sm-10">
@@ -63,6 +38,37 @@
   </tr>
 {% endif %}
 </table>
+  </div>
+</div>
+
+{% if v.affiliations|length == 0 %}
+<div class="card mt-3">
+  <div class="card-body">
+    <h4 class="card-title">ODMs acting on behalf of {{v.display_name}}</h4>
+    <p class="card-text">
+      No affiliations exist.
+    </p>
+  </div>
+</div>
+{% else %}
+<div class="card-columns mt-3">
+{% for r in v.affiliations %}
+  <div class="card">
+    <div class="card-body">
+      <h4 class="card-title">
+        <img class="img-thumbnail mr-3" src="/uploads/{{r.vendor_odm.icon}}" width="128"/>
+      </h4>
+      <p class="card-text">
+        {{r.vendor_odm.display_name}}
+      </p>
+{% if v.check_acl('@modify-affiliations') %}
+      <a class="card-link" href="/lvfs/vendor/{{v.vendor_id}}/affiliation/{{r.affiliation_id}}/delete" role="button">Remove</a>
+{% endif %}
+    </div>
+  </div>
+{% endfor %}
+</div>
+{% endif %}
 
 {% endblock %}
 

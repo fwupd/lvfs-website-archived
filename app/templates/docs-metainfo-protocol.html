@@ -3,13 +3,15 @@
 {% block title %}MetaInfo Files : Update Protocol{% endblock %}
 
 {% block content %}
-<h2>Update Protocol</h2>
-<p>
+<div class="card">
+  <div class="card-body">
+    <h2 class="card-title">Update Protocol</h2>
+<p class="card-text">
   The LVFS needs to know what protocol is being used to flash the device.
   The protocol value is used to provide information about the security of the
   firmware update to end users.
 </p>
-<p>
+<p class="card-text">
   The update protocol can be set as part of the <code>metainfo.xml</code> file
   or set from the LVFS web console.
   Most users will want to include the extra metadata to make the upload process
@@ -21,10 +23,10 @@
     &lt;value key="LVFS::UpdateProtocol"&gt;some-value-here&lt;/value&gt;
   &lt;/custom&gt;
 </pre>
-<p>
+<p class="card-text">
   Allowed values for <code>LVFS::UpdateProtocol</code> are currently:
 </p>
-<table class="table">
+<table class="table card-text">
   <tr class="row table-borderless">
     <th class="col-sm-3">Value</th>
     <th class="col-sm-5">Name</th>
@@ -48,23 +50,29 @@
 {% endif %}
 {% endfor %}
 </table>
+  </div>
+</div>
 
-<h2>Firmware Formats</h2>
-<p>
+<div class="card mt-3">
+  <div class="card-body">
+    <h2 class="card-title">Firmware Formats</h2>
+<p class="card-text">
   When a firmware format is set in the <code>metainfo.xml</code> file
   various tests are performed on the firmware.
   This includes checking file headers, magic numbers or CRCs for the chosen
   update protocol.
 </p>
-<p>
+<p class="card-text">
   The update protocol can be changed on the LVFS website, and the correct tests
   will be run automatically.
   Firmware that has unresolved test failures cannot be pushed to the
   <code>testing</code> or <code>stable</code> remotes.
   For some tests the failure can be <em>waived</em> by a QA user.
 </p>
+  </div>
+</div>
 
-<div class="card-deck mb-3">
+<div class="card-deck mt-3">
   <div class="card">
     <div class="card-body">
       <h4 class="card-title"><a id="org.uefi.capsule"></a>UEFI Capsule Tests</h4>
@@ -110,23 +118,29 @@ $ dfu-tool set-product new.dfu 0x1234
   </div>
 </div>
 
-<h2>Firmware Signing</h2>
-<p>
+<div class="card mt-3">
+  <div class="card-body">
+    <h2 class="card-title">Firmware Signing</h2>
+<p class="card-text">
   Any processor better than the most basic PIC or Arduino is capable of doing
   public/private key firmware signing.
   This would use standard crypto using X.509 keys or GPG to ensure the device
   only runs signed firmware from the original vendor.
   This is the industry recommended practice for firmware updates.
 </p>
+  </div>
+</div>
 
-<h2>Attestation of UEFI Firmware</h2>
-<p>
+<div class="card mt-3">
+  <div class="card-body">
+    <h2 class="card-title">Attestation of UEFI Firmware</h2>
+<p class="card-text">
   Although the firmware capsule is signed by the OEM or ODM, we can’t reliably
   read the SPI EEPROM from userspace.
   We can get a hash of the firmware, or rather, a hash derived from the firmware.
   This is stored in the TPM chip as <code>PCR0</code>.
 </p>
-<p>
+<p class="card-text">
   To list the various <code>PCRs</code> on the running system you can use
   <code>cat /sys/class/tpm/tpm0/pcrs</code> for TPMs using protocol 1.2, or
   <code>tpm2_listpcrs</code> for TPMs using later protocol versions.
@@ -140,15 +154,17 @@ $ dfu-tool set-product new.dfu 0x1234
       &lt;/release&gt;
     &lt;/releases&gt;
 </pre>
-<p>
+<p class="card-text">
   Multiple possible device checksums can also be set using the admin console of
   the LVFS:
 </p>
-<figure class="text-center">
+<figure class="text-center card-text">
   <img src="/img/component-checksums.png" class="p-3 border border-info rounded figure-img img-fluid" alt="component checksum">
   <figcaption class="figure-caption">
     Adding PCR0 checksums to a component for attestation.
   </figcaption>
 </figure>
+  </div>
+</div>
 
 {% endblock %}

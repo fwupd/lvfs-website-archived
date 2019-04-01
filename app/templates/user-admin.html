@@ -4,7 +4,8 @@
 {% block nav %}{% include 'user-nav.html' %}{% endblock %}
 
 {% block content %}
-
+<div class="card">
+  <div class="card-body">
 {% if u.user_id == g.user.user_id %}
 <div class="alert alert-warning mt-1" role="alert">
   <strong>Be careful editing your own profile:</strong>
@@ -138,8 +139,7 @@
   </fieldset>
 {% endif %}
 {% if g.user.check_acl('@admin') %}
-  <hr/>
-  <div class="form-group">
+    <div class="form-group">
     <label for="send_email">
       <input class="checkbox" type="checkbox" name="send_email" value="{{'1' if not u.is_robot}}" checked />
       Notify the user about the account change
@@ -156,6 +156,8 @@
 {% endif %}
   </div>
 </form>
+  </div>
+</div>
 
 <!-- modal dialog -->
 <div class="modal" id="deleteModal" tabindex="-1" role="dialog" aria-labelledby="deleteModalLabel" aria-hidden="true">
@@ -168,7 +170,7 @@
         </button>
       </div>
       <div class="modal-body">
-        <p>
+        <p class="card-text">
           Unless you are required to delete a user for legal or compliance reasons,
           removing a user is not recommended for the following reasons:
         </p>

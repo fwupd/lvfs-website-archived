@@ -52,21 +52,80 @@ def user_modify(user_id):
         return _error_permission_denied('Unable to change user as account locked')
     if g.user.auth_type == 'oauth':
         return _error_permission_denied('Unable to change OAuth-only user')
+    user = db.session.query(User).filter(User.user_id == user_id).first()
+
+    # verify name
+    if 'display_name' in request.form:
+        display_name = request.form['display_name']
+        if len(display_name) < 3:
+            flash('Failed to modify profile: Name invalid', 'warning')
+            return redirect(url_for('.profile'), 302)
+        user.display_name = display_name
+
+    # get the new human_user_id if specified
+    if 'human_user' in request.form and request.form['human_user']:
+        username = request.form['human_user']
+        human_user = db.session.query(User).\
+                            filter(User.username == username).first()
+        if not human_user:
+            flash('Failed to modify profile: Human user %s not found' % username, 'warning')
+            return redirect(url_for('.profile'), 302)
+        user.human_user_id = human_user.user_id
+
+    # save to database
+    user.mtime = datetime.datetime.utcnow()
+    db.session.commit()
+    flash('Updated profile', 'info')
+    return redirect(url_for('.profile'))
+
+@app.route('/lvfs/user/<int:user_id>/deactivate')
+@login_required
+def user_deactivate(user_id):
+
+    # security check
+    if g.user.user_id != user_id:
+        return _error_permission_denied('Unable to modify a different user')
+    if not g.user.check_acl('@manage-password'):
+        return _error_permission_denied('Unable to deactivate')
+    user = db.session.query(User).filter(User.user_id == user_id).one()
+    user.auth_type = 'disabled'
+    user.mtime = datetime.datetime.utcnow()
+    db.session.commit()
+    return redirect(url_for('.logout'))
+
+@app.route('/lvfs/user/<int:user_id>/password', methods=['GET', 'POST'])
+@login_required
+def user_password(user_id):
+    """ Change details about the current user """
+
+    # only accept form data
+    if request.method != 'POST':
+        return redirect(url_for('.profile'))
+
+    # security check
+    if g.user.user_id != user_id:
+        return _error_permission_denied('Unable to modify a different user')
+    if not g.user.check_acl('@manage-password'):
+        return _error_permission_denied('Unable to modify password')
 
     # check we got enough data
-    if not 'password_new' in request.form:
-        return _error_permission_denied('Unable to change user as no data')
     if not 'password_old' in request.form:
         return _error_permission_denied('Unable to change user as no data')
-    if not 'display_name' in request.form:
+    if not 'password_new' in request.form:
         return _error_permission_denied('Unable to change user as no data')
-    user = db.session.query(User).filter(User.user_id == user_id).first()
+    user = db.session.query(User).filter(User.user_id == user_id).one()
     if not user.verify_password(request.form['password_old']):
         flash('Failed to modify profile: Incorrect existing password', 'danger')
         return redirect(url_for('.profile'), 302)
 
-    # check password
+    # check the user typed it correctly
     password = request.form['password_new']
+    if 'password_confirm' in request.form:
+        if request.form['password_confirm'] != password:
+            flash('Failed to modify profile: New passwords did not match', 'warning')
+            return redirect(url_for('.profile'), 302)
+
+    # check password
     if not _password_check(password):
         return redirect(url_for('.profile'), 302)
 
@@ -82,24 +141,38 @@ def user_modify(user_id):
         flash('Failed to modify profile: OTP has not been tested', 'warning')
         return redirect(url_for('.profile'), 302)
 
-    # verify name
-    display_name = request.form['display_name']
-    if len(display_name) < 3:
-        flash('Failed to modify profile: Name invalid', 'warning')
+    # save to database
+    user.mtime = datetime.datetime.utcnow()
+    db.session.commit()
+    flash('Updated profile', 'info')
+    return redirect(url_for('.profile'))
+
+@app.route('/lvfs/user/<int:user_id>/auth', methods=['GET', 'POST'])
+@login_required
+def user_auth(user_id):
+    """ Change details about the current user """
+
+    # only accept form data
+    if request.method != 'POST':
+        return redirect(url_for('.profile'))
+
+    # security check
+    if g.user.user_id != user_id:
+        return _error_permission_denied('Unable to modify a different user')
+    if not g.user.check_acl('@manage-password'):
+        return _error_permission_denied('Unable to modify password')
+
+    # unchecked checkbuttons are not included in the form data
+    user = db.session.query(User).filter(User.user_id == user_id).one()
+    for key in ['is_otp_enabled']:
+        setattr(user, key, bool(key in request.form))
+
+    # user has to have tested OTP before it can be enabled
+    if user.is_otp_enabled and not user.is_otp_working:
+        flash('Failed to modify profile: OTP has not been tested', 'warning')
         return redirect(url_for('.profile'), 302)
 
-    # get the new human_user_id if specified
-    if 'human_user' in request.form and request.form['human_user']:
-        username = request.form['human_user']
-        human_user = db.session.query(User).\
-                            filter(User.username == username).first()
-        if not human_user:
-            flash('Failed to modify profile: Human user %s not found' % username, 'warning')
-            return redirect(url_for('.profile'), 302)
-        user.human_user_id = human_user.user_id
-
     # save to database
-    user.display_name = display_name
     user.mtime = datetime.datetime.utcnow()
     db.session.commit()
     flash('Updated profile', 'info')
@@ -537,7 +610,9 @@ def user_list():
     """
     if not g.user.check_acl('@admin'):
         return _error_permission_denied('Unable to show userlist for non-admin user')
-    return render_template('userlist.html', users=db.session.query(User).all())
+    return render_template('userlist.html',
+                           category='admin',
+                           users=db.session.query(User).all())
 
 @app.route('/lvfs/user/<int:user_id>')
 @app.route('/lvfs/user/<int:user_id>/<page>')

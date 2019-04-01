@@ -4,7 +4,9 @@
 {% block nav %}{% include 'issue-nav.html' %}{% endblock %}
 
 {% block content %}
-<h2>Issue Conditions</h2>
+<div class="card">
+  <div class="card-body">
+    <h2 class="card-title">Issue Conditions</h2>
 <table class="table">
   <tr class="row">
     <th class="col-sm-3">Key</th>
@@ -78,6 +80,8 @@
   </tr>
 {% endif %}
 </table>
+  </div>
+</div>
 {% endblock %}
 
 {% block breadcrumb %}
@@ -87,4 +91,6 @@
     <li class="breadcrumb-item active" aria-current="page">Issue #{{issue.issue_id}}</li>
   </ol>
 </nav>
+  </div>
+</div>
 {% endblock %}

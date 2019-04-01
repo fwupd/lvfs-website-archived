@@ -3,9 +3,11 @@
 {% block title %}Developers{% endblock %}
 
 {% block content %}
-<h1>System Architecture</h1>
+<div class="card">
+  <div class="card-body">
+    <h1 class="card-title">System Architecture</h1>
 
-<p>
+<p class="card-text">
   The Linux firmware upgrade architecture is built into three components: <em>presentation</em>
   (gnome-software), <em>mechanism</em> (fwupd) and <em>data-provider</em> (LVFS)
   and each can be disabled or replaced if required.
@@ -15,9 +17,13 @@
   <img src="/img/architecture-plan.png" class="p-3 border border-info rounded figure-img img-fluid" alt="architecture plan">
   <figcaption class="figure-caption">Architecture plan, showing each subsystem.</figcaption>
 </figure>
+  </div>
+</div>
 
-<h2>The LVFS project</h2>
-<p>
+<div class="card mt-3">
+  <div class="card-body">
+    <h2 class="card-title">The LVFS project</h2>
+<p class="card-text">
   The LVFS is a simple Flask web service using a MySQL database and the code is
   available for review at <a href="https://github.com/hughsie/lvfs-website">GitHub</a>.
   This is also the place to file <a href="https://github.com/hughsie/lvfs-website/issues">vendor feature requests</a>
@@ -28,16 +34,20 @@
 $ git clone https://github.com/hughsie/lvfs-website.git
 $ ./app.wsgi
 </pre>
-<p>
+<p class="card-text">
   There is a low-volume <code>lvfs-announce</code> mailing list for the Linux Vendor
   Firmware Service, which will only be used to make announcements about new
   features and planned downtime.
   If you are interested in what’s happening with the LVFS you can
   <a href="https://lists.linuxfoundation.org/mailman/listinfo/lvfs-announce">subscribe here</a>.
 </p>
+  </div>
+</div>
 
-<h2>The fwupd project</h2>
-<p>
+<div class="card mt-3">
+  <div class="card-body">
+    <h2 class="card-title">The fwupd project</h2>
+<p class="card-text">
   The fwupd code is available at <a href="https://github.com/hughsie/fwupd">GitHub</a>
   and this is also the place to file <a href="https://github.com/hughsie/fwupd/issues">bugs or feature requests</a>
   to add support for new firmware flashing methods.
@@ -46,11 +56,13 @@ $ ./app.wsgi
 <pre>
 $ git clone https://github.com/hughsie/fwupd.git
 </pre>
-<p>
+<p class="card-text">
   Various <a href="https://github.com/hughsie/fwupd/tree/master/plugins">plugins</a>
   are included to update devices, which includes native support for UEFI, DFU,
   Unifying, ThunderBolt and ColorHug.
 </p>
+  </div>
+</div>
 
 <div class="card mt-3">
   <h3 class="card-header list-group-item-info">Is updating firmware secure?</h3>

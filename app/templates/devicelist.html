@@ -2,20 +2,22 @@
 {% block title %}Device List{% endblock %}
 
 {% block content %}
-<h1>Devices using LVFS for firmware updates</h1>
-<p>
+<div class="card">
+  <div class="card-body">
+    <h1 class="card-title">Devices using LVFS for firmware updates</h1>
+<p class="card-text">
   This list shows all the updates that have been pushed to the stable metadata.
   This is a very incomplete list as a lot of the devices in the LVFS
   have not yet been released publicly and the firmware updates are in a
   secret embargoed state.
 </p>
-<p>
+<p class="card-text">
   This list is automatically generated and will be updated when new firmware
   is added or devices are released to the public.
   For information about what vendors have been contacted about the LVFS,
   please see the <a href="/vendorlist">vendor engagement list</a>.
 </p>
-<form method="GET" class="form-inline mb-3" action="/lvfs/search">
+<form method="GET" class="form-inline mb-3" action="{{url_for('.search')}}">
   <div class="input-group">
     <input type="text" class="form-control" aria-label="search" name="value" required>
     <div class="input-group-append">
@@ -23,14 +25,18 @@
     </div>
   </div>
 </form>
-<p>
+<p class="card-text">
   If your device is listed but missing a firmware update that you see on the
   vendor website, please file an issue against the <a href="https://github.com/hughsie/lvfs-website/issues">LVFS website</a>.
 </p>
+  </div>
+</div>
 
 <!-- news -->
 {% if devices|length > 0 %}
-<h2>Most Recent Devices Added</h2>
+<div class="card mt-3">
+  <div class="card-body">
+    <h2 class="card-title">Most Recent Devices Added</h2>
 <div class="card-columns">
 {% for fw in devices %}
   <div class="card">
@@ -46,12 +52,15 @@
   </div>
 {% endfor %}
 </div>
+  </div>
+</div>
 
-<hr/>
 {% endif %}
 
 {% if vendors|length > 0 %}
-<h2>All Supported Devices</h2>
+<div class="card mt-3">
+  <div class="card-body">
+    <h2 class="card-title">All Supported Devices</h2>
 {% for vendor in vendors %}
 <h3 class="mt-3">
   {{vendor}}
@@ -65,5 +74,7 @@
 </ul>
 {% endfor %}
 {% endif %}
+  </div>
+</div>
 
 {% endblock %}

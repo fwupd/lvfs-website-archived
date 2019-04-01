@@ -1,10 +1,10 @@
 <nav>
-  <ul class="nav nav-tabs">
-    <li class="nav-item">
-      <a class="nav-link {% if request.url_rule.endpoint == 'device_guid' %}active{% endif %}" href="{{url_for('.device_guid', guid=guid)}}">Details</a>
-    </li>
-    <li class="nav-item">
-      <a class="nav-link {% if request.url_rule.endpoint == 'device_analytics' %}active{% endif %}" href="{{url_for('.device_analytics', guid=guid)}}">History</a>
-    </li>
-  </ul>
+  <div class="text-center mb-3">
+    <div class="btn-group" role="group">
+      <a class="btn btn-falcon-{{'primary' if request.url_rule.endpoint == 'device_guid' else 'default'}}"
+        href="{{url_for('.device_guid', guid=guid)}}">Details</a>
+      <a class="btn btn-falcon-{{'primary' if request.url_rule.endpoint == 'device_analytics' else 'default'}}"
+        href="{{url_for('.device_analytics', guid=guid)}}">History</a>
+    </div>
+  </div>
 </nav>

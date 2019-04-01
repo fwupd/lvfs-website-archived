@@ -60,7 +60,10 @@ def metadata_view():
     remotes = {}
     for r in db.session.query(Remote).all():
         remotes[r.name] = r
-    return render_template('metadata.html', vendors=vendors, remotes=remotes)
+    return render_template('metadata.html',
+                           category='firmware',
+                           vendors=vendors,
+                           remotes=remotes)
 
 @app.route('/lvfs/metadata/rebuild')
 @login_required

@@ -1,54 +1,46 @@
 <nav>
-  <ul class="nav nav-tabs">
-    <li class="nav-item">
-      <a class="nav-link {% if request.url_rule.endpoint == 'firmware_show' %}active{% endif %}" href="/lvfs/firmware/{{fw.firmware_id}}">Details</a>
-    </li>
+  <div class="text-center mb-3">
+    <div class="btn-group" role="group">
+      <a class="btn btn-falcon-{{'primary' if request.url_rule.endpoint == 'firmware_show' else 'default'}}"
+        href="{{url_for('.firmware_show', firmware_id=fw.firmware_id)}}">Details</a>
+{% if not fw.is_deleted %}
+      <a class="btn btn-falcon-{{'primary' if request.url_rule.endpoint == 'firmware_target' else 'default'}}"
+        href="{{url_for('.firmware_target', firmware_id=fw.firmware_id)}}">Target</a>
+{% endif %}
 {% if fw.tests|length > 0 %}
-    <li class="nav-item">
-      <a class="nav-link {% if request.url_rule.endpoint == 'firmware_tests' %}active{% endif %}" href="/lvfs/firmware/{{fw.firmware_id}}/tests">Tests</a>
-    </li>
+      <a class="btn btn-falcon-{{'primary' if request.url_rule.endpoint == 'firmware_tests' else 'default'}}"
+        href="{{url_for('.firmware_tests', firmware_id=fw.firmware_id)}}">Tests</a>
 {% endif %}
-    <li class="nav-item">
-      <a class="nav-link {% if request.url_rule.endpoint == 'firmware_components' %}active{% endif %}" href="/lvfs/firmware/{{fw.firmware_id}}/components">Components</a>
-    </li>
+      <a class="btn btn-falcon-{{'primary' if request.url_rule.endpoint == 'firmware_components' else 'default'}}"
+        href="{{url_for('.firmware_components', firmware_id=fw.firmware_id)}}">Components</a>
 {% if fw.check_acl('@modify-affiliation') %}
-    <li class="nav-item">
-      <a class="nav-link {% if request.url_rule.endpoint == 'firmware_affiliation' %}active{% endif %}" href="/lvfs/firmware/{{fw.firmware_id}}/affiliation">Vendor</a>
-    </li>
+      <a class="btn btn-falcon-{{'primary' if request.url_rule.endpoint == 'firmware_affiliation' else 'default'}}"
+        href="{{url_for('.firmware_affiliation', firmware_id=fw.firmware_id)}}">Vendor</a>
 {% endif %}
-    <li class="nav-item">
-      <a class="nav-link {% if request.url_rule.endpoint == 'firmware_history' %}active{% endif %}" href="/lvfs/firmware/{{fw.firmware_id}}/history">History</a>
-    </li>
 {% if fw.problems|length > 0 %}
-    <li class="nav-item">
-      <a class="nav-link {% if request.url_rule.endpoint == 'firmware_problems' %}active{% endif %}" href="/lvfs/firmware/{{fw.firmware_id}}/problems">Problems ({{fw.problems|length}})</a>
-    </li>
+      <a class="btn btn-falcon-{{'primary' if request.url_rule.endpoint == 'firmware_problems' else 'default'}}"
+        href="{{url_for('.firmware_problems', firmware_id=fw.firmware_id)}}">Problems</a>
 {% endif %}
 {% if fw.check_acl('@add-limit') or fw.check_acl('@remove-limit') %}
-    <li class="nav-item">
-      <a class="nav-link {% if request.url_rule.endpoint == 'firmware_limits' %}active{% endif %}" href="/lvfs/firmware/{{fw.firmware_id}}/limits">Limits</a>
-    </li>
+      <a class="btn btn-falcon-{{'primary' if request.url_rule.endpoint == 'firmware_limits' else 'default'}}"
+        href="{{url_for('.firmware_limits', firmware_id=fw.firmware_id)}}">Limits</a>
 {% endif %}
 {% if fw.check_acl('@view-analytics') %}
 {% if fw.download_cnt > 0 %}
-    <li class="nav-item">
-      <a class="nav-link {% if request.url_rule.endpoint == 'firmware_analytics_clients' %}active{% endif %}" href="/lvfs/firmware/{{fw.firmware_id}}/analytics/clients">Downloads</a>
-    </li>
-    <li class="nav-item">
-      <a class="nav-link {% if request.url_rule.endpoint == 'firmware_analytics_year' %}active{% endif %}" href="/lvfs/firmware/{{fw.firmware_id}}/analytics/year">Year</a>
-    </li>
-    <li class="nav-item">
-      <a class="nav-link {% if request.url_rule.endpoint == 'firmware_analytics_month' %}active{% endif %}" href="/lvfs/firmware/{{fw.firmware_id}}/analytics/month">Month</a>
-    </li>
+      <a class="btn btn-falcon-{{'primary' if request.url_rule.endpoint == 'firmware_analytics_clients' else 'default'}}"
+        href="{{url_for('.firmware_analytics_clients', firmware_id=fw.firmware_id)}}">Downloads</a>
+      <a class="btn btn-falcon-{{'primary' if request.url_rule.endpoint == 'firmware_analytics_year' else 'default'}}"
+        href="{{url_for('.firmware_analytics_year', firmware_id=fw.firmware_id)}}">Year</a>
+      <a class="btn btn-falcon-{{'primary' if request.url_rule.endpoint == 'firmware_analytics_month' else 'default'}}"
+        href="{{url_for('.firmware_analytics_month', firmware_id=fw.firmware_id)}}">Month</a>
 {% endif %}
 {% if fw.reports|length > 0 %}
-    <li class="nav-item">
-      <a class="nav-link {% if request.url_rule.endpoint == 'firmware_analytics_reports' and state == 2 %}active{% endif %}" href="/lvfs/firmware/{{fw.firmware_id}}/analytics/reports/2">👍 Reports</a>
-    </li>
-    <li class="nav-item">
-      <a class="nav-link {% if request.url_rule.endpoint == 'firmware_analytics_reports' and state == 3 %}active{% endif %}" href="/lvfs/firmware/{{fw.firmware_id}}/analytics/reports/3">👎 Reports</a>
-    </li>
-  </ul>
+      <a class="btn btn-falcon-{{'primary' if request.url_rule.endpoint == 'firmware_analytics_reports' and state == 2 else 'default'}}"
+        href="{{url_for('.firmware_analytics_reports', firmware_id=fw.firmware_id, state=2)}}">👍 Reports</a>
+      <a class="btn btn-falcon-{{'primary' if request.url_rule.endpoint == 'firmware_analytics_reports' and state == 3 else 'default'}}"
+        href="{{url_for('.firmware_analytics_reports', firmware_id=fw.firmware_id, state=3)}}">👎 Reports</a>
 {% endif %}
 {% endif %}
+    </div>
+  </div>
 </nav>

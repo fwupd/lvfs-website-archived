@@ -4,7 +4,6 @@
 {% block nav %}{% include 'component-nav.html' %}{% endblock %}
 
 {% block content %}
-
 {% if md.fw.remote.name == 'stable' and not g.user.check_acl('@admin') %}
 <div class="alert alert-danger mt-1" role="alert">
   This firmware has <strong>already been pushed to stable</strong>.
@@ -12,6 +11,9 @@
 </div>
 {% endif %}
 
+<div class="card">
+  <div class="card-body">
+    <h4 class="card-title">Update Details</h4>
 {% if not md.check_acl('@modify-updateinfo') %}
 <table class="table">
 {% if md.release_urgency %}
@@ -57,53 +59,43 @@
 
 <form method="post" action="/lvfs/component/{{md.component_id}}/modify">
 
-<table class="table">
-  <tr class="row table-borderless">
-    <th class="col-sm-3">Update Urgency</th>
-    <td class="col-sm-9">
-      <select class="form-control" id="urgency" name="urgency" required>
-        <option value="unknown" {{ 'selected' if md.release_urgency == 'unknown' }}>Unknown</option>
-        <option value="low" {{ 'selected' if md.release_urgency == 'low' }}>Low</option>
-        <option value="medium" {{ 'selected' if md.release_urgency == 'medium' }}>Medium</option>
-        <option value="high" {{ 'selected' if md.release_urgency == 'high' }}>High</option>
-        <option value="critical" {{ 'selected' if md.release_urgency == 'critical' }}>Critical</option>
-      </select>
-    </td>
-  </tr>
-  <tr class="row table-borderless">
-    <th class="col-sm-3">Release Notes</th>
-    <td class="col-sm-9">
+  <div class="form-group">
+    <label for="urgency">Update Urgency</label>
+    <select class="form-control" id="urgency" name="urgency" required>
+      <option value="unknown" {{ 'selected' if md.release_urgency == 'unknown' }}>Unknown</option>
+      <option value="low" {{ 'selected' if md.release_urgency == 'low' }}>Low</option>
+      <option value="medium" {{ 'selected' if md.release_urgency == 'medium' }}>Medium</option>
+      <option value="high" {{ 'selected' if md.release_urgency == 'high' }}>High</option>
+      <option value="critical" {{ 'selected' if md.release_urgency == 'critical' }}>Critical</option>
+    </select>
+  </div>
+  <div class="form-group">
+    <label for="description">Release Notes</label>
       <textarea class="form-control" name="description" id="description" cols="100" rows="15">{{md.release_description if md.release_description}}</textarea>
       <p class="text-secondary">
         Text is formatted with
         <a href="https://daringfireball.net/projects/markdown/syntax">Markdown</a>.
         Only paragraph and lists are currently supported.
       </p>
-    </td>
-  </tr>
-  <tr class="row table-borderless">
-    <th class="col-sm-3">Update URL</th>
-    <td class="col-sm-9">
-      <input class="form-control" type="test" name="details_url" value="{{md.details_url if md.details_url}}"/>
+  </div>
+  <div class="form-group">
+    <label for="details_url">Update URL</label>
+      <input class="form-control" type="text" name="details_url" value="{{md.details_url if md.details_url}}"/>
       <p class="text-secondary">
         The optional URL listed here should refer specifically to this firmware release.
       </p>
-    </td>
-  </tr>
+  </div>
 {% if md.requires_source_url %}
-  <tr class="row table-borderless">
-    <th class="col-sm-3">Source URL</th>
-    <td class="col-sm-9">
+  <div class="form-group">
+    <label for="source_url">Source URL</label>
       <input class="form-control" type="test" name="source_url" value="{{md.source_url if md.source_url}}"/>
       <p class="text-secondary">
         The source URL listed here should refer specifically to the code used to built this exact firmware release.
       </p>
-    </td>
-  </tr>
+  </div>
 {% endif %}
-  <tr class="row table-borderless">
-    <th class="col-sm-3">Install Duration</th>
-    <td class="col-sm-9">
+  <div class="form-group">
+    <label for="install_duration">Install Duration</label>
       <input class="form-control" type="number" name="install_duration" min="0" max="3600" step="5" value="{{md.install_duration}}"/>
       <p class="text-secondary">
         The value here can be approximate and is given in seconds.
@@ -111,12 +103,14 @@
         time to POST the system both before and after the update has run.
         A value of zero can be used to signify <em>unknown</em>.
       </p>
-    </td>
-  </tr>
-</table>
-  <input class="btn btn-primary" type="submit" value="Save"/>
+  </div>
+  <input class="btn btn-primary" type="submit" value="Update"/>
 </form>
+  </div>
+</div>
 
+<div class="card mt-3">
+  <div class="card-body">
 <h3 class="mt-3">Release Notes Example:</h3>
 <pre class="p-2 border border-info rounded">
 This stable release fixes the following issues:
@@ -128,6 +122,8 @@ Some new functionality has also been added:
 
  * Add support for Joystick Mode to OS X
 </pre>
+  </div>
+</div>
 
 {% endif %}
 {% endblock %}

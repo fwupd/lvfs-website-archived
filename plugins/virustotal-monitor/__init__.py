@@ -17,7 +17,7 @@ class Plugin(PluginBase):
         PluginBase.__init__(self)
 
     def name(self):
-        return 'VirusTotal Monitor'
+        return 'VirusTotal'
 
     def summary(self):
         return 'Upload firmware to VirusTotal for false-positive detection'

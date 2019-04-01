@@ -6,28 +6,26 @@
 {% endblock %}
 
 {% block content %}
-<table class="table">
-  <tr class="row table-borderless">
-    <th class="col-sm-3">Name &amp; Version</th>
-    <th class="col-sm-7">Component ID</th>
-    <th class="col-sm-2">&nbsp;</th>
-  </tr>
+
 {% for md in fw.mds|sort(attribute='priority',reverse=True) %}
-  <tr class="row">
-    <td class="col-sm-3">
-      {{md.name}} v{{md.version_display}}
-    </td>
-    <td class="col-sm-7">
-      <code>{{md.appstream_id}}</code>
-    </td>
-    <td class="col-sm-2 text-right">
-      <form method="get" action="/lvfs/component/{{md.component_id}}">
-        <button class="btn btn-block btn-info">Details</button>
-      </form>
-    </td>
-  </tr>
+<div class="card mt-3">
+  <div class="card-body">
+    <h4 class="card-title">{{md.name_with_category}}</h4>
+    <table class="table card-text table-borderless">
+      <tr class="row">
+        <th class="col-sm-3">Version</th>
+        <td><code>{{md.version_display}}</code></td>
+      </tr>
+      <tr class="row">
+        <th class="col-sm-3">AppStream ID</th>
+        <td><code>{{md.appstream_id}}</code></td>
+      </tr>
+    </table>
+    <a class="card-link btn btn-info" href="{{url_for('.firmware_component_show', component_id=md.component_id)}}">Details</a>
+  </div>
+</div>
 {% endfor %}
-</table>
+
 {% endblock %}
 
 {% block breadcrumb %}{% include 'firmware-breadcrumb.html' %}{% endblock %}

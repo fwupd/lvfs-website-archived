@@ -2,7 +2,9 @@
 {% block title %}Agreement List{% endblock %}
 
 {% block content %}
-<h1>Agreement List</h1>
+<div class="card">
+  <div class="card-body">
+    <h1 class="card-title">Agreement List</h1>
 {% if agreements|length > 0 %}
 <table class="table">
   <tr class="row table-borderless">
@@ -35,5 +37,7 @@
   No agreements defined.
 </p>
 {% endif %}
+  </div>
+</div>
 
 {% endblock %}

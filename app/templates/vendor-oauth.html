@@ -8,6 +8,8 @@
   Be <b>very careful</b> using this feature as this could allow unauthorised
   users to upload files to your embargoed remote.
 </div>
+<div class="card mt-3">
+  <div class="card-body">
 <form method="post" action="/lvfs/vendor/{{v.vendor_id}}/modify_by_admin">
   <div class="form-group">
     <label for="auth_type">Action when user with no account logs in using OAuth:</label>
@@ -31,6 +33,8 @@
   </div>
   <input type="submit" class="btn btn-primary btn-large" value="Modify">
 </form>
+  </div>
+</div>
 {% endblock %}
 
 {% block breadcrumb %}{% include 'vendor-breadcrumb.html' %}{% endblock %}

@@ -2,100 +2,161 @@
 {% block title %}Home{% endblock %}
 
 {% block content %}
-<h1>Modify Local User</h1>
-  <form class="form" method="post" action="/lvfs/user/{{g.user.user_id}}/modify">
-    <div class="form-group row">
-      <label for="name" class="col-sm-2 col-form-label">Display Name</label>
-      <div class="col-sm-10">
-        <input type="text" class="form-control" name="display_name" value="{{g.user.display_name}}" required>
+
+<div class="row no-gutters">
+
+  <div class="col-xl-8 pr-xl-2">
+
+    <!-- profile -->
+    <div class="card mb-3">
+      <div class="card-header">
+        <h5 class="mb-0">Profile Settings</h5>
       </div>
-    </div>
-    <div class="form-group row">
-      <label for="password_old" class="col-sm-2 col-form-label">Current Password</label>
-      <div class="col-sm-10">
-        <input type="password" class="form-control" name="password_old" required>
-      </div>
-    </div>
-    <div class="form-group row">
-      <label for="password_new" class="col-sm-2 col-form-label">New Password</label>
-      <div class="col-sm-10">
-        <input type="password" class="form-control" name="password_new" required>
-        <p class="text-secondary">
-          A good password consists of upper and lower case with numbers.
-        </p>
-      </div>
-    </div>
+      <div class="card-body bg-light">
+        <form class="form" method="post" action="{{url_for('.user_modify', user_id=g.user.user_id)}}">
+          <div class="row">
+            <div class="col-lg-12">
+              <div class="form-group">
+                <label for="display_name">Display Name</label>
+                <input class="form-control" id="display_name" type="text" name="display_name" value="{{g.user.display_name}}" required>
+              </div>
+            </div>
 {% if g.user.is_robot %}
-    <div class="form-group row">
-      <label for="human_user" class="col-sm-2 col-form-label">Contact Email</label>
-      <div class="col-sm-10">
-        <input type="email" class="form-control" name="human_user" value="{{u.human_user.username}}">
-        <p class="text-secondary">
-          This has to match the exact username of an existing LVFS user.
+            <div class="col-12">
+              <div class="form-group">
+                <label for="human_user">Contact Email</label>
+                <input class="form-control" id="human_user" type="text" name="human_user" value="{{u.human_user.username}}">
+                <p class="text-secondary">
+                  This has to match the exact username of an existing LVFS user.
+                </p>
+              </div>
+            </div>
+{% endif %}
+          </div>
+          <button class="btn btn-primary" type="submit">Update</button>
+        </form>
+      </div>
+    </div>
+
+    <!-- certificates -->
+    <div class="card mb-3 mb-xl-0">
+      <div class="card-header">
+        <h5 class="mb-0">Client Certificates</h5>
+      </div>
+      <div class="card-body bg-light">
+        <p class="card-text">
+          Client certificates are used to verify that a report was sent from a specific
+          user or machine and can be used to automatically set device checksums.
         </p>
-      </div>
-    </div>
-{% endif %}
-    <div class="form-group row">
-      <div class="col-sm-2">Two Factor Auth</div>
-      <div class="col-sm-10">
-        <span class="switch mt-3 mb-3">
-          <input class="switch mt-3" type="checkbox" name="is_otp_enabled" id="is_otp_enabled" value="1" {{'checked' if u.is_otp_enabled}} {{'disabled' if not u.is_otp_working}}>
-          <label for="is_otp_enabled">
-            Using OTP secures your account more than using just using a password.
-          </label>
-        </span>
-{% if g.user.is_otp_working %}
-        <button type="button" class="btn btn-secondary float-right" data-toggle="modal" data-target="#otpSetupModal">
-          Show QR Code
-        </button>
-{% else %}
-        <button type="button" class="btn btn-secondary float-right" data-toggle="modal" data-target="#otpSetupModal">
-          Set up using QR code
-        </button>
-{% endif %}
-      </div>
-    </div>
-    <div class="form-group row">
-      <div class="col-sm-2"></div>
-      <div class="col-sm-10">
-        <input type="submit" class="btn btn-primary btn-large" value="Modify">
-      </div>
-    </div>
-  </form>
-
-<h2 class="mt-4">Client Certificates</h2>
+        <p class="card-text">
+          The <code>/var/lib/fwupd/pki/client.pem</code> certificate is automatically
+          created when using fwupd 1.2.6 or newer.
+        </p>
 {% if g.user.certificates|length == 0 %}
-<p class="text-muted">
-  No client certificates have been uploaded for this user.
-</p>
+        <p class="text-muted">
+          No client certificates have been uploaded for this user.
+        </p>
 {% else %}
-<table class="table">
-  <tr class="row table-borderless">
-    <th class="col-sm-2">Added</th>
-    <th class="col-sm-8">Signature</th>
-    <th class="col-sm-2">&nbsp;</th>
-  </tr>
+        <table class="table">
+          <tr class="row table-borderless">
+            <th class="col-sm-3">Added</th>
+            <th class="col-sm-7">Signature</th>
+            <th class="col-sm-2">&nbsp;</th>
+          </tr>
 {% for crt in g.user.certificates %}
-  <tr class="row">
-    <td class="col-sm-2">{{crt.ctime}}</td>
-    <td class="col-sm-8"><code>{{crt.serial}}</code></td>
-    <td class="col-sm-2">
-      <a class="btn btn-danger btn-block"
-         href="{{url_for('.user_certificate_remove',
-                         certificate_id=crt.certificate_id)}}">Remove</a>
-    </td>
-  </tr>
+          <tr class="row">
+            <td class="col-sm-3">{{crt.ctime}}</td>
+            <td class="col-sm-7"><code>{{crt.serial}}</code></td>
+            <td class="col-sm-2">
+              <a class="btn btn-falcon-danger btn-block"
+                 href="{{url_for('.user_certificate_remove',
+                                 certificate_id=crt.certificate_id)}}">Remove</a>
+            </td>
+          </tr>
 {% endfor %}
-</table>
+        </table>
 {% endif %}
+        <form method="post" enctype="multipart/form-data" action="{{url_for('.user_certificate_add')}}" id="form">
+          <label class="btn btn-primary card-text">
+            Upload Certificate
+            <input type="file" id="file" name="file" hidden>
+          </label>
+        </form>
+      </div>
+    </div>
+  </div>
 
-<form method="post" enctype="multipart/form-data" action="{{url_for('.user_certificate_add')}}" id="form">
-  <label class="btn btn-primary">
-    Upload Certificate
-    <input type="file" id="file" name="file" hidden>
-  </label>
-</form>
+{% if g.user.check_acl('@manage-password') %}
+  <div class="col-xl-4 pl-xl-2">
+    <div class="sticky-top sticky-sidebar">
+
+      <!-- authentication -->
+      <div class="card mb-3 overflow-hidden">
+        <div class="card-header">
+          <h5 class="mb-0">Authentication</h5>
+        </div>
+        <div class="card-body bg-light">
+          <form method="post" action="{{url_for('.user_auth', user_id=g.user.user_id)}}">
+            <h6 class="font-weight-bold">Two Factor Auth</h6>
+            <p>Using 2 factor authentication secures your account more than just using a password.</p>
+{% if g.user.is_otp_working %}
+            <div class="custom-control custom-switch">
+              <input class="custom-control-input" type="checkbox" id="is_otp_enabled"
+                name="is_otp_enabled" value="1" {{'checked' if u.is_otp_enabled}}/>
+              <label class="custom-control-label" for="is_otp_enabled">
+                Require OTP to login
+              </label>
+            </div>
+{% endif %}
+            <button type="button" class="btn btn-secondary btn-block mt-3" data-toggle="modal" data-target="#otpSetupModal">
+              {{ 'Show QR Code' if g.user.is_otp_working else 'Set up using QR code' }}
+            </button>
+            <button class="btn btn-primary btn-block" type="submit">Update</button>
+          </form>
+        </div>
+      </div>
+
+      <!-- password -->
+      <div class="card mb-3">
+        <div class="card-header">
+          <h5 class="mb-0">Change Password</h5>
+        </div>
+        <div class="card-body bg-light">
+          <form method="post" action="{{url_for('.user_password', user_id=g.user.user_id)}}">
+            <div class="form-group">
+              <label for="password_old">Old Password</label>
+              <input class="form-control" id="password_old" type="password" name="password_old" required>
+            </div>
+            <div class="form-group">
+              <label for="password_new">New Password</label>
+              <input class="form-control" id="password_new" type="password" name="password_new" required>
+            </div>
+            <div class="form-group">
+              <label for="password_confirm">Confirm Password</label>
+              <input class="form-control" id="password_confirm" type="password" name="password_confirm" required>
+            </div>
+            <button class="btn btn-primary btn-block" type="submit">Update Password</button>
+          </form>
+        </div>
+      </div>
+
+      <!-- deactivate -->
+      <div class="card">
+        <div class="card-header">
+          <h5 class="mb-0">Danger Zone</h5>
+        </div>
+        <div class="card-body bg-light">
+          <h5 class="fs-0">Delete this account</h5>
+          <p class="fs--1">Once you delete a account, there is no going back.</p>
+          <button type="button" class="btn btn-block btn-falcon-danger" data-toggle="modal" data-target="#deactivateModal">
+            Deactivate Account
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+{% endif %}
+</div>
 
 <script>
 // one click upload button
@@ -103,16 +164,6 @@ document.getElementById("file").onchange = function() {
     document.getElementById("form").submit();
 }
 </script>
-
-<div class="card mt-3">
-  <h3 class="card-header list-group-item-info">Where can I find the client certificate?</h3>
-  <div class="card-body">
-    <p class="card-text">
-      The <code>/var/lib/fwupd/pki/client.pem</code> file is automatically
-      created when using fwupd 1.2.6 or newer.
-    </p>
-  </div>
-</div>
 
 <!-- Modal -->
 <div class="modal" id="otpSetupModal" tabindex="-1" role="dialog" aria-labelledby="otpSetupModalLabel" aria-hidden="true">
@@ -125,7 +176,7 @@ document.getElementById("file").onchange = function() {
         </button>
       </div>
       <div class="modal-body">
-        <p>
+        <p class="card-text">
           Please use <a href="https://freeotp.github.io/">FreeOTP</a>,
           <a href="https://play.google.com/store/apps/details?id=com.google.android.apps.authenticator2">Google Authenticator</a>
           or any other suitable OTP application to scan this QR code:
@@ -145,6 +196,30 @@ document.getElementById("file").onchange = function() {
       </div>
       <div class="modal-footer">
         <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- modal dialog -->
+<div class="modal" id="deactivateModal" tabindex="-1" role="dialog" aria-labelledby="nukeModalLabel" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="nukeModalLabel">Really Deactivate User?</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <p class="card-text">
+          This will deactivate the this user account and you will no longer be
+          able to access any of the files you have uploaded to the LVFS.
+        </p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+        <a class="btn btn-danger" href="{{url_for('.user_deactivate', user_id=g.user.user_id)}}">☠ Deactivate ☠</a>
       </div>
     </div>
   </div>

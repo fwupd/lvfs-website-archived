@@ -3,8 +3,10 @@
 {% block title %}MetaInfo Files : Update Category{% endblock %}
 
 {% block content %}
-<h2>Update Category</h2>
-<p>
+<div class="card">
+  <div class="card-body">
+    <h2 class="card-title">Update Category</h2>
+<p class="card-text">
   By telling the LVFS the firmware category to use for the component the front end can
   correctly translate the update type in the UI.
   Also for this reason, <code>.metainfo.xml</code> files <strong>should not</strong>
@@ -12,7 +14,7 @@
   <code>Device</code> or <code>Update</code> in the component name and they will
   be removed if included.
 </p>
-<p>
+<p class="card-text">
   The component category can be set as part of the <code>metainfo.xml</code> file
   or set from the LVFS web console.
   Most users will want to include the extra metadata to make the upload process
@@ -24,10 +26,13 @@
     &lt;category&gt;some-value-here&lt;/category&gt;
   &lt;/categories&gt;
 </pre>
-<p>
-  Allowed values for <code>category</code> are currently:
-</p>
-<table class="table">
+  </div>
+</div>
+
+<div class="card mt-3">
+  <div class="card-body">
+    <h2 class="card-title">Allowed values for categories:</h2>
+<table class="table card-text">
   <tr class="row table-borderless">
     <th class="col-sm-5">Value</th>
     <th class="col-sm-5">Displayed Name</th>
@@ -39,5 +44,7 @@
   </tr>
 {% endfor %}
 </table>
+  </div>
+</div>
 
 {% endblock %}

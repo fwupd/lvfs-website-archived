@@ -3,8 +3,10 @@
 {% block title %}Composite Hardware{% endblock %}
 
 {% block content %}
-<h1>Composite Hardware</h1>
-<p>
+<div class="card">
+  <div class="card-body">
+    <h1 class="card-title">Composite Hardware</h1>
+<p class="card-text">
   A vendor can build a single <code>.cab</code> archive with multiple firmware files with
   different <code>.metainfo.xml</code> files describing them.
   This allows a single file to be used to update either multiple devices, or
@@ -13,12 +15,12 @@
   are various components connected using USB, but physically it looks like one
   piece of hardware. Wacom does the same for the various Intuit tablets.
 </p>
-<p>
+<p class="card-text">
   Some tools such as gnome-software may be unable to show more than one update
   description for the single .cab file. The LVFS also needs to know how to sort
   the components inside the firmware when showing the logged in user.
 </p>
-<p>
+<p class="card-text">
   To solve this, assign the firmware components a priority, where higher numbers
   are better. For example <code>main.metainfo.xml</code>:
 </p>
@@ -30,7 +32,7 @@
   ...
 &lt;/component&gt;
 </pre>
-<p>
+<p class="card-text">
 and also <code>rts1234.metainfo.xml</code>:
 </p>
 <pre>
@@ -41,7 +43,7 @@ and also <code>rts1234.metainfo.xml</code>:
   ...
 &lt;/component&gt;
 </pre>
-<p>
+<p class="card-text">
 and <code>atmel567.metainfo.xml</code>:
 </p>
 <pre>
@@ -53,9 +55,11 @@ and <code>atmel567.metainfo.xml</code>:
 &lt;/component&gt;
 </pre>
 
-<figure class="text-center">
+<figure class="text-center card-text">
   <img src="/img/get-topology.png" class="p-3 border border-info rounded figure-img img-fluid" alt="topology cli output">
   <figcaption class="figure-caption">Showing the topology of a dock device.</figcaption>
 </figure>
+  </div>
+</div>
 
 {% endblock %}

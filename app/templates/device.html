@@ -4,68 +4,75 @@
 {% block nav %}{% include 'device-nav.html' %}{% endblock %}
 
 {% block content %}
-<h2>Device Details</h2>
 
 {% if fws|length == 0 %}
-
-<p>No firmware is available for this device.</p>
+<div class="card">
+  <div class="card-body">
+    <h2 class="card-title">Device Details</h2>
+    <p class="card-text">No firmware is available for this device.</p>
+  </div>
+</div>
 
 {% else %}
 
-<p>This page show all the firmware releases for a specific device.</p>
-<table class="table">
-  <tr class="row">
-    <th class="col-sm-2">Name</th>
-    <td class="col-sm-10">{{fws[0].md_prio.name}}</td>
-  </tr>
-  <tr class="row">
-    <th class="col-sm-2">Summary</th>
-    <td class="col-sm-10">{{fws[0].md_prio.summary}}</td>
-  </tr>
-  <tr class="row">
-    <th class="col-sm-2">Developer Name</th>
-  <td class="col-sm-10"><a href="{{fws[0].md_prio.url_homepage}}">{{fws[0].md_prio.developer_name}}</a></td>
-  </tr>
+<div class="card">
+  <div class="card-body">
+    <h2 class="card-title">Device Details</h2>
+<p class="card-text">This page show all the firmware releases for a specific device.</p>
+<table class="table card-text">
+  <div class="row">
+    <div class="col-sm-2">Name</div>
+    <div class="col-sm-10">{{fws[0].md_prio.name}}</div>
+  </div>
+  <div class="row">
+    <div class="col-sm-2">Summary</div>
+    <div class="col-sm-10">{{fws[0].md_prio.summary}}</div>
+  </div>
+  <div class="row">
+    <div class="col-sm-2">Developer Name</div>
+  <div class="col-sm-10"><a href="{{fws[0].md_prio.url_homepage}}">{{fws[0].md_prio.developer_name}}</a></div>
+  </div>
 </table>
+  </div>
+</div>
 
-<h1>Update History</h1>
 {% for fw in fws %}
-
 {% if (g.user is defined and g.user.check_acl('@admin')) or fw.remote.is_public %}
-<h2 class="mt-3">Version {{fw.version_display}}:</h2>
+<div class="card mt-3">
+  <div class="card-body">
+  <h2 class="card-title">Version {{fw.version_display}}:</h2>
 {% if fw.remote.name == 'testing' %}
-<p>
+<p class="card-text">
   <b>Warning:</b> This firmware is in the testing state and may not be suitable for
   production systems.
 </p>
 {% endif %}
-<div class="container mt-3">
-<table class="table">
-  <tr class="row">
-    <th class="col-sm-2">Uploaded</th>
-    <td class="col-sm-10">{{fw.timestamp}}</td>
-  </tr>
-  <tr class="row">
-    <th class="col-sm-2">State</th>
-    <td class="col-sm-10">{{fw.remote.name}}</td>
-  </tr>
-  <tr class="row">
-    <th class="col-sm-2">Urgency</th>
-    <td class="col-sm-10">{{fw.md_prio.release_urgency}}</td>
-  </tr>
-  <tr class="row">
-    <th class="col-sm-2">License</th>
-    <td class="col-sm-10">
+<div class="table card-text">
+  <div class="row">
+    <div class="col-sm-2 font-weight-bold">Uploaded</div>
+    <div class="col-sm-10">{{fw.timestamp}}</div>
+  </div>
+  <div class="row">
+    <div class="col-sm-2 font-weight-bold">State</div>
+    <div class="col-sm-10">{{fw.remote.name}}</div>
+  </div>
+  <div class="row">
+    <div class="col-sm-2 font-weight-bold">Urgency</div>
+    <div class="col-sm-10">{{fw.md_prio.release_urgency}}</div>
+  </div>
+  <div class="row">
+    <div class="col-sm-2 font-weight-bold">License</div>
+    <div class="col-sm-10">
 {% if fw.md_prio.requires_source_url %}
       <a href="{{fw.md_prio.source_url}}">{{fw.md_prio.project_license}}</a>
 {% else %}
       {{fw.md_prio.project_license}}
 {% endif %}
-    </td>
-  </tr>
-  <tr class="row">
-    <th class="col-sm-2">Filename</th>
-    <td class="col-sm-10">
+    </div>
+  </div>
+  <div class="row">
+    <div class="col-sm-2 font-weight-bold">Filename</div>
+    <div class="col-sm-10">
 {% if fw.inhibit_download %}
       <p class="text-muted">
         The OEM that uploaded this firmware has chosen to disable downloads of
@@ -76,20 +83,20 @@
 {% else %}
       <a href="/downloads/{{fw.filename}}">{{fw.filename[41:]}}</a>
 {% endif %}
-    </td>
-  </tr>
-  <tr class="row">
-    <th class="col-sm-2">Description</th>
-    <td class="col-sm-10">
+    </div>
+  </div>
+  <div class="row">
+    <div class="col-sm-2 font-weight-bold">Description</div>
+    <div class="col-sm-10">
       {{format_html_from_markdown(fw.md_prio.release_description)|safe}}
 {% if fw.md_prio.details_url %}
       <a class="btn" href="{{fw.md_prio.details_url}}">More details</a>
 {% endif %}
-    </td>
-  </tr>
-  <tr class="row">
-    <th class="col-sm-2">Security</th>
-    <td class="col-sm-10">
+    </div>
+  </div>
+  <div class="row">
+    <div class="col-sm-2 font-weight-bold">Security</div>
+    <div class="col-sm-10">
       <ul class="list-group">
 {% for attr in fw.security_claim.attrs|sort() %}
         <li class="list-group-item">
@@ -102,15 +109,13 @@
         </li>
 {% endfor %}
       </ul>
-    </td>
-  </tr>
-</table>
+    </div>
+  </div>
 </div>
 {% endif %}
-
+  </div>
+</div>
 {% endfor %}
-
-<hr/>
 
 {% endif %}
 

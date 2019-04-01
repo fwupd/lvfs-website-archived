@@ -25,7 +25,9 @@ def issue_all():
     for issue in db.session.query(Issue).order_by(Issue.priority.desc()).all():
         if issue.check_acl('@view'):
             issues.append(issue)
-    return render_template('issue-list.html', issues=issues)
+    return render_template('issue-list.html',
+                           category='firmware',
+                           issues=issues)
 
 @app.route('/lvfs/issue/add', methods=['POST'])
 @login_required
@@ -227,7 +229,9 @@ def issue_details(issue_id):
         return _error_permission_denied('Unable to view issue details')
 
     # show details
-    return render_template('issue-details.html', issue=issue)
+    return render_template('issue-details.html',
+                           category='firmware',
+                           issue=issue)
 
 @app.route('/lvfs/issue/<int:issue_id>/priority/<op>')
 @login_required
@@ -292,6 +296,7 @@ def issue_reports(issue_id):
 
     # show reports
     return render_template('issue-reports.html',
+                           category='firmware',
                            issue=issue,
                            reports=reports,
                            reports_hidden=reports_hidden,
@@ -313,4 +318,6 @@ def issue_conditions(issue_id):
         return _error_permission_denied('Unable to view issue conditions')
 
     # show details
-    return render_template('issue-conditions.html', issue=issue)
+    return render_template('issue-conditions.html',
+                           category='firmware',
+                           issue=issue)

@@ -1,21 +1,18 @@
 <nav>
-  <ul class="nav nav-tabs">
-    <li class="nav-item">
-      <a class="nav-link {% if page == 'overview' %}active{% endif %}" href="/lvfs/component/{{md.component_id}}">Overview</a>
-    </li>
+  <div class="text-center mb-3">
+    <div class="btn-group" role="group">
+      <a class="btn btn-falcon-{{'primary' if request.url_rule.endpoint == 'firmware_component_show' and page == 'overview' else 'default'}}"
+        href="{{url_for('.firmware_component_show', component_id=md.component_id, page='overview')}}">Overview</a>
 {% if md.protocol and md.protocol.can_verify %}
-    <li class="nav-item">
-      <a class="nav-link {% if page == 'checksums' %}active{% endif %}" href="/lvfs/component/{{md.component_id}}/checksums">Device Checksums</a>
-    </li>
+      <a class="btn btn-falcon-{{'primary' if request.url_rule.endpoint == 'firmware_component_show' and page == 'checksums' else 'default'}}"
+        href="{{url_for('.firmware_component_show', component_id=md.component_id, page='checksums')}}">Device Checksums</a>
 {% endif %}
-    <li class="nav-item">
-      <a class="nav-link {% if page == 'update' %}active{% endif %}" href="/lvfs/component/{{md.component_id}}/update">Update Details</a>
-    </li>
-    <li class="nav-item">
-      <a class="nav-link {% if page in ['requires', 'requires-advanced'] %}active{% endif %}" href="/lvfs/component/{{md.component_id}}/requires">Requirements</a>
-    </li>
-    <li class="nav-item">
-      <a class="nav-link {% if page == 'keywords' %}active{% endif %}" href="/lvfs/component/{{md.component_id}}/keywords">Search Keywords</a>
-    </li>
-  </ul>
+      <a class="btn btn-falcon-{{'primary' if request.url_rule.endpoint == 'firmware_component_show' and page == 'update' else 'default'}}"
+        href="{{url_for('.firmware_component_show', component_id=md.component_id, page='update')}}">Update Details</a>
+      <a class="btn btn-falcon-{{'primary' if request.url_rule.endpoint == 'firmware_component_show' and page in ['requires', 'requires-advanced'] else 'default'}}"
+        href="{{url_for('.firmware_component_show', component_id=md.component_id, page='requires')}}">Requirements</a>
+      <a class="btn btn-falcon-{{'primary' if request.url_rule.endpoint == 'firmware_component_show' and page == 'keywords' else 'default'}}"
+        href="{{url_for('.firmware_component_show', component_id=md.component_id, page='keywords')}}">Search Keywords</a>
+    </div>
+  </div>
 </nav>

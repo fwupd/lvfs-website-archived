@@ -1,13 +1,12 @@
 <nav>
-  <ul class="nav nav-tabs">
-    <li class="nav-item">
-      <a class="nav-link {% if request.url_rule.endpoint == 'issue_details' %}active{% endif %}" href="/lvfs/issue/{{issue.issue_id}}/details">Details</a>
-    </li>
-    <li class="nav-item">
-      <a class="nav-link {% if request.url_rule.endpoint == 'issue_conditions' %}active{% endif %}" href="/lvfs/issue/{{issue.issue_id}}/conditions">Conditions</a>
-    </li>
-    <li class="nav-item">
-      <a class="nav-link {% if request.url_rule.endpoint == 'issue_reports' %}active{% endif %}" href="/lvfs/issue/{{issue.issue_id}}/reports">Matching Reports</a>
-    </li>
-  </ul>
+  <div class="text-center mb-3">
+    <div class="btn-group" role="group">
+      <a class="btn btn-falcon-{{'primary' if request.url_rule.endpoint == 'issue_details' else 'default'}}"
+        href="{{url_for('.issue_details', issue_id=issue.issue_id)}}">Details</a>
+      <a class="btn btn-falcon-{{'primary' if request.url_rule.endpoint == 'issue_conditions' else 'default'}}"
+        href="{{url_for('.issue_conditions', issue_id=issue.issue_id)}}">Conditions</a>
+      <a class="btn btn-falcon-{{'primary' if request.url_rule.endpoint == 'issue_reports' else 'default'}}"
+        href="{{url_for('.issue_reports', issue_id=issue.issue_id)}}">Matching Reports</a>
+    </div>
+  </div>
 </nav>

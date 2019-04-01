@@ -3,8 +3,10 @@
 
 {% block content %}
 {% if vendor_ids|length > 0 %}
-<h2>Restrictions</h2>
-<p>
+<div class="card mt-3">
+  <div class="card-body">
+    <h2 class="card-title">Restrictions</h2>
+<p class="card-text">
   Due to the sensitive nature of providing firmware files we ensure that only
   vendors can install firmware on their own devices.
   You are currently limited to providing firmware with the vendor IDs of:
@@ -14,15 +16,19 @@
 <li><code>{{vendor_id}}</code></li>
 {% endfor %}
 </ul>
-<p>
+<p class="card-text">
   If you need to add another vendor ID then please
   <a href="https://github.com/hughsie/lvfs-website/issues">file an issue</a>
   with further information.
 </p>
+  </div>
+</div>
 {% endif %}
 
-<h2>Upload Firmware</h2>
-<p>
+<div class="card mt-3">
+  <div class="card-body">
+    <h2 class="card-title">Upload Firmware</h2>
+<p class="card-text">
   Uploading firmware is covered by <a href="/lvfs/agreement">our legal agreement</a>.
 </p>
 <form action="/lvfs/upload" method="post" enctype="multipart/form-data" class="form">
@@ -70,4 +76,6 @@
     </div>
   </div>
 </form>
+  </div>
+</div>
 {% endblock %}

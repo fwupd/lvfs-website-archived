@@ -2,6 +2,9 @@
 {% block title %}Report {{rpt.report_id}}{% endblock %}
 
 {% block content %}
+<div class="card">
+  <div class="card-body">
+  <h1 class="card-title">Report {{rpt.report_id}}</h1>
 <table class="table">
   <tr class="row table-borderless">
     <th class="col-sm-5">Key</th>
@@ -15,4 +18,6 @@
   </tr>
 {% endfor %}
 </table>
+  </div>
+</div>
 {% endblock %}

@@ -8,8 +8,10 @@
 </div>
 {% endif %}
 
+<div class="card mt-3">
+  <div class="card-body">
+    <h2 class="card-title">Telemetry for group {{group_id}}</h2>
 {% if firmware|length > 0 %}
-<h2>Telemetry for group {{group_id}}</h2>
 <div class="container mt-3">
 <table class="table">
   <tr class="row">
@@ -78,5 +80,7 @@
   No firmware analytics available.
 </p>
 {% endif %}
+  </div>
+</div>
 
 {% endblock %}
