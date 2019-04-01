@@ -37,29 +37,9 @@
       </p>
     </td>
     <td class="col-sm-1">
-{% if fw.remote.name == 'private' %}
-      <img src="/img/symbolic-private.svg" width="24"
+      <img src="/img/symbolic-{{fw.remote.icon_name}}.svg" width="24"
         alt="{{fw.remote.name}}"
-        title="This firmware is only available to you"/>
-{% elif fw.remote.name == 'testing' %}
-      <img src="/img/symbolic-testing.svg" width="24"
-        alt="{{fw.remote.name}}"
-        title="This firmware is available to the public"/>
-{% elif fw.remote.name == 'stable' %}
-      <img src="/img/symbolic-stable.svg" width="24"
-        alt="{{fw.remote.name}}"
-        title="This firmware is available to the public"/>
-{% elif fw.remote.name == 'deleted' %}
-      <img src="/img/symbolic-trash.svg" width="24"
-        alt="{{fw.remote.name}}"
-        title="This firmware has been deleted"/>
-{% elif fw.remote.name.startswith('embargo') %}
-      <img src="/img/symbolic-embargo.svg" width="24"
-        alt="{{fw.remote.name}}"
-        title="This firmware has been embargoed"/>
-{% else %}
-      {{fw.remote.name}}
-{% endif %}
+        title="{{fw.remote.description}}"/>
 {% if fw.problems|length %}
       <img src="/img/symbolic-problem.svg" width="24"
         title="{{fw.problems|length}} problems"/>

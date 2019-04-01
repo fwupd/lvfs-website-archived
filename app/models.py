@@ -1074,6 +1074,28 @@ class Remote(db.Model):
         return self.name == 'deleted'
 
     @property
+    def icon_name(self):
+        if self.name in ['private', 'testing', 'stable']:
+            return self.name
+        if self.name == 'deleted':
+            return 'trash'
+        if self.name.startswith('embargo'):
+            return 'embargo'
+        return None
+
+    @property
+    def description(self):
+        if self.name == 'private':
+            return 'Only available to you'
+        if self.name in ['testing', 'stable']:
+            return 'Available to the public'
+        if self.name == 'deleted':
+            return 'Deleted'
+        if self.name.startswith('embargo'):
+            return 'Embargoed'
+        return None
+
+    @property
     def is_signed(self):
         return self.name != 'deleted' and self.name != 'private'
 
