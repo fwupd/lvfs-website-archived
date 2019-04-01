@@ -1,0 +1,135 @@
+{% extends "default.html" %}
+{% block title %}Dashboard{% endblock %}
+
+{% block content %}
+{% if server_warning %}
+<div class="container mt-3">
+  <div class="alert alert-warning" role="alert">
+    <b>WARNING:</b>{{server_warning}}
+  </div>
+</div>
+{% endif %}
+
+{% if default_admin_password %}
+<div class="container mt-3">
+  <div class="alert alert-danger" role="alert">
+    <b>WARNING</b> the default admin password <code>Pa$$w0rd</code> is still in use!
+  </div>
+</div>
+{% endif %}
+
+<div class="card mt-4">
+  <div class="card-body">
+    <div class="card-body">
+      <h4>Downloads over the last 30 days</h4>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.7.1/Chart.js" integrity="sha256-t3+U9BqykoMN9cqZmJ5Z53TvPv4V7S9AmjUcIWNNyxo=" crossorigin="anonymous"></script>
+<script>
+Chart.defaults.global.animation = false;
+</script>
+<canvas id="metadataChartMonthsDays" width="600" height="200"></canvas>
+<script>
+var ctx = document.getElementById("metadataChartMonthsDays").getContext("2d");
+var data = {
+    labels: {{labels_days|safe}},
+    datasets: [
+        {
+            label: "Firmware",
+            borderColor: "rgba(20,120,220,0.2)",
+            backgroundColor: "rgba(20,120,220,0.2)",
+            data: {{data_days|safe}}
+        },
+    ]
+};
+
+new Chart(ctx, {
+    type: 'line',
+    data: data,
+    options: {
+        legend: {
+            display: false
+        },
+        scales: {
+            yAxes: [{
+                ticks: {
+                    beginAtZero: true
+                }
+            }]
+        }
+    }
+});
+
+</script>
+    </div>
+  </div>
+</div>
+
+<div class="card-deck mt-4">
+  <div class="card">
+    <div class="card-body">
+      <h4 class="card-title">Downloads</h4>
+      <p class="card-text">{{g.user.vendor.fws|length}} firmware files from {{g.user.vendor.display_name}} have been downloaded {{download_cnt}} times!</p>
+{% if g.user.check_acl('@view-analytics') %}
+      <a href="{{url_for('.telemetry')}}" class="card-link">Telemetry</a>
+{% endif %}
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-body">
+      <h4 class="card-title">Devices</h4>
+      <p class="card-text">You have {{devices_cnt}} different devices supported on the LVFS.</p>
+      <a href="{{url_for('.firmware')}}" class="card-link">Show all</a>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-body">
+      <h4 class="card-title">Users</h4>
+      <p class="card-text">{{g.user.vendor.users|length}} users are in your organisation.</p>
+{% if g.user.vendor.check_acl('@manage-users') %}
+      <a href="{{url_for('.vendor_users', vendor_id=g.user.vendor.vendor_id)}}" class="card-link">Manage</a>
+{% endif %}
+    </div>
+  </div>
+</div>
+
+<div class="card mt-4">
+  <div class="card-body">
+    <div class="card-body">
+      <h4>Recently uploaded firmware</h4>
+<div class="table card-text">
+{% for fw in fws_recent %}
+  <div class="row table-borderless">
+    <div class="col-sm-6 pt-1">
+      <h5 class="list-group-item-title">
+        {{fw.mds[0].developer_name_display}}
+        {{fw.mds[0].name}} -
+        <span class="text-muted">{{fw.version_display}}</span>
+      </h5>
+    </div>
+    <div class="col-sm-2 pt-1">
+      <img src="/img/symbolic-{{fw.remote.icon_name}}.svg" width="24"
+        alt="{{fw.remote.name}}"
+        title="{{fw.remote.description}}"/>
+{% if fw.problems|length %}
+      <img src="/img/symbolic-problem.svg" width="24"
+        title="{{fw.problems|length}} problems"/>
+{% endif %}
+    </div>
+    <div class="col-sm-2 pt-1">
+      <span class="text-muted">
+        <img src="/img/symbolic-download.svg" width="24" alt="download icon"/>
+        {{format_humanize_intchar(fw.download_cnt)}}
+      </span>
+    </div>
+    <div class="col-sm-2 text-right pt-1">
+      <a class="btn btn-info btn-block"
+        href="/lvfs/firmware/{{fw.firmware_id}}">Details</a>
+    </div>
+  </div>
+{% endfor %}
+</div>
+      <a href="{{url_for('.firmware_all')}}" class="card-link">Show all</a>
+    </div>
+  </div>
+</div>
+
+{% endblock %}

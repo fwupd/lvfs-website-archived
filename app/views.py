@@ -29,7 +29,7 @@ from .pluginloader import PluginError
 from .models import Firmware, Requirement, Component, Vendor, Protocol
 from .models import User, Analytic, Client, Event, Useragent, _get_datestr_from_datetime
 from .hash import _addr_hash
-from .util import _get_client_address, _get_settings, _xml_from_markdown
+from .util import _get_client_address, _get_settings, _xml_from_markdown, _get_chart_labels_days
 from .util import _error_permission_denied, _event_log, _error_internal
 
 def _user_agent_safe_for_requirement(user_agent):
@@ -299,15 +299,54 @@ def docs_affiliates():
 @app.route('/')
 @app.route('/lvfs/')
 def index():
+    vendors = db.session.query(Vendor).\
+                filter(Vendor.visible_on_landing).\
+                order_by(Vendor.display_name).limit(10).all()
+    return render_template('index.html', vendors=vendors)
+
+@app.route('/lvfs/dashboard')
+@login_required
+def dashboard():
     user = db.session.query(User).filter(User.username == 'sign-test@fwupd.org').first()
     settings = _get_settings()
     default_admin_password = False
     if user and user.verify_password('Pa$$w0rd'):
         default_admin_password = True
-    vendors = db.session.query(Vendor).\
-                filter(Vendor.visible_on_landing).\
-                order_by(Vendor.display_name).limit(10).all()
-    return render_template('index.html', vendors=vendors,
+
+    # get the 10 most recent firmwares
+    fws = db.session.query(Firmware).\
+                filter(Firmware.user_id == g.user.user_id).\
+                order_by(Firmware.timestamp.desc()).limit(10).all()
+
+    download_cnt = 0
+    devices_cnt = 0
+    appstream_ids = {}
+    for fw in g.user.vendor.fws:
+        download_cnt += fw.download_cnt
+        for md in fw.mds:
+            appstream_ids[md.appstream_id] = fw
+    devices_cnt = len(appstream_ids)
+
+    # this is somewhat klunky
+    fw_ids = []
+    for fw in g.user.vendor.fws:
+        fw_ids.append(fw.firmware_id)
+    data = []
+    now = datetime.date.today() - datetime.timedelta(days=30)
+    for _ in range(30):
+        datestr = _get_datestr_from_datetime(now)
+        total = _execute_count_star(db.session.query(Client).\
+                        filter(Client.firmware_id.in_(fw_ids)).\
+                        filter(Client.datestr == datestr))
+        data.append(int(total))
+        now -= datetime.timedelta(days=1)
+
+    return render_template('dashboard.html',
+                           fws_recent=fws,
+                           devices_cnt=devices_cnt,
+                           download_cnt=download_cnt,
+                           labels_days=_get_chart_labels_days()[::-1],
+                           data_days=data[::-1],
                            server_warning=settings.get('server_warning', None),
                            default_admin_password=default_admin_password)
 
@@ -337,7 +376,7 @@ def _create_user_for_oauth_username(username):
 def login1():
     if hasattr(g, 'user') and g.user:
         flash('You are already logged in', 'warning')
-        return redirect(url_for('.index'))
+        return redirect(url_for('.dashboard'))
     return render_template('login1.html')
 
 # unauthenticed
@@ -401,7 +440,7 @@ def login():
     user.atime = datetime.datetime.utcnow()
     db.session.commit()
 
-    return redirect(url_for('.index'))
+    return redirect(url_for('.dashboard'))
 
 @app.route('/lvfs/login/<plugin_id>')
 def login_oauth(plugin_id):
@@ -471,7 +510,7 @@ def login_oauth_authorized(plugin_id):
     user.atime = datetime.datetime.utcnow()
     db.session.commit()
 
-    return redirect(url_for('.index'))
+    return redirect(url_for('.dashboard'))
 
 @app.route('/lvfs/logout')
 @login_required

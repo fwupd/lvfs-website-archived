@@ -2,13 +2,6 @@
 {% block title %}Home{% endblock %}
 
 {% block content %}
-{% if server_warning %}
-<div class="container mt-3">
-  <div class="alert alert-warning" role="alert">
-    <b>WARNING:</b>{{server_warning}}
-  </div>
-</div>
-{% endif %}
 
 <div class="jumbotron">
   <div class="container">
@@ -78,13 +71,5 @@
 {% endif %}
 {% endfor %}
 </div>
-
-{% if default_admin_password %}
-<div class="container mt-3">
-  <div class="alert alert-danger" role="alert">
-    <b>WARNING</b> the default admin password <code>Pa$$w0rd</code> is still in use!
-  </div>
-</div>
-{% endif %}
 
 {% endblock %}
