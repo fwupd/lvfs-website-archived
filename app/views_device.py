@@ -106,7 +106,7 @@ def device_list():
     for fw in fws:
         if not fw.remote.is_public:
             continue
-        vendor = fw.mds[0].developer_name
+        vendor = fw.md_prio.developer_name
         if vendor in vendors:
             continue
         vendors.append(vendor)
@@ -143,7 +143,7 @@ def device_list():
                 order_by(Firmware.timestamp.asc()).all():
         if not fw.remote.is_public:
             continue
-        desc = fw.mds[0].developer_name + ':' + fw.mds[0].name
+        desc = fw.md_prio.developer_name + ':' + fw.md_prio.name
         if desc in devices_seen:
             continue
         devices_seen[desc] = fw

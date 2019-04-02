@@ -171,7 +171,7 @@ def anonymize_db(db):
         fw.checksum_upload = hashlib.sha1(os.urandom(32)).hexdigest()
         fw.checksum_signed = hashlib.sha1(os.urandom(32)).hexdigest()
         fw.filename = fw.checksum_upload + '-' + fw.vendor.group_id + '-' + \
-                      _make_boring(fw.mds[0].name) + '-' + fw.version_display + '.cab'
+                      _make_boring(fw.md_prio.name) + '-' + fw.version_display + '.cab'
 
     # anonymize clients -- only do this on beefy hardware...
     if 'FLASK_RANDOMIZE_CLIENTS' in os.environ:

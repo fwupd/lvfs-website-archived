@@ -1273,6 +1273,14 @@ class Firmware(db.Model):
                 md_versions.append(md.version_display)
         return ', '.join(md_versions)
 
+    @property
+    def md_prio(self):
+        md_prio = None
+        for md in self.mds:
+            if not md_prio or md.priority > md_prio.priority:
+                md_prio = md
+        return md_prio
+
     @version_display.setter
     def version_display(self, value):
         self._version_display = value

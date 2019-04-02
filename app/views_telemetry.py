@@ -103,7 +103,7 @@ def telemetry(age=0, sort_key='downloads', sort_direction='up'):
         res['names'] = _get_split_names_for_firmware(fw)
         res['version'] = fw.version_display
         if not res['version']:
-            res['version'] = fw.mds[0].version
+            res['version'] = fw.md_prio.version
         res['nameversion'] = res['names'][0] + ' ' + res['version']
         res['firmware_id'] = fw.firmware_id
         res['target'] = fw.remote.name

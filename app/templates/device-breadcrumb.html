@@ -2,7 +2,7 @@
   <ol class="breadcrumb mt-3">
     <li class="breadcrumb-item"><a href="{{url_for('.device_list')}}">All</a></li>
 {% if fws|length %}
-    <li class="breadcrumb-item active ">{{fws[0].mds[0].name}}</li>
+    <li class="breadcrumb-item active ">{{fws[0].md_prio.name}}</li>
 {% endif %}
   </ol>
 </nav>

@@ -22,12 +22,12 @@
   <tr class="row">
     <td class="col-sm-2">{{format_humanize_naturaltime(fwev.timestamp)}}</td>
     <td class="col-sm-5">
-      {{fwev.fw.mds[0].developer_name_display}}
-      {{fwev.fw.mds[0].name_display}}
+      {{fwev.fw.md_prio.developer_name_display}}
+      {{fwev.fw.md_prio.name_display}}
     </td>
     <td class="col-sm-3">{{fwev.fw.version_display}}</td>
     <td class="col-sm-2">
-      <a href="/lvfs/device/{{fwev.fw.mds[0].guids[0].value}}"
+      <a href="/lvfs/device/{{fwev.fw.md_prio.guids[0].value}}"
          class="btn btn-info btn-block">Details</a>
     </td>
   </tr>

@@ -163,7 +163,7 @@ def firmware_report():
 
         # update the device checksums if there is only one component
         if crt and crt.user.is_qa and 'ChecksumDevice' in data and len(fw.mds) == 1:
-            md = fw.mds[0]
+            md = fw.md_prio
             found = False
 
             # fwupd v1.2.6 sends an array of strings, before that just a string

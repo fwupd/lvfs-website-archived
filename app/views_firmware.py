@@ -35,7 +35,7 @@ def firmware(show_all=False):
             continue
         if len(fw.mds) == 0:
             continue
-        name = fw.mds[0].developer_name + ' ' + fw.mds[0].name
+        name = fw.md_prio.developer_name + ' ' + fw.md_prio.name
         if not name in names:
             names[name] = []
         names[name].append(fw)
@@ -46,7 +46,7 @@ def firmware(show_all=False):
         for fw in names[name]:
             if len(fw.mds) == 0:
                 continue
-            key = fw.remote.name + fw.mds[0].appstream_id
+            key = fw.remote.name + fw.md_prio.appstream_id
             if key in targets_seen:
                 fw.is_newest_in_state = False
             else:

@@ -1,5 +1,5 @@
 {% extends "default.html" %}
-{% block title %}{{fws[0].mds[0].name if fws else 'No firmware for device found'}}{% endblock %}
+{% block title %}{{fws[0].md_prio.name if fws else 'No firmware for device found'}}{% endblock %}
 
 {% block nav %}{% include 'device-nav.html' %}{% endblock %}
 
@@ -16,19 +16,19 @@
 <table class="table">
   <tr class="row">
     <th class="col-sm-2">Name</th>
-    <td class="col-sm-10">{{fws[0].mds[0].name}}</td>
+    <td class="col-sm-10">{{fws[0].md_prio.name}}</td>
   </tr>
   <tr class="row">
     <th class="col-sm-2">Summary</th>
-    <td class="col-sm-10">{{fws[0].mds[0].summary}}</td>
+    <td class="col-sm-10">{{fws[0].md_prio.summary}}</td>
   </tr>
   <tr class="row">
     <th class="col-sm-2">Developer Name</th>
-  <td class="col-sm-10"><a href="{{fws[0].mds[0].url_homepage}}">{{fws[0].mds[0].developer_name}}</a></td>
+  <td class="col-sm-10"><a href="{{fws[0].md_prio.url_homepage}}">{{fws[0].md_prio.developer_name}}</a></td>
   </tr>
   <tr class="row">
     <th class="col-sm-2">Firmware License</th>
-    <td class="col-sm-10">{{fws[0].mds[0].project_license}}</td>
+    <td class="col-sm-10">{{fws[0].md_prio.project_license}}</td>
   </tr>
 </table>
 
@@ -55,7 +55,7 @@
   </tr>
   <tr class="row">
     <th class="col-sm-2">Urgency</th>
-    <td class="col-sm-10">{{fw.mds[0].release_urgency}}</td>
+    <td class="col-sm-10">{{fw.md_prio.release_urgency}}</td>
   </tr>
   <tr class="row">
     <th class="col-sm-2">Filename</th>
@@ -75,9 +75,9 @@
   <tr class="row">
     <th class="col-sm-2">Description</th>
     <td class="col-sm-10">
-      {{format_html_from_markdown(fw.mds[0].release_description)|safe}}
-{% if fw.mds[0].details_url %}
-      <a class="btn" href="{{fw.mds[0].details_url}}">More details</a>
+      {{format_html_from_markdown(fw.md_prio.release_description)|safe}}
+{% if fw.md_prio.details_url %}
+      <a class="btn" href="{{fw.md_prio.details_url}}">More details</a>
 {% endif %}
     </td>
   </tr>
