@@ -27,7 +27,8 @@ from .dbutils import _execute_count_star
 from .pluginloader import PluginError
 
 from .models import Firmware, Requirement, Component, Vendor, Protocol
-from .models import User, Analytic, Client, Event, Useragent, _get_datestr_from_datetime
+from .models import User, Analytic, Client, Event, Useragent, AnalyticVendor
+from .models import _get_datestr_from_datetime
 from .hash import _addr_hash
 from .util import _get_client_address, _get_settings, _xml_from_markdown, _get_chart_labels_days
 from .util import _error_permission_denied, _event_log, _error_internal
@@ -323,18 +324,12 @@ def dashboard():
     devices_cnt = len(appstream_ids)
 
     # this is somewhat klunky
-    fw_ids = []
-    for fw in g.user.vendor.fws:
-        fw_ids.append(fw.firmware_id)
     data = []
-    now = datetime.date.today() - datetime.timedelta(days=30)
-    for _ in range(30):
-        datestr = _get_datestr_from_datetime(now)
-        total = _execute_count_star(db.session.query(Client).\
-                        filter(Client.firmware_id.in_(fw_ids)).\
-                        filter(Client.datestr == datestr))
-        data.append(int(total))
-        now -= datetime.timedelta(days=1)
+    datestr = _get_datestr_from_datetime(datetime.date.today() - datetime.timedelta(days=31))
+    for cnt in db.session.query(AnalyticVendor.cnt).\
+                    filter(AnalyticVendor.vendor_id == g.user.vendor.vendor_id).\
+                    filter(AnalyticVendor.datestr > datestr).all():
+        data.append(int(cnt[0]))
 
     return render_template('dashboard.html',
                            fws_recent=fws,

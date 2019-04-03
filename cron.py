@@ -22,7 +22,9 @@ from gi.repository import GLib
 import app as application   #lgtm [py/import-and-import-from]
 from app import db, ploader
 
-from app.models import Remote, Firmware
+from app.dbutils import _execute_count_star
+from app.models import Remote, Firmware, Vendor, Client, AnalyticVendor
+from app.models import _get_datestr_from_datetime
 from app.metadata import _metadata_update_targets, _metadata_update_pulp
 from app.util import _archive_get_files_from_glob, _get_dirname_safe, _event_log
 from app.pluginloader import PluginError
@@ -213,6 +215,34 @@ def _check_firmware():
     # all done
     db.session.commit()
 
+
+def _generate_stats_for_vendor(v, datestr):
+
+    # get all the firmware for a specific vendor
+    fw_ids = []
+    for fw in v.fws:
+        fw_ids.append(fw.firmware_id)
+    if not fw_ids:
+        return
+
+    # count how many times any of the firmware files were downloaded
+    cnt = _execute_count_star(db.session.query(Client).\
+                    filter(Client.firmware_id.in_(fw_ids)).\
+                    filter(Client.datestr == datestr))
+    analytic = AnalyticVendor(v.vendor_id, datestr, cnt)
+    print('adding %s:%s = %i' % (datestr, v.group_id, cnt))
+    db.session.add(analytic)
+
+def _generate_stats():
+
+    # find yesterday and update any existing entries for this day
+    datestr = _get_datestr_from_datetime(datetime.date.today() - datetime.timedelta(days=1))
+    for analytic in db.session.query(AnalyticVendor).filter(AnalyticVendor.datestr == datestr).all():
+        db.session.delete(analytic)
+    for v in db.session.query(Vendor).all():
+        _generate_stats_for_vendor(v, datestr)
+    db.session.commit()
+
 if __name__ == '__main__':
 
     if len(sys.argv) < 2:
@@ -245,6 +275,13 @@ if __name__ == '__main__':
         try:
             with app.test_request_context():
                 _check_firmware()
+        except NotImplementedError as e:
+            print(str(e))
+            sys.exit(1)
+    if 'stats' in sys.argv:
+        try:
+            with app.test_request_context():
+                _generate_stats()
         except NotImplementedError as e:
             print(str(e))
             sys.exit(1)

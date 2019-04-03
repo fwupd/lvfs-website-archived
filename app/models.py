@@ -1707,6 +1707,26 @@ class Analytic(db.Model):
     def __repr__(self):
         return "Analytic object %s" % self.datestr
 
+class AnalyticVendor(db.Model):
+
+    # sqlalchemy metadata
+    __tablename__ = 'analytics_vendor'
+    __table_args__ = {'mysql_character_set': 'utf8mb4'}
+
+    analytic_id = Column(Integer, primary_key=True, nullable=False, unique=True)
+    datestr = Column(Integer, default=0, index=True)
+    vendor_id = Column(Integer, ForeignKey('vendors.vendor_id'), nullable=False, index=True)
+    cnt = Column(Integer, default=0)
+
+    def __init__(self, vendor_id, datestr=0, cnt=0):
+        """ Constructor for object """
+        self.vendor_id = vendor_id
+        self.datestr = datestr
+        self.cnt = cnt
+
+    def __repr__(self):
+        return "AnalyticVendor object %s:%s" % (self.datestr, self.vendor_id)
+
 class Useragent(db.Model):
 
     # sqlalchemy metadata
