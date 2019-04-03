@@ -895,6 +895,8 @@ class Component(db.Model):
             sc = SecurityClaim()
         if self.checksum_contents:
             sc.add_attr('contents-checksum', 'Added to the LVFS by %s' % self.fw.vendor.display_name)
+        if self.source_url:
+            sc.add_attr('source-url', 'Source code available')
         return sc
 
     @property
