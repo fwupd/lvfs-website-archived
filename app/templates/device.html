@@ -62,14 +62,16 @@
   </div>
   <div class="row">
     <div class="col-sm-2 font-weight-bold">License</div>
-    <div class="col-sm-10">
+    <div class="col-sm-10">{{fw.md_prio.project_license}}</div>
+  </div>
 {% if fw.md_prio.requires_source_url %}
-      <a href="{{fw.md_prio.source_url}}">{{fw.md_prio.project_license}}</a>
-{% else %}
-      {{fw.md_prio.project_license}}
-{% endif %}
+  <div class="row">
+    <div class="col-sm-2 font-weight-bold">Source</div>
+    <div class="col-sm-10">
+      <a href="{{fw.md_prio.source_url}}">{{fw.md_prio.source_url}}</a>
     </div>
   </div>
+{% endif %}
   <div class="row">
     <div class="col-sm-2 font-weight-bold">Filename</div>
     <div class="col-sm-10">
