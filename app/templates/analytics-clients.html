@@ -2,32 +2,26 @@
 {% block title %}Analytics{% endblock %}
 
 {% block content %}
+
+{% if clients|length == 0 %}
 <div class="card">
   <div class="card-body">
-{% if clients|length > 0 %}
-<table class="table">
-  <tr class="row table-borderless">
-    <th class="col-sm-2">Timestamp</th>
-    <th class="col-sm-2">Address</th>
-    <th class="col-sm-4">Filename</th>
-    <th class="col-sm-4">User Agent</th>
-  </tr>
-{% for c in clients %}
-  <tr class="row">
-    <td class="col-sm-2">{{c.timestamp}}</td>
-    <td class="col-sm-2"><code>{{c.addr|truncate(9, False, '…')}}</code></td>
-    <td class="col-sm-4">{{c.fw.filename[41:]|truncate(41, False, '…')}}</td>
-    <td class="col-sm-4">{{c.user_agent}}</td>
-  </tr>
-{% endfor %}
-</table>
-
-{% else %}
-<p class="text-secondary">
-  No recent downloads.
-</p>
-{% endif %}
+    <p class="card-text">
+      No recent downloads.
+    </p>
   </div>
 </div>
+{% endif %}
+
+{% for c in clients %}
+<div class="card mb-3">
+  <div class="card-body">
+    <h4 class="card-title">{{c.fw.md_prio.name_with_category}}</code></h4>
+    <p class="card-text">{{c.timestamp}} &mdash; from <code>{{c.addr|truncate(9, False, '…')}}</code></p>
+    <p class="card-text"><code>{{c.user_agent}}</code></p>
+    <a class="card-link" href="{{url_for('.firmware_show', firmware_id=c.fw.firmware_id)}}">Details</a>
+  </div>
+</div>
+{% endfor %}
 
 {% endblock %}
