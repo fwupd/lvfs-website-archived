@@ -6,19 +6,15 @@
 {% endblock %}
 
 {% block content %}
-<div class="card">
-  <div class="card-body">
-    <h4 class="card-title">Problems</h4>
-<table class="table">
-  <tr class="row table-borderless">
-    <th class="col-sm-3">Name</th>
-    <th class="col-sm-7">Description</th>
+
 {% for problem in fw.problems %}
-  <tr class="row">
-    <td class="col-sm-3">
+<div class="card mb-3">
+  <div class="card-body">
+    <h4 class="card-title">
       <img src="/img/{{problem.icon_name}}.png"/>
-      {{problem.summary}}
-    </td>
+      {{problem.summary}} for &lsquo;{{problem.md.name_with_category}}&rsquo;
+      <code class="float-right">{{problem.md.appstream_id}}</code>
+    </h4>
 {% if problem.kind == 'no-release-urgency' %}
     <td class="col-sm-7">
       <p class="card-text">
@@ -129,16 +125,13 @@
       </p>
     </td>
 {% endif %}
-    <td class="col-sm-2">
+    </h4>
 {% if problem.url %}
-      <a class="btn btn-info btn-block" href={{problem.url}}>Details</a>
+    <a class="btn btn-info card-link" href={{problem.url}}>Details</a>
 {% endif %}
-    </td>
-  </tr>
-{% endfor %}
-</table>
   </div>
 </div>
+{% endfor %}
 {% endblock %}
 
 {% block breadcrumb %}{% include 'firmware-breadcrumb.html' %}{% endblock %}

@@ -47,10 +47,11 @@ class SecurityClaim:
         return "SecurityClaim object %s" % self.attrs
 
 class Problem:
-    def __init__(self, kind, description=None, url=None):
+    def __init__(self, kind, description=None, url=None, md=None):
         self.kind = kind
         self.description = description
         self.url = url
+        self.md = md
 
     @property
     def summary(self):
@@ -1387,7 +1388,9 @@ class Firmware(db.Model):
                 problem.url = url_for('.firmware_tests', firmware_id=self.firmware_id)
                 problems.append(problem)
         for md in self.mds:
-            problems.extend(md.problems)
+            for problem in md.problems:
+                problem.md = md
+                problems.append(problem)
         return problems
 
     def __init__(self):
