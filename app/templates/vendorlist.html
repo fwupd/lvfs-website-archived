@@ -40,31 +40,31 @@
     </td>
 {% if v.is_fwupd_supported == 'no' %}
     <td class="col-sm-1">
-      <img src="/img/cross.svg" width="48" alt="No"/>
+      <span class="fas fa-times-circle fs-5 text-danger"></span>
     </td>
 {% elif v.is_fwupd_supported == 'yes' %}
     <td class="col-sm-1">
-      <img src="/img/tick.svg" width="48" alt="Yes" title="{{v.plugins}}"/>
+      <span class="fas fa-check-circle fs-5 text-success"></span>
     </td>
 {% else %}
     <td class="col-sm-1"></td>
 {% endif %}
 {% if not v.is_account_holder %}
     <td class="col-sm-1">
-      <img src="/img/cross.svg" width="48" alt="No"/>
+      <span class="fas fa-times-circle fs-5 text-danger"></span>
     </td>
 {% else %}
     <td class="col-sm-1">
-      <img src="/img/tick.svg" width="48" alt="Yes"/>
+      <span class="fas fa-check-circle fs-5 text-success"></span>
     </td>
 {% endif %}
 {% if v.is_uploading == 'no' %}
     <td class="col-sm-1">
-      <img src="/img/cross.svg" width="48" alt="No"/>
+      <span class="fas fa-times-circle fs-5 text-danger"></span>
     </td>
 {% elif v.is_uploading == 'yes' %}
     <td class="col-sm-1">
-      <img src="/img/tick.svg" width="48" alt="Yes"/>
+      <span class="fas fa-check-circle fs-5 text-success"></span>
     </td>
 {% else %}
     <td class="col-sm-1"></td>

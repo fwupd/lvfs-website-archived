@@ -103,9 +103,9 @@
 {% for attr in fw.security_claim.attrs|sort() %}
         <li class="list-group-item">
 {% if not attr.startswith('no') %}
-          <img src="/img/tick.svg" width="32" alt="Yes"/>
+          <span class="fas fa-check-circle fs-2 text-success"></span>
 {% else %}
-          <img src="/img/cross.svg" width="32" alt="No"/>
+          <span class="fas fa-times-circle fs-2 text-danger"></span>
 {% endif %}
           {{fw.security_claim.attrs[attr]}}
         </li>
