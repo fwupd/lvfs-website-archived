@@ -4,33 +4,29 @@
 {% block nav %}{% include 'issue-nav.html' %}{% endblock %}
 
 {% block content %}
-<div class="card">
-  <div class="card-body">
-    <h2 class="card-title">Reports matching this issue ({{reports_cnt}})</h2>
-{% if reports_cnt > 0 %}
-<table class="table">
-  <tr class="row">
-    <th class="col-sm-2">Timestamp</th>
-    <th class="col-sm-10">Full Report</th>
-  </tr>
-{% for r in reports %}
-  <tr class="row">
-    <td class="col-sm-2">{{r.timestamp}}</td>
-    <td class="col-sm-10"><code>{{r.to_kvs()}}</code></td>
-  </tr>
-{% endfor %}
-{% for r in reports_hidden %}
-  <tr class="row">
-    <td class="col-sm-2">{{r.timestamp}}</td>
-    <td class="col-sm-10"><code>JSON not available for security level</code></td>
-  </tr>
-{% endfor %}
-</table>
-{% else %}
+{% if reports_cnt == 0 %}
 <div class="alert alert-light" role="alert">
   None!
 </div>
 {% endif %}
+
+{% for r in reports %}
+<div class="card mt-3">
+  <div class="card-body">
+    <h4 class="card-title">{{r.timestamp}}</h4>
+    <code class="card-text">{{r.to_kvs()}}</code>
+  </div>
+</div>
+{% endfor %}
+{% for r in reports_hidden %}
+<div class="card mt-3">
+  <div class="card-body">
+    <h4 class="card-title">{{r.timestamp}}</h4>
+    <code class="card-text">JSON not available for security level</code>
+  </div>
+</div>
+{% endfor %}
+
 {% endblock %}
 
 {% block breadcrumb %}

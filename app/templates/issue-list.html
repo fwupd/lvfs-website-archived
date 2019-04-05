@@ -2,75 +2,55 @@
 {% block title %}Issues{% endblock %}
 
 {% block content %}
-<div class="card">
-  <div class="card-body">
-    <h1 class="card-title">Known Issues</h1>
 
 {% if issues|length == 0 %}
 <p class="card-text">
   No issues have been created.
 </p>
+{% endif %}
 
-{% else %}
-
-<table class="table">
-  <tr class="row">
-    <th class="col-sm-3">Name</th>
-    <th class="col-sm-5">Description</th>
-    <th class="col-sm-1">Priority</th>
-    <th class="col-sm-2">Group</th>
-    <th class="col-sm-1">&nbsp;</th>
-  </tr>
 {% for issue in issues %}
-  <tr class="row">
-    <td class="col-sm-3">
-{% if issue.enabled %}
-      {{issue.name}} <a href="{{issue.url}}">[link]</a>
-{% else %}
-      {{issue.name}} <a href="{{issue.url}}">[link]</a><p class="text-secondary">[disabled]</p>
+<div class="card mt-3">
+  <div class="card-body">
+    <h1 class="card-title">
+      {{issue.name}} {{issue.group_id}}
+      <a href="{{issue.url}}">[link]</a>
+{% if not issue.enabled %}
+      <span class="text-secondary">[disabled]</span>
 {% endif %}
-    </td>
-    <td class="col-sm-5">{{issue.description}}</td>
-    <td class="col-sm-1">
-      <h3 class="text-center"><span class="badge badge-secondary">{{issue.priority}}</span></h3>
-{% if issue.check_acl('@modify') %}
-{% if issue == issues[0] %}
-      <a class="btn btn-sm btn-outline-dark btn-block" href="/lvfs/issue/{{issue.issue_id}}/priority/down">▼</a>
-{% elif issue == issues[issues|length-1] %}
-      <a class="btn btn-sm btn-outline-dark btn-block" href="/lvfs/issue/{{issue.issue_id}}/priority/up">▲</a>
-{% else %}
-      <div class="btn-group-vertical btn-block" role="group" aria-label="Basic example">
-        <a class="btn btn-sm btn-outline-dark mt-1" href="/lvfs/issue/{{issue.issue_id}}/priority/up">▲</a>
-        <a class="btn btn-sm btn-outline-dark" href="/lvfs/issue/{{issue.issue_id}}/priority/down">▼</a>
-      </div>
-{% endif %}
-{% endif %}
-    </td>
-    <td class="col-sm-1">{{issue.group_id}}</td>
-    <td class="col-sm-2"><a class="btn btn-info btn-block" href="/lvfs/issue/{{issue.issue_id}}/details" role="button">Details &raquo;</a></td>
-  </tr>
-{% endfor %}
-</table>
+    </h1>
+    <p class="card-text">{{issue.description}}</p>
+    <a class="btn btn-info card-link" href="{{url_for('.issue_details', issue_id=issue.issue_id)}}" role="button">Details &raquo;</a>
 
+{% if issue.check_acl('@modify') %}
+    <!-- {{issue.priority}} -->
+    <div class="btn-group float-right" role="group">
+{% if issue == issues[0] %}
+      <a class="btn btn-sm btn-outline-dark" href="/lvfs/issue/{{issue.issue_id}}/priority/down">▼</a>
+{% elif issue == issues[issues|length-1] %}
+      <a class="btn btn-sm btn-outline-dark" href="/lvfs/issue/{{issue.issue_id}}/priority/up">▲</a>
+{% else %}
+      <a class="btn btn-sm btn-outline-dark" href="/lvfs/issue/{{issue.issue_id}}/priority/up">▲</a>
+      <a class="btn btn-sm btn-outline-dark" href="/lvfs/issue/{{issue.issue_id}}/priority/down">▼</a>
+{% endif %}
+    </div>
 {% endif %}
   </div>
 </div>
+{% endfor %}
 
 <div class="card mt-3">
   <div class="card-body">
     <h2 class="card-title">Create a new issue</h2>
-<form method="post" action="/lvfs/issue/add" class="form-inline">
-  <div class="table">
-    <div class="row">
-      <div class="col-sm-10">
-        <input class="form-control" type="text" size="100" name="url" placeholder="Issue URL" required>
+    <div class="card-text">
+    <form method="post" action="{{url_for('issue_add')}}" class="form">
+      <div class="form-group">
+        <label for="url">Issue URL</label>
+        <input class="form-control" id="url" type="text" name="url">
       </div>
-      <div class="col-sm-2">
-        <input class="btn btn-primary btn-block" type="submit" value="Add">
-      </div>
+      <input class="btn btn-primary card-link" type="submit" value="Add">
+    </form>
     </div>
-  </div>
-</form>
   </div>
 </div>
 {% endblock %}

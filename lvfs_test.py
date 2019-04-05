@@ -1631,7 +1631,7 @@ ma+I7fM5pmgsEL4tkCZAg0+CPTyhHkMV/cWuOZUjqTsYbDq1pZI=
         self.add_issue_condition()
         self.enable_issue()
         rv = self.app.get('/lvfs/issue/1/priority/down', follow_redirects=True)
-        assert b'>-1<' in rv.data, rv.data
+        assert b'<!-- -1 -->' in rv.data, rv.data
         self.logout()
 
         # let alice create an issue
@@ -1640,7 +1640,7 @@ ma+I7fM5pmgsEL4tkCZAg0+CPTyhHkMV/cWuOZUjqTsYbDq1pZI=
         self.add_issue_condition(issue_id=2)
         self.enable_issue(issue_id=2)
         rv = self.app.get('/lvfs/issue/2/priority/up', follow_redirects=True)
-        assert b'>1<' in rv.data, rv.data
+        assert b'<!-- 1 -->' in rv.data, rv.data
         self.logout()
 
         # bob can only see the admin issue, not the one from alice
