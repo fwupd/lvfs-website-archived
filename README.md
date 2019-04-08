@@ -14,10 +14,8 @@ Setting up the web service
 
 The official instance is set up using puppet on RHEL 7, on which you could use:
 
-    yum install https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm
-    yum install https://kojipkgs.fedoraproject.org//work/tasks/1429/24421429/libappstream-glib-0.7.5-2.fc28.x86_64.rpm
-    yum install https://kojipkgs.fedoraproject.org//packages/gcab/1.0/1.fc27/x86_64/libgcab1-1.0-1.fc27.x86_64.rpm
-    yum install puppet
+    yum-config-manager --add-repo https://copr.fedorainfracloud.org/coprs/rhughes/lvfs-website/repo/epel-7/rhughes-lvfs-website-epel-7.repo
+    yum install epel-release libappstream-glib libgcab1 puppet
     git clone https://github.com/hughsie/lvfs-puppet.git
     cd lvfs-puppet
     hostname admin
