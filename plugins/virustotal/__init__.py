@@ -15,7 +15,6 @@ from app.models import Test
 class Plugin(PluginBase):
     def __init__(self):
         PluginBase.__init__(self)
-        self.settings_prefix = 'virustotal'
 
     def name(self):
         return 'VirusTotal'

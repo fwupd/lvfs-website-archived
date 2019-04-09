@@ -36,7 +36,6 @@ class PluginBase:
     def __init__(self, plugin_id=None):
         self.id = plugin_id
         self.priority = 0
-        self.settings_prefix = None # deprecate?
         self._setting_kvs = {}
 
     def name(self):
@@ -50,9 +49,7 @@ class PluginBase:
 
     def get_setting(self, key, required=False):
         if not self._setting_kvs:
-            if not self.settings_prefix:
-                self.settings_prefix = self.id.replace('-', '_')
-            self._setting_kvs = _get_settings(self.settings_prefix)
+            self._setting_kvs = _get_settings(self.id.replace('-', '_'))
         if key not in self._setting_kvs:
             raise PluginError('No key %s' % key)
         if required and not self._setting_kvs[key]:
