@@ -16,7 +16,7 @@ from gi.repository import Gio
 from gi.repository import GLib
 
 from app.pluginloader import PluginBase, PluginError, PluginSettingBool
-from app.util import _get_settings, _archive_get_files_from_glob, _get_absolute_path
+from app.util import _archive_get_files_from_glob, _get_absolute_path
 from app.models import Test
 
 class Plugin(PluginBase):
@@ -31,15 +31,10 @@ class Plugin(PluginBase):
 
     def settings(self):
         s = []
-        s.append(PluginSettingBool('uefi_capsule_check_header', 'Check Header', True))
+        s.append(PluginSettingBool('uefi_capsule_check_header', 'Enabled', True))
         return s
 
     def ensure_test_for_fw(self, fw):
-
-        # get settings
-        settings = _get_settings('uefi_capsule')
-        if settings['uefi_capsule_check_header'] != 'enabled':
-            return
 
         # only run for capsule updates
         require_test = False
@@ -57,11 +52,6 @@ class Plugin(PluginBase):
                 fw.tests.append(test)
 
     def run_test_on_fw(self, test, fw):
-
-        # get settings
-        settings = _get_settings('uefi_capsule')
-        if settings['uefi_capsule_check_header'] != 'enabled':
-            return
 
         # decompress firmware
         fn = _get_absolute_path(fw)

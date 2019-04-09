@@ -445,7 +445,9 @@ class LvfsTestCase(unittest.TestCase):
         ps = subprocess.Popen(['./cron.py', 'firmware'], env=env,
                               stdout=subprocess.PIPE,
                               stderr=subprocess.PIPE)
-        stdout, _ = ps.communicate()
+        stdout, stderr = ps.communicate()
+        if ps.returncode != 0:
+            raise IOError(stdout, stderr)
         assert 'Signing: /tmp/' + self.checksum_upload + '-hughski-colorhug2-2.0.3.cab' in stdout.decode('utf-8'), stdout
 
         # verify the firmware is now signed

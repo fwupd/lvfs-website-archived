@@ -12,7 +12,6 @@ import json
 import requests
 
 from app.pluginloader import PluginBase, PluginError, PluginSettingText, PluginSettingBool
-from app.util import _get_settings
 
 def _basename_matches_globs(basename, globs):
     for glob in globs:
@@ -42,29 +41,19 @@ class Plugin(PluginBase):
     def file_modified(self, fn):
 
         # is the file in the whitelist
-        settings = _get_settings('cdn_purge')
-        if settings['cdn_purge_enable'] != 'enabled':
-            return
-        fns = settings['cdn_purge_files']
-        if not fns:
-            raise PluginError('No file whitelist set')
+        fns = self.get_setting('cdn_purge_files', required=True)
         basename = os.path.basename(fn)
         if not _basename_matches_globs(basename, fns.split(',')):
             print('%s not in %s' % (basename, fns))
             return
 
-        # URI not set
-        if not settings['cdn_purge_uri']:
-            raise PluginError('No URI set')
-        if not settings['cdn_purge_method']:
-            raise PluginError('No request method set')
-
         # purge
-        url = settings['cdn_purge_uri'] + basename
+        url = self.get_setting('cdn_purge_uri', required=True) + basename
         headers = {}
-        if settings['cdn_purge_accesskey']:
-            headers['AccessKey'] = settings['cdn_purge_accesskey']
-        r = requests.request(settings['cdn_purge_method'], url, headers=headers)
+        accesskey = self.get_setting('cdn_purge_accesskey')
+        if accesskey:
+            headers['AccessKey'] = accesskey
+        r = requests.request(self.get_setting('cdn_purge_method', required=True), url, headers=headers)
         if r.text:
             try:
                 response = json.loads(r.text)

@@ -9,7 +9,7 @@
 import os
 import sys
 
-from .util import _event_log
+from .util import _event_log, _get_settings
 
 class PluginError(Exception):
     pass
@@ -36,6 +36,8 @@ class PluginBase:
     def __init__(self, plugin_id=None):
         self.id = plugin_id
         self.priority = 0
+        self.settings_prefix = None # deprecate?
+        self._setting_kvs = {}
 
     def name(self):
         return 'Noname Plugin'
@@ -45,6 +47,29 @@ class PluginBase:
 
     def settings(self):
         return []
+
+    def get_setting(self, key, required=False):
+        if not self._setting_kvs:
+            if not self.settings_prefix:
+                self.settings_prefix = self.id.replace('-', '_')
+            self._setting_kvs = _get_settings(self.settings_prefix)
+        if key not in self._setting_kvs:
+            raise PluginError('No key %s' % key)
+        if required and not self._setting_kvs[key]:
+            raise PluginError('No value set for key %s' % key)
+        return self._setting_kvs[key]
+
+    def get_setting_bool(self, key):
+        if self.get_setting(key) == 'enabled':
+            return True
+        return False
+
+    @property
+    def enabled(self):
+        for setting in self.settings():
+            if setting.name == 'Enabled':
+                return self.get_setting_bool(setting.key)
+        return False
 
     def __repr__(self):
         return "Plugin object %s" % self.id
@@ -142,6 +167,8 @@ class Pluginloader:
             self.load_plugins()
         for plugin in self._plugins:
             if hasattr(plugin, 'file_modified'):
+                if not plugin.enabled:
+                    continue
                 try:
                     plugin.file_modified(fn)
                 except PluginError as e:
@@ -153,6 +180,8 @@ class Pluginloader:
             self.load_plugins()
         for plugin in self._plugins:
             if hasattr(plugin, 'archive_sign'):
+                if not plugin.enabled:
+                    continue
                 try:
                     plugin.archive_sign(arc, firmware_cff)
                 except PluginError as e:
@@ -164,6 +193,8 @@ class Pluginloader:
             self.load_plugins()
         for plugin in self._plugins:
             if hasattr(plugin, 'archive_copy'):
+                if not plugin.enabled:
+                    continue
                 try:
                     plugin.archive_copy(arc, firmware_cff)
                 except PluginError as e:
@@ -177,6 +208,8 @@ class Pluginloader:
             metadata = {}
         for plugin in self._plugins:
             if hasattr(plugin, 'archive_finalize'):
+                if not plugin.enabled:
+                    continue
                 try:
                     plugin.archive_finalize(arc, metadata)
                 except PluginError as e:
@@ -188,6 +221,8 @@ class Pluginloader:
             self.load_plugins()
         for plugin in self._plugins:
             if hasattr(plugin, 'ensure_test_for_fw'):
+                if not plugin.enabled:
+                    continue
                 try:
                     plugin.ensure_test_for_fw(fw)
                 except PluginError as e:
@@ -199,6 +234,8 @@ class Pluginloader:
             self.load_plugins()
         for plugin in self._plugins:
             if hasattr(plugin, 'oauth_logout'):
+                if not plugin.enabled:
+                    continue
                 try:
                     plugin.oauth_logout()
                 except PluginError as e:

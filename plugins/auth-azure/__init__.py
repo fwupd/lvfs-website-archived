@@ -52,20 +52,12 @@ class Plugin(PluginBase):
 
     def oauth_authorize(self, callback):
 
-        # check enabled
-        if settings['auth_azure_enable'] != 'enabled':
-            raise PluginError('plugin not enabled')
-
         # generate the guid to only accept initiated logins
         guid = uuid.uuid4()
         session['auth_azure_state'] = guid
         return remote_app.authorize(callback=callback, state=guid)
 
     def oauth_get_data(self):
-
-        # check enabled
-        if settings['auth_azure_enable'] != 'enabled':
-            raise PluginError('plugin not enabled')
 
         # get response success
         try:

@@ -11,7 +11,6 @@ import tempfile
 
 from app.pluginloader import PluginBase, PluginError, PluginSettingText, PluginSettingBool
 from app import ploader
-from app.util import _get_settings
 from app.util import _get_basename_safe, _archive_add, _archive_get_files_from_glob
 
 def _sigul_detached_sign_data(contents, config, key):
@@ -71,15 +70,10 @@ class Plugin(PluginBase):
 
     def _metadata_modified(self, fn):
 
-        # plugin not enabled
-        settings = _get_settings('sign_sigul')
-        if settings['sign_sigul_enable'] != 'enabled':
-            return
-
         # generate
         blob_asc = _sigul_detached_sign_data(open(fn, 'rb').read(),
-                                             settings['sign_sigul_config_file'],
-                                             settings['sign_sigul_metadata_key'])
+                                             self.get_setting('sign_sigul_config_file', required=True),
+                                             self.get_setting('sign_sigul_metadata_key', required=True))
         fn_asc = fn + '.asc'
         with open(fn_asc, 'w') as f:
             f.write(blob_asc)
@@ -93,11 +87,6 @@ class Plugin(PluginBase):
 
     def archive_sign(self, arc, firmware_cff):
 
-        # plugin not enabled
-        settings = _get_settings('sign_sigul')
-        if settings['sign_sigul_enable'] != 'enabled':
-            return
-
         # already signed
         detached_fn = _get_basename_safe(firmware_cff.get_name() + '.asc')
         if _archive_get_files_from_glob(arc, detached_fn):
@@ -105,8 +94,8 @@ class Plugin(PluginBase):
 
         # create the detached signature
         blob_asc = _sigul_detached_sign_data(firmware_cff.get_bytes().get_data(),
-                                             settings['sign_sigul_config_file'],
-                                             settings['sign_sigul_firmware_key'])
+                                             self.get_setting('sign_sigul_config_file', required=True),
+                                             self.get_setting('sign_sigul_firmware_key', required=True))
 
         # add it to the archive
         _archive_add(arc, detached_fn, blob_asc.encode('utf-8'))

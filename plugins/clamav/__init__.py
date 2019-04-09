@@ -10,7 +10,7 @@ import os
 import subprocess
 
 from app.pluginloader import PluginBase, PluginError, PluginSettingBool
-from app.util import _get_settings, _get_absolute_path
+from app.util import _get_absolute_path
 from app.models import Test
 
 class Plugin(PluginBase):
@@ -25,17 +25,12 @@ class Plugin(PluginBase):
 
     def settings(self):
         s = []
-        s.append(PluginSettingBool('clamav_enable', 'Enable scanning', True))
+        s.append(PluginSettingBool('clamav_enable', 'Enabled', True))
         s.append(PluginSettingBool('clamav_detect_pua', 'Detect Possibly Unwanted Applications', True))
         s.append(PluginSettingBool('clamav_use_daemon', 'Use clamd daemon', True))
         return s
 
     def ensure_test_for_fw(self, fw):
-
-        # get settings
-        settings = _get_settings('clamav')
-        if settings['clamav_enable'] != 'enabled':
-            return
 
         # add if not already exists on any component in the firmware
         test = fw.find_test_by_plugin_id(self.id)
@@ -45,13 +40,8 @@ class Plugin(PluginBase):
 
     def run_test_on_fw(self, test, fw):
 
-        # get settings
-        settings = _get_settings('clamav')
-        if settings['clamav_enable'] != 'enabled':
-            return
-
         # get ClamAV version
-        if settings['clamav_use_daemon'] == 'enabled':
+        if self.get_setting_bool('clamav_use_daemon'):
             argv = ['clamdscan', '--version']
         else:
             argv = ['clamscan', '--version']
@@ -68,7 +58,7 @@ class Plugin(PluginBase):
 
         # scan cabinet archive
         fn = _get_absolute_path(fw)
-        if settings['clamav_use_daemon'] == 'enabled':
+        if self.get_setting_bool('clamav_use_daemon'):
             argv = ['clamdscan',
                     '--fdpass',
                     '--no-summary',
@@ -83,7 +73,7 @@ class Plugin(PluginBase):
                     '--nocerts',
                     '--no-summary',
                     fn]
-            if settings['clamav_detect_pua'] == 'enabled':
+            if self.get_setting_bool('clamav_detect_pua'):
                 argv.append('--detect-pua=yes')
         try:
             ps = subprocess.Popen(argv, stdout=subprocess.PIPE, stderr=subprocess.PIPE)

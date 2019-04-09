@@ -7,7 +7,7 @@
 # pylint: disable=no-self-use
 
 from app.pluginloader import PluginBase, PluginError, PluginSettingText, PluginSettingBool
-from app.util import _archive_get_files_from_glob, _archive_add, _get_settings
+from app.util import _archive_get_files_from_glob, _archive_add
 
 class Plugin(PluginBase):
     def __init__(self):
@@ -30,23 +30,15 @@ class Plugin(PluginBase):
 
     def archive_finalize(self, arc, metadata):
 
-        # get settings
-        settings = _get_settings('info_readme')
-        if settings['info_readme_enable'] != 'enabled':
-            return
-        if not settings['info_readme_filename']:
-            raise PluginError('No filename set')
-        if not settings['info_readme_template']:
-            raise PluginError('No template set')
-
         # does the readme file already exist?
-        if _archive_get_files_from_glob(arc, settings['info_readme_filename']):
-            print("archive already has %s" % settings['info_readme_filename'])
+        filename = self.get_setting('info_readme_filename', required=True)
+        if _archive_get_files_from_glob(arc, filename):
+            print("archive already has %s" % filename)
             return
 
         # read in the file and do substititons
         try:
-            with open(settings['info_readme_template'], 'rb') as f:
+            with open(self.get_setting('info_readme_template', required=True), 'rb') as f:
                 template = f.read().decode('utf-8')
         except IOError as e:
             raise PluginError(e)
@@ -54,4 +46,4 @@ class Plugin(PluginBase):
             template = template.replace(key, metadata[key])
 
         # add it to the archive
-        _archive_add(arc, settings['info_readme_filename'], template.encode('utf-8'))
+        _archive_add(arc, filename, template.encode('utf-8'))

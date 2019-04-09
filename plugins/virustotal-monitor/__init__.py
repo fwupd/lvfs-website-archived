@@ -9,12 +9,13 @@
 import requests
 
 from app.pluginloader import PluginBase, PluginError, PluginSettingBool, PluginSettingText
-from app.util import _get_settings, _get_absolute_path
+from app.util import _get_absolute_path
 from app.models import Test
 
 class Plugin(PluginBase):
     def __init__(self):
         PluginBase.__init__(self)
+        self.settings_prefix = 'virustotal'
 
     def name(self):
         return 'VirusTotal'
@@ -24,7 +25,7 @@ class Plugin(PluginBase):
 
     def settings(self):
         s = []
-        s.append(PluginSettingBool('virustotal_enable', 'Enable scanning', True))
+        s.append(PluginSettingBool('virustotal_enable', 'Enabled', True))
         s.append(PluginSettingText('virustotal_remotes', 'Upload Firmware in Remotes', 'stable,testing'))
         s.append(PluginSettingText('virustotal_api_key', 'API Key', 'DEADBEEF'))
         s.append(PluginSettingText('virustotal_uri', 'Host', 'https://www.virustotal.com/api/v3/monitor/items'))
@@ -33,13 +34,8 @@ class Plugin(PluginBase):
 
     def ensure_test_for_fw(self, fw):
 
-        # get settings
-        settings = _get_settings('virustotal')
-        if settings['virustotal_enable'] != 'enabled':
-            return
-
         # is the firmware not in a correct remote
-        remotes = settings['virustotal_remotes'].split(',')
+        remotes = self.get_setting('virustotal_remotes', required=True).split(',')
         if fw.remote.name not in remotes:
             return
 
@@ -51,11 +47,6 @@ class Plugin(PluginBase):
 
     def run_test_on_fw(self, test, fw):
 
-        # get settings
-        settings = _get_settings('virustotal')
-        if settings['virustotal_enable'] != 'enabled':
-            return
-
         # build the remote name
         fn = _get_absolute_path(fw)
         remote_path = '/' + fw.vendor.group_id + '/' + str(fw.firmware_id) + '/' + fw.filename[41:]
@@ -64,11 +55,12 @@ class Plugin(PluginBase):
         try:
             with open(fn, 'rb') as file_obj:
                 headers = {}
-                headers['X-Apikey'] = settings['virustotal_api_key']
-                headers['User-Agent'] = settings['virustotal_user_agent']
+                headers['X-Apikey'] = self.get_setting('virustotal_api_key', required=True)
+                headers['User-Agent'] = self.get_setting('virustotal_user_agent', required=True)
                 files = {'file': ('filepath', file_obj, 'application/octet-stream')}
                 args = {'path': remote_path}
-                r = requests.post(settings['virustotal_uri'], files=files, data=args, headers=headers)
+                r = requests.post(self.get_setting('virustotal_uri', required=True),
+                                  files=files, data=args, headers=headers)
                 if r.status_code != 200:
                     test.add_fail('Uploading', r.text)
                     return
