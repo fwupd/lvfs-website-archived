@@ -106,10 +106,10 @@ def serveStaticResource(resource):
         # check any firmware download limits
         for fl in fw.limits:
             if not fl.user_agent_glob or fnmatch.fnmatch(user_agent, fl.user_agent_glob):
-                yesterday = datetime.date.today() - datetime.timedelta(1)
+                datestr = _get_datestr_from_datetime(datetime.date.today() - datetime.timedelta(1))
                 cnt = _execute_count_star(db.session.query(Client).\
                             filter(Client.firmware_id == fw.firmware_id).\
-                            filter(Client.timestamp >= yesterday))
+                            filter(Client.datestr >= datestr))
                 if cnt >= fl.value:
                     response = fl.response
                     if not response:
