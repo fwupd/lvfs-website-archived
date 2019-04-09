@@ -23,7 +23,7 @@ import app as application   #lgtm [py/import-and-import-from]
 from app import db, ploader
 
 from app.dbutils import _execute_count_star
-from app.models import Remote, Firmware, Vendor, Client, AnalyticVendor, Useragent
+from app.models import Remote, Firmware, Vendor, Client, AnalyticVendor, Useragent, Analytic
 from app.models import _get_datestr_from_datetime
 from app.metadata import _metadata_update_targets, _metadata_update_pulp
 from app.util import _archive_get_files_from_glob, _get_dirname_safe, _event_log
@@ -260,6 +260,13 @@ def _generate_stats():
             ua_apps[ua_app] += 1
     for ua in ua_apps:
         db.session.add(Useragent(ua, datestr, cnt=ua_apps[ua]))
+    db.session.commit()
+
+    # update Analytic for yesterday
+    analytic = db.session.query(Analytic).filter(Analytic.datestr == datestr).first()
+    if analytic:
+        db.session.delete(analytic)
+    db.session.add(Analytic(datestr))
     db.session.commit()
 
 if __name__ == '__main__':

@@ -14,7 +14,6 @@ import humanize
 from flask import request, flash, url_for, redirect, render_template
 from flask import send_from_directory, abort, Response, g
 from flask_login import login_required, login_user, logout_user
-from sqlalchemy.exc import IntegrityError
 
 import gi
 gi.require_version('AppStreamGlib', '1.0')
@@ -27,7 +26,7 @@ from .dbutils import _execute_count_star
 from .pluginloader import PluginError
 
 from .models import Firmware, Requirement, Component, Vendor, Protocol, Category, Agreement
-from .models import User, Analytic, Client, Event, AnalyticVendor
+from .models import User, Client, Event, AnalyticVendor
 from .models import _get_datestr_from_datetime
 from .hash import _addr_hash
 from .util import _get_client_address, _get_settings, _xml_from_markdown, _get_chart_labels_days
@@ -122,20 +121,6 @@ def serveStaticResource(resource):
 
         # this is cached for easy access on the firmware details page
         fw.download_cnt += 1
-
-        # either update the analytics counter, or create one for that day
-        datestr = _get_datestr_from_datetime(datetime.date.today())
-        analytic = db.session.query(Analytic).\
-                        filter(Analytic.datestr == datestr).\
-                        first()
-        if analytic:
-            analytic.cnt += 1
-        else:
-            try:
-                db.session.add(Analytic(datestr))
-                db.session.flush()
-            except IntegrityError:
-                db.session.rollback()
 
         # log the client request
         db.session.add(Client(addr=_addr_hash(_get_client_address()),
