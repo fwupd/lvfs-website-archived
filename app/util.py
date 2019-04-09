@@ -175,12 +175,15 @@ def _get_update_description_problems(root):
         _add_problem(problems, 'Not enough paragraphs, minimum is 1')
     return problems
 
-def _get_settings(unused_prefix=None):
+def _get_settings(prefix=None):
     """ return a dict of all the settings """
     from app import db
     from .models import Setting
     settings = {}
-    for setting in db.session.query(Setting).all():
+    stmt = db.session.query(Setting)
+    if prefix:
+        stmt = stmt.filter(Setting.key.startswith(prefix))
+    for setting in stmt.all():
         settings[setting.key] = setting.value
     return settings
 

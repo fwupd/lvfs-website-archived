@@ -37,7 +37,7 @@ class Plugin(PluginBase):
     def ensure_test_for_fw(self, fw):
 
         # get settings
-        settings = _get_settings('dfu_check_footer')
+        settings = _get_settings('dfu')
         if settings['dfu_check_footer'] != 'enabled':
             return
 
@@ -59,7 +59,7 @@ class Plugin(PluginBase):
     def run_test_on_fw(self, test, fw):
 
         # get settings
-        settings = _get_settings('dfu_check_footer')
+        settings = _get_settings('dfu')
         if settings['dfu_check_footer'] != 'enabled':
             return
 

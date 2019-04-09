@@ -37,7 +37,7 @@ class Plugin(PluginBase):
     def ensure_test_for_fw(self, fw):
 
         # get settings
-        settings = _get_settings('uefi_capsule_check_header')
+        settings = _get_settings('uefi_capsule')
         if settings['uefi_capsule_check_header'] != 'enabled':
             return
 
@@ -59,7 +59,7 @@ class Plugin(PluginBase):
     def run_test_on_fw(self, test, fw):
 
         # get settings
-        settings = _get_settings('uefi_capsule_check_header')
+        settings = _get_settings('uefi_capsule')
         if settings['uefi_capsule_check_header'] != 'enabled':
             return
 
