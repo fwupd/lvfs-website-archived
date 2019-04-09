@@ -23,7 +23,7 @@ import app as application   #lgtm [py/import-and-import-from]
 from app import db, ploader
 
 from app.dbutils import _execute_count_star
-from app.models import Remote, Firmware, Vendor, Client, AnalyticVendor
+from app.models import Remote, Firmware, Vendor, Client, AnalyticVendor, Useragent
 from app.models import _get_datestr_from_datetime
 from app.metadata import _metadata_update_targets, _metadata_update_pulp
 from app.util import _archive_get_files_from_glob, _get_dirname_safe, _event_log
@@ -235,12 +235,31 @@ def _generate_stats_for_vendor(v, datestr):
 
 def _generate_stats():
 
-    # find yesterday and update any existing entries for this day
+    # update AnalyticVendor for yesterday
     datestr = _get_datestr_from_datetime(datetime.date.today() - datetime.timedelta(days=1))
     for analytic in db.session.query(AnalyticVendor).filter(AnalyticVendor.datestr == datestr).all():
         db.session.delete(analytic)
     for v in db.session.query(Vendor).all():
         _generate_stats_for_vendor(v, datestr)
+    db.session.commit()
+
+    # update Useragent for yesterday
+    for agnt in db.session.query(Useragent).filter(Useragent.datestr == datestr).all():
+        db.session.delete(agnt)
+    ua_apps = {}
+    clients = db.session.query(Client.user_agent).\
+                    filter(Client.datestr == datestr).all()
+    for res in clients:
+        ua = res[0]
+        if not ua:
+            continue
+        ua_app = ua.split(' ')[0]
+        if ua_app not in ua_apps:
+            ua_apps[ua_app] = 1
+        else:
+            ua_apps[ua_app] += 1
+    for ua in ua_apps:
+        db.session.add(Useragent(ua, datestr, cnt=ua_apps[ua]))
     db.session.commit()
 
 if __name__ == '__main__':

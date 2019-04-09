@@ -27,7 +27,7 @@ from .dbutils import _execute_count_star
 from .pluginloader import PluginError
 
 from .models import Firmware, Requirement, Component, Vendor, Protocol, Category, Agreement
-from .models import User, Analytic, Client, Event, Useragent, AnalyticVendor
+from .models import User, Analytic, Client, Event, AnalyticVendor
 from .models import _get_datestr_from_datetime
 from .hash import _addr_hash
 from .util import _get_client_address, _get_settings, _xml_from_markdown, _get_chart_labels_days
@@ -136,22 +136,6 @@ def serveStaticResource(resource):
                 db.session.flush()
             except IntegrityError:
                 db.session.rollback()
-
-        # update the user-agent counter
-        if user_agent:
-            user_agent_safe = user_agent.split(' ')[0]
-            ug = db.session.query(Useragent).\
-                            filter(Useragent.value == user_agent_safe).\
-                            filter(Useragent.datestr == datestr).\
-                            first()
-            if ug:
-                ug.cnt += 1
-            else:
-                try:
-                    db.session.add(Useragent(user_agent_safe, datestr))
-                    db.session.flush()
-                except IntegrityError:
-                    db.session.rollback()
 
         # log the client request
         db.session.add(Client(addr=_addr_hash(_get_client_address()),
