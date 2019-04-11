@@ -8,13 +8,10 @@ import datetime
 
 from flask import render_template, g
 from flask_login import login_required
-from sqlalchemy.orm import joinedload
 
 from app import app, db
 
-from .dbutils import _execute_count_star
-from .models import Firmware, Client
-from .models import _get_datestr_from_datetime
+from .models import Firmware
 from .util import _error_permission_denied
 
 def _get_split_names_for_firmware(fw):
@@ -52,9 +49,10 @@ def telemetry(age=0, sort_key='downloads', sort_direction='up'):
     total_issue = 0
     show_duplicate_warning = False
     fwlines = []
-    age_seconds = age * 60 * 60 * 24
-    datestr = _get_datestr_from_datetime(datetime.date.today() - datetime.timedelta(days=1))
-    for fw in db.session.query(Firmware).options(joinedload('reports')).all():
+    stmt = db.session.query(Firmware)
+    if age:
+        stmt = stmt.filter(Firmware.timestamp > datetime.date.today() - datetime.timedelta(days=age))
+    for fw in stmt.all():
 
         # not allowed to view
         if not g.user.check_acl('@admin') and fw.vendor.group_id != g.user.vendor.group_id:
@@ -64,41 +62,12 @@ def telemetry(age=0, sort_key='downloads', sort_direction='up'):
         if not fw.remote.is_public:
             continue
 
-        # reports
-        if age == 0:
-            cnt_download = fw.download_cnt
-            rpts = fw.reports
-        else:
-            cnt_download = _execute_count_star(db.session.query(Client).\
-                                filter(Client.firmware_id == fw.firmware_id).\
-                                filter(Client.datestr <= datestr))
-            rpts = []
-            for rpt in fw.reports:
-                if (datetime.datetime.now() - rpt.timestamp).total_seconds() < age_seconds:
-                    rpts.append(rpt)
-
-        cnt_success = 0
-        cnt_failed = 0
-        cnt_issue = 0
-        for rpt in rpts:
-            if rpt.state == 2:
-                cnt_success += 1
-            if rpt.state == 3:
-                if rpt.issue_id:
-                    cnt_issue += 1
-                else:
-                    cnt_failed += 1
-        total_success += cnt_success
-        total_failed += cnt_failed
-        total_issue += cnt_issue
-        total_downloads += cnt_download
-
         # add lines
         res = {}
-        res['downloads'] = cnt_download
-        res['success'] = cnt_success
-        res['failed'] = cnt_failed
-        res['issue'] = cnt_issue
+        res['downloads'] = fw.download_cnt
+        res['success'] = fw.report_success_cnt
+        res['failed'] = fw.report_failure_cnt
+        res['issue'] = fw.report_issue_cnt
         res['names'] = _get_split_names_for_firmware(fw)
         res['version'] = fw.version_display
         if not res['version']:
