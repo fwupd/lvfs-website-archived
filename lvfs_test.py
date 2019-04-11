@@ -232,9 +232,7 @@ class LvfsTestCase(unittest.TestCase):
         # check analytics works
         uris = ['/lvfs/firmware/1/analytics',
                 '/lvfs/firmware/1/analytics/clients',
-                '/lvfs/firmware/1/analytics/month',
-                '/lvfs/firmware/1/analytics/reports',
-                '/lvfs/firmware/1/analytics/year']
+                '/lvfs/firmware/1/analytics/reports']
         for uri in uris:
             rv = self.app.get(uri)
             assert b'favicon.ico' in rv.data, rv.data
@@ -435,7 +433,7 @@ class LvfsTestCase(unittest.TestCase):
         self.login()
         self.upload('embargo')
         rv = self.app.get('/lvfs/firmware/1')
-        assert b'>Signed<' not in rv.data, rv.data
+        assert b'Signed:' not in rv.data, rv.data
         rv = self.app.get('/lvfs/firmware/1/problems')
         assert b'Firmware is unsigned' in rv.data, rv.data
 
@@ -452,7 +450,7 @@ class LvfsTestCase(unittest.TestCase):
 
         # verify the firmware is now signed
         rv = self.app.get('/lvfs/firmware/1')
-        assert b'>Signed<' in rv.data, rv.data
+        assert b'Signed:' in rv.data, rv.data
         rv = self.app.get('/lvfs/firmware/1/problems')
         assert b'Firmware is unsigned' not in rv.data, rv.data
 
@@ -660,7 +658,7 @@ class LvfsTestCase(unittest.TestCase):
 
         # ensure firmware is reparented
         rv = self.app.get('/lvfs/firmware/1')
-        assert b'odm</a>' in rv.data, rv.data
+        assert b'The firmware is now owned by <code>odm</code>' in rv.data, rv.data
         self.logout()
 
         # ensure user can still view firmware

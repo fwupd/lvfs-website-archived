@@ -456,45 +456,42 @@ def firmware_show(firmware_id):
             else:
                 reports_failure += 1
 
+    # get data for the last month or year
+    graph_data = []
+    graph_labels = None
+    if fw.check_acl('@view-analytics'):
+        if fw.timestamp > datetime.datetime.today() - datetime.timedelta(days=30):
+            datestr = _get_datestr_from_datetime(datetime.date.today() - datetime.timedelta(days=31))
+            data = db.session.query(AnalyticFirmware.cnt).\
+                        filter(AnalyticFirmware.firmware_id == fw.firmware_id).\
+                        filter(AnalyticFirmware.datestr > datestr).\
+                        order_by(AnalyticFirmware.datestr.desc()).all()
+            graph_data = [r[0] for r in data]
+            graph_data = graph_data[::-1]
+            graph_labels = _get_chart_labels_days()[::-1]
+        else:
+            datestr = _get_datestr_from_datetime(datetime.date.today() - datetime.timedelta(days=360))
+            data = db.session.query(AnalyticFirmware.cnt).\
+                        filter(AnalyticFirmware.firmware_id == fw.firmware_id).\
+                        filter(AnalyticFirmware.datestr > datestr).\
+                        order_by(AnalyticFirmware.datestr.desc()).all()
+            # put in month-sized buckets
+            for _ in range(12):
+                graph_data.append(0)
+            cnt = 0
+            for res in data:
+                graph_data[int(cnt / 30)] += res[0]
+                cnt += 1
+            graph_data = graph_data[::-1]
+            graph_labels = _get_chart_labels_months()[::-1]
+
     return render_template('firmware-details.html',
                            fw=fw,
+                           graph_data=graph_data,
+                           graph_labels=graph_labels,
                            reports_success=reports_success,
                            reports_issue=reports_issue,
                            reports_failure=reports_failure)
-
-@app.route('/lvfs/firmware/<int:firmware_id>/analytics/year')
-@login_required
-def firmware_analytics_year(firmware_id):
-    """ Show firmware analytics information """
-
-    # get details about the firmware
-    fw = db.session.query(Firmware).filter(Firmware.firmware_id == firmware_id).first()
-    if not fw:
-        return _error_internal('No firmware matched!')
-
-    # security check
-    if not fw.check_acl('@view-analytics'):
-        return _error_permission_denied('Insufficient permissions to view analytics')
-
-    # get data for the last year
-    datestr = _get_datestr_from_datetime(datetime.date.today() - datetime.timedelta(days=360))
-    data = db.session.query(AnalyticFirmware.cnt).\
-                filter(AnalyticFirmware.firmware_id == fw.firmware_id).\
-                filter(AnalyticFirmware.datestr > datestr).\
-                order_by(AnalyticFirmware.datestr.desc()).all()
-
-    # put in month-sized buckets
-    data_fw = []
-    for _ in range(12):
-        data_fw.append(0)
-    cnt = 0
-    for res in data:
-        data_fw[int(cnt / 30)] += res[0]
-        cnt += 1
-    return render_template('firmware-analytics-year.html',
-                           fw=fw,
-                           graph_labels=_get_chart_labels_months()[::-1],
-                           graph_data=data_fw[::-1])
 
 @app.route('/lvfs/firmware/<int:firmware_id>/analytics')
 @app.route('/lvfs/firmware/<int:firmware_id>/analytics/clients')
@@ -541,32 +538,6 @@ def firmware_analytics_reports(firmware_id, state=None):
                            fw=fw,
                            state=state,
                            reports=reports)
-
-@app.route('/lvfs/firmware/<int:firmware_id>/analytics/month')
-@login_required
-def firmware_analytics_month(firmware_id):
-    """ Show firmware analytics information """
-
-    # get details about the firmware
-    fw = db.session.query(Firmware).filter(Firmware.firmware_id == firmware_id).first()
-    if not fw:
-        return _error_internal('No firmware matched!')
-
-    # security check
-    if not fw.check_acl('@view-analytics'):
-        return _error_permission_denied('Insufficient permissions to view analytics')
-
-    # get data for the last month
-    datestr = _get_datestr_from_datetime(datetime.date.today() - datetime.timedelta(days=31))
-    data = db.session.query(AnalyticFirmware.cnt).\
-                filter(AnalyticFirmware.firmware_id == fw.firmware_id).\
-                filter(AnalyticFirmware.datestr > datestr).\
-                order_by(AnalyticFirmware.datestr.desc()).all()
-    data_fw = [r[0] for r in data]
-    return render_template('firmware-analytics-month.html',
-                           fw=fw,
-                           graph_labels=_get_chart_labels_days()[::-1],
-                           graph_data=data_fw[::-1])
 
 @app.route('/lvfs/firmware/<int:firmware_id>/tests')
 @login_required

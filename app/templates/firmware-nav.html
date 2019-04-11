@@ -29,10 +29,6 @@
 {% if fw.download_cnt > 0 %}
       <a class="btn btn-falcon-{{'primary' if request.url_rule.endpoint == 'firmware_analytics_clients' else 'default'}}"
         href="{{url_for('.firmware_analytics_clients', firmware_id=fw.firmware_id)}}">Downloads</a>
-      <a class="btn btn-falcon-{{'primary' if request.url_rule.endpoint == 'firmware_analytics_year' else 'default'}}"
-        href="{{url_for('.firmware_analytics_year', firmware_id=fw.firmware_id)}}">Year</a>
-      <a class="btn btn-falcon-{{'primary' if request.url_rule.endpoint == 'firmware_analytics_month' else 'default'}}"
-        href="{{url_for('.firmware_analytics_month', firmware_id=fw.firmware_id)}}">Month</a>
 {% endif %}
 {% if fw.reports|length > 0 %}
       <a class="btn btn-falcon-{{'primary' if request.url_rule.endpoint == 'firmware_analytics_reports' and state == 2 else 'default'}}"

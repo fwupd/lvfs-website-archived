@@ -12,93 +12,160 @@
 </div>
 {% endif %}
 
-<div class="card mt-3">
-  <div class="card-body">
-    <h4 class="card-title">Details</h4>
-<table class="table card-text">
-  <tr class="row table-borderless">
-    <th class="col-sm-3 align-middle">Filename</th>
-    <td class="col-sm-9 align-middle">
-      <a href="/downloads/{{fw.filename}}">{{fw.filename[41:]}}</a>
-{% if fw.inhibit_download %}
-      <p class="text-muted">Direct link for download not available for end-users.</p>
+{% if graph_data %}
+<div class="card mb-3">
+  <div class="card-body rounded-soft bg-gradient">
+    <h4 class="text-white">Downloads</h4>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.8.0/Chart.js" crossorigin="anonymous"></script>
+<script>
+Chart.defaults.global.animation = false;
+</script>
+<canvas class="rounded" id="metadataChartMonthsDays" width="1618" height="450" role="img"></canvas>
+  </div>
+</div>
+<script>
+var ctx = document.getElementById("metadataChartMonthsDays").getContext("2d");
+var data = {
+    labels: {{graph_labels|safe}},
+    datasets: [
+        {
+            label: "Firmware",
+            borderWidth: 3,
+            borderColor: "rgba(255,255,255,0.8)",
+            backgroundColor: "rgba(255,255,255,0.15)",
+            data: {{graph_data|safe}}
+        },
+    ]
+};
+
+new Chart(ctx, {
+    type: 'line',
+    data: data,
+    options: {
+      legend: {
+          display: false
+      },
+      scales: {
+        xAxes: [{
+          ticks: {
+            fontColor: "rgba(255,255,255,0.7)",
+            fontStyle: 600,
+          },
+          gridLines: {
+            color: "rgba(255,255,255,0.1)",
+            lineWidth: 1,
+          },
+        }],
+        yAxes: [{
+          ticks: {
+            precision: 0,
+            fontColor: "rgba(255,255,255,0.7)",
+            fontStyle: 600,
+            beginAtZero: true
+          },
+          gridLines: {
+            color: "rgba(255,255,255,0.1)",
+            lineWidth: 1,
+          }
+        }]
+      }
+    }
+});
+
+</script>
 {% endif %}
-    </td>
-  </tr>
-  <tr class="row">
-    <th class="col-sm-3 align-middle">Current Target</th>
-    <td class="col-sm-9 align-middle">
-{% if fw.remote.is_signed and fw.is_dirty %}
-      <div class="alert alert-warning" role="alert">
-        The <code>{{fw.remote.name}}</code> metadata will be regenerated to
-        include this firmware in {{format_timedelta_approx(fw.remote.scheduled_signing)}}.
-      </div>
-{% else %}
-      <code>{{fw.remote.name}}</code>
-{% if fw.target_duration.total_seconds() > 5 %}
-      (moved {{format_timedelta_approx(fw.target_duration)}})
-{% endif %}
-{% endif %}
-    </td>
-  </tr>
-  <tr class="row">
-    <th class="col-sm-3">Submitted</th>
-    <td class="col-sm-9" colspan="2">{{fw.timestamp}}</td>
-  </tr>
+
+
+<div class="row no-gutters">
+  <div class="col-xl-6">
+    <div class="card overflow-hidden" style="min-width: 12rem">
+      <div class="bg-holder bg-card" style="background-image:url(/img/corner-1.png);"></div>
+      <div class="card-body position-relative">
+        <h4>
+          Overview
+          <img class="img-thumbnail float-right" src="/uploads/{{fw.vendor.icon}}" width="64"/>
+        </h4>
+        <p class="card-text">
+          <a href="/downloads/{{fw.filename}}">
+          {{fw.md_prio.name}} {{fw.version_display}}
+          </a>
+          has been downloaded {{fw.download_cnt}} times.
+        </p>
 {% if fw.signed_timestamp %}
-  <tr class="row">
-    <th class="col-sm-3">Signed</th>
-    <td class="col-sm-9" colspan="2">{{fw.signed_timestamp}}</td>
-  </tr>
+<!-- Signed: {{fw.signed_timestamp}} -->
 {% endif %}
-  <tr class="row">
-    <th class="col-sm-3">Vendor ID</th>
-    <td class="col-sm-9" colspan="2"><a href="/downloads/{{fw.vendor.remote.filename}}">{{fw.vendor.group_id}}</a></td>
-  </tr>
-  <tr class="row">
-    <th class="col-sm-3">Uploader</th>
-    <td class="col-sm-9" colspan="2"><a href="/lvfs/profile">{{fw.user.username}}</a></td>
-  </tr>
-  <tr class="row">
-    <th class="col-sm-3">Uploaded from</th>
-    <td class="col-sm-9" colspan="2"><code>{{fw.addr}}</code></td>
-  </tr>
-  <tr class="row">
-    <th class="col-sm-3">Version</th>
-    <td class="col-sm-4">{{fw.version_display}}</td>
-    <td class="col-sm-4"></td>
-  </tr>
-{% if fw.banned_country_codes %}
-  <tr class="row">
-    <th class="col-sm-3">Banned Country Codes</th>
-    <td class="col-sm-4">{{fw.banned_country_codes}}</td>
-    <td class="col-sm-4"></td>
-  </tr>
+{% if fw.inhibit_download %}
+        <p class="text-muted">
+          A link for direct download is not available for end-users.
+        </p>
 {% endif %}
-  <tr class="row">
-    <th class="col-sm-3">Downloads</th>
-    <td class="col-sm-6">{{fw.download_cnt}}</td>
-    <td class="col-sm-2">&nbsp;</td>
-  </tr>
-  <tr class="row">
-    <th class="col-sm-3">Reports</th>
-    <td class="col-sm-6">
-      <span class="fas fa-thumbs-up fs-1"></span>{{reports_success}}
-      <span class="fas fa-thumbs-down fs-1 ml-3"></span>{{reports_failure}}
-      <span class="fas fa-bug fs-1 ml-3"></span>{{reports_issue}}
-    </td>
-    <td class="col-sm-2">&nbsp;</td>
-    </td>
-  </tr>
-</table>
+        <p class="card-text">
+{% if fw.remote.is_signed and fw.is_dirty %}
+          <div class="alert alert-warning" role="alert">
+            The <code>{{fw.remote.name}}</code> metadata will be regenerated to
+            include this firmware in {{format_timedelta_approx(fw.remote.scheduled_signing)}}.
+          </div>
+{% else %}
+          The firmware is in the <code>{{fw.remote.name}}</code> remote.
+{% if fw.target_duration.total_seconds() > 5 %}
+          It was moved {{format_timedelta_approx(fw.target_duration)}}.
+{% endif %}
+{% endif %}
+        </p>
 {% if not fw.is_deleted and fw.check_acl('@delete') %}
-      <button type="button" class="btn btn-danger card-link" data-toggle="modal" data-target="#deleteModal">Delete</button>
+        <button type="button" class="btn btn-danger card-link" data-toggle="modal" data-target="#deleteModal">Delete</button>
 {% endif %}
 {% if fw.is_deleted and fw.check_acl('@undelete') %}
-      <a class="btn btn-warning card-link" href="/lvfs/firmware/{{fw.firmware_id}}/undelete" role="button">Undelete</a>
+        <a class="btn btn-warning card-link" href="/lvfs/firmware/{{fw.firmware_id}}/undelete" role="button">Undelete</a>
 {% endif %}
 {% if fw.is_deleted and fw.check_acl('@nuke') %}
-      <button type="button" class="btn btn-danger card-link" data-toggle="modal" data-target="#nukeModal">☠ Nuke ☠</button>
+        <button type="button" class="btn btn-danger card-link" data-toggle="modal" data-target="#nukeModal">☠ Nuke ☠</button>
+{% endif %}
+      </div>
+    </div>
+  </div>
+  <div class="col-xl-6 pl-xl-3">
+    <div class="card overflow-hidden" style="min-width: 12rem">
+      <div class="bg-holder bg-card" style="background-image:url(/img/corner-2.png);"></div>
+      <div class="card-body position-relative">
+        <h4>Details</h4>
+        <p class="card-text">
+          {{fw.filename[41:]}} was uploaded on {{fw.timestamp}} by {{fw.user.username}}.
+        </p>
+        <p class="card-text">
+          The firmware is now owned by <code>{{fw.vendor.group_id}}</code>.
+        </p>
+      </div>
+    </div>
+{% if fw.reports|length > 0 %}
+    <div class="card overflow-hidden mt-3" style="min-width: 12rem">
+      <div class="bg-holder bg-card" style="background-image:url(/img/corner-3.png);"></div>
+      <div class="card-body position-relative">
+        <h4>Reports</h4>
+{% if reports_success > 0 %}
+        <p class="card-text">
+          {{reports_success}} success reports have been uploaded.
+        </p>
+{% endif %}
+{% if reports_failure > 0 %}
+        <p class="card-text">
+          {{reports_failure}} failed reports have been uploaded.
+        </p>
+{% endif %}
+      </div>
+    </div>
+{% endif %}
+{% if fw.banned_country_codes %}
+    <div class="card overflow-hidden mt-3" style="min-width: 12rem">
+      <div class="bg-holder bg-card" style="background-image:url(/img/corner-1.png);"></div>
+      <div class="card-body position-relative">
+        <h4>Restrictions</h4>
+        <p class="card-text">
+          The firmware cannot be downloaded from users in these countries:
+          <code>{{fw.banned_country_codes}}</code>.
+        </p>
+      </div>
+    </div>
 {% endif %}
   </div>
 </div>
