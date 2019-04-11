@@ -137,19 +137,23 @@ new Chart(ctx, {
         </p>
       </div>
     </div>
-{% if fw.report_success_cnt or fw.report_failure_cnt %}
+{% if fw.success %}
     <div class="card overflow-hidden mt-3" style="min-width: 12rem">
       <div class="bg-holder bg-card" style="background-image:url(/img/corner-3.png);"></div>
+      <h4 class="card-header list-group-item-{{fw.color}}">
+        {{fw.success|round}}% Reported Success
+      </h4>
       <div class="card-body position-relative">
-        <h4>Reports</h4>
 {% if fw.report_success_cnt > 0 %}
         <p class="card-text">
-          {{fw.report_success_cnt}} success reports have been uploaded.
+          <a href="{{url_for('.firmware_analytics_reports', firmware_id=fw.firmware_id, state=2)}}">
+            {{fw.report_success_cnt}} success reports</a> have been uploaded.
         </p>
 {% endif %}
 {% if fw.report_failure_cnt > 0 %}
         <p class="card-text">
-          {{fw.report_failure_cnt}} failed reports have been uploaded.
+          <a href="{{url_for('.firmware_analytics_reports', firmware_id=fw.firmware_id, state=3)}}">
+            {{fw.report_failure_cnt}} failed reports</a> have been uploaded.
         </p>
 {% endif %}
       </div>

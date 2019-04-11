@@ -1310,6 +1310,21 @@ class Firmware(db.Model):
         return self.vendor.banned_country_codes
 
     @property
+    def success(self):
+        total = self.report_failure_cnt + self.report_success_cnt
+        if not total:
+            return None
+        return (self.report_success_cnt * 100) / total
+
+    @property
+    def color(self):
+        if self.success > 95:
+            return 'success'
+        if self.success > 80:
+            return 'warning'
+        return 'danger'
+
+    @property
     def inhibit_download(self):
         for md in self.mds:
             if md.inhibit_download:
