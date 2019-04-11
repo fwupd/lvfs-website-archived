@@ -4,46 +4,24 @@
 {% block nav %}{% include 'firmware-nav.html' %}{% endblock %}
 
 {% block content %}
-<div class="card">
-  <div class="card-body">
-    <h4 class="card-title">Reports</h4>
+
 {% if reports|length > 0 %}
-<table class="table">
-  <tr class="row table-borderless">
-    <th class="col-sm-2">Timestamp</th>
-    <th class="col-sm-1">State</th>
-    <th class="col-sm-8">Full Report</th>
-    <th class="col-sm-1">&nbsp;</th>
-  </tr>
+
 {% for r in reports %}
-  <tr class="row">
-    <td class="col-sm-2">{{r.timestamp}}</td>
-    <td class="col-sm-1">
-{% if r.state == 0 %}
-      <p class="text-warning">Unknown</p>
-{% elif r.state == 1 %}
-      <p class="text-warning">Pending</p>
-{% elif r.state == 2 %}
-      <p class="text-success">Success</p>
-{% elif r.state == 3 %}
-{% if r.issue_id > 0 %}
-      <a class="text-info" href="/lvfs/issue/{{r.issue_id}}/details">Triaged</a>
-{% else %}
-      <p class="text-danger">Failed</p>
-{% endif %}
-{% else %}
-      <p class="text-danger">Invalid!</p>
-{% endif %}
-    </td>
-    <td class="col-sm-8"><code>{{r.to_kvs()}}</code></td>
-    <td class="col-sm-1 text-right">
+<div class="card mb-3">
+  <h4 class="card-header list-group-item-{{r.color}}">
+    {{r.timestamp}}
+  </h4>
+  <div class="card-body">
+    <p class="card-text">
+      <code>{{r.to_kvs()}}</code>
+    </p>
 {% if g.user.check_acl('@admin') %}
-      <a class="btn btn-danger" href="/lvfs/report/{{r.report_id}}/delete">Delete</a>
+    <a class="card-link btn btn-danger" href="{{url_for('report_delete', report_id=r.report_id)}}">Delete</a>
 {% endif %}
-    </td>
-  </tr>
+  </div>
+</div>
 {% endfor %}
-</table>
 
 {% else %}
 

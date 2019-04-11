@@ -1708,6 +1708,18 @@ class Report(db.Model):
         self.user_id = user_id
         self.checksum = checksum
 
+    @property
+    def color(self):
+        if self.state == 1:
+            return 'info'
+        if self.state == 2:
+            return 'success'
+        if self.state == 3:
+            return 'danger'
+        if self.state == 4:
+            return 'info'
+        return 'danger'
+
     def to_flat_dict(self):
         data = {}
         if self.state == 1:

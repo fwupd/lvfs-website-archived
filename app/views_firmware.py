@@ -497,8 +497,9 @@ def firmware_analytics_clients(firmware_id):
 
 @app.route('/lvfs/firmware/<int:firmware_id>/analytics/reports')
 @app.route('/lvfs/firmware/<int:firmware_id>/analytics/reports/<int:state>')
+@app.route('/lvfs/firmware/<int:firmware_id>/analytics/reports/<int:state>/<int:limit>')
 @login_required
-def firmware_analytics_reports(firmware_id, state=None):
+def firmware_analytics_reports(firmware_id, state=None, limit=100):
     """ Show firmware clients information """
 
     # get reports about the firmware
@@ -512,10 +513,12 @@ def firmware_analytics_reports(firmware_id, state=None):
     if state:
         reports = db.session.query(Report).\
                     filter(Report.firmware_id == firmware_id).\
-                    filter(Report.state == state).all()
+                    filter(Report.state == state).\
+                    order_by(Report.timestamp.desc()).limit(limit).all()
     else:
         reports = db.session.query(Report).\
-                    filter(Report.firmware_id == firmware_id).all()
+                    filter(Report.firmware_id == firmware_id).\
+                    order_by(Report.timestamp.desc()).limit(limit).all()
     return render_template('firmware-analytics-reports.html',
                            fw=fw,
                            state=state,
