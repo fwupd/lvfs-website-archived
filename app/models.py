@@ -1263,6 +1263,9 @@ class Firmware(db.Model):
     signed_timestamp = Column(DateTime, default=None)
     is_dirty = Column(Boolean, default=False)   # waiting to be included in metadata
     _banned_country_codes = Column('banned_country_codes', Text, default=None) # ISO 3166, delimiter ','
+    report_success_cnt = Column(Integer, default=0)     # updated by cron.py
+    report_failure_cnt = Column(Integer, default=0)     # updated by cron.py
+    report_issue_cnt = Column(Integer, default=0)       # updated by cron.py
 
     # include all Component objects
     mds = relationship("Component",

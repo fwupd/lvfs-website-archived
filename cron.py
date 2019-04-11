@@ -24,7 +24,7 @@ from app import db, ploader
 
 from app.dbutils import _execute_count_star
 from app.models import Remote, Firmware, Vendor, Client, AnalyticVendor
-from app.models import AnalyticFirmware, Useragent, UseragentKind, Analytic
+from app.models import AnalyticFirmware, Useragent, UseragentKind, Analytic, Report
 from app.models import _get_datestr_from_datetime
 from app.metadata import _metadata_update_targets, _metadata_update_pulp
 from app.util import _archive_get_files_from_glob, _get_dirname_safe, _event_log
@@ -247,6 +247,27 @@ def _generate_stats_for_firmware(fw, datestr):
     analytic = AnalyticFirmware(fw.firmware_id, datestr, cnt)
     db.session.add(analytic)
 
+def _generate_stats_firmware_reports(fw):
+
+    # count how many times any of the firmware files were downloaded
+    reports_success = 0
+    reports_failure = 0
+    reports_issue = 0
+    for r in db.session.query(Report).\
+                    filter(Report.firmware_id == fw.firmware_id).all():
+        if r.state == 2:
+            reports_success += 1
+        if r.state == 3:
+            if r.issue_id:
+                reports_issue += 1
+            else:
+                reports_failure += 1
+
+    # update
+    fw.report_success_cnt = reports_success
+    fw.report_failure_cnt = reports_failure
+    fw.report_issue_cnt = reports_issue
+
 def _get_app_from_ua(ua):
     # always exists
     return ua.split(' ')[0]
@@ -266,6 +287,17 @@ def _get_lang_distro_from_ua(ua):
     if len(parts) != 3:
         return None
     return (parts[1], parts[2])
+
+def _generate_stats(kinds=None):
+    if not kinds:
+        kinds = ['FirmwareReport']
+
+    # update FirmwareReport counts
+    if 'FirmwareReport' in kinds:
+        for fw in db.session.query(Firmware).all():
+            _generate_stats_firmware_reports(fw)
+        db.session.commit()
+    print('generated %s' % ','.join(kinds))
 
 def _generate_stats_for_datestr(datestr, kinds=None):
 
@@ -394,6 +426,7 @@ if __name__ == '__main__':
             with app.test_request_context():
                 val = _get_datestr_from_datetime(datetime.date.today() - datetime.timedelta(days=1))
                 _generate_stats_for_datestr(val)
+                _generate_stats()
         except NotImplementedError as e:
             print(str(e))
             sys.exit(1)

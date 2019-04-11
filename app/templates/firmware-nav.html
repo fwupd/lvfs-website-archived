@@ -30,9 +30,11 @@
       <a class="btn btn-falcon-{{'primary' if request.url_rule.endpoint == 'firmware_analytics_clients' else 'default'}}"
         href="{{url_for('.firmware_analytics_clients', firmware_id=fw.firmware_id)}}">Downloads</a>
 {% endif %}
-{% if fw.reports|length > 0 %}
+{% if fw.report_success_cnt %}
       <a class="btn btn-falcon-{{'primary' if request.url_rule.endpoint == 'firmware_analytics_reports' and state == 2 else 'default'}}"
         href="{{url_for('.firmware_analytics_reports', firmware_id=fw.firmware_id, state=2)}}"><span class="fas fa-thumbs-up fs-0"></span> Reports</a>
+{% endif %}
+{% if fw.report_failure_cnt %}
       <a class="btn btn-falcon-{{'primary' if request.url_rule.endpoint == 'firmware_analytics_reports' and state == 3 else 'default'}}"
         href="{{url_for('.firmware_analytics_reports', firmware_id=fw.firmware_id, state=3)}}"><span class="fas fa-thumbs-down fs-0"></span> Reports</a>
 {% endif %}

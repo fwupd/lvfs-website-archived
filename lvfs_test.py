@@ -402,6 +402,10 @@ class LvfsTestCase(unittest.TestCase):
         stdout = self._run_cron('firmware')
         assert fn in stdout.decode('utf-8'), stdout
 
+    def run_cron_stats(self):
+        stdout = self._run_cron('stats')
+        assert 'generated' in stdout.decode('utf-8'), stdout
+
     def run_cron_metadata(self, remote_ids=None):
         stdout = self._run_cron('metadata')
         if remote_ids:
@@ -997,6 +1001,7 @@ ma+I7fM5pmgsEL4tkCZAg0+CPTyhHkMV/cWuOZUjqTsYbDq1pZI=
         assert b'UpdateState=success' in rv.data, rv.data
 
         # check the report appeared on the telemetry page
+        self.run_cron_stats()
         rv = self.app.get('/lvfs/telemetry')
         assert b'ColorHug2' in rv.data, rv.data
         assert b'>1<' in rv.data, rv.data

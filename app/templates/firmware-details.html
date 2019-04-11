@@ -137,19 +137,19 @@ new Chart(ctx, {
         </p>
       </div>
     </div>
-{% if fw.reports|length > 0 %}
+{% if fw.report_success_cnt or fw.report_failure_cnt %}
     <div class="card overflow-hidden mt-3" style="min-width: 12rem">
       <div class="bg-holder bg-card" style="background-image:url(/img/corner-3.png);"></div>
       <div class="card-body position-relative">
         <h4>Reports</h4>
-{% if reports_success > 0 %}
+{% if fw.report_success_cnt > 0 %}
         <p class="card-text">
-          {{reports_success}} success reports have been uploaded.
+          {{fw.report_success_cnt}} success reports have been uploaded.
         </p>
 {% endif %}
-{% if reports_failure > 0 %}
+{% if fw.report_failure_cnt > 0 %}
         <p class="card-text">
-          {{reports_failure}} failed reports have been uploaded.
+          {{fw.report_failure_cnt}} failed reports have been uploaded.
         </p>
 {% endif %}
       </div>

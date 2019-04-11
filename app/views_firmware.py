@@ -10,7 +10,6 @@ import shutil
 
 from flask import request, url_for, redirect, render_template, flash, g
 from flask_login import login_required
-from sqlalchemy.orm import joinedload
 
 from app import app, db
 
@@ -434,7 +433,6 @@ def firmware_show(firmware_id):
     # get details about the firmware
     fw = db.session.query(Firmware).\
             filter(Firmware.firmware_id == firmware_id).\
-            options(joinedload('reports')).\
             first()
     if not fw:
         return _error_internal('No firmware matched!')
@@ -442,19 +440,6 @@ def firmware_show(firmware_id):
     # security check
     if not fw.check_acl('@view'):
         return _error_permission_denied('Insufficient permissions to view firmware')
-
-    # get the reports for this firmware
-    reports_success = 0
-    reports_failure = 0
-    reports_issue = 0
-    for r in fw.reports:
-        if r.state == 2:
-            reports_success += 1
-        if r.state == 3:
-            if r.issue_id:
-                reports_issue += 1
-            else:
-                reports_failure += 1
 
     # get data for the last month or year
     graph_data = []
@@ -488,10 +473,7 @@ def firmware_show(firmware_id):
     return render_template('firmware-details.html',
                            fw=fw,
                            graph_data=graph_data,
-                           graph_labels=graph_labels,
-                           reports_success=reports_success,
-                           reports_issue=reports_issue,
-                           reports_failure=reports_failure)
+                           graph_labels=graph_labels)
 
 @app.route('/lvfs/firmware/<int:firmware_id>/analytics')
 @app.route('/lvfs/firmware/<int:firmware_id>/analytics/clients')
