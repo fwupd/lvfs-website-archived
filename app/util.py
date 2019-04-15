@@ -28,12 +28,19 @@ from gi.repository import GLib
 def _fix_component_name(name, developer_name=None):
     if not name:
         return None
+
+    # things just to nuke
+    for nuke in ['(R)']:
+        name = name.replace(nuke, '')
+
     words_new = []
     words_banned = ['firmware', 'update', 'system', 'device', 'bios', 'me',
                     'embedded', 'controller']
     if developer_name:
         words_banned.append(developer_name.lower())
     for word in name.split(' '):
+        if not word:
+            continue
         if word.lower() not in words_banned:
             words_new.append(word)
     return ' '.join(words_new)
