@@ -7,15 +7,15 @@
 <table class="table">
 {% for md in mds %}
   <tr class="row">
-    <td class="col-sm-3">{{md.name}}</td>
-    <td class="col-sm-7">
+    <td class="col col-sm-3">{{md.name}}</td>
+    <td class="col col-sm-7">
       <ul>
 {% for problem in md.problems %}
         <li>{{problem.description}}</li>
 {% endfor %}
       </ul>
     </td>
-    <td class="col-sm-2 text-right">
+    <td class="col col-sm-2 text-right">
       <a class="btn btn-info btn-block" href="/lvfs/component/{{md.component_id}}/update">Details</a>
     </td>
   </tr>

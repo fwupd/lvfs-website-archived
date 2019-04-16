@@ -16,46 +16,46 @@
 <form method="post" action="/lvfs/user/{{u.user_id}}/modify_by_admin">
 {% if u.auth_type != 'oauth' %}
   <div class="form-group row">
-    <label class="col-sm-2 col-form-label" for="display_name">Display Name</label>
-    <div class="col-sm-10">
+    <label class="col col-sm-2 col-form-label" for="display_name">Display Name</label>
+    <div class="col col-sm-10">
       <input type="text" class="form-control" name="display_name" value="{{u.display_name}}" required>
     </div>
   </div>
 {% endif %}
 {% if g.user.check_acl('@admin') %}
   <div class="form-group row">
-    <label class="col-sm-2 col-form-label" for="display_name">Username</label>
-    <div class="col-sm-10">
+    <label class="col col-sm-2 col-form-label" for="display_name">Username</label>
+    <div class="col col-sm-10">
       <input type="text" class="form-control" name="username" value="{{u.username}}">
     </div>
   </div>
 {% endif %}
 {% if g.user.check_acl('@admin') and u.auth_type in ['local', 'local+locked'] %}
   <div class="form-group row">
-    <label class="col-sm-2 col-form-label" for="display_name">Password</label>
-    <div class="col-sm-10">
+    <label class="col col-sm-2 col-form-label" for="display_name">Password</label>
+    <div class="col col-sm-10">
       <input type="text" class="form-control" name="password" value="" placeholder="{{'Exists' if u.password else 'Does not exist'}}">
     </div>
   </div>
 {% endif %}
 {% if u.vendor.check_acl('@manage-users') %}
   <div class="form-group row">
-    <label class="col-sm-2 col-form-label" for="auth_warning">Account Warning</label>
-    <div class="col-sm-10">
+    <label class="col col-sm-2 col-form-label" for="auth_warning">Account Warning</label>
+    <div class="col col-sm-10">
       <input type="text" class="form-control" name="auth_warning" value="{{u.auth_warning if u.auth_warning else ''}}">
     </div>
   </div>
   <div class="form-group row">
-    <label class="col-sm-2 col-form-label" for="human_user">Contact Email</label>
-    <div class="col-sm-10">
+    <label class="col col-sm-2 col-form-label" for="human_user">Contact Email</label>
+    <div class="col col-sm-10">
       <input type="text" class="form-control" name="human_user" value="{{u.human_user.username if u.human_user else ''}}" placeholder="As username...">
     </div>
   </div>
 {% endif %}
 {% if u.vendor.check_acl('@manage-users') %}
   <div class="form-group row">
-    <label class="col-sm-2 col-form-label" for="auth_type">Account Type</label>
-    <div class="col-sm-10">
+    <label class="col col-sm-2 col-form-label" for="auth_type">Account Type</label>
+    <div class="col col-sm-10">
     <select class="form-control" name="auth_type">
       <option value="disabled" {{ 'selected' if u.auth_type == 'disabled' }}>
         Disabled
@@ -74,8 +74,8 @@
   </div>
   <fieldset class="form-group">
     <div class="row">
-      <legend class="col-form-label col-sm-2 pt-0">Attributes</legend>
-      <div class="col-sm-10">
+      <legend class="col col-form-label col-sm-2 pt-0">Attributes</legend>
+      <div class="col col-sm-10">
 {% if g.user.check_acl('@add-attribute-admin') %}
         <span class="switch mt-3">
           <input class="switch" type="checkbox" name="is_admin" id="is_admin" value="1" {{'checked' if u.is_admin}}>

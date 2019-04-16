@@ -26,8 +26,8 @@
 {% endif %}
 
   <div class="form-group row">
-    <label class="col-sm-2 col-form-label" for="display_name">New Vendor</label>
-    <div class="col-sm-10">
+    <label class="col col-sm-2 col-form-label" for="display_name">New Vendor</label>
+    <div class="col col-sm-10">
     <select class="form-control" name="vendor_id">
 {% for v in possible_vendors %}
       <option value="{{v.vendor_id}}" {{ 'selected' if v.vendor_id == u.vendor_id }}>

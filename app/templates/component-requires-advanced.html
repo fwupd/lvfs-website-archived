@@ -20,24 +20,24 @@
 <h3 class="mt-3">AppStream IDs</h3>
 <table class="table">
   <tr class="row table-borderless">
-    <th class="col-sm-6">Value</th>
-    <th class="col-sm-2">Compare</th>
-    <th class="col-sm-2">Version</th>
-    <th class="col-sm-2">&nbsp</th>
+    <th class="col col-sm-6">Value</th>
+    <th class="col col-sm-2">Compare</th>
+    <th class="col col-sm-2">Version</th>
+    <th class="col col-sm-2">&nbsp</th>
   </tr>
 {% for rq in md.requirements %}
 {% if rq.kind == 'id' %}
   <tr class="row">
-    <td class="col-sm-6">
+    <td class="col col-sm-6">
       <code>{{rq.value}}</code>
     </td>
-    <td class="col-sm-2">
+    <td class="col col-sm-2">
       <code>{{rq.compare}}</code>
     </td>
-    <td class="col-sm-2">
+    <td class="col col-sm-2">
       <code>{{rq.version}}</code>
     </td>
-    <td class="col-sm-2 text-right">
+    <td class="col col-sm-2 text-right">
       <a class="btn btn-secondary btn-block" href="/lvfs/component/{{rq.md.component_id}}/requirement/delete/{{rq.requirement_id}}" role="button">Remove</a>
     </td>
   </tr>
@@ -46,11 +46,11 @@
 {% if md.check_acl('@modify-requirements') %}
   <tr class="row table-borderless">
     <form class="form-inline" action="/lvfs/component/{{md.component_id}}/requirement/add" method="POST" >
-      <td class="col-sm-6">
+      <td class="col col-sm-6">
         <input type="hidden" name="kind" value="id">
         <input type="text" class="form-control fixed-width" name="value" placeholder="org.freedesktop.fwupd"/>
       </td>
-      <td class="col-sm-2">
+      <td class="col col-sm-2">
         <select class="form-control" name="compare">
           <option value="eq" selected>Exactly</option>
           <option value="ne">Not equal</option>
@@ -62,10 +62,10 @@
           <option value="regex">Regular Expression</option>
         </select>
       </td>
-      <td class="col-sm-2">
+      <td class="col col-sm-2">
         <input type="text" class="form-control" name="version" placeholder="1.2.3"/>
       </td>
-      <td class="col-sm-2">
+      <td class="col col-sm-2">
         <input type="submit" class="btn btn-primary btn-block" value="Add"/>
       </td>
     </form>
@@ -76,24 +76,24 @@
 <h3 class="mt-3">Firmware</h3>
 <table class="table">
   <tr class="row table-borderless">
-    <th class="col-sm-6">Value</th>
-    <th class="col-sm-2">Compare</th>
-    <th class="col-sm-2">Version</th>
-    <th class="col-sm-2">&nbsp</th>
+    <th class="col col-sm-6">Value</th>
+    <th class="col col-sm-2">Compare</th>
+    <th class="col col-sm-2">Version</th>
+    <th class="col col-sm-2">&nbsp</th>
   </tr>
 {% for rq in md.requirements %}
 {% if rq.kind == 'firmware' %}
   <tr class="row">
-    <td class="col-sm-6">
+    <td class="col col-sm-6">
       <code>{{rq.value}}</code>
     </td>
-    <td class="col-sm-2">
+    <td class="col col-sm-2">
       <code>{{rq.compare}}</code>
     </td>
-    <td class="col-sm-2">
+    <td class="col col-sm-2">
       <code>{{rq.version}}</code>
     </td>
-    <td class="col-sm-2 text-right">
+    <td class="col col-sm-2 text-right">
       <a class="btn btn-secondary btn-block" href="/lvfs/component/{{rq.md.component_id}}/requirement/delete/{{rq.requirement_id}}" role="button">Remove</a>
     </td>
   </tr>
@@ -102,11 +102,11 @@
 {% if md.check_acl('@modify-requirements') %}
   <tr class="row table-borderless">
     <form class="form-inline" action="/lvfs/component/{{md.component_id}}/requirement/add" method="POST" >
-      <td class="col-sm-6">
+      <td class="col col-sm-6">
         <input type="hidden" name="kind" value="firmware">
         <input type="text" class="form-control fixed-width" name="value" placeholder="firmware"/>
       </td>
-      <td class="col-sm-2">
+      <td class="col col-sm-2">
         <select class="form-control" name="compare">
           <option value="eq" selected>Exactly</option>
           <option value="ne">Not equal</option>
@@ -118,10 +118,10 @@
           <option value="regex">Regular Expression</option>
         </select>
       </td>
-      <td class="col-sm-2">
+      <td class="col col-sm-2">
         <input type="text" class="form-control" name="version" placeholder="1.2.3"/>
       </td>
-      <td class="col-sm-2">
+      <td class="col col-sm-2">
         <input type="submit" class="btn btn-primary btn-block" value="Add"/>
       </td>
     </form>
@@ -134,10 +134,10 @@
 {% for rq in md.requirements %}
 {% if rq.kind == 'hardware' %}
   <tr class="row">
-    <td class="col-sm-10">
+    <td class="col col-sm-10">
       <code>{{rq.value}}</code>
     </td>
-    <td class="col-sm-2 text-right">
+    <td class="col col-sm-2 text-right">
       <a class="btn btn-secondary btn-block" href="/lvfs/component/{{rq.md.component_id}}/requirement/delete/{{rq.requirement_id}}" role="button">Remove</a>
     </td>
   </tr>
@@ -146,11 +146,11 @@
 {% if md.check_acl('@modify-requirements') %}
   <tr class="row table-borderless">
     <form class="form-inline" action="/lvfs/component/{{md.component_id}}/requirement/modify" method="POST" >
-      <td class="col-sm-10">
+      <td class="col col-sm-10">
         <input type="hidden" name="kind" value="hardware">
         <input type="text" class="form-control fixed-width" name="value" placeholder="b0f340b1-361e-55f9-b691-bc46d0921ea8"/>
       </td>
-      <td class="col-sm-2">
+      <td class="col">
         <input type="submit" class="btn btn-primary btn-block" value="Add"/>
       </td>
     </form>

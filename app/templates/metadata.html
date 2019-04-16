@@ -29,25 +29,25 @@
 </p>
 <table class="table table-borderless">
   <tr class="row">
-    <th class="col-sm-3">Description</th>
-    <th class="col-sm-1">Public</th>
-    <th class="col-sm-3">URL</th>
-    <th class="col-sm-3">Custom Remote</th>
+    <th class="col col-sm-3">Description</th>
+    <th class="col col-sm-1">Public</th>
+    <th class="col col-sm-3">URL</th>
+    <th class="col col-sm-3">Custom Remote</th>
 {% if g.user.check_acl('@admin') %}
-    <th class="col-sm-2">Action</th>
+    <th class="col col-sm-2">Action</th>
 {% endif %}
   </tr>
   <tr class="row">
-    <td class="col-sm-3">Stable</td>
-    <td class="col-sm-1"><b>Yes</b></td>
-    <td class="col-sm-3"><a href="/downloads/firmware.xml.gz">
+    <td class="col col-sm-3">Stable</td>
+    <td class="col col-sm-1"><b>Yes</b></td>
+    <td class="col col-sm-3"><a href="/downloads/firmware.xml.gz">
       firmware.xml.gz
 {% if remotes['stable'].is_dirty %}
       <br/><span class="badge badge-warning">Will be signed in {{format_timedelta_approx(remotes['stable'].scheduled_signing)}}</span>
 {% endif %}
     </td>
-    <td class="col-sm-3 text-muted">not required</td>
-    <td class="col-sm-2">
+    <td class="col col-sm-3 text-muted">not required</td>
+    <td class="col col-sm-2">
 {% if g.user.check_acl('@admin') %}
       <a class="btn btn-block btn-warning"
         href={{url_for('metadata_rebuild_remote',
@@ -56,16 +56,16 @@
     </td>
   </tr>
   <tr class="row">
-    <td class="col-sm-3">Testing</td>
-    <td class="col-sm-1"><b>Yes</b></td>
-    <td class="col-sm-3"><a href="/downloads/firmware-testing.xml.gz">
+    <td class="col col-sm-3">Testing</td>
+    <td class="col col-sm-1"><b>Yes</b></td>
+    <td class="col col-sm-3"><a href="/downloads/firmware-testing.xml.gz">
       firmware-testing.xml.gz
 {% if remotes['testing'].is_dirty %}
       <br/><span class="badge badge-warning">Will be signed in {{format_timedelta_approx(remotes['testing'].scheduled_signing)}})</span>
 {% endif %}
     </td>
-    <td class="col-sm-3 text-muted">not required</td>
-    <td class="col-sm-2">
+    <td class="col col-sm-3 text-muted">not required</td>
+    <td class="col col-sm-2">
 {% if g.user.check_acl('@admin') %}
       <a class="btn btn-block btn-warning"
         href={{url_for('metadata_rebuild_remote',
@@ -75,16 +75,16 @@
   </tr>
 {% for v in vendors %}
   <tr class="row">
-    <td class="col-sm-3">Embargo &lsquo;{{v.group_id}}&rsquo;</td>
-    <td class="col-sm-1"><b>No</b></td>
-    <td class="col-sm-3">
+    <td class="col col-sm-3">Embargo &lsquo;{{v.group_id}}&rsquo;</td>
+    <td class="col col-sm-1"><b>No</b></td>
+    <td class="col col-sm-3">
       <a href="/downloads/{{v.remote.filename}}">{{ v.remote.filename[:16] }}
 {% if remotes['embargo-' + v.group_id].is_dirty %}
       <br/><span class="badge badge-warning">Will be signed in {{format_timedelta_approx(remotes['embargo-' + v.group_id].scheduled_signing)}}</span>
 {% endif %}
     </td>
-    <td class="col-sm-3"><code><a href="/lvfs/metadata/{{v.group_id}}">{{v.group_id}}-embargo.conf</a></code></td>
-    <td class="col-sm-2">
+    <td class="col col-sm-3"><code><a href="/lvfs/metadata/{{v.group_id}}">{{v.group_id}}-embargo.conf</a></code></td>
+    <td class="col col-sm-2">
 {% if g.user.check_acl('@admin') %}
       <a class="btn btn-block btn-warning"
         href={{url_for('metadata_rebuild_remote',

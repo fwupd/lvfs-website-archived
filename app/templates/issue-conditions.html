@@ -9,21 +9,21 @@
     <h2 class="card-title">Issue Conditions</h2>
 <table class="table">
   <tr class="row">
-    <th class="col-sm-3">Key</th>
-    <th class="col-sm-2">Compare</th>
-    <th class="col-sm-5">Value</th>
-    <th class="col-sm-2">&nbsp;</th>
+    <th class="col col-sm-3">Key</th>
+    <th class="col col-sm-2">Compare</th>
+    <th class="col col-sm-5">Value</th>
+    <th class="col col-sm-2">&nbsp;</th>
   </tr>
 {% if issue.conditions|length == 0 %}
   <tr class="row">
-    <td class="col-sm-12"><p class="text-muted">No conditions exist yet.</p></td>
+    <td class="col col-sm-12"><p class="text-muted">No conditions exist yet.</p></td>
   </tr>
 </p>
 {% else %}
 {% for condition in issue.conditions|sort(attribute='relative_cost') %}
   <tr class="row">
-    <td class="col-sm-3"><code>{{condition.key}}</code></td>
-    <td class="col-sm-2">
+    <td class="col col-sm-3"><code>{{condition.key}}</code></td>
+    <td class="col col-sm-2">
 {% if condition.compare == 'eq' %}
       <code>=</code>
 {% elif condition.compare == 'gt' %}
@@ -42,10 +42,10 @@
       Comparison invalid!
 {% endif %}
     </td>
-    <td class="col-sm-5">
+    <td class="col col-sm-5">
       <code>{{condition.value|truncate(50, False, '…')}}</code>
     </td>
-    <td class="col-sm-2">
+    <td class="col col-sm-2">
 {% if issue.check_acl('@modify') %}
       <a class="btn btn-block btn-danger" href="/lvfs/issue/{{issue.issue_id}}/condition/{{condition.condition_id}}/delete" role="button">Delete</a>
 {% endif %}
@@ -56,10 +56,10 @@
 {% if issue.check_acl('@modify') %}
   <tr class="row">
     <form method="post" action="/lvfs/issue/{{issue.issue_id}}/condition/add">
-    <td class="col-sm-3">
+    <td class="col col-sm-3">
       <input type="text" class="form-control" name="key" value="" placeholder="Key..." required>
     </td>
-    <td class="col-sm-2">
+    <td class="col col-sm-2">
       <select class="form-control" name="compare">
         <option value="eq" selected>=</option>
         <option value="gt">&gt;</option>
@@ -70,10 +70,10 @@
         <option value="regex">Regex</option>
       </select>
     </td>
-    <td class="col-sm-5">
+    <td class="col col-sm-5">
       <input type="text" class="form-control" name="value" value="" placeholder="Value..." required>
     </td>
-    <td class="col-sm-2">
+    <td class="col col-sm-2">
       <input type="submit" class="btn btn-block btn-primary" value="Add">
     </td>
     </form>

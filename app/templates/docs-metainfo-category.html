@@ -34,13 +34,13 @@
     <h2 class="card-title">Allowed values for categories:</h2>
 <table class="table card-text">
   <tr class="row table-borderless">
-    <th class="col-sm-5">Value</th>
-    <th class="col-sm-5">Displayed Name</th>
+    <th class="col col-sm-5">Value</th>
+    <th class="col col-sm-5">Displayed Name</th>
   </tr>
 {% for cat in categories %}
   <tr class="row">
-    <td class="col-sm-5"><code>{{cat.value}}</code></td>
-    <td class="col-sm-5">{{cat.name}}</td>
+    <td class="col col-sm-5"><code>{{cat.value}}</code></td>
+    <td class="col col-sm-5">{{cat.name}}</td>
   </tr>
 {% endfor %}
 </table>

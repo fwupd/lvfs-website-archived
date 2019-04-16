@@ -10,39 +10,45 @@
 </div>
 <div class="card mt-3">
   <div class="card-body">
-<table class="table">
+    <h2 class="card-title">Current restrictions</h2>
 {% if v.restrictions|length == 0 %}
   <tr class="row table-borderless">
-    <td class="col-sm-12"><p class="text-muted">No restrictions exist.</p></td>
+    <td class="col col-sm-12"><p class="text-muted">No restrictions exist.</p></td>
   </tr>
-</p>
+  </div>
+</div>
+
 {% else %}
+<table class="table">
   <tr class="row table-borderless">
-    <th class="col-sm-10">Value</th>
-    <th class="col-sm-2">&nbsp;</th>
+    <th class="col col-sm-10">Value</th>
+    <th class="col col-sm-2">&nbsp;</th>
   </tr>
 {% for r in v.restrictions %}
   <tr class="row">
-    <td class="col-sm-10"><code>{{r.value}}</code></td>
-    <td class="col-sm-2">
+    <td class="col col-sm-10"><code>{{r.value}}</code></td>
+    <td class="col col-sm-2">
       <a class="btn btn-block btn-danger" href="/lvfs/vendor/{{v.vendor_id}}/restriction/{{r.restriction_id}}/delete" role="button">Delete</a>
     </td>
-  </tr>
-{% endfor %}
-{% endif %}
-  <tr class="row table-borderless">
-    <form method="post" action="/lvfs/vendor/{{v.vendor_id}}/restriction/add">
-    <td class="col-sm-10">
-      <input type="text" class="form-control" name="value" value="" placeholder="Value..." required>
-    </td>
-    <td class="col-sm-2">
-      <input type="submit" class="btn btn-block btn-primary" value="Add">
-    </td>
-    </form>
   </tr>
 </table>
   </div>
 </div>
+{% endfor %}
+{% endif %}
+
+<form method="post" action="/lvfs/vendor/{{v.vendor_id}}/restriction/add">
+<div class="card mt-3">
+  <div class="card-body">
+    <h2 class="card-title">Add a new restriction</h2>
+    <p class="card-text">
+      <input type="text" class="form-control" name="value" value="" placeholder="Restriction..." required>
+    </p>
+    <input type="submit" class="card-link btn btn-primary" value="Add">
+  </div>
+</div>
+</form>
+
 {% endblock %}
 
 {% block breadcrumb %}{% include 'vendor-breadcrumb.html' %}{% endblock %}

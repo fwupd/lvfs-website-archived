@@ -21,16 +21,16 @@
     <p class="card-text">This page show all the firmware releases for a specific device.</p>
 <table class="table card-text">
   <div class="row">
-    <div class="col-sm-2">Name</div>
-    <div class="col-sm-10">{{fws[0].md_prio.name}}</div>
+    <div class="col col-sm-2">Name</div>
+    <div class="col col-sm-10">{{fws[0].md_prio.name}}</div>
   </div>
   <div class="row">
-    <div class="col-sm-2">Summary</div>
-    <div class="col-sm-10">{{fws[0].md_prio.summary}}</div>
+    <div class="col col-sm-2">Summary</div>
+    <div class="col col-sm-10">{{fws[0].md_prio.summary}}</div>
   </div>
   <div class="row">
-    <div class="col-sm-2">Vendor</div>
-  <div class="col-sm-10"><a href="{{fws[0].md_prio.url_homepage}}">{{fws[0].md_prio.developer_name}}</a></div>
+    <div class="col col-sm-2">Vendor</div>
+  <div class="col col-sm-10"><a href="{{fws[0].md_prio.url_homepage}}">{{fws[0].md_prio.developer_name}}</a></div>
   </div>
 </table>
   </div>
@@ -49,32 +49,32 @@
 {% endif %}
 <div class="table card-text">
   <div class="row">
-    <div class="col-sm-2 font-weight-bold">Uploaded</div>
-    <div class="col-sm-10">{{fw.timestamp}}</div>
+    <div class="col col-sm-2 font-weight-bold">Uploaded</div>
+    <div class="col col-sm-10">{{fw.timestamp}}</div>
   </div>
   <div class="row">
-    <div class="col-sm-2 font-weight-bold">State</div>
-    <div class="col-sm-10">{{fw.remote.name}}</div>
+    <div class="col col-sm-2 font-weight-bold">State</div>
+    <div class="col col-sm-10">{{fw.remote.name}}</div>
   </div>
   <div class="row">
-    <div class="col-sm-2 font-weight-bold">Urgency</div>
-    <div class="col-sm-10">{{fw.md_prio.release_urgency}}</div>
+    <div class="col col-sm-2 font-weight-bold">Urgency</div>
+    <div class="col col-sm-10">{{fw.md_prio.release_urgency}}</div>
   </div>
   <div class="row">
-    <div class="col-sm-2 font-weight-bold">License</div>
-    <div class="col-sm-10">{{fw.md_prio.project_license}}</div>
+    <div class="col col-sm-2 font-weight-bold">License</div>
+    <div class="col col-sm-10">{{fw.md_prio.project_license}}</div>
   </div>
 {% if fw.md_prio.requires_source_url %}
   <div class="row">
-    <div class="col-sm-2 font-weight-bold">Source</div>
-    <div class="col-sm-10">
+    <div class="col col-sm-2 font-weight-bold">Source</div>
+    <div class="col col-sm-10">
       <a href="{{fw.md_prio.source_url}}">{{fw.md_prio.source_url}}</a>
     </div>
   </div>
 {% endif %}
   <div class="row">
-    <div class="col-sm-2 font-weight-bold">Filename</div>
-    <div class="col-sm-10">
+    <div class="col col-sm-2 font-weight-bold">Filename</div>
+    <div class="col col-sm-10">
 {% if fw.inhibit_download %}
       <p class="text-muted">
         The OEM that uploaded this firmware has chosen to disable downloads of
@@ -88,8 +88,8 @@
     </div>
   </div>
   <div class="row">
-    <div class="col-sm-2 font-weight-bold">Description</div>
-    <div class="col-sm-10">
+    <div class="col col-sm-2 font-weight-bold">Description</div>
+    <div class="col col-sm-10">
       {{format_html_from_markdown(fw.md_prio.release_description)|safe}}
 {% if fw.md_prio.details_url %}
       <a class="btn" href="{{fw.md_prio.details_url}}">More details</a>
@@ -97,8 +97,8 @@
     </div>
   </div>
   <div class="row">
-    <div class="col-sm-2 font-weight-bold">Security</div>
-    <div class="col-sm-10">
+    <div class="col col-sm-2 font-weight-bold">Security</div>
+    <div class="col col-sm-10">
       <ul class="list-group">
 {% for attr in fw.security_claim.attrs|sort() %}
         <li class="list-group-item">

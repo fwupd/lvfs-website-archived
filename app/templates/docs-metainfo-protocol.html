@@ -28,18 +28,18 @@
 </p>
 <table class="table card-text">
   <tr class="row table-borderless">
-    <th class="col-sm-3">Value</th>
-    <th class="col-sm-5">Name</th>
-    <th class="col-sm-1">Signed?</th>
-    <th class="col-sm-1">Header?</th>
+    <th class="col col-sm-3">Value</th>
+    <th class="col col-sm-5">Name</th>
+    <th class="col col-sm-1">Signed?</th>
+    <th class="col col-sm-1">Header?</th>
   </tr>
 {% for pr in protocols %}
 {% if pr.is_public %}
   <tr class="row">
-    <td class="col-sm-3"><code>{{pr.value}}</code></td>
-    <td class="col-sm-5">{{pr.name}}</td>
-    <td class="col-sm-1">{{'Yes' if pr.is_signed else 'No'}}</td>
-    <td class="col-sm-1">
+    <td class="col col-sm-3"><code>{{pr.value}}</code></td>
+    <td class="col col-sm-5">{{pr.name}}</td>
+    <td class="col col-sm-1">{{'Yes' if pr.is_signed else 'No'}}</td>
+    <td class="col col-sm-1">
 {% if pr.has_header %}
       <a href="#{{pr.value}}">Yes</a>
 {% else %}

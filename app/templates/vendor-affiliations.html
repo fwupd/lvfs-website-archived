@@ -16,13 +16,11 @@
 {% endif %}
 
 {% if v.check_acl('@modify-affiliations') %}
+<form method="post" action="{{url_for('.vendor_affiliation_add', vendor_id=v.vendor_id)}}">
 <div class="card mt-3">
   <div class="card-body">
-  <h4 class="card-title">Add affiliation</h4>
-<table class="table table-borderless card-text">
-  <tr class="row table-borderless">
-    <form method="post" action="/lvfs/vendor/{{v.vendor_id}}/affiliation/add">
-    <td class="col-sm-10">
+    <h4 class="card-title">Add affiliation</h4>
+    <p class="card-text">
       <select class="form-control" name="vendor_id_odm">
 {% for ov in other_vendors %}
         <option value="{{ov.vendor_id}}" required>
@@ -30,15 +28,11 @@
         </option>
 {% endfor %}
       </select>
-    </td>
-    <td class="col-sm-2">
-      <input type="submit" class="btn btn-block btn-primary" value="Add">
-    </td>
-    </form>
-  </tr>
-</table>
+    </p>
+    <input type="submit" class="card-link btn btn-primary" value="Add"/>
   </div>
 </div>
+</form>
 {% endif %}
 
 {% if v.affiliations|length == 0 %}
@@ -57,12 +51,12 @@
     <div class="card-body">
       <h4 class="card-title">
         {{r.vendor_odm.display_name}}
+        <img class="float-right" src="/uploads/{{r.vendor_odm.icon}}" width="64"/>
       </h4>
-      <p class="card-text">
-        <img class="img-thumbnail mr-3" src="/uploads/{{r.vendor_odm.icon}}" width="128"/>
-      </p>
 {% if v.check_acl('@modify-affiliations') %}
-      <a class="card-link" href="/lvfs/vendor/{{v.vendor_id}}/affiliation/{{r.affiliation_id}}/delete" role="button">Remove</a>
+      <a class="card-link btn btn-danger"
+        href="{{url_for('.vendor_affiliation_delete', vendor_id=v.vendor_id, affiliation_id=r.affiliation_id)}}"
+        role="button">Remove</a>
 {% endif %}
     </div>
   </div>

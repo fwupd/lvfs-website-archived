@@ -80,15 +80,15 @@
     <h4 class="card-title">History</h4>
 <table class="table">
   <tr class="row table-borderless">
-    <th class="col-sm-3">Timestamp</td>
-    <th class="col-sm-5">User</td>
-    <th class="col-sm-4">Target</td>
+    <th class="col">Timestamp</td>
+    <th class="col">User</td>
+    <th class="col">Target</td>
   </tr>
 {% for ev in fw.events|sort(attribute='timestamp',reverse=True) %}
   <tr class="row">
-    <td class="col-sm-3">{{ev.timestamp}}</td>
-    <td class="col-sm-5">{{ev.user.username}}</td>
-    <td class="col-sm-4">{{ev.remote.name}}</td>
+    <td class="col">{{ev.timestamp}}</td>
+    <td class="col text-truncate">{{ev.user.username}}</td>
+    <td class="col">{{ev.remote.name}}</td>
   </tr>
 {% endfor %}
 </table>

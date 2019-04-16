@@ -45,14 +45,14 @@
 <table class="table table-striped card-text">
 {% for vendor in vendors %}
   <tr class="row">
-    <td class="col-sm-1">
+    <td class="col col-sm-1">
 {% if vendor.icon %}
       <img class="img-thumbnail" src="/uploads/{{vendor.icon}}" height="64"/>
 {% else %}
       <img class="img-thumbnail" src="/uploads/vendor-unknown.png" height="64"/>
 {% endif %}
     </td>
-    <td class="col-sm-11">
+    <td class="col col-sm-11">
       <a href="/lvfs/vendorlist#{{vendor.group_id}}">Hardware Vendor: {{vendor.display_name}}</a><br/>
       Uses the LVFS: {{ 'Yes' if vendor.is_account_holder else 'No' }}<br/>
       Uploading Firmware: {{ 'Yes' if vendor.is_uploading == 'yes' else 'No' }}<br/>
@@ -62,14 +62,14 @@
 {% endfor %}
 {% for md in mds %}
   <tr class="row">
-    <td class="col-sm-1">
+    <td class="col col-sm-1">
 {% if md.fw.vendor.icon %}
       <img class="img-thumbnail" src="/uploads/{{md.fw.vendor.icon}}" height="64"/>
 {% else %}
       <img class="img-thumbnail" src="/uploads/vendor-unknown.png" height="64"/>
 {% endif %}
     </td>
-    <td class="col-sm-11">
+    <td class="col col-sm-11">
       <a href="{{url_for('.device_show', appstream_id=md.appstream_id)}}">Firmware: {{md.name}}</a><br/>
       Vendor: {{md.developer_name}}<br/>
       Latest Version: {{md.version}}

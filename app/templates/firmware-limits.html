@@ -29,31 +29,31 @@
 
 <table class="table">
   <tr class="row table-borderless">
-    <th class="col-sm-3">Downloads per day</th>
-    <th class="col-sm-3">User Agent</th>
-    <th class="col-sm-4">Response</th>
-    <th class="col-sm-2">Action</th>
+    <th class="col col-3">Downloads per day</th>
+    <th class="col col-3">User Agent</th>
+    <th class="col col-4">Response</th>
+    <th class="col">&nbsp;</th>
   </tr>
 {% for fl in fw.limits %}
   <tr class="row">
-    <td class="col-sm-3">
+    <td class="col col-3">
       {{fl.value}}
     </td>
-    <td class="col-sm-3">
+    <td class="col col-3">
 {% if fl.user_agent_glob %}
       <code>{{fl.user_agent_glob}}</code>
 {% else %}
       <code>*</code>
 {% endif %}
     </td>
-    <td class="col-sm-4">
+    <td class="col col-4">
 {% if fl.response %}
       <code>{{fl.response}}</code>
 {% else %}
       <code>Too Many Requests</code>
 {% endif %}
     </td>
-    <td class="col-sm-2">
+    <td class="col col-2">
       <a class="btn btn-danger btn-block" href="/lvfs/firmware/limit/{{fl.firmware_limit_id}}/delete">Delete</a>
     </td>
   </tr>
@@ -61,16 +61,16 @@
   <form method="post" action="/lvfs/firmware/limit/add" class="form">
   <input type="hidden" name="firmware_id" value="{{fw.firmware_id}}">
   <tr class="row table-borderless">
-    <td class="col-sm-3">
+    <td class="col col-3">
       <input type="number" class="form-control" name="value" min="1" max="10000" value="1000" required>
     </td>
-    <td class="col-sm-3">
+    <td class="col col-3">
       <input type="text" class="form-control fixed-width h-100" name="user_agent_glob" placeholder="*">
     </td>
-    <td class="col-sm-4">
+    <td class="col col-4">
       <input type="text" class="form-control" name="response" placeholder="Too Many Requests">
     </td>
-    <td class="col-sm-2">
+    <td class="col">
       <input class="btn btn-block btn-primary" type="submit" value="Add">
     </td>
   </tr>

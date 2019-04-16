@@ -8,21 +8,21 @@
   <h1 class="card-title">Vendors contacted by the LVFS team</h1>
 <table class="table">
   <tr class="row table-borderless">
-    <th class="col-sm-3">Vendor</th>
-    <th class="col-sm-1">fwupd</th>
-    <th class="col-sm-1">Account</th>
-    <th class="col-sm-1">Uploads</th>
+    <th class="col col-sm-3">Vendor</th>
+    <th class="col col-sm-1">fwupd</th>
+    <th class="col col-sm-1">Account</th>
+    <th class="col col-sm-1">Uploads</th>
 {% if g.user is defined and g.user.check_acl('@admin') %}
-    <th class="col-sm-5">Comments</th>
-    <th class="col-sm-1">&nbsp;</th>
+    <th class="col col-sm-5">Comments</th>
+    <th class="col col-sm-1">&nbsp;</th>
 {% else %}
-    <th class="col-sm-6">Comments</th>
+    <th class="col col-sm-6">Comments</th>
 {% endif %}
   </tr>
 {% for v in vendors %}
 {% if v.visible or (g.user is defined and g.user.check_acl('@admin')) %}
   <tr class="row" id="{{v.group_id}}">
-    <td class="col-sm-3">
+    <td class="col col-sm-3">
 {% if v.visible %}
 {% if v.url %}
       <a href="{{v.url}}">{{v.display_name}}</a>
@@ -39,41 +39,41 @@
 {% endif %}
     </td>
 {% if v.is_fwupd_supported == 'no' %}
-    <td class="col-sm-1">
+    <td class="col col-sm-1">
       <span class="fas fa-times-circle fs-5 text-danger"></span>
     </td>
 {% elif v.is_fwupd_supported == 'yes' %}
-    <td class="col-sm-1">
+    <td class="col col-sm-1">
       <span class="fas fa-check-circle fs-5 text-success"></span>
     </td>
 {% else %}
-    <td class="col-sm-1"></td>
+    <td class="col col-sm-1"></td>
 {% endif %}
 {% if not v.is_account_holder %}
-    <td class="col-sm-1">
+    <td class="col col-sm-1">
       <span class="fas fa-times-circle fs-5 text-danger"></span>
     </td>
 {% else %}
-    <td class="col-sm-1">
+    <td class="col col-sm-1">
       <span class="fas fa-check-circle fs-5 text-success"></span>
     </td>
 {% endif %}
 {% if v.is_uploading == 'no' %}
-    <td class="col-sm-1">
+    <td class="col col-sm-1">
       <span class="fas fa-times-circle fs-5 text-danger"></span>
     </td>
 {% elif v.is_uploading == 'yes' %}
-    <td class="col-sm-1">
+    <td class="col col-sm-1">
       <span class="fas fa-check-circle fs-5 text-success"></span>
     </td>
 {% else %}
-    <td class="col-sm-1"></td>
+    <td class="col col-sm-1"></td>
 {% endif %}
 {% if g.user is defined and g.user.check_acl('@admin') %}
-    <td class="col-sm-5">{{v.description}}</td>
-    <td class="col-sm-1"><a class="btn btn-secondary btn-block" href="/lvfs/vendor/{{v.vendor_id}}/details">Edit</a></td>
+    <td class="col col-sm-5">{{v.description}}</td>
+    <td class="col col-sm-1"><a class="btn btn-secondary btn-block" href="/lvfs/vendor/{{v.vendor_id}}/details">Edit</a></td>
 {% else %}
-    <td class="col-sm-6">{{v.description}}</td>
+    <td class="col col-sm-6">{{v.description}}</td>
 {% endif %}
   </tr>
 {% endif %}

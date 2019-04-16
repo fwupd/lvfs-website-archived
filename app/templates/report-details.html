@@ -7,14 +7,13 @@
   <h1 class="card-title">Report {{rpt.report_id}}</h1>
 <table class="table">
   <tr class="row table-borderless">
-    <th class="col-sm-5">Key</th>
-    <th class="col-sm-5">Value</th>
-    <th class="col-sm-2">&nbsp;</th>
+    <th class="col col-sm-5">Key</th>
+    <th class="col col-sm-7">Value</th>
   </tr>
 {% for rattr in rpt.attributes|sort(attribute='key') %}
   <tr class="row">
-    <td class="col-sm-5"><code>{{rattr.key}}</code></td>
-    <td class="col-sm-5"><code>{{rattr.value}}</code></td>
+    <td class="col col-sm-5"><code>{{rattr.key}}</code></td>
+    <td class="col col-sm-7"><code>{{rattr.value}}</code></td>
   </tr>
 {% endfor %}
 </table>

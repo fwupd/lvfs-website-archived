@@ -8,90 +8,90 @@
   <div class="card-body">
 <table class="table">
   <tr class="row table-borderless">
-    <th class="col-sm-3">ID</th>
-    <td class="col-sm-9"><code>{{md.appstream_id}}</code></td>
+    <th class="col-3">ID</th>
+    <td class="col"><code>{{md.appstream_id}}</code></td>
   </tr>
   <tr class="row">
-    <th class="col-sm-3">Name</th>
-    <td class="col-sm-9"><code>{{md.name_with_category}}</code></td>
+    <th class="col-3">Name</th>
+    <td class="col"><code>{{md.name_with_category}}</code></td>
   </tr>
   <tr class="row">
-    <th class="col-sm-3">Summary</th>
-    <td class="col-sm-9"><code>{{md.summary}}</code></td>
+    <th class="col-3">Summary</th>
+    <td class="col"><code>{{md.summary}}</code></td>
   </tr>
   <tr class="row">
-    <th class="col-sm-3">Version</th>
-    <td class="col-sm-9"><code>{{md.version_display}}</code></td>
+    <th class="col-3">Version</th>
+    <td class="col"><code>{{md.version_display}}</code></td>
   </tr>
 {% for guid in md.guids %}
   <tr class="row">
-    <th class="col-sm-3">Device GUID</th>
-    <td class="col-sm-9"><code>{{guid.value}}</code></td>
+    <th class="col-3">Device GUID</th>
+    <td class="col"><code>{{guid.value}}</code></td>
   </tr>
 {% endfor %}
   <tr class="row">
-    <th class="col-sm-3">Download Size</th>
-    <td class="col-sm-9">{{format_size(md.release_download_size)}}</td>
+    <th class="col-3">Download Size</th>
+    <td class="col">{{format_size(md.release_download_size)}}</td>
   </tr>
   <tr class="row">
-    <th class="col-sm-3">Installed Size</th>
-    <td class="col-sm-9">{{format_size(md.release_installed_size)}}</td>
+    <th class="col-3">Installed Size</th>
+    <td class="col">{{format_size(md.release_installed_size)}}</td>
   </tr>
 {% if md.priority %}
   <tr class="row">
-    <th class="col-sm-3">Priority</th>
-    <td class="col-sm-9">{{md.priority}}</td>
+    <th class="col-3">Priority</th>
+    <td class="col">{{md.priority}}</td>
   </tr>
 {% endif %}
   <form class="form-inline" action="/lvfs/component/{{md.component_id}}/modify" method="POST">
   <tr class="row">
-    <th class="col-sm-3">Protocol</th>
+    <th class="col-3">Protocol</th>
 {% if md.fw.remote.name != 'stable' or g.user.check_acl('@admin') %}
-    <td class="col-sm-7">
+    <td class="col-7">
       <select class="form-control" name="protocol_id">
 {% for pr in protocols %}
         <option value="{{pr.protocol_id}}" {{ 'selected' if md.protocol and md.protocol.value == pr.value }}>{{ pr.name if pr.name else pr.value}}</option>
 {% endfor %}
       </select>
     </td>
-    <td class="col-sm-2">
+    <td class="col-2">
       <input type="submit" class="btn btn-secondary btn-block" value="Set"/>
     </td>
 {% else %}
-    <td class="col-sm-7"><code>{{md.protocol.value}}</code></td>
+    <td class="col-7"><code>{{md.protocol.value}}</code></td>
 {% endif %}
   </tr>
   <tr class="row">
-    <th class="col-sm-3">Category</th>
+    <th class="col-3">Category</th>
 {% if md.fw.remote.name != 'stable' or g.user.check_acl('@admin') %}
-    <td class="col-sm-7">
+    <td class="col-7">
       <select class="form-control" name="category_id">
 {% for cat in categories %}
         <option value="{{cat.category_id}}" {{ 'selected' if md.category and md.category.value == cat.value }}>{{ cat.name if cat.name else cat.value}}</option>
 {% endfor %}
       </select>
     </td>
-    <td class="col-sm-2">
+    <td class="col">
       <input type="submit" class="btn btn-secondary btn-block" value="Set"/>
     </td>
 {% else %}
-    <td class="col-sm-7"><code>{{md.category.value}}</code></td>
+    <td class="col-7"><code>{{md.category.value}}</code></td>
 {% endif %}
   </tr>
   </form>
 {% if md.screenshot_url %}
   <form class="form-inline" action="/lvfs/component/{{md.component_id}}/modify" method="POST">
   <tr class="row">
-    <th class="col-sm-3">Screenshot URL</th>
+    <th class="col-3">Screenshot URL</th>
 {% if md.fw.remote.name != 'stable' or g.user.check_acl('@admin') %}
-    <td class="col-sm-7">
+    <td class="col-7">
       <input type="text" class="form-control" name="screenshot_url" value="{{md.screenshot_url if md.screenshot_url}}"/>
     </td>
-    <td class="col-sm-2">
+    <td class="col">
       <input type="submit" class="btn btn-secondary btn-block" value="Set"/>
     </td>
 {% else %}
-    <td class="col-sm-7"><code>{{md.screenshot_url}}</code></td>
+    <td class="col"><code>{{md.screenshot_url}}</code></td>
 {% endif %}
   </tr>
   </form>
@@ -99,23 +99,23 @@
 {% if md.screenshot_caption %}
   <form class="form-inline" action="/lvfs/component/{{md.component_id}}/modify" method="POST">
   <tr class="row">
-    <th class="col-sm-3">Screenshot Caption</th>
+    <th class="col-3">Screenshot Caption</th>
 {% if md.fw.remote.name != 'stable' or g.user.check_acl('@admin') %}
-    <td class="col-sm-7">
+    <td class="col-7">
       <textarea class="form-control" name="screenshot_caption" cols="100" rows="3">{{md.screenshot_caption if md.screenshot_caption}}</textarea>
     </td>
-    <td class="col-sm-2">
+    <td class="col">
       <input type="submit" class="btn btn-secondary btn-block" value="Set"/>
     </td>
 {% else %}
-    <td class="col-sm-9"><code>{{md.screenshot_caption}}</code>
+    <td class="col"><code>{{md.screenshot_caption}}</code>
 {% endif %}
   </tr>
   </form>
 {% endif %}
   <tr class="row">
-    <th class="col-sm-3">Security</th>
-    <td class="col-sm-9">
+    <th class="col-3">Security</th>
+    <td class="col">
       <ul class="list-group">
 {% for attr in md.security_claim.attrs|sort() %}
         <li class="list-group-item">

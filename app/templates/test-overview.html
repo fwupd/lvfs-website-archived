@@ -11,15 +11,15 @@
 <table class="table">
 {% if tests_pending[plugin_id]|length > 0 %}
   <tr class="row table-borderless">
-    <th class="col-sm-3">Pending</th>
-    <td class="col-sm-3">{{tests_pending[plugin_id]|length}}</td>
+    <th class="col col-sm-3">Pending</th>
+    <td class="col col-sm-3">{{tests_pending[plugin_id]|length}}</td>
   </tr>
 {% endif %}
 {% if tests_running[plugin_id]|length > 0 %}
   <tr class="row table-borderless">
-    <th class="col-sm-3">Running</th>
-    <td class="col-sm-3">{{tests_running[plugin_id]|length}}</td>
-    <td class="col-sm-2">
+    <th class="col col-sm-3">Running</th>
+    <td class="col col-sm-3">{{tests_running[plugin_id]|length}}</td>
+    <td class="col col-sm-2">
 {% endif %}
 {% if tests_running[plugin_id]|length > 0 %}
       <a class="btn btn-small btn-block btn-outline-danger" href="{{url_for('.test_retry_all', plugin_id=plugin_id)}}">Retry all</a>
@@ -27,18 +27,18 @@
     </td>
   </tr>
   <tr class="row table-borderless">
-    <th class="col-sm-3">Success</th>
-    <td class="col-sm-3">{{tests_success[plugin_id]|length}}</td>
-    <td class="col-sm-2">
+    <th class="col col-sm-3">Success</th>
+    <td class="col col-sm-3">{{tests_success[plugin_id]|length}}</td>
+    <td class="col col-sm-2">
 {% if tests_success[plugin_id]|length > 0 %}
       <a class="btn btn-small btn-block btn-outline-danger" href="{{url_for('.test_delete_all', plugin_id=plugin_id)}}">Delete all</a>
 {% endif %}
     </td>
   </tr>
   <tr class="row table-borderless">
-    <th class="col-sm-3">Failures</th>
-    <td class="col-sm-3">{{tests_failed[plugin_id]|length}}</td>
-    <td class="col-sm-2">
+    <th class="col col-sm-3">Failures</th>
+    <td class="col col-sm-3">{{tests_failed[plugin_id]|length}}</td>
+    <td class="col col-sm-2">
 {% if tests_failed[plugin_id]|length > 0 %}
       <a class="btn btn-small btn-block btn-outline-danger" href="{{url_for('.test_waive_all', plugin_id=plugin_id)}}">Waive all</a>
 {% endif %}
@@ -46,8 +46,8 @@
   </tr>
 {% if tests_waived[plugin_id]|length > 0 %}
   <tr class="row table-borderless">
-    <th class="col-sm-3">Waived</th>
-    <td class="col-sm-3">{{tests_waived[plugin_id]|length}}</td>
+    <th class="col col-sm-3">Waived</th>
+    <td class="col col-sm-3">{{tests_waived[plugin_id]|length}}</td>
   </tr>
 {% endif %}
 </table>

@@ -2,39 +2,34 @@
 {% block title %}Update Categories{% endblock %}
 
 {% block content %}
-<div class="card">
-  <div class="card-body">
-    <h2 class="card-title">Update Categories</h2>
 
 {% if categories|length == 0 %}
-<p>
-  No categories have been created.
-</p>
+<div class="card">
+  <div class="card-body">
+    <div class="card-title">Update Categories</div>
+    <p class="card-text">
+      No categories have been created.
+    </p>
+  </div>
+</div>
 
 {% else %}
 
-<table class="table card-text">
-  <tr class="row">
-    <th class="col-sm-5">Value</th>
-    <th class="col-sm-5">Name</th>
-    <th class="col-sm-2">&nbsp;</th>
-  </tr>
 {% for cat in categories %}
-  <tr class="row">
-    <td class="col-sm-5"><code>{{cat.value}}</code></td>
-    <td class="col-sm-5">{{cat.name}}</td>
-    <td class="col-sm-2">
-      <a class="btn btn-info btn-block"
-         href="/lvfs/category/{{cat.category_id}}/details"
-         role="button">Details &raquo;</a>
-    </td>
-  </tr>
-{% endfor %}
-</table>
-
-{% endif %}
+<div class="card mt-3">
+  <div class="card-body">
+    <div class="card-title">
+      {{cat.name}}
+      <code class="float-right">{{cat.value}}</code>
+    </div>
+    <a class="card-link btn btn-info"
+      href="{{url_for('.category_details', category_id=cat.category_id)}}"
+      role="button">Details &raquo;</a>
   </div>
 </div>
+{% endfor %}
+
+{% endif %}
 
 <div class="card mt-3">
   <div class="card-body">

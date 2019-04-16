@@ -16,20 +16,20 @@
 {% else %}
 <table class="table card-text">
   <tr class="row">
-    <th class="col-sm-2">When</th>
-    <th class="col-sm-5">Hardware</th>
-    <th class="col-sm-3">Version</th>
-    <th class="col-sm-2">&nbsp;</th>
+    <th class="col col-sm-2">When</th>
+    <th class="col col-sm-5">Hardware</th>
+    <th class="col col-sm-3">Version</th>
+    <th class="col col-sm-2">&nbsp;</th>
   </tr>
 {% for fwev in fwevs %}
   <tr class="row">
-    <td class="col-sm-2">{{format_humanize_naturaltime(fwev.timestamp)}}</td>
-    <td class="col-sm-5">
+    <td class="col col-sm-2">{{format_humanize_naturaltime(fwev.timestamp)}}</td>
+    <td class="col col-sm-5">
       {{fwev.fw.md_prio.developer_name_display}}
       {{fwev.fw.md_prio.name}}
     </td>
-    <td class="col-sm-3">{{fwev.fw.version_display}}</td>
-    <td class="col-sm-2">
+    <td class="col col-sm-3">{{fwev.fw.version_display}}</td>
+    <td class="col col-sm-2">
       <a href="{{url_for('device_show', appstream_id=fwev.fw.md_prio.appstream_id)}}"
          class="btn btn-info btn-block">Details</a>
     </td>

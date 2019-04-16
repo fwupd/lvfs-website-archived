@@ -189,33 +189,33 @@
 <table class="table card-text">
   <tr class="row">
     <td class="text-muted col-sm-2">What:</td>
-    <td class="col-sm-10">
+    <td class="col col-sm-10">
       The hardware vendor name, password, GPG public key and content of original
       uploaded firmware files..
     </td>
   </tr>
   <tr class="row">
     <td class="text-muted col-sm-2">Why collected:</td>
-    <td class="col-sm-10">
+    <td class="col col-sm-10">
       Secure authentication, to allow any possible future audit and to provide
       authorised users access to signed firmware files..
     </td>
   </tr>
   <tr class="row">
     <td class="text-muted col-sm-2">Where stored:</td>
-    <td class="col-sm-10">MySQL database on fwupd.org.</td>
+    <td class="col col-sm-10">MySQL database on fwupd.org.</td>
   </tr>
   <tr class="row">
     <td class="text-muted col-sm-2">When copied:</td>
-    <td class="col-sm-10">Backed up to off-site secure LUKS partition weekly.</td>
+    <td class="col col-sm-10">Backed up to off-site secure LUKS partition weekly.</td>
   </tr>
   <tr class="row">
     <td class="text-muted col-sm-2">Who has access:</td>
-    <td class="col-sm-10">The hardware vendor (filtered by the QA group) and the DPO.</td>
+    <td class="col col-sm-10">The hardware vendor (filtered by the QA group) and the DPO.</td>
   </tr>
   <tr class="row">
     <td class="text-muted col-sm-2">Wiped:</td>
-    <td class="col-sm-10">When the vendor requests deletion of the user account.</td>
+    <td class="col col-sm-10">When the vendor requests deletion of the user account.</td>
   </tr>
 </table>
   </div>
@@ -227,32 +227,32 @@
 <table class="table card-text">
   <tr class="row">
     <td class="text-muted col-sm-2">What:</td>
-    <td class="col-sm-10">
+    <td class="col col-sm-10">
       IP address (unhashed) and REST method requested, along with any error.
     </td>
   </tr>
   <tr class="row">
     <td class="text-muted col-sm-2">Why collected:</td>
-    <td class="col-sm-10">
+    <td class="col col-sm-10">
       Providing an event log for checking what the various hardware vendors are
       doing, or trying to do..
     </td>
   </tr>
   <tr class="row">
     <td class="text-muted col-sm-2">Where stored:</td>
-    <td class="col-sm-10">MySQL database on fwupd.org.</td>
+    <td class="col col-sm-10">MySQL database on fwupd.org.</td>
   </tr>
   <tr class="row">
     <td class="text-muted col-sm-2">When copied:</td>
-    <td class="col-sm-10">Backed up to off-site secure LUKS partition weekly.</td>
+    <td class="col col-sm-10">Backed up to off-site secure LUKS partition weekly.</td>
   </tr>
   <tr class="row">
     <td class="text-muted col-sm-2">Who has access:</td>
-    <td class="col-sm-10">The hardware vendor (filtered by the QA group) and the DPO.</td>
+    <td class="col col-sm-10">The hardware vendor (filtered by the QA group) and the DPO.</td>
   </tr>
   <tr class="row">
     <td class="text-muted col-sm-2">Wiped:</td>
-    <td class="col-sm-10">When the QA group is deleted.</td>
+    <td class="col col-sm-10">When the QA group is deleted.</td>
   </tr>
 </table>
   </div>
@@ -264,32 +264,32 @@
 <table class="table card-text">
   <tr class="row">
     <td class="text-muted col-sm-2">What:</td>
-    <td class="col-sm-10">
+    <td class="col col-sm-10">
       IP address (hashed), timestamp, filename of firmware, user-agent of client.
     </td>
   </tr>
   <tr class="row">
     <td class="text-muted col-sm-2">Why collected:</td>
-    <td class="col-sm-10">
+    <td class="col col-sm-10">
       To know what client versions are being used for download, and to provide
       a download count over time for a specific firmware file.
     </td>
   </tr>
   <tr class="row">
     <td class="text-muted col-sm-2">Where stored:</td>
-    <td class="col-sm-10">MySQL database on fwupd.org.</td>
+    <td class="col col-sm-10">MySQL database on fwupd.org.</td>
   </tr>
   <tr class="row">
     <td class="text-muted col-sm-2">When copied:</td>
-    <td class="col-sm-10">Backed up to off-site secure LUKS partition weekly.</td>
+    <td class="col col-sm-10">Backed up to off-site secure LUKS partition weekly.</td>
   </tr>
   <tr class="row">
     <td class="text-muted col-sm-2">Who has access:</td>
-    <td class="col-sm-10">The hardware vendor (filtered by the QA group) and the DPO.</td>
+    <td class="col col-sm-10">The hardware vendor (filtered by the QA group) and the DPO.</td>
   </tr>
   <tr class="row">
     <td class="text-muted col-sm-2">Wiped:</td>
-    <td class="col-sm-10">When the firmware is deleted.</td>
+    <td class="col col-sm-10">When the firmware is deleted.</td>
   </tr>
 </table>
   </div>
@@ -301,33 +301,33 @@
 <table class="table card-text">
   <tr class="row">
     <td class="text-muted col-sm-2">What:</td>
-    <td class="col-sm-10">
+    <td class="col col-sm-10">
       Machine ID (hashed), failure string and checksum of failing file,
       OS distribution name and version.
     </td>
   </tr>
   <tr class="row">
     <td class="text-muted col-sm-2">Why collected:</td>
-    <td class="col-sm-10">
+    <td class="col col-sm-10">
       Allows the hardware vendor to assess if the firmware update is working on
       real hardware.
     </td>
   </tr>
   <tr class="row">
     <td class="text-muted col-sm-2">Where stored:</td>
-    <td class="col-sm-10">MySQL database on fwupd.org.</td>
+    <td class="col col-sm-10">MySQL database on fwupd.org.</td>
   </tr>
   <tr class="row">
     <td class="text-muted col-sm-2">When copied:</td>
-    <td class="col-sm-10">Backed up to off-site secure LUKS partition weekly.</td>
+    <td class="col col-sm-10">Backed up to off-site secure LUKS partition weekly.</td>
   </tr>
   <tr class="row">
     <td class="text-muted col-sm-2">Who has access:</td>
-    <td class="col-sm-10">The hardware vendor (filtered by the QA group) and the DPO.</td>
+    <td class="col col-sm-10">The hardware vendor (filtered by the QA group) and the DPO.</td>
   </tr>
   <tr class="row">
     <td class="text-muted col-sm-2">Wiped:</td>
-    <td class="col-sm-10">When the firmware is deleted.</td>
+    <td class="col col-sm-10">When the firmware is deleted.</td>
   </tr>
 </table>
   </div>

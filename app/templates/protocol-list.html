@@ -2,65 +2,78 @@
 {% block title %}Protocols{% endblock %}
 
 {% block content %}
-<div class="card">
-  <div class="card-body">
-    <h1 class="card-title">Known Protocols</h1>
 
 {% if protocols|length == 0 %}
-<p class="card-text">
-  No protocols have been created.
-</p>
+<div class="card">
+  <div class="card-body">
+    <div class="card-title">Known Protocols</div>
+    <p class="card-text">
+      No protocols have been created.
+    </p>
+  </div>
+</div>
 
 {% else %}
 
-<table class="table">
-  <tr class="row">
-    <th class="col-sm-3">Value</th>
-    <th class="col-sm-3">Name</th>
-    <th class="col-sm-1">Signed</th>
-    <th class="col-sm-1">Public</th>
-    <th class="col-sm-1">Verify</th>
-    <th class="col-sm-1">Header</th>
-    <th class="col-sm-2">&nbsp;</th>
-  </tr>
-{% for pr in protocols %}
-  <tr class="row">
-    <td class="col-sm-3"><code>{{pr.value}}</code></td>
-    <td class="col-sm-3">{{pr.name}}</td>
-    <td class="col-sm-1">{{ 'Yes' if pr.is_signed else 'No' }}</td>
-    <td class="col-sm-1">{{ 'Yes' if pr.is_public else 'No' }}</td>
-    <td class="col-sm-1">{{ 'Yes' if pr.can_verify else 'No' }}</td>
-    <td class="col-sm-1">{{ 'Yes' if pr.has_header else 'No' }}</td>
-    <td class="col-sm-2">
-      <a class="btn btn-info btn-block"
-         href="/lvfs/protocol/{{pr.protocol_id}}/details"
-         role="button">Details &raquo;</a>
-    </td>
-  </tr>
-{% endfor %}
-</table>
-
-{% endif %}
+<div class="card">
+  <div class="card-body">
+    <div class="card-title">Known Protocols</div>
+    <p class="card-text">
+      New protocols should be added to the fwupd project before adding here.
+    </p>
   </div>
 </div>
 
-
+{% for pr in protocols %}
 <div class="card mt-3">
   <div class="card-body">
-    <h2 class="card-title">Create a new update protocol</h2>
-<form method="post" action="/lvfs/protocol/add" class="form-inline">
-  <div class="table">
-    <div class="row">
-      <div class="col-sm-10">
-        <input class="form-control" type="text" name="value" placeholder="Value" required>
-      </div>
-      <div class="col-sm-2">
-        <input class="btn btn-primary btn-block" type="submit" value="Add">
-      </div>
+    <div class="card-title">
+      {{pr.name}}
+      <code class="float-right">{{pr.value}}</code>
     </div>
-  </div>
-</form>
+    <p class="card-text">
+{% if pr.is_signed %}
+      <span class="badge badge-success text-uppercase">Signed</span>
+{% endif %}
+{% if pr.can_verify %}
+      <span class="badge badge-success text-uppercase">Can Verify</span>
+{% endif %}
+{% if pr.has_header %}
+      <span class="badge badge-success text-uppercase">Has Header</span>
+{% endif %}
+{% if not pr.is_public %}
+      <span class="badge badge-danger text-uppercase">Nonpublic</span>
+{% endif %}
+{% if not pr.is_signed %}
+      <span class="badge badge-warning text-uppercase">Unsigned</span>
+{% endif %}
+{% if not pr.can_verify %}
+      <span class="badge badge-warning text-uppercase">Cannot Verify</span>
+{% endif %}
+{% if not pr.has_header %}
+      <span class="badge badge-warning text-uppercase">No Header</span>
+{% endif %}
+    </p>
+
+    <a class="card-link btn btn-info"
+       href="/lvfs/protocol/{{pr.protocol_id}}/details"
+       role="button">Details</a>
   </div>
 </div>
+{% endfor %}
+
+{% endif %}
+
+<form method="post" action="/lvfs/protocol/add" class="form">
+<div class="card mt-3">
+  <div class="card-body">
+    <div class="card-title">Create a new update protocol</div>
+    <p class="card-text">
+      <input class="form-control" type="text" name="value" placeholder="Value" required>
+    </p>
+    <input class="card-link btn btn-primary" type="submit" value="Add">
+  </div>
+</div>
+</form>
 
 {% endblock %}

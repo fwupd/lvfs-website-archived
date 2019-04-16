@@ -18,29 +18,29 @@
 <table class="table">
 {% if md.release_urgency %}
   <tr class="row table-borderless">
-    <th class="col-sm-3">Release Urgency</th>
-    <td class="col-sm-9">{{md.release_urgency}}</td>
+    <th class="col col-sm-3">Release Urgency</th>
+    <td class="col">{{md.release_urgency}}</td>
   </tr>
 {% endif %}
   <tr class="row">
-    <th class="col-sm-3">Update Description</th>
-    <td class="col-sm-9">{{md.release_description}}</td>
+    <th class="col col-sm-3">Update Description</th>
+    <td class="col">{{md.release_description}}</td>
   </tr>
 {% if md.details_url %}
   <tr class="row">
-    <th class="col-sm-3">Update URL</th>
-    <td class="col-sm-9">{{md.details_url}}</td>
+    <th class="col col-sm-3">Update URL</th>
+    <td class="col">{{md.details_url}}</td>
   </tr>
 {% endif %}
 {% if md.source_url %}
   <tr class="row">
-    <th class="col-sm-3">Source URL</th>
-    <td class="col-sm-9">{{md.source_url}}</td>
+    <th class="col col-sm-3">Source URL</th>
+    <td class="col">{{md.source_url}}</td>
   </tr>
 {% endif %}
   <tr class="row">
-    <th class="col-sm-3">Update Requirements</th>
-    <td class="col-sm-9">{{md.requirements|join(',')}}</td>
+    <th class="col col-sm-3">Update Requirements</th>
+    <td class="col">{{md.requirements|join(',')}}</td>
   </tr>
 </table>
 

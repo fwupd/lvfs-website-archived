@@ -160,7 +160,7 @@ new Chart(ctx, {
         <span class="text-muted">{{fw.version_display}}</span>
       </h5>
     </div>
-    <div class="col-sm-1 pt-1">
+    <div class="col pt-1">
       <img src="/img/symbolic-{{fw.remote.icon_name}}.svg" width="24"
         alt="{{fw.remote.name}}"
         title="{{fw.remote.description}}"/>
@@ -169,13 +169,13 @@ new Chart(ctx, {
         title="{{fw.problems|length}} problems"/>
 {% endif %}
     </div>
-    <div class="col-sm-1 pt-1">
+    <div class="col pt-1">
       <span class="text-muted">
         <img src="/img/symbolic-download.svg" width="24" alt="download icon"/>
         <span>{{format_humanize_intchar(fw.download_cnt)}}</span>
       </span>
     </div>
-    <div class="col-sm-2 text-right pt-1">
+    <div class="col text-right pt-1">
       <a class="btn btn-info btn-block"
         href="/lvfs/firmware/{{fw.firmware_id}}">Details</a>
     </div>

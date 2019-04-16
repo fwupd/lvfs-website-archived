@@ -10,8 +10,8 @@
 <table class="table">
 {% for kw in md.keywords %}
   <tr class="row {% if kw == md.keywords[0] %}table-borderless{% endif %}">
-    <td class="col-sm-10"><pre>{{kw.value}}</pre></td>
-    <td class="col-sm-2">
+    <td class="col col-lg-10"><pre>{{kw.value}}</pre></td>
+    <td class="col">
 {% if md.check_acl('@modify-keywords') %}
 {% if kw.priority < 5 %}
       <a class="btn btn-block btn-danger" href="/lvfs/component/{{md.component_id}}/keyword/{{kw.keyword_id}}/delete">Delete</a>
@@ -25,10 +25,10 @@
 {% if md.check_acl('@modify-keywords') %}
   <form method="post" action="/lvfs/component/{{md.component_id}}/keyword/add" class="form">
   <tr class="row table-borderless">
-    <td class="col-sm-10">
+    <td class="col col-lg-10">
       <input type="text" class="form-control" name="value" required>
     </td>
-    <td class="col-sm-2">
+    <td class="col">
       <input class="btn btn-block btn-primary" type="submit" value="Add">
     </td>
   </tr>

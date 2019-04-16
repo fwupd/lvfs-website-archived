@@ -59,16 +59,16 @@
 {% else %}
         <table class="table">
           <tr class="row table-borderless">
-            <th class="col-sm-3">Added</th>
-            <th class="col-sm-7">Signature</th>
-            <th class="col-sm-2">&nbsp;</th>
+            <th class="col col-md-3">Added</th>
+            <th class="col col-md-7">Signature</th>
+            <th class="col">&nbsp;</th>
           </tr>
 {% for crt in g.user.certificates %}
           <tr class="row">
-            <td class="col-sm-3">{{crt.ctime}}</td>
-            <td class="col-sm-7"><code>{{crt.serial}}</code></td>
-            <td class="col-sm-2">
-              <a class="btn btn-falcon-danger btn-block"
+            <td class="col col-md-3">{{crt.ctime}}</td>
+            <td class="col col-md-7 text-truncate"><code>{{crt.serial}}</code></td>
+            <td class="col">
+              <a class="btn btn-danger btn-block"
                  href="{{url_for('.user_certificate_remove',
                                  certificate_id=crt.certificate_id)}}">Remove</a>
             </td>

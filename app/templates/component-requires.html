@@ -19,11 +19,11 @@
   <input type="hidden" name="value" value="bootloader">
   <div class="table card-text">
     <div class="row">
-      <div class="col-sm-3">
+      <div class="col col-sm-3">
         Require bootloader version:
       </div>
       {% set rq = md.find_req('firmware','bootloader') %}
-      <div class="col-sm-7">
+      <div class="col col-sm-7">
         <select class="form-control" name="compare">
           <option value="any" {{ 'selected' if not rq }}>Any</option>
           <option value="ge" {{ 'selected' if rq and rq.compare == 'ge' }}>Greater than or equal</option>
@@ -37,7 +37,7 @@
         <input type="text" class="form-control fixed-width h-100" name="version" value="{{rq.version}}"/>
       </div>
 {% if md.check_acl('@modify-requirements') %}
-      <div class="col-sm-2 text-right">
+      <div class="col col-sm-2 text-right">
         <input type="submit" class="btn btn-primary btn-block" value="Set"/>
       </div>
 {% endif %}
@@ -50,11 +50,11 @@
   <input type="hidden" name="value" value="firmware">
   <div class="table">
     <div class="row">
-      <div class="col-sm-3">
+      <div class="col col-sm-3">
         Require existing firmware version:
       </div>
       {% set rq = md.find_req('firmware') %}
-      <div class="col-sm-7">
+      <div class="col col-sm-7">
         <select class="form-control" name="compare">
           <option value="any" {{ 'selected' if not rq }}>Any</option>
           <option value="ge" {{ 'selected' if rq and rq.compare == 'ge' }}>Greater than or equal</option>
@@ -68,7 +68,7 @@
         <input type="text" class="form-control fixed-width h-100" name="version" value="{{rq.version}}"/>
       </div>
 {% if md.check_acl('@modify-requirements') %}
-       <div class="col-sm-2 text-right">
+       <div class="col col-sm-2 text-right">
         <input type="submit" class="btn btn-primary btn-block" value="Set"/>
       </div>
 {% endif %}
@@ -86,11 +86,11 @@
   <input type="hidden" name="value" value="org.freedesktop.fwupd">
   <div class="table card-text">
     <div class="row">
-      <div class="col-sm-3">
+      <div class="col col-sm-3">
         Require fwupd version:
       </div>
       {% set rq = md.find_req('id','org.freedesktop.fwupd') %}
-      <div class="col-sm-7">
+      <div class="col col-sm-7">
         <select class="form-control" name="compare">
           <option value="any" {{ 'selected' if not rq }}>Any</option>
           <option value="ge" {{ 'selected' if rq and rq.compare == 'ge' }}>Greater than or equal</option>
@@ -104,7 +104,7 @@
         <input type="text" class="form-control fixed-width h-100" name="version" value="{{rq.version}}"/>
       </div>
 {% if md.check_acl('@modify-requirements') %}
-      <div class="col-sm-2 text-right">
+      <div class="col col-sm-2 text-right">
         <input type="submit" class="btn btn-primary btn-block" value="Set"/>
       </div>
 {% endif %}
@@ -124,10 +124,10 @@
 {% for rq in md.requirements %}
 {% if rq.kind == 'hardware' %}
   <tr class="row">
-    <td class="col-sm-10">
+    <td class="col col-sm-10">
       <code>{{rq.value}}</code>
     </td>
-    <td class="col-sm-2 text-right">
+    <td class="col col-sm-2 text-right">
       <a class="btn btn-secondary btn-block" href="/lvfs/component/{{rq.md.component_id}}/requirement/delete/{{rq.requirement_id}}" role="button">Remove</a>
     </td>
   </tr>
@@ -141,11 +141,11 @@
 {% if md.check_acl('@modify-requirements') %}
   <tr class="row table-borderless">
     <form class="form-inline" action="/lvfs/component/{{md.component_id}}/requirement/modify" method="POST" >
-      <td class="col-sm-10">
+      <td class="col col-sm-10">
         <input type="hidden" name="kind" value="hardware">
         <input type="text" class="form-control fixed-width" name="value" placeholder="b0f340b1-361e-55f9-b691-bc46d0921ea8"/>
       </td>
-      <td class="col-sm-2">
+      <td class="col">
         <input type="submit" class="btn btn-primary btn-block" value="Add"/>
       </td>
     </form>

@@ -11,19 +11,19 @@
 <table class="table card-text">
 {% if md.device_checksums|length > 0 %}
   <tr class="row">
-    <th class="col-sm-1">Type</th>
-    <th class="col-sm-9">Value</th>
-    <th class="col-sm-2"></th>
+    <th class="col col-sm-1">Type</th>
+    <th class="col col-sm-9">Value</th>
+    <th class="col col-sm-2"></th>
   </tr>
 {% for csum in md.device_checksums %}
   <tr class="row">
-    <td class="col-sm-1">
+    <td class="col col-sm-1">
       <code>{{csum.kind}}</code>
     </td>
-    <td class="col-sm-9">
+    <td class="col col-sm-9">
       <code>{{csum.value}}</code>
     </td>
-    <td class="col-sm-2 text-right">
+    <td class="col col-sm-2 text-right">
       <a class="btn btn-warning btn-block" href="/lvfs/component/{{csum.md.component_id}}/checksum/delete/{{csum.checksum_id}}" role="button">Delete</a>
     </td>
   </tr>
@@ -36,10 +36,10 @@
 {% if md.check_acl('@modify-checksums') %}
   <tr class="row table-borderless">
     <form class="form-inline" action="/lvfs/component/{{md.component_id}}/checksum/add" method="POST" >
-      <td class="col-sm-10">
+      <td class="col col-sm-10">
         <input type="text" class="form-control fixed-width" name="value" placeholder="12d9c307380c4410fddfdb613b5dfba8b336cf49"/>
       </td>
-      <td class="col-sm-2">
+      <td class="col">
         <input type="submit" class="btn btn-primary btn-block" value="Add"/>
       </td>
     </form>
@@ -56,23 +56,23 @@
 {% if checksum_counts|length %}
 <table class="table">
   <tr class="row">
-    <th class="col-sm-1 text-center">Count</th>
-    <th class="col-sm-9">Checksum</th>
-    <th class="col-sm-2">&nbsp;</th>
+    <th class="col col-sm-1 text-center">Count</th>
+    <th class="col col-sm-9">Checksum</th>
+    <th class="col col-sm-2">&nbsp;</th>
   </tr>
 {% for (cnt, checksum) in checksum_counts %}
   <tr class="row">
-    <td class="col-sm-1 text-center">
+    <td class="col col-sm-1 text-center">
 {% if checksum in device_checksums %}
       <span class="badge badge-success">{{cnt}}</span>
 {% else %}
       <span class="badge badge-danger">{{cnt}}</span>
 {% endif %}
     </td>
-    <td class="col-sm-9">
+    <td class="col col-sm-9">
       <code>{{checksum}}</code>
     </td>
-    <td class="col-sm-2 text-right">
+    <td class="col col-sm-2 text-right">
       <a class="btn btn-secondary btn-block"
          href="{{url_for('.firmware_analytics_reports', firmware_id=md.fw.firmware_id, state=2)}}"
          role="button">Show</a>

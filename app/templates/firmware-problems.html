@@ -20,7 +20,7 @@
 {% endif %}
     </h4>
 {% if problem.kind == 'no-release-urgency' %}
-    <td class="col-sm-7">
+    <td class="col col-sm-7">
       <p class="card-text">
         All components should have an appropriate update urgency before a
         firmware is moved to stable.
@@ -32,7 +32,7 @@
       </p>
     </td>
 {% elif problem.kind == 'no-release-description' %}
-    <td class="col-sm-7">
+    <td class="col col-sm-7">
       <p class="card-text">
         All components should have a suitable update description before a
         firmware is moved to stable.
@@ -47,7 +47,7 @@
       </p>
     </td>
 {% elif problem.kind == 'no-protocol' %}
-    <td class="col-sm-7">
+    <td class="col col-sm-7">
       <p class="card-text">
         All components should have a defined update protocol before being moved
         to stable.
@@ -59,7 +59,7 @@
       </p>
     </td>
 {% elif problem.kind == 'no-category' %}
-    <td class="col-sm-7">
+    <td class="col col-sm-7">
       <p class="card-text">
         All components should have a defined update category before being moved
         to stable.
@@ -71,7 +71,7 @@
       </p>
     </td>
 {% elif problem.kind == 'invalid-release-description' %}
-    <td class="col-sm-7">
+    <td class="col col-sm-7">
       <p class="card-text">
         All components should have a suitable update description before a
         firmware is moved to stable.
@@ -83,7 +83,7 @@
 {% endif %}
     </td>
 {% elif problem.kind == 'unsigned' %}
-    <td class="col-sm-7">
+    <td class="col col-sm-7">
       <p class="card-text">
         Signing a firmware file on the LVFS is automatic and will be completed in
         {{format_timedelta_approx(fw.scheduled_signing)}}.
@@ -91,14 +91,14 @@
       </p>
     </td>
 {% elif problem.kind == 'deleted' %}
-    <td class="col-sm-7">
+    <td class="col col-sm-7">
       <p class="card-text">
         Once a file has been deleted on the LVFS it must be undeleted before it
         can be moved to a different target.
       </p>
     </td>
 {% elif problem.kind == 'test-pending' %}
-    <td class="col-sm-7">
+    <td class="col col-sm-7">
       <p class="card-text">
         The LVFS runs tests on certain types of firmware to check they are valid.
         Some tests are still pending and will be completed shortly.
@@ -106,7 +106,7 @@
       </p>
     </td>
 {% elif problem.kind == 'test-failed' %}
-    <td class="col-sm-7">
+    <td class="col col-sm-7">
       <p class="card-text">
         A check on the firmware has failed.
         Some checks can be <em>waived</em> by a QA user and ignored.
@@ -116,14 +116,14 @@
       </p>
     </td>
 {% elif problem.kind == 'no-source' %}
-    <td class="col-sm-7">
+    <td class="col col-sm-7">
       <p class="card-text">
         Firmware that uses the GNU General Public License has to provide a link
         to the source code used to build the firmware.
       </p>
     </td>
 {% else %}
-    <td class="col-sm-7">
+    <td class="col col-sm-7">
       <p class="card-text">
         Please report this issue to the LVFS administrator.
       </p>
