@@ -8,7 +8,7 @@
 {% if fws|length == 0 %}
 <div class="card">
   <div class="card-body">
-    <h2 class="card-title">Device Details</h2>
+    <div class="card-title">Device Details</div>
     <p class="card-text">No firmware is available for this device.</p>
   </div>
 </div>
@@ -17,7 +17,7 @@
 
 <div class="card">
   <div class="card-body">
-    <h2 class="card-title">Device Details</h2>
+    <div class="card-title">Device Details</div>
     <p class="card-text">This page show all the firmware releases for a specific device.</p>
 <table class="table card-text">
   <div class="row">
@@ -40,7 +40,7 @@
 {% if (g.user is defined and g.user.check_acl('@admin')) or fw.remote.is_public %}
 <div class="card mt-3">
   <div class="card-body">
-  <h2 class="card-title">Version {{fw.version_display}}:</h2>
+  <div class="card-title">Version {{fw.version_display}}:</div>
 {% if fw.remote.name == 'testing' %}
 <p class="card-text">
   <b>Warning:</b> This firmware is in the testing state and may not be suitable for

@@ -81,10 +81,10 @@ new Chart(ctx, {
     <div class="card overflow-hidden" style="min-width: 12rem">
       <div class="bg-holder bg-card" style="background-image:url(/img/corner-1.png);"></div>
       <div class="card-body position-relative">
-        <h4>
+        <h5>
           Overview
           <img class="img-thumbnail float-right" src="/uploads/{{fw.vendor.icon}}" width="64"/>
-        </h4>
+        </div>
         <p class="card-text">
           <a href="/downloads/{{fw.filename}}">
           {{fw.md_prio.name}} {{fw.version_display}}
@@ -163,7 +163,7 @@ new Chart(ctx, {
     <div class="card overflow-hidden mt-3" style="min-width: 12rem">
       <div class="bg-holder bg-card" style="background-image:url(/img/corner-1.png);"></div>
       <div class="card-body position-relative">
-        <h4>Restrictions</h4>
+        <h5>Restrictions</h5>
         <p class="card-text">
           The firmware cannot be downloaded from users in these countries:
           <code>{{fw.banned_country_codes}}</code>.

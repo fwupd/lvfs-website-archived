@@ -10,7 +10,7 @@
 {% for problem in fw.problems %}
 <div class="card mb-3">
   <div class="card-body">
-    <h4 class="card-title">
+    <div class="card-title">
       <img src="/img/{{problem.icon_name}}.png"/>
 {% if problem.md %}
       {{problem.summary}} for &lsquo;{{problem.md.name_with_category}}&rsquo;
@@ -18,7 +18,7 @@
 {% else %}
       {{problem.summary}}
 {% endif %}
-    </h4>
+    </div>
 {% if problem.kind == 'no-release-urgency' %}
     <td class="col col-sm-7">
       <p class="card-text">
@@ -129,7 +129,7 @@
       </p>
     </td>
 {% endif %}
-    </h4>
+    </div>
 {% if problem.url %}
     <a class="btn btn-info card-link" href={{problem.url}}>Details</a>
 {% endif %}

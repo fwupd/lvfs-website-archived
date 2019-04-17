@@ -5,7 +5,7 @@
 {% block content %}
 <div class="card">
   <div class="card-body">
-  <h1 class="card-title">Hardware Vendors</h1>
+  <div class="card-title">Hardware Vendors</div>
 <p class="card-text">
   This service should only be used to distribute files that are
   <em>flashed</em> onto non-volatile memory.
@@ -15,7 +15,7 @@
 </div>
 
 <div class="card mt-3">
-  <h3 class="card-header list-group-item-info">Do I have to contribute any code?</h3>
+  <div class="card-header card-title list-group-item-info">Do I have to contribute any code?</div>
   <div class="card-body">
     <p class="card-text">
       No, unless you're using a custom update protocol that fwupd does not already support.
@@ -28,7 +28,7 @@
 
 <div class="card mt-3">
   <div class="card-body">
-    <h1 class="card-title">Upload Firmware</h1>
+    <div class="card-title">Upload Firmware</div>
 <p class="card-text">
   Once you have <a href="{{url_for('.new_account')}}">requested an account on the LVFS</a>
   and have legal permission to redistribute the firmware, you can log in and
@@ -58,7 +58,7 @@
 </div>
 
 <div class="card mt-3">
-  <h3 class="card-header list-group-item-info">Why does the LVFS project sign the archive?</h3>
+  <div class="card-header card-title list-group-item-info">Why does the LVFS project sign the archive?</div>
   <div class="card-body">
     <p class="card-text">
       The upload process repacks the uploaded archive into a new cabinet file
@@ -73,7 +73,7 @@
 </div>
 
 <div class="card mt-3">
-  <h3 class="card-header list-group-item-info">Can I restrict downloads from embargoed and sanctioned countries?</h3>
+  <div class="card-header card-title list-group-item-info">Can I restrict downloads from embargoed and sanctioned countries?</div>
   <div class="card-body">
     <p class="card-text">
       The LVFS administrator can configure the policy for all firmware owned by

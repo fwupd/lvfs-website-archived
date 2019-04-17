@@ -6,9 +6,9 @@
 <div class="card">
   <div class="card-body">
 {% if remote %}
-    <h1 class="card-title">Firmware in &lsquo;{{remote.name}}&rsquo;</h1>
+    <div class="card-title">Firmware in &lsquo;{{remote.name}}&rsquo;</div>
 {% else %}
-    <h1 class="card-title">All Firmware</h1>
+    <div class="card-title">All Firmware</div>
 {% endif %}
   <p class="card-text">
     No firmware has been uploaded or is visible by this user.
@@ -18,21 +18,21 @@
 
 {% else %}
 
-<div class="card mt-3">
+<div class="card">
   <div class="card-body">
 {% if remote %}
-    <h1 class="card-title">Firmware in &lsquo;{{remote.name}}&rsquo; ({{fws|length}})</h1>
+    <div class="card-title">Firmware in &lsquo;{{remote.name}}&rsquo; ({{fws|length}})</div>
 {% else %}
-    <h1 class="card-title">All Firmware ({{fws|length}})</h1>
+    <div class="card-title">All Firmware ({{fws|length}})</div>
 {% endif %}
 <table class="table card-text">
 {% for fw in fws %}
   <tr class="row">
     <td class="col col-sm-8">
-      <h4 class="list-group-item-title">
+      <h5 class="list-group-item-title">
         {{fw.md_prio.developer_name_display}}
         {{fw.md_prio.name_with_category}}
-      </h4>
+      </h5>
       <p class="text-muted">
         Version {{fw.version_display}} uploaded {{format_humanize_naturaltime(fw.timestamp)}}
       </p>

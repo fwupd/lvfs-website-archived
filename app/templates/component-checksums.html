@@ -6,7 +6,7 @@
 {% block content %}
 <div class="card">
   <div class="card-body">
-    <h4 class="card-title">Device Checksums</h4>
+    <div class="card-title">Device Checksums</div>
 <p class="card-text">Multiple device verification checksums can be added here.</p>
 <table class="table card-text">
 {% if md.device_checksums|length > 0 %}
@@ -51,7 +51,7 @@
 
 <div class="card mt-3">
   <div class="card-body">
-    <h4 class="card-title">User-Submitted Reports</h4>
+    <div class="card-title">User-Submitted Reports</div>
 
 {% if checksum_counts|length %}
 <table class="table">

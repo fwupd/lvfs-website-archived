@@ -21,7 +21,7 @@
 
 {% for plugin in plugins %}
 {% if plugin.id == plugin_id %}
-    <h3 class="card-title">{{plugin.name()}}</h3>
+    <div class="card-title">{{plugin.name()}}</div>
     <p class="card-text">{{plugin.summary()}}</p>
 {% for s in plugin.settings() %}
     <div class="form-group">

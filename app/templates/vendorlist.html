@@ -5,7 +5,7 @@
 {% block content %}
 <div class="card">
   <div class="card-body">
-  <h1 class="card-title">Vendors contacted by the LVFS team</h1>
+  <div class="card-title">Vendors contacted by the LVFS team</div>
 <table class="table">
   <tr class="row table-borderless">
     <th class="col col-sm-3">Vendor</th>
@@ -86,7 +86,7 @@
 {% if g.user is defined and g.user.check_acl('@admin') %}
 <div class="card mt-3">
   <div class="card-body">
-    <h1 class="card-title">Create a new vendor</h1>
+    <div class="card-title">Create a new vendor</div>
 <form method="post" action="/lvfs/vendor/add" class="form-inline">
   <input class="form-control" type="text" size="20" name="group_id" placeholder="Group ID" required>
   <input class="btn btn-primary" type="submit" value="Add">

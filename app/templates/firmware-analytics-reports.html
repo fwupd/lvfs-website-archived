@@ -9,9 +9,9 @@
 
 {% for r in reports %}
 <div class="card mb-3">
-  <h4 class="card-header list-group-item-{{r.color}}">
+  <div class="card-header card-title list-group-item-{{r.color}}">
     {{r.timestamp}}
-  </h4>
+  </div>
   <div class="card-body">
     <p class="card-text">
       <code>{{r.to_kvs()}}</code>

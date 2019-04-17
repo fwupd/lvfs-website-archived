@@ -5,7 +5,7 @@
 {% block content %}
 <div class="card">
   <div class="card-body">
-    <h2 class="card-title">Update Protocol</h2>
+    <div class="card-title">Update Protocol</div>
 <p class="card-text">
   The LVFS needs to know what protocol is being used to flash the device.
   The protocol value is used to provide information about the security of the
@@ -55,7 +55,7 @@
 
 <div class="card mt-3">
   <div class="card-body">
-    <h2 class="card-title">Firmware Formats</h2>
+    <div class="card-title">Firmware Formats</div>
 <p class="card-text">
   When a firmware format is set in the <code>metainfo.xml</code> file
   various tests are performed on the firmware.
@@ -75,7 +75,7 @@
 <div class="card-deck mt-3">
   <div class="card">
     <div class="card-body">
-      <h4 class="card-title"><a id="org.uefi.capsule"></a>UEFI Capsule Tests</h4>
+      <div class="card-title"><a id="org.uefi.capsule"></a>UEFI Capsule Tests</div>
       <p class="card-text">
         Capsule updates should be uploaded with a valid <code>CAPSULE_HEADER</code>
         that contains a GUID listed in the <code>metainfo.xml</code> file.
@@ -95,7 +95,7 @@ typedef struct {
   </div>
   <div class="card">
     <div class="card-body">
-      <h4 class="card-title"><a id="org.usb.dfu">DFU Capsule Tests</h4>
+      <div class="card-title"><a id="org.usb.dfu">DFU Capsule Tests</div>
       <p class="card-text">
         DFU updates must be uploaded with a valid <code>UFD</code> footer
         that matches the device revision number with a correct CRC value.
@@ -120,7 +120,7 @@ $ dfu-tool set-product new.dfu 0x1234
 
 <div class="card mt-3">
   <div class="card-body">
-    <h2 class="card-title">Firmware Signing</h2>
+    <div class="card-title">Firmware Signing</div>
 <p class="card-text">
   Any processor better than the most basic PIC or Arduino is capable of doing
   public/private key firmware signing.
@@ -133,7 +133,7 @@ $ dfu-tool set-product new.dfu 0x1234
 
 <div class="card mt-3">
   <div class="card-body">
-    <h2 class="card-title">Attestation of UEFI Firmware</h2>
+    <div class="card-title">Attestation of UEFI Firmware</div>
 <p class="card-text">
   Although the firmware capsule is signed by the OEM or ODM, we can’t reliably
   read the SPI EEPROM from userspace.

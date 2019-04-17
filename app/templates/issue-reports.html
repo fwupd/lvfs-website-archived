@@ -13,7 +13,7 @@
 {% for r in reports %}
 <div class="card mt-3">
   <div class="card-body">
-    <h4 class="card-title">{{r.timestamp}}</h4>
+    <div class="card-title">{{r.timestamp}}</div>
     <code class="card-text">{{r.to_kvs()}}</code>
   </div>
 </div>
@@ -21,7 +21,7 @@
 {% for r in reports_hidden %}
 <div class="card mt-3">
   <div class="card-body">
-    <h4 class="card-title">{{r.timestamp}}</h4>
+    <div class="card-title">{{r.timestamp}}</div>
     <code class="card-text">JSON not available for security level</code>
   </div>
 </div>

@@ -10,15 +10,15 @@
 {% endif %}
 
 {% for issue in issues %}
-<div class="card mt-3">
+<div class="card">
   <div class="card-body">
-    <h1 class="card-title">
+    <div class="card-title">
       {{issue.name}} {{issue.group_id}}
       <a href="{{issue.url}}">[link]</a>
 {% if not issue.enabled %}
       <span class="text-secondary">[disabled]</span>
 {% endif %}
-    </h1>
+    </div>
     <p class="card-text">{{issue.description}}</p>
     <a class="btn btn-info card-link" href="{{url_for('.issue_details', issue_id=issue.issue_id)}}" role="button">Details &raquo;</a>
 
@@ -41,7 +41,7 @@
 
 <div class="card mt-3">
   <div class="card-body">
-    <h2 class="card-title">Create a new issue</h2>
+    <div class="card-title">Create a new issue</div>
     <div class="card-text">
     <form method="post" action="{{url_for('issue_add')}}" class="form">
       <div class="form-group">

@@ -6,7 +6,7 @@
 <div class="list-group">
 {% for e in events %}
   <div class="list-group-item list-group-item-action {{'list-group-item-warning' if e.is_important}}">
-    <h4>{{e.message}}</h4>
+    <h5>{{e.message}}</h5>
     <p class="text-secondary">
 {% if e.user.username != 'anon@fwupd.org' %}
       {{e.user.username}}

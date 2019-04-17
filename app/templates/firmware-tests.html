@@ -9,7 +9,7 @@
 {% if fw.tests|length == 0 %}
 <div class="card">
   <div class="card-body">
-    <h4 class="card-title">Tests</h4>
+    <div class="card-title">Tests</div>
     <p class="card-text">
       No tests are required.
     </p>
@@ -19,7 +19,7 @@
 
 {% for test in fw.tests %}
 <div class="card mb-3">
-  <h3 class="card-header list-group-item-{{test.color}}">{{test.plugin_id}}</h3>
+  <div class="card-header card-title list-group-item-{{test.color}}">{{test.plugin_id}}</div>
   <div class="card-body">
 {% if test.waived_ts %}
     <p class="card-text">

@@ -16,7 +16,7 @@
 {% for c in clients %}
 <div class="card mb-3">
   <div class="card-body">
-    <h4 class="card-title">{{c.fw.md_prio.name_with_category}}</code></h4>
+    <div class="card-title">{{c.fw.md_prio.name_with_category}}</code></div>
     <p class="card-text">{{c.timestamp}} &mdash; from <code>{{c.addr|truncate(9, False, '…')}}</code></p>
     <p class="card-text"><code>{{c.user_agent}}</code></p>
     <a class="card-link" href="{{url_for('.firmware_show', firmware_id=c.fw.firmware_id)}}">Details</a>

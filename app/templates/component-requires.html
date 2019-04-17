@@ -6,7 +6,7 @@
 {% block content %}
 <div class="card">
   <div class="card-body">
-    <h3 class="card-title">Device Software Versions</h3>
+    <div class="card-title">Device Software Versions</div>
 {% if md.check_acl('@modify-requirements') %}
 {% if md.fw.remote.name == 'stable' and not g.user.check_acl('@admin') %}
 <div class="alert alert-danger mt-1" role="alert">
@@ -80,7 +80,7 @@
 
 <div class="card mt-3">
   <div class="card-body">
-    <h3 class="mt-3 card-title">Computer Software Versions</h3>
+    <div class="mt-3 card-title">Computer Software Versions</div>
 <form class="form-inline mt-2" action="/lvfs/component/{{md.component_id}}/requirement/modify" method="POST" >
   <input type="hidden" name="kind" value="id">
   <input type="hidden" name="value" value="org.freedesktop.fwupd">
@@ -116,7 +116,7 @@
 
 <div class="card mt-3">
   <div class="card-body">
-    <h3 class="mt-3 card-title">Computer Hardware IDs</h3>
+    <div class="mt-3 card-title">Computer Hardware IDs</div>
     <p class="card-text">
       Add GUIDs here to restrict the update to a specific machine.
     </p>

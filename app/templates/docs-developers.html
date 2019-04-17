@@ -5,7 +5,7 @@
 {% block content %}
 <div class="card">
   <div class="card-body">
-    <h1 class="card-title">System Architecture</h1>
+    <div class="card-title">System Architecture</div>
 
 <p class="card-text">
   The Linux firmware upgrade architecture is built into three components: <em>presentation</em>
@@ -22,7 +22,7 @@
 
 <div class="card mt-3">
   <div class="card-body">
-    <h2 class="card-title">The LVFS project</h2>
+    <div class="card-title">The LVFS project</div>
 <p class="card-text">
   The LVFS is a simple Flask web service using a MySQL database and the code is
   available for review at <a href="https://github.com/hughsie/lvfs-website">GitHub</a>.
@@ -46,7 +46,7 @@ $ ./app.wsgi
 
 <div class="card mt-3">
   <div class="card-body">
-    <h2 class="card-title">The fwupd project</h2>
+    <div class="card-title">The fwupd project</div>
 <p class="card-text">
   The fwupd code is available at <a href="https://github.com/hughsie/fwupd">GitHub</a>
   and this is also the place to file <a href="https://github.com/hughsie/fwupd/issues">bugs or feature requests</a>
@@ -65,7 +65,7 @@ $ git clone https://github.com/hughsie/fwupd.git
 </div>
 
 <div class="card mt-3">
-  <h3 class="card-header list-group-item-info">Is updating firmware secure?</h3>
+  <div class="card-header card-title list-group-item-info">Is updating firmware secure?</div>
   <div class="card-body">
     <p class="card-text">
       In both the LVFS and fwupd, GPG crypto is being performed using GnuPG and

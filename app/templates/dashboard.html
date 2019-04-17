@@ -17,7 +17,7 @@
 {% if download_cnt > 0 %}
 <div class="card">
   <div class="card-body rounded-soft bg-gradient">
-    <h4 class="text-white">Downloads over the last 30 days</h4>
+    <h5 class="text-white">Downloads over the last 30 days</h5>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.8.0/Chart.js" crossorigin="anonymous"></script>
 <script>
 Chart.defaults.global.animation = false;
@@ -82,7 +82,7 @@ new Chart(ctx, {
   <div class="card overflow-hidden" style="min-width: 12rem">
     <div class="bg-holder bg-card" style="background-image:url(/img/corner-1.png);"></div>
     <div class="card-body position-relative">
-      <h4>Downloads</h4>
+      <div class="card-title">Downloads</div>
       <p class="card-text">
         {{g.user.vendor.fws|length}} firmware files from {{g.user.vendor.display_name}}
         have been downloaded {{download_cnt}} times!
@@ -98,7 +98,7 @@ new Chart(ctx, {
   <div class="card overflow-hidden" style="min-width: 12rem">
     <div class="bg-holder bg-card" style="background-image:url(/img/corner-1.png);"></div>
     <div class="card-body position-relative">
-      <h4>Lets upload firmware!</h4>
+      <div class="card-title">Lets upload firmware!</div>
       <p class="card-text">
         We can start by uploading a cabinet archive and then the LVFS will
         automatically sign the firmware for you.
@@ -116,7 +116,7 @@ new Chart(ctx, {
   <div class="card overflow-hidden" style="min-width: 12rem">
     <div class="bg-holder bg-card" style="background-image:url(/img/corner-2.png);"></div>
     <div class="card-body position-relative">
-      <h4>Devices</h4>
+      <div class="card-title">Devices</div>
       <p class="card-text">You have {{devices_cnt}} different devices supported on the LVFS.</p>
       <a class="card-link text-nowrap" href="{{url_for('.firmware')}}">
         See all <span class="font-weight-bold">›</span>
@@ -127,7 +127,7 @@ new Chart(ctx, {
   <div class="card overflow-hidden" style="min-width: 12rem">
     <div class="bg-holder bg-card" style="background-image:url(/img/corner-3.png);"></div>
     <div class="card-body position-relative">
-      <h4>Users</h4>
+      <div class="card-title">Users</div>
       <p class="card-text">
         {{g.user.vendor.users|length}} users are in your organisation.
       </p>
@@ -149,16 +149,16 @@ new Chart(ctx, {
 {% if fws_recent|length %}
 <div class="card mt-3">
   <div class="card-body">
-    <h4 class="card-title">Recently uploaded firmware</h4>
+    <div class="card-title">Recently uploaded firmware</div>
     <div class="table card-body p-0 card-text">
 {% for fw in fws_recent %}
   <div class="row table-borderless">
     <div class="col-sm-8 pt-1">
-      <h5 class="list-group-item-title">
+      <p class="list-group-item-title">
         {{fw.md_prio.developer_name_display}}
         {{fw.md_prio.name}} -
         <span class="text-muted">{{fw.version_display}}</span>
-      </h5>
+      </p>
     </div>
     <div class="col pt-1">
       <img src="/img/symbolic-{{fw.remote.icon_name}}.svg" width="24"

@@ -19,7 +19,7 @@
 <form method="post" action="{{url_for('.vendor_affiliation_add', vendor_id=v.vendor_id)}}">
 <div class="card mt-3">
   <div class="card-body">
-    <h4 class="card-title">Add affiliation</h4>
+    <div class="card-title">Add affiliation</div>
     <p class="card-text">
       <select class="form-control" name="vendor_id_odm">
 {% for ov in other_vendors %}
@@ -38,7 +38,7 @@
 {% if v.affiliations|length == 0 %}
 <div class="card mt-3">
   <div class="card-body">
-    <h4 class="card-title">ODMs acting on behalf of {{v.display_name}}</h4>
+    <div class="card-title">ODMs acting on behalf of {{v.display_name}}</div>
     <p class="card-text">
       No affiliations exist.
     </p>
@@ -49,10 +49,10 @@
 {% for r in v.affiliations %}
   <div class="card">
     <div class="card-body">
-      <h4 class="card-title">
+      <div class="card-title">
         {{r.vendor_odm.display_name}}
         <img class="float-right" src="/uploads/{{r.vendor_odm.icon}}" width="64"/>
-      </h4>
+      </div>
 {% if v.check_acl('@modify-affiliations') %}
       <a class="card-link btn btn-danger"
         href="{{url_for('.vendor_affiliation_delete', vendor_id=v.vendor_id, affiliation_id=r.affiliation_id)}}"

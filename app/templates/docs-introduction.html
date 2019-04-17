@@ -8,7 +8,7 @@
 
 <div class="card">
   <div class="card-body">
-    <h1 class="card-title">Introduction</h1>
+    <div class="card-title">Introduction</div>
     <p class="card-text">
       Updating firmware on devices is traditionally difficult for users on Linux systems.
       Not knowing exact hardware details, where to look for updates or how to run the
@@ -39,7 +39,7 @@
 
 <div class="card">
   <div class="card-body">
-    <h2 class="card-title">The Problem</h2>
+    <div class="card-title">The Problem</div>
 <p class="card-text">
   Linux users have traditionally had problems with keeping hardware up to date
   with firmware updates. There are three components to this problem:
@@ -96,7 +96,7 @@
 
 <div class="card mt-3">
   <div class="card-body">
-    <h2 class="card-title">System Architecture</h2>
+    <div class="card-title">System Architecture</div>
 <p class="card-text">
   The architecture is built into three layers: a presentation layer, a mechanism
   and a data-provider and each can be replaced as required as they all use standard
@@ -111,7 +111,7 @@
 
 <div class="card mt-3">
   <div class="card-body">
-    <h3 class="card-title">GNOME Software</h3>
+    <div class="card-title">GNOME Software</div>
 <p class="card-text">
   <a href="https://wiki.gnome.org/Apps/Software">GNOME Software</a> is an application store
   designed to make installing, removing and updating both easy and beautiful.
@@ -146,7 +146,7 @@
 
 <div class="card mt-3">
   <div class="card-body">
-    <h3 class="card-title">fwupd</h3>
+    <div class="card-title">fwupd</div>
 <p class="card-text">
   This project provides a system-activated daemon <code>fwupd</code> with a <a href="/lvfs/users">D-Bus interface</a>
   that can be used by unprivileged clients.
@@ -223,7 +223,7 @@
 
 <div class="card mt-3">
   <div class="card-body">
-    <h4 class="card-title">Offline Updates</h4>
+    <div class="card-title">Offline Updates</div>
 <p class="card-text">
   When the user agrees to a UEFI firmware update the firmware is unpacked into the
   EFI System Partition, several UEFI keys are set and the system reboots.
@@ -239,7 +239,7 @@
 
 <div class="card mt-3">
   <div class="card-body">
-    <h3 class="card-title">LVFS</h3>
+    <div class="card-title">LVFS</div>
 <p class="card-text">
   The LVFS provides an OEM-facing website that requires a username and password
   to access the secure console.
@@ -294,7 +294,7 @@
 
 <div class="card mt-3">
   <div class="card-body">
-    <h2 class="card-title">Performance</h2>
+    <div class="card-title">Performance</div>
 <p class="card-text">
   The LVFS runs on a dedicated virtual private server and uses a
   <abbr title="Content Delivery Network">CDN</abbr> for the public metadata.
@@ -312,7 +312,7 @@
 
 <div class="card mt-3">
   <div class="card-body">
-    <h2 class="card-title">Conclusions</h2>
+    <div class="card-title">Conclusions</div>
 <p class="card-text">
   The LVFS has grown to be an essential part of the Linux ecosystem and there
   are currently 26 vendors using the service, 11 of which are multi-billion
@@ -326,7 +326,7 @@
 
 <div class="card mt-3">
   <div class="card-body">
-    <h2 class="card-title">Future Work</h2>
+    <div class="card-title">Future Work</div>
 <p class="card-text">
   Various vendors are working on custom plugins for fwupd as they either cannot
   retrofit older hardware with the ESRT data table, or because they want more
@@ -345,7 +345,7 @@
 
 <div class="card mt-3">
   <div class="card-body">
-    <h2 class="card-title">Related Work</h2>
+    <div class="card-title">Related Work</div>
 <p class="card-text">
   The <a href="http://www.dell.com/support/article/us/en/04/SLN293301?c=us&l=en&s=bsd&cs=04">Dell Repository Manager</a>
   allows you to update the firmware on various models of Dell enterprise hardware.

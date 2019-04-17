@@ -10,7 +10,7 @@
 </div>
 <div class="card mt-3">
   <div class="card-body">
-    <h2 class="card-title">Current restrictions</h2>
+    <div class="card-title">Current restrictions</div>
 {% if v.restrictions|length == 0 %}
   <tr class="row table-borderless">
     <td class="col col-sm-12"><p class="text-muted">No restrictions exist.</p></td>
@@ -40,7 +40,7 @@
 <form method="post" action="/lvfs/vendor/{{v.vendor_id}}/restriction/add">
 <div class="card mt-3">
   <div class="card-body">
-    <h2 class="card-title">Add a new restriction</h2>
+    <div class="card-title">Add a new restriction</div>
     <p class="card-text">
       <input type="text" class="form-control" name="value" value="" placeholder="Restriction..." required>
     </p>
