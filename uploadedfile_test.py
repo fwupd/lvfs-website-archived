@@ -17,7 +17,7 @@ from gi.repository import GCab
 from gi.repository import Gio
 
 from app.uploadedfile import UploadedFile, FileTooSmall, FileNotSupported, MetadataInvalid
-from app.util import _archive_get_files_from_glob, _archive_add
+from app.util import _archive_get_files_from_glob, _archive_add, _validate_guid
 
 def _get_valid_firmware():
     return 'fubar'.ljust(1024).encode('utf-8')
@@ -77,6 +77,15 @@ class InMemoryZip:
         return self.in_memory_zip.read()
 
 class TestStringMethods(unittest.TestCase):
+
+    def test_validate_guid(self):
+        self.assertTrue(_validate_guid('84f40464-9272-4ef7-9399-cd95f12da696'))
+        self.assertFalse(_validate_guid(None))
+        self.assertFalse(_validate_guid(''))
+        self.assertFalse(_validate_guid('hello dave'))
+        self.assertFalse(_validate_guid('84F40464-9272-4EF7-9399-CD95F12DA696'))
+        self.assertFalse(_validate_guid('84f40464-9272-4ef7-9399'))
+        self.assertFalse(_validate_guid('84f40464-9272-4ef7-xxxx-cd95f12da696'))
 
     def test_src_empty(self):
         with self.assertRaises(FileTooSmall):

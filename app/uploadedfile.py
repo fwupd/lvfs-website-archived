@@ -19,7 +19,7 @@ from gi.repository import GLib
 from gi.repository import AppStreamGlib
 
 from .inf_parser import InfParser
-from .util import _archive_get_files_from_glob, _get_basename_safe
+from .util import _archive_get_files_from_glob, _get_basename_safe, _validate_guid
 
 class FileTooLarge(Exception):
     pass
@@ -235,6 +235,11 @@ class UploadedFile:
         # check the firmware provides something
         if len(component.get_provides()) == 0:
             raise MetadataInvalid('The metadata file did not provide any GUID.')
+        for prov in component.get_provides():
+            if prov.get_kind() == AppStreamGlib.ProvideKind.FIRMWARE_FLASHED:
+                guid = prov.get_value()
+                if not _validate_guid(guid):
+                    raise MetadataInvalid('The GUID %s was invalid.' % guid)
         release_default = component.get_release_default()
         if not release_default:
             raise MetadataInvalid('The metadata file did not provide any releases.')

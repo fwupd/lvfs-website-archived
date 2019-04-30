@@ -13,25 +13,8 @@ from app import app, db, ploader
 
 from .models import Requirement, Component, Keyword, Checksum, Category
 from .models import Protocol, Report, ReportAttribute
-from .util import _error_internal, _error_permission_denied
+from .util import _error_internal, _error_permission_denied, _validate_guid
 from .hash import _is_sha1, _is_sha256
-
-def _validate_guid(guid):
-    """ Validates if the string is a valid GUID """
-    split = guid.split('-')
-    if len(split) != 5:
-        return False
-    if len(split[0]) != 8:
-        return False
-    if len(split[1]) != 4:
-        return False
-    if len(split[2]) != 4:
-        return False
-    if len(split[3]) != 4:
-        return False
-    if len(split[4]) != 12:
-        return False
-    return True
 
 def _sanitize_markdown_text(txt):
     txt = txt.replace('\r', '')

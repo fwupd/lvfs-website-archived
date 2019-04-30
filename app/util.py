@@ -45,6 +45,34 @@ def _fix_component_name(name, developer_name=None):
             words_new.append(word)
     return ' '.join(words_new)
 
+def _is_hex(chunk):
+    try:
+        _ = int(chunk, 16)
+    except ValueError as _:
+        return False
+    return True
+
+def _validate_guid(guid):
+    """ Validates if the string is a valid GUID """
+    if not guid:
+        return False
+    if guid.lower() != guid:
+        return False
+    split = guid.split('-')
+    if len(split) != 5:
+        return False
+    if len(split[0]) != 8 or not _is_hex(split[0]):
+        return False
+    if len(split[1]) != 4 or not _is_hex(split[1]):
+        return False
+    if len(split[2]) != 4 or not _is_hex(split[2]):
+        return False
+    if len(split[3]) != 4 or not _is_hex(split[3]):
+        return False
+    if len(split[4]) != 12 or not _is_hex(split[4]):
+        return False
+    return True
+
 def _unwrap_xml_text(txt):
     txt = txt.replace('\r', '')
     new_lines = []
