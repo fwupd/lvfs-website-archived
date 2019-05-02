@@ -230,6 +230,10 @@ def docs_privacy():
 def docs_users():
     return render_template('docs-users.html')
 
+@app.route('/lvfs/news')
+def docs_news():
+    return render_template('docs-news.html', category='home')
+
 @app.route('/vendors')
 @app.route('/lvfs/docs/vendors')
 def docs_vendors():

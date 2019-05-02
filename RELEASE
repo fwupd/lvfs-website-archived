@@ -1,0 +1,21 @@
+LVFS Release Notes
+
+1. Write release entries:
+
+git shortlog 1.0.0.. | grep -i -v trivial | grep -v Merge > NEWS.new
+add to app/templates/docs-news.html and app/templates/private.html
+
+2. Commit changes to git:
+
+# MAKE SURE THIS IS CORRECT
+export release_ver="1.0.1"
+git commit -a -m "Release LVFS ${release_ver}"
+git tag -s -f -m "Release LVFS ${release_ver}" "${release_ver}"
+<wait>
+git push --tags
+git push
+
+3. Do post release version bump in this file
+
+git commit -a -m "trivial: Post release version bump"
+git push

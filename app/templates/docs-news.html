@@ -1,0 +1,39 @@
+{% extends "default.html" %}
+
+{% block title %}News{% endblock %}
+
+{% block content %}
+
+<!-- copy this for a new release
+
+
+-->
+
+<div class="card">
+  <div class="card-header card-title list-group-item-info">
+    <div class="row">
+      <div class="col col-lg-8 text-truncate">LVFS Version 1.0.0 Released</div>
+      <div class="col">
+        <span class="float-right">2019-05-02</span>
+      </div>
+    </div>
+  </div>
+  <div class="card-body">
+    <p class="card-text">
+      This release adds the following features:
+    </p>
+    <ul>
+      <li>Allow the admin to change the AppStream ID or name of components</li>
+    </ul>
+    <p class="card-text">This release fixes the following bugs:</p>
+    <ul>
+      <li>Do not allow the telemetry card title to overflow</li>
+      <li>Ensure the <code>firmware-flashed</code> value is a valid lowercase GUID</li>
+      <li>Make the component requirements page easier to use</li>
+      <li>Do not add duplicate <code>&lt;hardware&gt;</code> values</li>
+      <li>Remove the hard-to-use breadcrumb and use a single back button</li>
+    </ul>
+  </div>
+</div>
+
+{% endblock %}
