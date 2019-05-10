@@ -65,7 +65,7 @@ class Plugin(PluginBase):
         PluginBase.__init__(self)
 
     def name(self):
-        return 'GPG'
+        return 'GPG Signing'
 
     def summary(self):
         return 'Sign files using GnuPG, a free implementation of the OpenPGP standard.'

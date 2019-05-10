@@ -130,9 +130,6 @@
             <li class="nav-item {{'active' if request.url_rule.endpoint == 'user_list'}}">
               <a class="nav-link" href="{{url_for('.user_list')}}">User List</a>
             </li>
-            <li class="nav-item {{'active' if request.url_rule.endpoint == 'settings_view'}}">
-              <a class="nav-link" href="{{url_for('.settings_view')}}">Server Settings</a>
-            </li>
             <li class="nav-item {{'active' if request.url_rule.endpoint == 'protocol_all'}}">
               <a class="nav-link" href="{{url_for('.protocol_all')}}">Flashing Protocols</a>
             </li>
@@ -142,6 +139,23 @@
             <li class="nav-item {{'active' if request.url_rule.endpoint == 'agreement_list'}}">
               <a class="nav-link" href="{{url_for('.agreement_list')}}">Agreements</a>
             </li>
+          </ul>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link dropdown-indicator" href="#settings" data-toggle="collapse" role="button" aria-expanded="false" aria-controls="settings">
+            <div class="d-flex align-items-center">
+              <span class="nav-link-icon">
+                <span class="fas fa-cogs"></span>
+              </span>
+              <span>Settings</span>
+            </div>
+          </a>
+          <ul class="nav collapse {{'show' if category == 'settings'}}" id="settings" data-parent="#navbarVerticalCollapse">
+{% for plugin in loader_plugins %}
+            <li class="nav-item {{'active' if request.url_rule.endpoint == 'settings_view' and plugin_id == plugin.id}}">
+              <a class="nav-link" href="{{url_for('.settings_view', plugin_id=plugin.id)}}">{{plugin.name()}}</a>
+            </li>
+{% endfor %}
           </ul>
         </li>
         <li class="nav-item">

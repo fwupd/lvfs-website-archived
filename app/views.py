@@ -199,7 +199,8 @@ def utility_processor():
                 format_humanize_intchar=format_humanize_intchar,
                 format_timedelta_approx=format_timedelta_approx,
                 format_html_from_markdown=format_html_from_markdown,
-                format_timestamp=format_timestamp)
+                format_timestamp=format_timestamp,
+                loader_plugins=ploader.get_all())
 
 @lm.unauthorized_handler
 def unauthorized():

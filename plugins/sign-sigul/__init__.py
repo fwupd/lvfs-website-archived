@@ -52,7 +52,7 @@ class Plugin(PluginBase):
         PluginBase.__init__(self)
 
     def name(self):
-        return 'Sigul'
+        return 'Sigul Signing'
 
     def summary(self):
         return 'GPG sign files using Sigul, a secure signing server.'

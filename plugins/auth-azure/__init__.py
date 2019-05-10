@@ -38,7 +38,7 @@ class Plugin(PluginBase):
         PluginBase.__init__(self)
 
     def name(self):
-        return 'Azure'
+        return 'Azure AD'
 
     def summary(self):
         return 'Authenticate against Microsoft Azure Active Directory.'

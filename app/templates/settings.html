@@ -1,25 +1,12 @@
 {% extends "default.html" %}
 {% block title %}Settings{% endblock %}
 
-{% block nav %}
-<nav>
-  <div class="text-center mb-3">
-    <div class="btn-group" role="group">
-{% for plugin in plugins %}
-      <a class="btn btn-falcon-{{'primary' if plugin_id == plugin.id else 'default'}}"
-        href="{{url_for('.settings_view', plugin_id=plugin.id)}}">{{plugin.name()}}</a>
-{% endfor %}
-    </div>
-  </div>
-</nav>
-{% endblock %}
-
 {% block content %}
 <div class="card">
   <div class="card-body">
   <form class="form" method="post" action="{{url_for('.settings_modify', plugin_id=plugin_id)}}">
 
-{% for plugin in plugins %}
+{% for plugin in loader_plugins %}
 {% if plugin.id == plugin_id %}
     <div class="card-title">{{plugin.name()}}</div>
     <p class="card-text">{{plugin.summary()}}</p>

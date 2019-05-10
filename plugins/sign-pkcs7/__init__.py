@@ -18,7 +18,7 @@ class Plugin(PluginBase):
         PluginBase.__init__(self)
 
     def name(self):
-        return 'PKCS#7'
+        return 'PKCS#7 Signing'
 
     def summary(self):
         return 'Sign files using the GnuTLS public key infrastructure.'
