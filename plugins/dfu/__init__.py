@@ -4,19 +4,12 @@
 # Copyright (C) 2019 Richard Hughes <richard@hughsie.com>
 # Licensed under the GNU General Public License Version 2
 #
-# pylint: disable=no-self-use,wrong-import-position
+# pylint: disable=no-self-use
 
 import struct
 import zlib
 
-import gi
-gi.require_version('GCab', '1.0')
-from gi.repository import GCab
-from gi.repository import Gio
-from gi.repository import GLib
-
 from app.pluginloader import PluginBase, PluginError, PluginSettingBool
-from app.util import _archive_get_files_from_glob, _get_absolute_path
 from app.models import Test
 
 class Plugin(PluginBase):
@@ -53,39 +46,24 @@ class Plugin(PluginBase):
 
     def run_test_on_fw(self, test, fw):
 
-        # decompress firmware
-        fn = _get_absolute_path(fw)
-        try:
-            istream = Gio.File.new_for_path(fn).read()
-        except GLib.Error as e: # pylint: disable=catching-non-exception
-            raise PluginError(e)
-        cfarchive = GCab.Cabinet.new()
-        cfarchive.load(istream)
-        cfarchive.extract(None)
-
         # check each file
         for md in fw.mds:
             if md.protocol.value != 'org.usb.dfu':
                 continue
-
-            # get the component contents data
-            cfs = _archive_get_files_from_glob(cfarchive, md.filename_contents)
-            if not cfs or len(cfs) > 1:
-                test.add_fail('Open', '%s not found in archive' % md.filename_contents)
+            if not md.blob:
                 continue
-            contents = cfs[0].get_bytes().get_data()
 
             # unpack the footer
-            sz = len(contents)
+            sz = len(md.blob)
             if sz < 16:
                 test.add_fail('FileSize', '0x%x' % sz)
                 # we have to abort here, no further tests are possible
                 continue
 
-            footer = contents[sz - 16:]
+            footer = md.blob[sz - 16:]
             try:
                 data = struct.unpack('<HHHH3sBL', footer)
-            except struct.error as e:
+            except struct.error as _:
                 test.add_fail('Footer', footer)
                 # we have to abort here, no further tests are possible
                 continue
@@ -121,7 +99,7 @@ class Plugin(PluginBase):
                 test.add_fail('DFU Length', '0x%02x is not valid' % data[5])
 
             # check dwCRC
-            crc_correct = zlib.crc32(contents[:sz-4]) ^ 0xffffffff
+            crc_correct = zlib.crc32(md.blob[:sz-4]) ^ 0xffffffff
             if data[6] == crc_correct:
                 test.add_pass('CRC', '0x%04x' % data[6])
             else:

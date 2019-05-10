@@ -4,7 +4,8 @@
 # Copyright (C) 2015-2018 Richard Hughes <richard@hughsie.com>
 # Licensed under the GNU General Public License Version 2
 #
-# pylint: disable=too-few-public-methods,too-many-instance-attributes,too-many-arguments,too-many-lines,protected-access
+# pylint: disable=too-few-public-methods,too-many-instance-attributes
+# pylint: disable=too-many-arguments,too-many-lines,protected-access,wrong-import-position
 
 import os
 import datetime
@@ -14,7 +15,12 @@ from enum import Enum
 
 import onetimepass
 
+import gi
+gi.require_version('GCab', '1.0')
 from gi.repository import AppStreamGlib
+from gi.repository import GCab
+from gi.repository import Gio
+from gi.repository import GLib
 
 from flask import g, url_for
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -25,6 +31,7 @@ from sqlalchemy.orm import relationship
 from app import db
 from .hash import _qa_hash, _password_hash, _otp_hash
 from .util import _generate_password, _xml_from_markdown, _get_update_description_problems
+from .util import _get_absolute_path, _archive_get_files_from_glob
 
 class SecurityClaim:
 
@@ -968,6 +975,14 @@ class Component(db.Model):
         self.screenshot_url = None
         self.screenshot_caption = None
         self.priority = 0
+        self._blob = None
+
+    @property
+    def blob(self):
+        if not hasattr(self, '_blob'):
+            self._blob = None
+            self.fw._ensure_blobs()
+        return self._blob
 
     @property
     def names(self):
@@ -1493,6 +1508,21 @@ class Firmware(db.Model):
 
     def _is_owner(self, user):
         return self.user_id == user.user_id
+
+    def _ensure_blobs(self):
+        fn = _get_absolute_path(self)
+        try:
+            istream = Gio.File.new_for_path(fn).read()
+        except GLib.Error as e: # pylint: disable=catching-non-exception
+            raise RuntimeError(e)
+        cfarchive = GCab.Cabinet.new()
+        cfarchive.load(istream)
+        cfarchive.extract(None)
+        for md in self.mds:
+            cfs = _archive_get_files_from_glob(cfarchive, md.filename_contents)
+            if not cfs or len(cfs) > 1:
+                continue
+            md._blob = cfs[0].get_bytes().get_data()
 
     def _is_vendor(self, user):
         return self.vendor_id == user.vendor_id
