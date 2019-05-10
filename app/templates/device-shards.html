@@ -1,0 +1,29 @@
+{% extends "default.html" %}
+{% block title %}{{md.name}}{% endblock %}
+
+{% block nav %}{% include 'device-nav.html' %}{% endblock %}
+
+{% block content %}
+
+{% for shard in md.shards %}
+<div class="card mb-3">
+  <div class="card-header card-title list-group-item-info">
+    {{shard.info.name}}
+    <code class="float-right">{{shard.info.guid}}</code>
+  </div>
+  <div class="card-body">
+{% if shard.info.description_with_fallback %}
+    <p class="card-text">
+      {{shard.info.description_with_fallback}}
+    </p>
+{% endif %}
+{% for csum in shard.checksums %}
+    <p class="card-text">
+      <code>{{csum.kind}}: {{csum.value}}</code>
+    </p>
+{% endfor %}
+  </div>
+</div>
+{% endfor %}
+
+{% endblock %}

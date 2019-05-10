@@ -101,3 +101,4 @@ from app import views_agreement
 from app import views_protocol
 from app import views_category
 from app import views_test
+from app import views_shard

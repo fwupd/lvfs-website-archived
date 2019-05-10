@@ -1,0 +1,24 @@
+{% extends "default.html" %}
+{% block title %}Component Shard Details{% endblock %}
+
+{% block content %}
+<div class="card">
+  <div class="card-body">
+    <div class="card-title">Component Shard Details</div>
+<form method="post" action="{{url_for('.shard_modify', component_shard_info_id=shard.component_shard_info_id)}}">
+  <div class="form-group">
+    <label for="display_name">Name:</label>
+    <input type="text" class="form-control" name="name" value="{{shard.name if shard.name}}" required {{'disabled' if not shard.check_acl('@modify')}}>
+  </div>
+  <div class="form-group">
+    <label for="display_name">Description:</label>
+    <textarea type="text" class="form-control" name="description" rows="10" {{'disabled' if not shard.check_acl('@modify')}}>{{shard.description if shard.description}}</textarea>
+  </div>
+{% if shard.check_acl('@modify') %}
+  <input type="submit" class="btn btn-primary btn-large" value="Modify">
+{% endif %}
+</form>
+  </div>
+</div>
+
+{% endblock %}

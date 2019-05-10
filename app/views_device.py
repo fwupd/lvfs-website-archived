@@ -65,7 +65,76 @@ def device_show(appstream_id):
     Show information for one device, which can be seen without a valid login
     """
     fws = _get_fws_for_appstream_id(appstream_id)
-    return render_template('device.html', appstream_id=appstream_id, fws=fws)
+
+    # work out the previous version for the shard diff
+    fw_old = None
+    fw_previous = {}
+    for fw in fws:
+        if fw_old:
+            fw_previous[fw_old] = fw
+        fw_old = fw
+    return render_template('device.html',
+                           appstream_id=appstream_id,
+                           fws=fws,
+                           fw_previous=fw_previous)
+
+@app.route('/lvfs/device/component/<int:component_id>')
+def device_shards(component_id):
+    """
+    Show information for one firmware, which can be seen without a valid login
+    """
+    md = db.session.query(Component).filter(Component.component_id == component_id).first()
+    if not md:
+        return _error_internal("No component with ID %s exists" % component_id)
+    return render_template('device-shards.html', md=md, appstream_id=md.appstream_id)
+
+@app.route('/lvfs/device/component/<int:component_id_old>/<int:component_id_new>')
+def device_shards_diff(component_id_old, component_id_new):
+    """
+    Show information for one firmware, which can be seen without a valid login
+    """
+    md_old = db.session.query(Component).filter(Component.component_id == component_id_old).first()
+    if not md_old:
+        return _error_internal("No component with ID %s exists" % component_id_old)
+    md_new = db.session.query(Component).filter(Component.component_id == component_id_new).first()
+    if not md_new:
+        return _error_internal("No component with ID %s exists" % component_id_new)
+
+    # shards added
+    shard_guids = {}
+    for shard in md_old.shards:
+        shard_guids[shard.info.guid] = shard
+    shards_added = []
+    for shard in md_new.shards:
+        if shard.info.guid not in shard_guids:
+            shards_added.append(shard)
+
+    # shards removed
+    shard_guids = {}
+    for shard in md_new.shards:
+        shard_guids[shard.info.guid] = shard
+    shards_removed = []
+    for shard in md_old.shards:
+        if shard.info.guid not in shard_guids:
+            shards_removed.append(shard)
+
+    # shards changed
+    shard_checksums = {}
+    for shard in md_new.shards:
+        shard_checksums[shard.checksum] = shard
+    shards_changed = []
+    for shard in md_old.shards:
+        if shard.info.guid in shard_guids:
+            shard_old = shard_guids[shard.info.guid]
+            if shard.checksum not in shard_checksums:
+                shards_changed.append((shard_old, shard))
+
+    return render_template('device-shards-diff.html',
+                           md_old=md_old, md_new=md_new,
+                           shards_added=shards_added,
+                           shards_removed=shards_removed,
+                           shards_changed=shards_changed,
+                           appstream_id=md_old.appstream_id)
 
 @app.route('/lvfs/device/<appstream_id>/analytics')
 def device_analytics(appstream_id):

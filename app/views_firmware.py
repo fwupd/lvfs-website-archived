@@ -15,7 +15,9 @@ from sqlalchemy.orm import joinedload
 
 from app import app, db
 
-from .models import Firmware, Report, Client, FirmwareEvent, FirmwareLimit, Remote, Vendor, AnalyticFirmware
+from .models import Firmware, Report, Client, FirmwareEvent, FirmwareLimit
+from .models import Remote, Vendor, AnalyticFirmware, Component
+from .models import ComponentShard, ComponentShardInfo, ComponentShardChecksum
 from .models import _get_datestr_from_datetime
 from .util import _error_internal, _error_permission_denied, _event_log
 from .util import _get_chart_labels_months, _get_chart_labels_days
@@ -554,3 +556,41 @@ def firmware_tests(firmware_id):
     return render_template('firmware-tests.html',
                            category='firmware',
                            fw=fw)
+
+@app.route('/lvfs/firmware/shard/search/<kind>/<value>')
+@login_required
+def firmware_shard_search(kind, value):
+    """
+    Show firmware with shards that match the value
+    """
+
+    if kind == 'guid':
+        fws = db.session.query(Firmware).\
+                    join(Component).\
+                    join(ComponentShard).\
+                    join(ComponentShardInfo).\
+                    filter(ComponentShardInfo.guid == value).\
+                    order_by(Firmware.firmware_id.desc()).all()
+    elif kind == 'checksum':
+        fws = db.session.query(Firmware).\
+                    join(Component).\
+                    join(ComponentShard).\
+                    join(ComponentShardChecksum).\
+                    filter(ComponentShardChecksum.value == value).\
+                    order_by(Firmware.firmware_id.desc()).all()
+    else:
+        return _error_internal('Invalid kind!')
+    if not fws:
+        return _error_internal('No shards matched!')
+
+    # filter by ACL
+    fws_safe = []
+    for fw in fws:
+        if fw.check_acl('@view'):
+            fws_safe.append(fw)
+
+    return render_template('firmware-search.html',
+                           category='firmware',
+                           state='search',
+                           remote=None,
+                           fws=fws_safe)

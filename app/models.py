@@ -896,6 +896,111 @@ class Category(db.Model):
     def __repr__(self):
         return "Category object %s:%s" % (self.category_id, self.value)
 
+class ComponentShardInfo(db.Model):
+
+    # sqlalchemy metadata
+    __tablename__ = 'component_shard_infos'
+    __table_args__ = {'mysql_character_set': 'utf8mb4'}
+
+    component_shard_info_id = Column(Integer, primary_key=True, unique=True, nullable=False)
+    guid = Column(String(36), default=None, index=True)
+    name = Column(Text, default=None)
+    description = Column(Text, default=None)
+    cnt = Column(Integer)
+
+    def __init__(self, guid=None, name=None, description=None):
+        """ Constructor for object """
+        self.cnt = 1
+        self.guid = guid
+        self.name = name
+        self.description = description
+
+    @property
+    def description_with_fallback(self):
+        if self.description:
+            return self.description
+        if self.name.endswith('Pei'):
+            return 'The Pre-EFI Initialization phase is invoked early in the boot flow.'
+        if self.name.endswith('Dxe'):
+            return 'The Driver Execution Environment phase is where most of the system \
+                    initialization is performed.'
+        return None
+
+    def check_acl(self, action, user=None):
+
+        # fall back
+        if not user:
+            user = g.user
+        if user.is_admin:
+            return True
+
+        # depends on the action requested
+        if action == '@view':
+            return False
+        if action == '@modify':
+            return False
+        raise NotImplementedError('unknown security check action: %s:%s' % (self, action))
+
+    def __repr__(self):
+        return "ComponentShardInfo object %s" % self.component_shard_info_id
+
+class ComponentShardChecksum(db.Model):
+
+    # sqlalchemy metadata
+    __tablename__ = 'component_shard_checksums'
+    __table_args__ = {'mysql_character_set': 'utf8mb4'}
+
+    checksum_id = Column(Integer, primary_key=True, unique=True)
+    component_shard_id = Column(Integer, ForeignKey('component_shards.component_shard_id'), nullable=False)
+    kind = Column(Text, nullable=False, default=None)
+    value = Column(Text, nullable=False, default=None)
+
+    # link back to parent
+    shard = relationship("ComponentShard")
+
+    def __init__(self, value, kind='SHA1'):
+        """ Constructor for object """
+        self.kind = kind        # e.g. 'SHA1' or 'SHA256'
+        self.value = value
+
+    def __repr__(self):
+        return "ComponentShardChecksum object %s(%s)" % (self.kind, self.value)
+
+class ComponentShard(db.Model):
+
+    # sqlalchemy metadata
+    __tablename__ = 'component_shards'
+    __table_args__ = {'mysql_character_set': 'utf8mb4'}
+
+    component_shard_id = Column(Integer, primary_key=True, unique=True, nullable=False)
+    component_id = Column(Integer, ForeignKey('components.component_id'), nullable=False)
+    component_shard_info_id = Column(Integer,
+                                     ForeignKey('component_shard_infos.component_shard_info_id'),
+                                     nullable=False)
+
+    checksums = relationship("ComponentShardChecksum",
+                             back_populates="shard",
+                             cascade='all,delete-orphan',
+                             lazy='joined')
+    info = relationship("ComponentShardInfo", lazy='joined')
+
+    # link back to parent
+    md = relationship('Component', back_populates="shards")
+
+    def __init__(self, component_id=None):
+        """ Constructor for object """
+        self.component_id = component_id
+
+    @property
+    def checksum(self):
+        for csum in self.checksums:
+            if csum.kind == 'SHA256':
+                return csum.value
+        return None
+
+    def __repr__(self):
+        return "ComponentShard object %s" % self.component_shard_id
+
 class Component(db.Model):
 
     # sqlalchemy metadata
@@ -945,6 +1050,10 @@ class Component(db.Model):
                          back_populates="md",
                          lazy='joined',
                          cascade='all,delete-orphan')
+    shards = relationship("ComponentShard",
+                          order_by="desc(ComponentShard.component_shard_id)",
+                          back_populates='md',
+                          cascade='all,delete-orphan')
     keywords = relationship("Keyword",
                             back_populates="md",
                             cascade='all,delete-orphan')

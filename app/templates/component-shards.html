@@ -1,0 +1,33 @@
+{% extends "default.html" %}
+{% block title %}Device Shards{% endblock %}
+
+{% block nav %}{% include 'component-nav.html' %}{% endblock %}
+
+{% block content %}
+
+{% for shard in md.shards %}
+<div class="card mb-3">
+  <div class="card-body">
+    <div class="card-title">
+      {{shard.info.name}}
+      <code class="float-right small">{{shard.info.guid}}</code>
+    </div>
+    <p class="card-text">
+{% if shard.info.description %}
+      {{shard.info.description}}
+{% else %}
+      We don't know what this module does! Can you tell us?
+{% endif %}
+    </p>
+{% for csum in shard.checksums %}
+    <p class="card-text">
+      <code>{{csum.kind}}: {{csum.value}}</code>
+    </p>
+{% endfor %}
+    <a class="card-link btn btn-info" href="{{url_for('.firmware_shard_search', kind='checksum', value=shard.checksum)}}">Search checksum</a>
+    <a class="card-link btn btn-info" href="{{url_for('.firmware_shard_search', kind='guid', value=shard.info.guid)}}">Search GUID</a>
+  </div>
+</div>
+{% endfor %}
+
+{% endblock %}

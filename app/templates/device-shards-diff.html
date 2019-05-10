@@ -1,0 +1,76 @@
+{% extends "default.html" %}
+{% block title %}{{md_old.name}} {{md_old.version_display}} -> {{md_new.version_display}} {% endblock %}
+
+{% block nav %}{% include 'device-nav.html' %}{% endblock %}
+
+{% block content %}
+
+{% for shard in shards_added %}
+<div class="card mb-3">
+  <div class="card-header card-title list-group-item-danger">
+    {{shard.info.name}} : Added
+    <code class="float-right">{{shard.info.guid}}</code>
+  </div>
+  <div class="card-body">
+{% if shard.info.description_with_fallback %}
+    <p class="card-text">
+      {{shard.info.description_with_fallback}}
+    </p>
+{% endif %}
+{% for csum in shard.checksums %}
+    <p class="card-text">
+      <code>{{csum.kind}}: {{csum.value}}</code>
+    </p>
+{% endfor %}
+  </div>
+</div>
+{% endfor %}
+
+{% for shard in shards_removed %}
+<div class="card mb-3">
+  <div class="card-header card-title list-group-item-success">
+    {{shard.info.name}} : Removed
+    <code class="float-right">{{shard.info.guid}}</code>
+  </div>
+  <div class="card-body">
+{% if shard.info.description_with_fallback %}
+    <p class="card-text">
+      {{shard.info.description_with_fallback}}
+    </p>
+{% endif %}
+{% for csum in shard.checksums %}
+    <p class="card-text">
+      <code>{{csum.kind}}: {{csum.value}}</code>
+    </p>
+{% endfor %}
+  </div>
+</div>
+{% endfor %}
+
+{% for shard_new, shard_old in shards_changed %}
+<div class="card mb-3">
+  <div class="card-header card-title list-group-item-warning">
+    {{shard_new.info.name}} : Changed
+    <code class="float-right">{{shard_new.guid}}</code>
+  </div>
+  <div class="card-body">
+{% if shard_new.info.description_with_fallback %}
+    <p class="card-text">
+      {{shard_new.info.description_with_fallback}}
+    </p>
+{% endif %}
+{% for csum in shard_old.checksums %}
+    <p class="card-text">
+      <code>Old {{csum.kind}}: {{csum.value}}</code>
+    </p>
+{% endfor %}
+{% for csum in shard_new.checksums %}
+    <p class="card-text">
+      <code>New {{csum.kind}}: {{csum.value}}</code>
+    </p>
+{% endfor %}
+  </div>
+</div>
+{% endfor %}
+
+{% endblock %}

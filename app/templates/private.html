@@ -39,14 +39,14 @@
               <a class="nav-link" href="{{url_for('.vendor_users', vendor_id=g.user.vendor_id)}}">Vendor</a>
             </li>
 {% endif %}
+            <li class="nav-item {{'active' if request.url_rule.endpoint == 'docs_news'}}">
+              <a class="nav-link" href="{{url_for('.docs_news')}}">News</a>
+            </li>
 {% if g.user.check_acl('@view-eventlog') %}
             <li class="nav-item {{'active' if request.url_rule.endpoint == 'eventlog'}}">
               <a class="nav-link" href="{{url_for('.eventlog')}}">Events</a>
             </li>
 {% endif %}
-            <li class="nav-item {{'active' if request.url_rule.endpoint == 'docs_news'}}">
-              <a class="nav-link" href="{{url_for('.docs_news')}}">LVFS News</a>
-            </li>
           </ul>
         </li>
         <li class="nav-item">
@@ -135,6 +135,9 @@
             </li>
             <li class="nav-item {{'active' if request.url_rule.endpoint == 'category_all'}}">
               <a class="nav-link" href="{{url_for('.category_all')}}">Update Categories</a>
+            </li>
+            <li class="nav-item {{'active' if request.url_rule.endpoint == 'shard_all'}}">
+              <a class="nav-link" href="{{url_for('.shard_all')}}">Component Shards</a>
             </li>
             <li class="nav-item {{'active' if request.url_rule.endpoint == 'agreement_list'}}">
               <a class="nav-link" href="{{url_for('.agreement_list')}}">Agreements</a>
@@ -374,7 +377,7 @@
     <footer>
       <div class="row no-gutters justify-content-between fs--1 mt-4 mb-3">
         <div class="col-12 col-sm-auto">
-          <p class="mb-0">LVFS version 1.0.0 &mdash; By <a class="text-700" href="mailto:richard@hughsie.com">Richard Hughes</a> &copy; 2015-2019</p>
+          <p class="mb-0">LVFS version 1.1.0 &mdash; By <a class="text-700" href="mailto:richard@hughsie.com">Richard Hughes</a> &copy; 2015-2019</p>
           <p class="mb-0">Linux Vendor Firmware Service Project a Series of LF Projects, LLC</p>
         </div>
       </div>
