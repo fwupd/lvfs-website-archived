@@ -28,7 +28,6 @@ from app.models import AnalyticFirmware, Useragent, UseragentKind, Analytic, Rep
 from app.models import _get_datestr_from_datetime
 from app.metadata import _metadata_update_targets, _metadata_update_pulp
 from app.util import _archive_get_files_from_glob, _get_dirname_safe, _event_log
-from app.pluginloader import PluginError
 
 # make compatible with Flask
 app = application.app
@@ -219,7 +218,7 @@ def _check_firmware():
             test.ended_ts = datetime.datetime.utcnow()
             # don't leave a failed task running
             db.session.commit()
-        except PluginError as e:
+        except Exception as e: # pylint: disable=broad-except
             test.ended_ts = datetime.datetime.utcnow()
             test.add_fail('An exception occurred', str(e))
 
