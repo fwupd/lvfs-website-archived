@@ -246,13 +246,6 @@ class LvfsTestCase(unittest.TestCase):
         rv = self.app.get('/lvfs/component/1')
         assert b'2082b5e0-7a64-478a-b1b2-e3404fab6dad' in rv.data, rv.data
 
-        # check devices page shows private firmware as admin -- and hidden when anon
-        rv = self.app.get('/lvfs/device')
-        assert b'com.hughski.ColorHug2.firmware' in rv.data, rv.data
-        rv = self.app.get('/lvfs/device/com.hughski.ColorHug2.firmware')
-        assert b'MCDC04 errata' in rv.data, rv.data
-        self.logout()
-
         # check private firmware isn't visible when not logged in
         rv = self.app.get('/lvfs/device')
         assert b'2082b5e0-7a64-478a-b1b2-e3404fab6dad' not in rv.data, rv.data
@@ -277,6 +270,8 @@ class LvfsTestCase(unittest.TestCase):
         self.logout()
         rv = self.app.get('/lvfs/devicelist')
         assert b'ColorHug' in rv.data, rv.data
+        rv = self.app.get('/lvfs/device/com.hughski.ColorHug2.firmware')
+        assert b'MCDC04 errata' in rv.data, rv.data
         self.login()
 
         # download it

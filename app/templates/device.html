@@ -37,7 +37,6 @@
 </div>
 
 {% for fw in fws %}
-{% if (g.user is defined and g.user.check_acl('@admin')) or fw.remote.is_public %}
 <div class="card mt-3">
   <div class="card-body">
   <div class="card-title">Version {{fw.version_display}}:</div>
@@ -124,7 +123,6 @@
 {% endif %}
   </div>
 </div>
-{% endif %}
 {% endfor %}
 
 {% endif %}

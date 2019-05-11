@@ -51,11 +51,13 @@ def _get_fws_for_appstream_id(value):
     # old, deprecated GUID view
     if len(value.split('-')) == 5:
         return db.session.query(Firmware).\
+                    join(Remote).filter(Remote.is_public).\
                     join(Component).join(Guid).filter(Guid.value == value).\
                     order_by(Firmware.timestamp.desc()).all()
 
     # new, AppStream ID view
     return db.session.query(Firmware).\
+                    join(Remote).filter(Remote.is_public).\
                     join(Component).filter(Component.appstream_id == value).\
                     order_by(Firmware.timestamp.desc()).all()
 
@@ -73,6 +75,7 @@ def device_show(appstream_id):
         if fw_old:
             fw_previous[fw_old] = fw
         fw_old = fw
+
     return render_template('device.html',
                            appstream_id=appstream_id,
                            fws=fws,
