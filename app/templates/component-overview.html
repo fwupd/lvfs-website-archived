@@ -5,6 +5,7 @@
 
 {% block content %}
 <div class="card">
+  <div class="bg-holder bg-card" style="background-image:url(/img/corner-1.png);"></div>
   <div class="card-body">
 <table class="table">
   <tr class="row table-borderless">
@@ -135,9 +136,17 @@
   </tr>
   </form>
 {% endif %}
-  <tr class="row">
-    <th class="col-3">Security</th>
-    <td class="col">
+</table>
+  </div>
+</div>
+
+<div class="card mt-3">
+  <div class="bg-holder bg-card" style="background-image:url(/img/corner-2.png);"></div>
+  <div class="card-body">
+    <div class="card-title">
+      Security
+    </div>
+    <div class="card-text">
       <ul class="list-group">
 {% for attr in md.security_claim.attrs|sort() %}
         <li class="list-group-item">
@@ -150,9 +159,8 @@
         </li>
 {% endfor %}
       </ul>
-    </td>
-  </tr>
-</table>
+    </div>
   </div>
 </div>
+
 {% endblock %}
