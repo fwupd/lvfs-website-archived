@@ -27,7 +27,7 @@ def test_overview():
     # get all the test data
     tests = db.session.query(Test).\
                 options(joinedload('attributes')). \
-                order_by(Test.test_id.asc()).all()
+                order_by(Test.scheduled_ts.desc()).all()
     plugin_ids = {}
     for test in tests:
         if test.plugin_id not in plugin_ids:
@@ -80,7 +80,7 @@ def test_recent():
         return _error_permission_denied('Permission denied')
     tests = db.session.query(Test).\
                 options(joinedload('attributes')). \
-                order_by(Test.started_ts.desc()).limit(20).all()
+                order_by(Test.scheduled_ts.desc()).limit(20).all()
     return render_template('test-list.html', category='tests', tests=tests)
 
 @app.route('/lvfs/test/running')
@@ -94,7 +94,7 @@ def test_running():
                 filter(Test.started_ts != None). \
                 filter(Test.ended_ts == None). \
                 options(joinedload('attributes')). \
-                order_by(Test.test_id.asc()).all()
+                order_by(Test.scheduled_ts.desc()).all()
     return render_template('test-list.html', category='tests', tests=tests)
 
 @app.route('/lvfs/test/pending')
@@ -107,7 +107,7 @@ def test_pending():
     tests = db.session.query(Test). \
                 filter(Test.started_ts == None). \
                 options(joinedload('attributes')). \
-                order_by(Test.test_id.asc()).all()
+                order_by(Test.scheduled_ts.desc()).all()
     return render_template('test-list.html', category='tests', tests=tests)
 
 @app.route('/lvfs/test/failed')
@@ -121,7 +121,7 @@ def test_failed():
                 filter(Test.ended_ts != None). \
                 filter(Test.waived_ts == None). \
                 options(joinedload('attributes')). \
-                order_by(Test.test_id.asc()).all()
+                order_by(Test.scheduled_ts.desc()).all()
     tests_failed = []
     for test in tests:
         if not test.success:
@@ -139,7 +139,7 @@ def test_waived():
                 filter(Test.ended_ts != None). \
                 filter(Test.waived_ts != None). \
                 options(joinedload('attributes')). \
-                order_by(Test.test_id.asc()).all()
+                order_by(Test.scheduled_ts.desc()).all()
     return render_template('test-list.html', category='tests', tests=tests)
 
 @app.route('/lvfs/test/retry/<int:test_id>')
@@ -220,8 +220,7 @@ def test_waive_all(plugin_id):
     tests = db.session.query(Test).\
                 filter(Test.ended_ts != None). \
                 filter(Test.plugin_id == plugin_id). \
-                filter(Test.waivable). \
-                order_by(Test.test_id.asc()).all()
+                filter(Test.waivable).all()
     tests_failed = []
     for test in tests:
         if not test.success:
@@ -247,8 +246,7 @@ def test_delete_all(plugin_id):
 
     # get tests
     tests = db.session.query(Test).\
-                filter(Test.plugin_id == plugin_id). \
-                order_by(Test.test_id.asc()).all()
+                filter(Test.plugin_id == plugin_id).all()
     if not tests:
         flash('No tests matched', 'warning')
         return redirect(url_for('.test_overview'))

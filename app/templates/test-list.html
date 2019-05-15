@@ -15,7 +15,10 @@
 
 {% for test in tests %}
 <div class="card mb-3">
-  <div class="card-header card-title list-group-item-{{test.color}}">{{test.plugin_id}}</div>
+  <div class="card-header card-title list-group-item-{{test.color}}">
+    {{test.plugin_id}}
+    <span class="float-right">{{test.timestamp}}</span>
+  </div>
   <div class="card-body">
     <ul class="card-text">
 {% if test.is_pending %}

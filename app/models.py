@@ -739,6 +739,7 @@ class Test(db.Model):
     firmware_id = Column(Integer, ForeignKey('firmware.firmware_id'), nullable=False)
     plugin_id = Column(Text, default=None)
     waivable = Column(Boolean, default=False)
+    scheduled_ts = Column(DateTime, nullable=False, default=datetime.datetime.utcnow)
     started_ts = Column(DateTime, default=None)
     ended_ts = Column(DateTime, default=None)
     waived_ts = Column(DateTime, default=None)
@@ -771,6 +772,7 @@ class Test(db.Model):
         self.waived_user_id = g.user.user_id
 
     def retry(self):
+        self.scheduled_ts = datetime.datetime.utcnow()
         self.started_ts = None
         self.ended_ts = None
         self.waived_ts = None
@@ -816,6 +818,14 @@ class Test(db.Model):
 
         # not ever started
         return True
+
+    @property
+    def timestamp(self):
+        if self.ended_ts:
+            return self.ended_ts
+        if self.started_ts:
+            return self.started_ts
+        return self.scheduled_ts
 
     @property
     def is_pending(self):
@@ -1455,6 +1465,7 @@ class Firmware(db.Model):
                           back_populates="fw",
                           cascade='all,delete-orphan')
     tests = relationship("Test",
+                         order_by="desc(Test.scheduled_ts)",
                          back_populates="fw",
                          cascade='all,delete-orphan')
     analytics = relationship("AnalyticFirmware",
