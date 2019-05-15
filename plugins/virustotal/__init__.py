@@ -44,27 +44,33 @@ class Plugin(PluginBase):
             test = Test(self.id)
             fw.tests.append(test)
 
-    def run_test_on_fw(self, test, fw):
+    def _run_test_on_md(self, test, md):
 
         # build the remote name
-        fn = _get_absolute_path(fw)
-        remote_path = '/' + fw.vendor.group_id + '/' + str(fw.firmware_id) + '/' + fw.filename[41:]
+        remote_path = '/' + md.fw.vendor.group_id + '/' + str(md.component_id) + '/' + md.filename_contents
 
         # upload the file
         try:
-            with open(fn, 'rb') as file_obj:
-                headers = {}
-                headers['X-Apikey'] = self.get_setting('virustotal_api_key', required=True)
-                headers['User-Agent'] = self.get_setting('virustotal_user_agent', required=True)
-                files = {'file': ('filepath', file_obj, 'application/octet-stream')}
-                args = {'path': remote_path}
-                r = requests.post(self.get_setting('virustotal_uri', required=True),
-                                  files=files, data=args, headers=headers)
-                if r.status_code != 200:
-                    test.add_fail('Uploading', r.text)
-                    return
+            headers = {}
+            headers['X-Apikey'] = self.get_setting('virustotal_api_key', required=True)
+            headers['User-Agent'] = self.get_setting('virustotal_user_agent', required=True)
+            files = {'file': ('filepath', md.blob, 'application/octet-stream')}
+            args = {'path': remote_path}
+            r = requests.post(self.get_setting('virustotal_uri', required=True),
+                              files=files, data=args, headers=headers)
+            if r.status_code != 200:
+                test.add_fail('Uploading', r.text)
+                return
         except IOError as e:
             raise PluginError(e)
 
         # success
         test.add_pass('Uploaded', 'All OK')
+
+    def run_test_on_fw(self, test, fw):
+
+        # upload each decompressed blob
+        for md in fw.mds:
+            if not md.blob:
+                continue
+            self._run_test_on_md(test, md)
