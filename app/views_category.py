@@ -91,6 +91,7 @@ def category_modify(category_id):
         return _error_permission_denied('Unable to modify category')
 
     # modify category
+    cat.expect_device_checksum = bool('expect_device_checksum' in request.form)
     for key in ['name', 'fallbacks']:
         if key in request.form:
             setattr(cat, key, request.form[key])

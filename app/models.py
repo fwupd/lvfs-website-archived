@@ -879,12 +879,14 @@ class Category(db.Model):
     value = Column(Text, nullable=False)        # 'X-System'
     name = Column(Text, default=None)           # 'System Update'
     fallbacks = Column(Text, default=None)
+    expect_device_checksum = Column(Boolean, default=False)
 
-    def __init__(self, value, name=None, fallbacks=None):
+    def __init__(self, value, name=None, fallbacks=None, expect_device_checksum=False):
         """ Constructor for object """
         self.value = value
         self.name = name
         self.fallbacks = fallbacks
+        self.expect_device_checksum = expect_device_checksum
 
     def check_acl(self, action, user=None):
 
@@ -1132,7 +1134,7 @@ class Component(db.Model):
         sc = None
         if self.protocol:
             sc = self.protocol.security_claim
-            if self.protocol.can_verify:
+            if self.protocol.can_verify and self.category and self.category.expect_device_checksum:
                 if self.device_checksums:
                     sc.add_attr('device-checksum', 'Firmware has attestation checksums')
                 else:

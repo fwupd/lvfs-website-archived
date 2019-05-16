@@ -18,6 +18,12 @@
     <label for="display_name">Fallbacks:</label>
     <input type="text" class="form-control" name="name" value="{{cat.fallbacks if cat.fallbacks}}" {{'disabled' if not cat.check_acl('@modify')}}>
   </div>
+  <div class="form-group">
+    <label for="expect_device_checksum">
+      <input class="checkbox" type="checkbox" name="expect_device_checksum" value="1" {{'checked' if cat.expect_device_checksum}} {{'disabled' if not cat.check_acl('@modify')}}/>
+      Expect a device checksum, e.g. a <code>PCR0</code>.
+    </label>
+  </div>
 {% if cat.check_acl('@modify') %}
   <input type="submit" class="btn btn-primary btn-large" value="Modify">
   <button type="button" class="btn btn-danger" data-toggle="modal" data-target="#deleteModal">Delete</button>
