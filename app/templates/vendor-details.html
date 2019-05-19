@@ -56,12 +56,6 @@
            value="{{ v.username_glob if v.username_glob }}">
   </div>
   <div class="form-group">
-    <label for="display_name">Banned countries:</label>
-    <input type="text" class="form-control" name="banned_country_codes"
-           placeholder="ISO 3166 country codes, e.g. KP,CU,IR,SU,SY"
-           value="{{ v.banned_country_codes if v.banned_country_codes }}">
-  </div>
-  <div class="form-group">
     <label for="email">Description:</label>
     <input type="text" class="form-control" name="description" value="{{v.description}}" required>
   </div>

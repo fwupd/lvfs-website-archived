@@ -10,6 +10,7 @@ import os
 import datetime
 import fnmatch
 import humanize
+import iso3166
 
 from flask import request, flash, url_for, redirect, render_template
 from flask import send_from_directory, abort, Response, g
@@ -177,6 +178,9 @@ def utility_processor():
             num /= 1024.0
         return "%.1f%s%s" % (num, 'Yi', suffix)
 
+    def format_iso3166(tmp):
+        return iso3166.countries.get(tmp, ['Unknown!'])[0]
+
     def format_html_from_markdown(tmp):
         if not tmp:
             return '<p>None</p>'
@@ -200,6 +204,7 @@ def utility_processor():
                 format_timedelta_approx=format_timedelta_approx,
                 format_html_from_markdown=format_html_from_markdown,
                 format_timestamp=format_timestamp,
+                format_iso3166=format_iso3166,
                 loader_plugins=sorted(ploader.get_all(), key=lambda x: x.name()))
 
 @lm.unauthorized_handler

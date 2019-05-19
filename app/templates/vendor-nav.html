@@ -19,6 +19,10 @@
       <a class="btn btn-falcon-{{'primary' if request.url_rule.endpoint == 'vendor_affiliations' else 'default'}}"
         href="{{url_for('.vendor_affiliations', vendor_id=v.vendor_id)}}">Affiliates</a>
 {% endif %}
+{% if v.check_acl('@view-exports') %}
+      <a class="btn btn-falcon-{{'primary' if request.url_rule.endpoint == 'vendor_exports' else 'default'}}"
+        href="{{url_for('.vendor_exports', vendor_id=v.vendor_id)}}">Export</a>
+{% endif %}
       <a class="btn btn-falcon-{{'primary' if request.url_rule.endpoint == 'vendor_event' else 'default'}}"
         href="{{url_for('.vendor_event', vendor_id=v.vendor_id)}}">Event Log</a>
     </div>

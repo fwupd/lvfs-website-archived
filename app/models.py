@@ -499,6 +499,10 @@ class Vendor(db.Model):
             return user.is_qa
         if action == '@modify-affiliations':
             return False
+        if action == '@view-exports':
+            return user.is_qa or user.is_vendor_manager
+        if action == '@modify-exports':
+            return user.is_vendor_manager
         raise NotImplementedError('unknown security check action: %s:%s' % (self, action))
 
     def __repr__(self):

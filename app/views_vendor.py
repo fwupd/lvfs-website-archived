@@ -371,7 +371,6 @@ def vendor_modify_by_admin(vendor_id):
                 'username_glob',
                 'version_format',
                 'url',
-                'banned_country_codes',
                 'keywords']:
         if key in request.form:
             setattr(vendor, key, request.form[key])
@@ -573,3 +572,91 @@ def vendor_affiliation_delete(vendor_id, affiliation_id):
             break
     flash('Deleted affiliation', 'info')
     return redirect(url_for('.vendor_affiliations', vendor_id=vendor_id), 302)
+
+@app.route('/lvfs/vendor/<int:vendor_id>/exports')
+@login_required
+def vendor_exports(vendor_id):
+
+    # check exists
+    vendor = db.session.query(Vendor).filter(Vendor.vendor_id == vendor_id).first()
+    if not vendor:
+        flash('Failed to get vendor details: No a vendor with that ID', 'warning')
+        return redirect(url_for('.vendor_list'), 302)
+
+    # security check
+    if not vendor.check_acl('@view-exports'):
+        return _error_permission_denied('Unable to view exports')
+
+    # add other vendors
+    vendors = []
+    for v in db.session.query(Vendor).order_by(Vendor.display_name).all():
+        if v.vendor_id == vendor_id:
+            continue
+        if not v.is_account_holder:
+            continue
+        if v.is_affiliate_for(vendor.vendor_id):
+            continue
+        vendors.append(v)
+    return render_template('vendor-exports.html',
+                           category='vendors',
+                           v=vendor,
+                           other_vendors=vendors)
+
+def _convert_export_ids(v):
+    if not v.banned_country_codes:
+        return []
+    return v.banned_country_codes.split(',')
+
+@app.route('/lvfs/vendor/<int:vendor_id>/country/add', methods=['POST'])
+@login_required
+def vendor_export_add(vendor_id):
+
+    # check exists
+    vendor = db.session.query(Vendor).filter(Vendor.vendor_id == vendor_id).first()
+    if not vendor:
+        flash('Failed to add affiliate: No a vendor with that ID', 'warning')
+        return redirect(url_for('.vendor_exports', vendor_id=vendor_id), 302)
+    if not 'export_id' in request.form:
+        return _error_internal('No value')
+
+    # security check
+    if not vendor.check_acl('@modify-exports'):
+        return _error_permission_denied('Unable to add vendor country')
+
+    # check if it already exists
+    export_id = request.form['export_id']
+    export_ids = _convert_export_ids(vendor)
+    if export_id in export_ids:
+        flash('Failed to add country: Already blocked %s' % export_id, 'warning')
+        return redirect(url_for('.vendor_exports', vendor_id=vendor_id), 302)
+
+    # add a new ODM -> OEM country
+    export_ids.append(export_id)
+    vendor.banned_country_codes = ','.join(export_ids)
+    db.session.commit()
+    flash('Added blocked country %s' % export_id, 'info')
+    return redirect(url_for('.vendor_exports', vendor_id=vendor_id), 302)
+
+@app.route('/lvfs/vendor/<int:vendor_id>/country/<export_id>/delete')
+@login_required
+def vendor_export_delete(vendor_id, export_id):
+
+    # check exists
+    vendor = db.session.query(Vendor).filter(Vendor.vendor_id == vendor_id).first()
+    if not vendor:
+        flash('Failed to get vendor details: No a vendor with that ID', 'warning')
+        return redirect(url_for('.vendor_list'), 302)
+
+    # security check
+    if not vendor.check_acl('@modify-exports'):
+        return _error_permission_denied('Unable to delete vendor exports')
+
+    export_ids = _convert_export_ids(vendor)
+    if export_id not in export_ids:
+        flash('Failed to remove country: Not blocked %s' % export_id, 'warning')
+        return redirect(url_for('.vendor_exports', vendor_id=vendor_id), 302)
+    export_ids.remove(export_id)
+    vendor.banned_country_codes = ','.join(export_ids)
+    db.session.commit()
+    flash('Deleted blocked country %s' % export_id, 'info')
+    return redirect(url_for('.vendor_exports', vendor_id=vendor_id), 302)

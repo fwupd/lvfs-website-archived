@@ -13,3 +13,4 @@ onetimepass
 PyGObject
 PyMySQL
 GeoIP
+iso3166
