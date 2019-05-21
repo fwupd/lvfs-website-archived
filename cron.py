@@ -189,38 +189,46 @@ def _check_firmware():
     db.session.commit()
 
     # make a list of all the tests that need running
-    test_fws = []
+    test_fws = {}
     for fw in fws:
         for test in fw.tests:
             if test.needs_running:
-                test_fws.append((test, fw))
+                if fw in test_fws:
+                    test_fws[fw].append(test)
+                else:
+                    test_fws[fw] = [test]
 
     # mark all the tests as started
-    for test, fw in test_fws:
-        print('Marking test %s started for firmware %u...' % (test.plugin_id, fw.firmware_id))
-        test.started_ts = datetime.datetime.utcnow()
+    for fw in test_fws:
+        for test in test_fws[fw]:
+            print('Marking test %s started for firmware %u...' % (test.plugin_id, fw.firmware_id))
+            test.started_ts = datetime.datetime.utcnow()
     db.session.commit()
 
     # process each test
-    for test, fw in test_fws:
-        plugin = ploader.get_by_id(test.plugin_id)
-        if not plugin:
-            _event_log('No plugin %s' % test.plugin_id)
-            test.ended_ts = datetime.datetime.utcnow()
-            continue
-        if not hasattr(plugin, 'run_test_on_fw'):
-            _event_log('No run_test_on_fw in %s' % test.plugin_id)
-            test.ended_ts = datetime.datetime.utcnow()
-            continue
-        try:
-            print('Running test %s for firmware %s' % (test.plugin_id, fw.firmware_id))
-            plugin.run_test_on_fw(test, fw)
-            test.ended_ts = datetime.datetime.utcnow()
-            # don't leave a failed task running
-            db.session.commit()
-        except Exception as e: # pylint: disable=broad-except
-            test.ended_ts = datetime.datetime.utcnow()
-            test.add_fail('An exception occurred', str(e))
+    for fw in test_fws:
+        for test in test_fws[fw]:
+            plugin = ploader.get_by_id(test.plugin_id)
+            if not plugin:
+                _event_log('No plugin %s' % test.plugin_id)
+                test.ended_ts = datetime.datetime.utcnow()
+                continue
+            if not hasattr(plugin, 'run_test_on_fw'):
+                _event_log('No run_test_on_fw in %s' % test.plugin_id)
+                test.ended_ts = datetime.datetime.utcnow()
+                continue
+            try:
+                print('Running test %s for firmware %s' % (test.plugin_id, fw.firmware_id))
+                plugin.run_test_on_fw(test, fw)
+                test.ended_ts = datetime.datetime.utcnow()
+                # don't leave a failed task running
+                db.session.commit()
+            except Exception as e: # pylint: disable=broad-except
+                test.ended_ts = datetime.datetime.utcnow()
+                test.add_fail('An exception occurred', str(e))
+
+        # unallocate the cached blob as it's no longer needed
+        fw.blob = None
 
     # all done
     db.session.commit()

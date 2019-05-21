@@ -1110,6 +1110,10 @@ class Component(db.Model):
             self.fw._ensure_blobs()
         return self._blob
 
+    @blob.setter
+    def blob(self, value):
+        self._blob = value
+
     @property
     def names(self):
         if not self.name:
