@@ -111,7 +111,7 @@ def _add_shards(fpt, md):
         if not entry.sha256:
             continue
         shard = ComponentShard(component_id=md.component_id)
-        shard.size = entry.data.len
+        shard.blob = entry.blob
         shard.info = db.session.query(ComponentShardInfo).\
                             filter(ComponentShardInfo.guid == entry.guid).first()
         if shard.info:

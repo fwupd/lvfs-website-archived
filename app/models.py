@@ -11,6 +11,8 @@ import os
 import datetime
 import fnmatch
 import re
+import math
+import collections
 from enum import Enum
 
 import onetimepass
@@ -25,7 +27,7 @@ from gi.repository import GLib
 from flask import g, url_for
 from werkzeug.security import generate_password_hash, check_password_hash
 
-from sqlalchemy import Column, Integer, String, Text, Boolean, DateTime, ForeignKey, Index
+from sqlalchemy import Column, Integer, Float, String, Text, Boolean, DateTime, ForeignKey, Index
 from sqlalchemy.orm import relationship
 
 from app import db
@@ -991,6 +993,11 @@ class ComponentShardChecksum(db.Model):
     def __repr__(self):
         return "ComponentShardChecksum object %s(%s)" % (self.kind, self.value)
 
+def _calculate_entropy(s):
+    probabilities = [n_x / len(s) for x, n_x in collections.Counter(s).items()]
+    e_x = [- p_x * math.log(p_x, 2) for p_x in probabilities]
+    return sum(e_x)
+
 class ComponentShard(db.Model):
 
     # sqlalchemy metadata
@@ -1003,6 +1010,7 @@ class ComponentShard(db.Model):
                                      ForeignKey('component_shard_infos.component_shard_info_id'),
                                      nullable=False)
     size = Column(Integer, default=0)
+    entropy = Column(Float, default=0.0)
 
     checksums = relationship("ComponentShardChecksum",
                              back_populates="shard",
@@ -1016,6 +1024,17 @@ class ComponentShard(db.Model):
     def __init__(self, component_id=None):
         """ Constructor for object """
         self.component_id = component_id
+        self._blob = None
+
+    @property
+    def blob(self):
+        return self._blob
+
+    @blob.setter
+    def blob(self, value):
+        self._blob = value
+        self.size = len(value)
+        self.entropy = _calculate_entropy(value)
 
     @property
     def checksum(self):
