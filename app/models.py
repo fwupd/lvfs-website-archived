@@ -993,6 +993,7 @@ class ComponentShard(db.Model):
     component_shard_info_id = Column(Integer,
                                      ForeignKey('component_shard_infos.component_shard_info_id'),
                                      nullable=False)
+    size = Column(Integer, default=0)
 
     checksums = relationship("ComponentShardChecksum",
                              back_populates="shard",

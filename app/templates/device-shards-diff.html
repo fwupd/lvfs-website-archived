@@ -9,7 +9,6 @@
 <div class="card mb-3">
   <div class="card-header card-title list-group-item-danger">
     {{shard.info.name}} : Added
-    <code class="float-right">{{shard.info.guid}}</code>
   </div>
   <div class="card-body">
 {% if shard.info.description_with_fallback %}
@@ -17,11 +16,26 @@
       {{shard.info.description_with_fallback}}
     </p>
 {% endif %}
-{% for csum in shard.checksums %}
     <p class="card-text">
-      <code>{{csum.kind}}: {{csum.value}}</code>
-    </p>
+      <table class="table table-borderless">
+{% if shard.size %}
+        <tr class="row">
+          <th class="col-2">Size</th>
+          <td class="col">{{format_size(shard.size)}}</td>
+        </tr>
+{% endif %}
+        <tr class="row">
+          <th class="col-2">GUID</th>
+          <td class="col"><code>{{shard.info.guid}}</code></td>
+        </tr>
+{% for csum in shard.checksums %}
+        <tr class="row">
+          <th class="col-2">{{csum.kind}}</th>
+          <td class="col text-truncate"><code>{{csum.value}}</code></td>
+        </tr>
 {% endfor %}
+      </table>
+    </p>
   </div>
 </div>
 {% endfor %}
@@ -30,7 +44,6 @@
 <div class="card mb-3">
   <div class="card-header card-title list-group-item-success">
     {{shard.info.name}} : Removed
-    <code class="float-right">{{shard.info.guid}}</code>
   </div>
   <div class="card-body">
 {% if shard.info.description_with_fallback %}
@@ -38,11 +51,26 @@
       {{shard.info.description_with_fallback}}
     </p>
 {% endif %}
-{% for csum in shard.checksums %}
     <p class="card-text">
-      <code>{{csum.kind}}: {{csum.value}}</code>
-    </p>
+      <table class="table table-borderless">
+{% if shard.size %}
+        <tr class="row">
+          <th class="col-2">Size</th>
+          <td class="col">{{format_size(shard.size)}}</td>
+        </tr>
+{% endif %}
+        <tr class="row">
+          <th class="col-2">GUID</th>
+          <td class="col"><code>{{shard.info.guid}}</code></td>
+        </tr>
+{% for csum in shard.checksums %}
+        <tr class="row">
+          <th class="col-2">{{csum.kind}}</th>
+          <td class="col text-truncate"><code>{{csum.value}}</code></td>
+        </tr>
 {% endfor %}
+      </table>
+    </p>
   </div>
 </div>
 {% endfor %}
@@ -51,7 +79,6 @@
 <div class="card mb-3">
   <div class="card-header card-title list-group-item-warning">
     {{shard_new.info.name}} : Changed
-    <code class="float-right">{{shard_new.guid}}</code>
   </div>
   <div class="card-body">
 {% if shard_new.info.description_with_fallback %}
@@ -59,16 +86,39 @@
       {{shard_new.info.description_with_fallback}}
     </p>
 {% endif %}
-{% for csum in shard_old.checksums %}
+
     <p class="card-text">
-      <code>Old {{csum.kind}}: {{csum.value}}</code>
-    </p>
+      <table class="table table-borderless">
+{% if shard_old.size %}
+        <tr class="row">
+          <th class="col-2">Old Size</th>
+          <td class="col">{{format_size(shard_old.size)}}</td>
+        </tr>
+{% endif %}
+{% if shard_new.size %}
+        <tr class="row">
+          <th class="col-2">New Size</th>
+          <td class="col">{{format_size(shard_new.size)}}</td>
+        </tr>
+{% endif %}
+        <tr class="row">
+          <th class="col-2">GUID</th>
+          <td class="col"><code>{{shard_new.info.guid}}</code></td>
+        </tr>
+{% for csum in shard_old.checksums %}
+        <tr class="row">
+          <th class="col-2">Old {{csum.kind}}</th>
+          <td class="col text-truncate"><code>{{csum.value}}</code></td>
+        </tr>
 {% endfor %}
 {% for csum in shard_new.checksums %}
-    <p class="card-text">
-      <code>New {{csum.kind}}: {{csum.value}}</code>
-    </p>
+        <tr class="row">
+          <th class="col-2">New {{csum.kind}}</th>
+          <td class="col text-truncate"><code>{{csum.value}}</code></td>
+        </tr>
 {% endfor %}
+      </table>
+    </p>
   </div>
 </div>
 {% endfor %}

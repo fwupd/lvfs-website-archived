@@ -47,6 +47,7 @@ def _add_component_shards(md, files):
             shard.info = ComponentShardInfo(guid, name)
         with open(fn, 'rb') as f:
             data = f.read()
+            shard.size = len(data)
 
             # SHA1 is what's used by researchers, but considered broken
             csum = ComponentShardChecksum(hashlib.sha1(data).hexdigest(), 'SHA1')
