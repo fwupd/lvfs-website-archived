@@ -892,6 +892,15 @@ class Category(db.Model):
         self.fallbacks = fallbacks
         self.expect_device_checksum = expect_device_checksum
 
+    def matches(self, values):
+        for value in values:
+            if self.value == value:
+                return True
+        if self.fallbacks:
+            for value in values:
+                return value in self.fallbacks.split(',')
+        return False
+
     def check_acl(self, action, user=None):
 
         # fall back
