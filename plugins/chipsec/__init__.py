@@ -8,14 +8,13 @@
 
 import tempfile
 import glob
-import hashlib
 import os
 import re
 import subprocess
 
 from app import db
 from app.pluginloader import PluginBase, PluginError, PluginSettingBool, PluginSettingText
-from app.models import Test, ComponentShard, ComponentShardChecksum, ComponentShardInfo
+from app.models import Test, ComponentShard, ComponentShardInfo
 
 def _add_component_shards(self, md, files):
 
@@ -47,16 +46,7 @@ def _add_component_shards(self, md, files):
         else:
             shard.info = ComponentShardInfo(guid, name)
         with open(fn, 'rb') as f:
-            data = f.read()
-            shard.blob = data
-
-            # SHA1 is what's used by researchers, but considered broken
-            csum = ComponentShardChecksum(hashlib.sha1(data).hexdigest(), 'SHA1')
-            shard.checksums.append(csum)
-
-            # SHA256 is now the best we have
-            csum = ComponentShardChecksum(hashlib.sha256(data).hexdigest(), 'SHA256')
-            shard.checksums.append(csum)
+            shard.set_blob(f.read())
 
         # add shard to component
         md.shards.append(shard)

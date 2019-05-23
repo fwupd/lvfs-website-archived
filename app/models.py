@@ -12,6 +12,7 @@ import datetime
 import fnmatch
 import re
 import math
+import hashlib
 import collections
 from enum import Enum
 
@@ -1038,18 +1039,28 @@ class ComponentShard(db.Model):
             return None
         return self._blob
 
-    @blob.setter
-    def blob(self, value):
-        self._blob = value
-        self.size = len(value)
-        self.entropy = _calculate_entropy(value)
-
     @property
     def checksum(self):
         for csum in self.checksums:
             if csum.kind == 'SHA256':
                 return csum.value
         return None
+
+    def set_blob(self, value, checksums=None):
+        """ Set data blob and add checksum objects """
+        self._blob = value
+        self.size = len(value)
+        self.entropy = _calculate_entropy(value)
+
+        # SHA1 is what's used by researchers, but considered broken
+        if checksums and 'SHA1' in checksums:
+            csum = ComponentShardChecksum(hashlib.sha1(value).hexdigest(), 'SHA1')
+            self.checksums.append(csum)
+
+        # SHA256 is now the best we have
+        if checksums and 'SHA256' in checksums:
+            csum = ComponentShardChecksum(hashlib.sha256(value).hexdigest(), 'SHA256')
+            self.checksums.append(csum)
 
     def __repr__(self):
         return "ComponentShard object %s" % self.component_shard_id

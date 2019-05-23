@@ -9,13 +9,12 @@
 import os
 import struct
 import uuid
-import hashlib
 
 from collections import namedtuple
 
 from app import db
 from app.pluginloader import PluginBase, PluginError, PluginSettingBool
-from app.models import Test, ComponentShard, ComponentShardChecksum, ComponentShardInfo
+from app.models import Test, ComponentShard, ComponentShardInfo
 
 class PartitionEntry():
 
@@ -58,12 +57,6 @@ class PartitionEntry():
         if not self.appstream_id:
             return None
         return str(uuid.uuid5(uuid.NAMESPACE_DNS, self.appstream_id))
-
-    @property
-    def sha256(self):
-        if not self.blob:
-            return None
-        return hashlib.sha256(self.blob).hexdigest()
 
 class PartitionHeader():
 
@@ -109,18 +102,16 @@ def _add_shards(self, fpt, md):
     for entry in fpt.entries:
         if not entry.guid:
             continue
-        if not entry.sha256:
+        if not entry.blob:
             continue
         shard = ComponentShard(component_id=md.component_id, plugin_id=self.id)
-        shard.blob = entry.blob
+        shard.set_blob(entry.blob, checksums='SHA256')
         shard.info = db.session.query(ComponentShardInfo).\
                             filter(ComponentShardInfo.guid == entry.guid).first()
         if shard.info:
             shard.info.cnt += 1
         else:
             shard.info = ComponentShardInfo(entry.guid, entry.appstream_id)
-        csum = ComponentShardChecksum(entry.sha256, 'SHA256')
-        shard.checksums.append(csum)
         md.shards.append(shard)
 
 def _run_intelme_on_blob(self, test, md):
