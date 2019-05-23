@@ -30,7 +30,10 @@
     </div>
     <a class="card-link btn btn-info"
       href="{{url_for('.shard_details', component_shard_info_id=shard.component_shard_info_id)}}"
-      role="button">Details &raquo;</a>
+      role="button">Details</a>
+    <a class="card-link btn btn-info"
+      href="{{url_for('.firmware_shard_search', kind='guid', value=shard.guid)}}"
+      role="button">Firmware</a>
   </div>
 </div>
 {% endfor %}

@@ -50,8 +50,12 @@
 {% endfor %}
       </table>
     </p>
+{% if shard.checksum %}
     <a class="card-link btn btn-info" href="{{url_for('.firmware_shard_search', kind='checksum', value=shard.checksum)}}">Search checksum</a>
+{% endif %}
+{% if shard.info and shard.info.guid %}
     <a class="card-link btn btn-info" href="{{url_for('.firmware_shard_search', kind='guid', value=shard.info.guid)}}">Search GUID</a>
+{% endif %}
   </div>
 </div>
 {% endfor %}
