@@ -151,21 +151,6 @@ def _run_intelme_on_blob(self, test, md):
             entries.append(entry.sig)
     test.add_pass('Found', ','.join(entries))
 
-def _require_test(md):
-
-    # match on protocol
-    if not md.protocol:
-        # only until required
-        return True
-    if md.protocol.value != 'org.uefi.capsule':
-        return False
-
-    # match on category
-    if not md.category:
-        # only until required
-        return True
-    return md.category.matches(['X-System', 'X-ManagementEngine'])
-
 class Plugin(PluginBase):
     def __init__(self):
         PluginBase.__init__(self)
@@ -181,17 +166,31 @@ class Plugin(PluginBase):
         s.append(PluginSettingBool('intelme_enabled', 'Enabled', True))
         return s
 
+    def _require_test_for_md(self, md):
+
+        # match on protocol
+        if not md.protocol:
+            # only until required
+            return True
+        if md.protocol.value != 'org.uefi.capsule':
+            return False
+
+        # match on category
+        if not md.category:
+            # only until required
+            return True
+        return md.category.matches(['X-System', 'X-ManagementEngine'])
+
+    def _require_test_for_fw(self, fw):
+        for md in fw.mds:
+            if self._require_test_for_md(md):
+                return True
+        return False
+
     def ensure_test_for_fw(self, fw):
 
-        # only run for capsule updates
-        require_test = False
-        for md in fw.mds:
-            if _require_test(md):
-                require_test = True
-                break
-
         # add if not already exists
-        if require_test:
+        if self._require_test_for_fw(fw):
             test = fw.find_test_by_plugin_id(self.id)
             if not test:
                 test = Test(self.id, waivable=True)
@@ -203,7 +202,7 @@ class Plugin(PluginBase):
         for md in fw.mds:
             if not md.blob:
                 continue
-            if _require_test(md):
+            if self._require_test_for_md(md):
                 _run_intelme_on_blob(self, test, md)
         db.session.commit()
 

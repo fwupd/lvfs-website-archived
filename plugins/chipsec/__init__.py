@@ -76,7 +76,7 @@ def _run_chipsec_on_blob(self, test, md):
     outdir = src.name + '.dir'
     files = glob.glob(outdir + '/FV/**/*.efi', recursive=True)
     if not files:
-        test.add_pass('Scanned', 'No firmware volumes found')
+        test.add_pass('Scanned', 'No firmware volumes found in {}'.format(md.filename_contents))
         return
     _add_component_shards(self, md, files)
 
@@ -100,18 +100,21 @@ class Plugin(PluginBase):
         s.append(PluginSettingText('chipsec_binary', 'CHIPSEC executable', 'chipsec_util'))
         return s
 
+    def _require_test_for_md(self, md):
+        if not md.protocol:
+            return False
+        return md.protocol.value == 'org.uefi.capsule'
+
+    def _require_test_for_fw(self, fw):
+        for md in fw.mds:
+            if self._require_test_for_md(md):
+                return True
+        return False
+
     def ensure_test_for_fw(self, fw):
 
-        # only run for capsule updates
-        require_test = False
-        for md in fw.mds:
-            if not md.protocol:
-                continue
-            if md.protocol.value == 'org.uefi.capsule':
-                require_test = True
-
         # add if not already exists
-        if require_test:
+        if self._require_test_for_fw(fw):
             test = fw.find_test_by_plugin_id(self.id)
             if not test:
                 test = Test(self.id, waivable=True)
@@ -121,7 +124,7 @@ class Plugin(PluginBase):
 
         # run chipsec on the capsule data
         for md in fw.mds:
-            if md.protocol.value != 'org.uefi.capsule':
+            if not self._require_test_for_md(md):
                 continue
             if not md.blob:
                 continue
