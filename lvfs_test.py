@@ -166,11 +166,13 @@ class LvfsTestCase(unittest.TestCase):
         self.checksum_upload = fw.checksum_upload
         self.checksum_signed = fw.checksum_signed
 
-    def upload(self, target='private', vendor_id=None, filename='contrib/hughski-colorhug2-2.0.3.cab'):
+    def upload(self, target='private', vendor_id=None, filename='contrib/hughski-colorhug2-2.0.3.cab', fwchecks=True):
         rv = self._upload(filename, target, vendor_id)
         assert b'Uploaded file' in rv.data, rv.data
         self._ensure_checksums_from_upload()
         assert self.checksum_upload.encode('utf-8') in rv.data, rv.data
+        if fwchecks:
+            self.run_cron_fwchecks()
 
     def test_login_logout(self):
 
@@ -258,6 +260,7 @@ class LvfsTestCase(unittest.TestCase):
 
         # promote the firmware to testing then stable
         self.run_cron_firmware()
+        self.run_cron_fwchecks()
         rv = self.app.get('/lvfs/firmware/1/promote/testing',
                           follow_redirects=True)
         assert b'>testing<' in rv.data, rv.data
@@ -414,6 +417,16 @@ class LvfsTestCase(unittest.TestCase):
         if remote_ids:
             for remote_id in remote_ids:
                 assert 'Updating: %s' % remote_id in stdout.decode('utf-8'), stdout
+
+    def run_cron_fwchecks(self):
+        env = {}
+        env['LVFS_CUSTOM_SETTINGS'] = self.cfg_filename
+        ps = subprocess.Popen(['./cron.py', 'fwchecks'], env=env,
+                              stdout=subprocess.PIPE,
+                              stderr=subprocess.PIPE)
+        stdout, stderr = ps.communicate()
+        if ps.returncode != 0:
+            raise IOError(stdout, stderr)
 
     def test_cron_metadata(self):
 
