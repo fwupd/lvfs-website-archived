@@ -14,7 +14,7 @@ from collections import namedtuple
 
 from app import db
 from app.pluginloader import PluginBase, PluginError, PluginSettingBool
-from app.models import Test, ComponentShard, ComponentShardInfo
+from app.models import Test, ComponentShard
 
 class PartitionEntry():
 
@@ -106,12 +106,7 @@ def _add_shards(self, fpt, md):
             continue
         shard = ComponentShard(component_id=md.component_id, plugin_id=self.id)
         shard.set_blob(entry.blob, checksums='SHA256')
-        shard.info = db.session.query(ComponentShardInfo).\
-                            filter(ComponentShardInfo.guid == entry.guid).first()
-        if shard.info:
-            shard.info.cnt += 1
-        else:
-            shard.info = ComponentShardInfo(entry.guid, entry.appstream_id)
+        shard.ensure_info(entry.guid, entry.appstream_id)
         md.shards.append(shard)
 
 def _run_intelme_on_blob(self, test, md):

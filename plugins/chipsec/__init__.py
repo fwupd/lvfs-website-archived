@@ -14,7 +14,7 @@ import subprocess
 
 from app import db
 from app.pluginloader import PluginBase, PluginError, PluginSettingBool, PluginSettingText
-from app.models import Test, ComponentShard, ComponentShardInfo
+from app.models import Test, ComponentShard
 
 def _add_component_shards(self, md, files):
 
@@ -39,12 +39,7 @@ def _add_component_shards(self, md, files):
             continue
 
         shard = ComponentShard(component_id=md.component_id, plugin_id=self.id)
-        shard.info = db.session.query(ComponentShardInfo).\
-                            filter(ComponentShardInfo.guid == guid).first()
-        if shard.info:
-            shard.info.cnt += 1
-        else:
-            shard.info = ComponentShardInfo(guid, name)
+        shard.ensure_info(guid, name)
         with open(fn, 'rb') as f:
             shard.set_blob(f.read())
 

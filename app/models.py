@@ -1062,6 +1062,15 @@ class ComponentShard(db.Model):
             csum = ComponentShardChecksum(hashlib.sha256(value).hexdigest(), 'SHA256')
             self.checksums.append(csum)
 
+    def ensure_info(self, guid, name):
+        """ Find existing info object using the GUID, or create if not found """
+        if self.info:
+            return
+        self.info = db.session.query(ComponentShardInfo).\
+                            filter(ComponentShardInfo.guid == guid).first()
+        if not self.info:
+            self.info = ComponentShardInfo(guid, name)
+
     def __repr__(self):
         return "ComponentShard object %s" % self.component_shard_id
 
