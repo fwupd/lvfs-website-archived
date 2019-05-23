@@ -936,6 +936,9 @@ class ComponentShardInfo(db.Model):
     description = Column(Text, default=None)
     cnt = Column(Integer)
 
+    # link using foreign keys
+    shards = relationship("ComponentShard", cascade='all,delete-orphan')
+
     def __init__(self, guid=None, name=None, description=None):
         """ Constructor for object """
         self.cnt = 1

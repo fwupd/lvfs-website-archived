@@ -25,6 +25,7 @@ from app import db, ploader
 from app.dbutils import _execute_count_star
 from app.models import Remote, Firmware, Vendor, Client, AnalyticVendor
 from app.models import AnalyticFirmware, Useragent, UseragentKind, Analytic, Report
+from app.models import ComponentShardInfo
 from app.models import _get_datestr_from_datetime
 from app.metadata import _metadata_update_targets, _metadata_update_pulp
 from app.util import _archive_get_files_from_glob, _get_dirname_safe, _event_log
@@ -311,15 +312,27 @@ def _get_lang_distro_from_ua(ua):
         return None
     return (parts[1], parts[2])
 
+def _generate_stats_shard_info(info):
+    if info.cnt != len(info.shards):
+        print('fixing %s: %i -> %i' % (info.name, info.cnt, len(info.shards)))
+        info.cnt = len(info.shards)
+
 def _generate_stats(kinds=None):
     if not kinds:
-        kinds = ['FirmwareReport']
+        kinds = ['FirmwareReport', 'ShardCount']
+
+    # update ComponentShardInfo.cnt
+    if 'ShardCount' in kinds:
+        for info in db.session.query(ComponentShardInfo).all():
+            _generate_stats_shard_info(info)
+        db.session.commit()
 
     # update FirmwareReport counts
     if 'FirmwareReport' in kinds:
         for fw in db.session.query(Firmware).all():
             _generate_stats_firmware_reports(fw)
         db.session.commit()
+
     print('generated %s' % ','.join(kinds))
 
 def _generate_stats_for_datestr(datestr, kinds=None):
