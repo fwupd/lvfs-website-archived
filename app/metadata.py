@@ -208,7 +208,7 @@ def _generate_metadata_kind(filename, fws, firmware_baseuri='', local=False):
 
         # deliberately not including <category> here until 2020-01-01
         if False:                       # pylint: disable=using-constant-test
-            cats = []
+            cats = [] #lgtm [py/unreachable-statement]
             for md in mds:
                 if not md.category:
                     continue
