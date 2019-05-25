@@ -44,6 +44,14 @@ def settings_create():
     db.session.commit()
     return redirect(url_for('.settings_view'))
 
+def _textarea_string_to_text(value_unsafe):
+    values = []
+    for value in value_unsafe.replace('\r', '').split('\n'):
+        value = value.strip()
+        if value:
+            values.append(value)
+    return ','.join(values)
+
 @app.route('/lvfs/settings/modify', methods=['GET', 'POST'])
 @app.route('/lvfs/settings/modify/<plugin_id>', methods=['GET', 'POST'])
 @login_required
@@ -64,7 +72,7 @@ def settings_modify(plugin_id='general'):
         if settings[key] == request.form[key]:
             continue
         setting = db.session.query(Setting).filter(Setting.key == key).first()
-        setting.value = request.form[key]
+        setting.value = _textarea_string_to_text(request.form[key])
         _event_log('Changed server settings %s to %s' % (key, setting.value))
     db.session.commit()
     flash('Updated settings', 'info')

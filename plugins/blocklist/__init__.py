@@ -9,7 +9,8 @@
 import os
 
 from app import db
-from app.pluginloader import PluginBase, PluginError, PluginSettingBool, PluginSettingText
+from app.pluginloader import PluginBase, PluginError
+from app.pluginloader import PluginSettingBool, PluginSettingTextList
 from app.models import Test
 
 def _run_on_blob(self, test, blob):
@@ -40,8 +41,7 @@ class Plugin(PluginBase):
     def settings(self):
         s = []
         s.append(PluginSettingBool('blocklist_enabled', 'Enabled', True))
-        s.append(PluginSettingText('blocklist_values', 'Values',
-                                   'DO NOT TRUST,DO NOT SHIP'))
+        s.append(PluginSettingTextList('blocklist_values', 'Values', ['DO NOT TRUST', 'DO NOT SHIP']))
         return s
 
     def ensure_test_for_fw(self, fw):

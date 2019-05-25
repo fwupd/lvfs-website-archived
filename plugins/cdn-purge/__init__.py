@@ -11,7 +11,8 @@ import fnmatch
 import json
 import requests
 
-from app.pluginloader import PluginBase, PluginError, PluginSettingText, PluginSettingBool
+from app.pluginloader import PluginBase, PluginError
+from app.pluginloader import PluginSettingText, PluginSettingBool, PluginSettingTextList
 
 def _basename_matches_globs(basename, globs):
     for glob in globs:
@@ -34,7 +35,7 @@ class Plugin(PluginBase):
         s.append(PluginSettingBool('cdn_purge_enable', 'Enabled', False))
         s.append(PluginSettingText('cdn_purge_uri', 'URI', 'https://bunnycdn.com/api/purge?url=https://lvfs.b-cdn.net/downloads/'))
         s.append(PluginSettingText('cdn_purge_accesskey', 'Accesskey', ''))
-        s.append(PluginSettingText('cdn_purge_files', 'File Whitelist', '*.xml.gz,*.xml.gz.asc'))
+        s.append(PluginSettingTextList('cdn_purge_files', 'File Whitelist', ['*.xml.gz', '*.xml.gz.asc']))
         s.append(PluginSettingText('cdn_purge_method', 'Request method', 'GET'))
         return s
 

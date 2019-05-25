@@ -8,8 +8,8 @@
 
 import requests
 
-from app.pluginloader import PluginBase, PluginError, PluginSettingBool, PluginSettingText
-from app.util import _get_absolute_path
+from app.pluginloader import PluginBase, PluginError
+from app.pluginloader import PluginSettingBool, PluginSettingText, PluginSettingTextList
 from app.models import Test
 
 class Plugin(PluginBase):
@@ -25,7 +25,7 @@ class Plugin(PluginBase):
     def settings(self):
         s = []
         s.append(PluginSettingBool('virustotal_enable', 'Enabled', True))
-        s.append(PluginSettingText('virustotal_remotes', 'Upload Firmware in Remotes', 'stable,testing'))
+        s.append(PluginSettingTextList('virustotal_remotes', 'Upload Firmware in Remotes', ['stable', 'testing']))
         s.append(PluginSettingText('virustotal_api_key', 'API Key', 'DEADBEEF'))
         s.append(PluginSettingText('virustotal_uri', 'Host', 'https://www.virustotal.com/api/v3/monitor/items'))
         s.append(PluginSettingText('virustotal_user_agent', 'User Agent', 'LVFS'))

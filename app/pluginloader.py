@@ -21,6 +21,16 @@ class PluginSettingText:
         self.name = name
         self.default = default
 
+class PluginSettingTextList:
+
+    def __init__(self, key, name, default=None):
+        self.key = key
+        self.name = name
+        if default:
+            self.default = ','.join(default)
+        else:
+            self.default = ''
+
 class PluginSettingBool:
 
     def __init__(self, key, name, default=False):
@@ -87,8 +97,7 @@ class PluginGeneral(PluginBase):
                                    'This is a test instance and may be broken at any time.'))
         s.append(PluginSettingText('firmware_baseuri', 'Firmware BaseURI',
                                    'https://fwupd.org/downloads/'))
-        s.append(PluginSettingText('hwinfo_kinds', 'Allowed hwinfo Types',
-                                   'nvme'))
+        s.append(PluginSettingTextList('hwinfo_kinds', 'Allowed hwinfo Types', ['nvme']))
         return s
 
 class Pluginloader:
