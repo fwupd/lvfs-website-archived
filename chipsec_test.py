@@ -54,6 +54,11 @@ if __name__ == '__main__':
                     msg.append(attr.message.replace('\n', ''))
                 data['msg'] = '\n'.join(msg)
 
+                # remove the elapsed time to keep diff clean
+                idx = data['msg'].find('time elapsed')
+                if idx != -1:
+                    data['msg'] = data['msg'][:idx].strip()
+
                 if not len(fw.md_prio.shards):
                     print('No shards: {}'.format(data['msg']))
                 else:
