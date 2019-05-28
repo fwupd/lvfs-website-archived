@@ -14,3 +14,5 @@ PyGObject
 PyMySQL
 GeoIP
 iso3166
+pefile
+pyasn1_modules
