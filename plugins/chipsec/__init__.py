@@ -43,6 +43,12 @@ def _add_component_shards(self, md, files):
         with open(fn, 'rb') as f:
             shard.set_blob(f.read())
 
+        if 'LVFS_DUMP_SHARDS' in os.environ:
+            path = os.path.join('shards', md.fw.vendor.group_id, str(md.fw.firmware_id), str(md.component_id))
+            os.makedirs(path, exist_ok=True)
+            with open(os.path.join(path, name), 'wb') as f:
+                f.write(shard.blob)
+
         # add shard to component
         md.shards.append(shard)
 
