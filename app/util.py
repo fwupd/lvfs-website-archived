@@ -229,6 +229,10 @@ def _get_absolute_path(fw):
         return os.path.join(app.config['RESTORE_DIR'], fw.filename)
     return os.path.join(app.config['DOWNLOAD_DIR'], fw.filename)
 
+def _get_shard_path(shard):
+    from app import app
+    return os.path.join(app.config['SHARD_DIR'], str(shard.component_id), shard.info.name)
+
 def _get_basename_safe(fn):
     """ gets the file basename, also with win32-style backslashes """
     return os.path.basename(fn.replace('\\', '/'))

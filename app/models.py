@@ -10,6 +10,7 @@
 import os
 import datetime
 import fnmatch
+import zlib
 import re
 import math
 import hashlib
@@ -34,7 +35,7 @@ from sqlalchemy.orm import relationship
 from app import db
 from .hash import _qa_hash, _password_hash, _otp_hash
 from .util import _generate_password, _xml_from_markdown, _get_update_description_problems
-from .util import _get_absolute_path, _archive_get_files_from_glob
+from .util import _get_absolute_path, _archive_get_files_from_glob, _get_shard_path
 
 class SecurityClaim:
 
@@ -1036,7 +1037,12 @@ class ComponentShard(db.Model):
     @property
     def blob(self):
         if not hasattr(self, '_blob'):
-            return None
+            # restore from disk if available
+            fn = _get_shard_path(self)
+            if not os.path.exists(fn):
+                return None
+            with open(fn, 'rb') as f:
+                self._blob = zlib.decompress(f.read())
         return self._blob
 
     @property
@@ -1046,7 +1052,7 @@ class ComponentShard(db.Model):
                 return csum.value
         return None
 
-    def set_blob(self, value, checksums=None):
+    def set_blob(self, value, checksums=None, save=False):
         """ Set data blob and add checksum objects """
         self._blob = value
         self.size = len(value)
@@ -1065,6 +1071,13 @@ class ComponentShard(db.Model):
         if 'SHA256' in checksums:
             csum = ComponentShardChecksum(hashlib.sha256(value).hexdigest(), 'SHA256')
             self.checksums.append(csum)
+
+        # save to disk
+        if save:
+            fn = _get_shard_path(self)
+            os.makedirs(os.path.dirname(fn), exist_ok=True)
+            with open(fn, 'wb') as f:
+                f.write(zlib.compress(self._blob))
 
     def ensure_info(self, guid, name):
         """ Find existing info object using the GUID, or create if not found """

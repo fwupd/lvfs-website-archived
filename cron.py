@@ -28,7 +28,7 @@ from app.models import AnalyticFirmware, Useragent, UseragentKind, Analytic, Rep
 from app.models import ComponentShardInfo
 from app.models import _get_datestr_from_datetime
 from app.metadata import _metadata_update_targets, _metadata_update_pulp
-from app.util import _archive_get_files_from_glob, _get_dirname_safe, _event_log
+from app.util import _archive_get_files_from_glob, _get_dirname_safe, _event_log, _get_shard_path
 
 # make compatible with Flask
 app = application.app
@@ -174,6 +174,11 @@ def _purge_old_deleted_firmware():
             path = os.path.join(app.config['RESTORE_DIR'], fw.filename)
             if os.path.exists(path):
                 os.remove(path)
+            for md in fw.mds:
+                for shard in md.shards:
+                    path = _get_shard_path(shard)
+                    if os.path.exists(path):
+                        os.remove(path)
             db.session.delete(fw)
 
     # all done

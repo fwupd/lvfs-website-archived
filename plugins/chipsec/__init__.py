@@ -23,6 +23,9 @@ def _add_component_shards(self, md, files):
         if shard.plugin_id == self.id:
             db.session.delete(shard)
 
+    # should we write to disk for later processing
+    save = self.get_setting_bool('chipsec_write_shards')
+
     # parse each EFI binary as a shard
     for fn in files:
         sections = fn.rsplit('/')
@@ -41,13 +44,7 @@ def _add_component_shards(self, md, files):
         shard = ComponentShard(component_id=md.component_id, plugin_id=self.id)
         shard.ensure_info(guid, name)
         with open(fn, 'rb') as f:
-            shard.set_blob(f.read())
-
-        if 'LVFS_DUMP_SHARDS' in os.environ:
-            path = os.path.join('shards', md.fw.vendor.group_id, str(md.fw.firmware_id), str(md.component_id))
-            os.makedirs(path, exist_ok=True)
-            with open(os.path.join(path, name), 'wb') as f:
-                f.write(shard.blob)
+            shard.set_blob(f.read(), save=save)
 
         # add shard to component
         md.shards.append(shard)
@@ -103,6 +100,7 @@ class Plugin(PluginBase):
     def settings(self):
         s = []
         s.append(PluginSettingBool('chipsec_enabled', 'Enabled', True))
+        s.append(PluginSettingBool('chipsec_write_shards', 'Write shards to disk', True))
         s.append(PluginSettingText('chipsec_binary', 'CHIPSEC executable', 'chipsec_util'))
         return s
 

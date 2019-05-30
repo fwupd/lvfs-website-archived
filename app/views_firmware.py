@@ -20,7 +20,7 @@ from .models import Remote, Vendor, AnalyticFirmware, Component
 from .models import ComponentShard, ComponentShardInfo, ComponentShardChecksum
 from .models import _get_datestr_from_datetime
 from .util import _error_internal, _error_permission_denied, _event_log
-from .util import _get_chart_labels_months, _get_chart_labels_days
+from .util import _get_chart_labels_months, _get_chart_labels_days, _get_shard_path
 
 @app.route('/lvfs/firmware')
 @app.route('/lvfs/firmware/state/<state>')
@@ -167,6 +167,13 @@ def firmware_nuke(firmware_id):
     path = os.path.join(app.config['RESTORE_DIR'], fw.filename)
     if os.path.exists(path):
         os.remove(path)
+
+    # delete shard cache if they exist
+    for md in fw.mds:
+        for shard in md.shards:
+            path = _get_shard_path(shard)
+            if os.path.exists(path):
+                os.remove(path)
 
     # generate next cron run
     fw.remote.is_dirty = True
