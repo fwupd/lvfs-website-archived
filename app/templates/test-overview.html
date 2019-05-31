@@ -38,13 +38,13 @@
 {% endif %}
 </table>
 {% if tests_running[plugin_id]|length > 0 %}
-    <a class="card-link btn btn-outline-danger" href="{{url_for('.test_retry_all', plugin_id=plugin_id)}}">Retry all</a>
-{% endif %}
-{% if tests_success[plugin_id]|length > 0 %}
-    <a class="card-link btn btn-outline-danger" href="{{url_for('.test_delete_all', plugin_id=plugin_id)}}">Delete all</a>
+    <a class="card-link btn btn-warning" href="{{url_for('.test_retry_all', plugin_id=plugin_id)}}">Retry all</a>
 {% endif %}
 {% if tests_failed[plugin_id]|length > 0 %}
-    <a class="card-link btn btn-small btn-outline-danger" href="{{url_for('.test_waive_all', plugin_id=plugin_id)}}">Waive all</a>
+    <a class="card-link btn btn-warning" href="{{url_for('.test_waive_all', plugin_id=plugin_id)}}">Waive all</a>
+{% endif %}
+{% if tests_success[plugin_id]|length > 0 or tests_failed[plugin_id]|length %}
+    <a class="card-link btn btn-danger float-right" href="{{url_for('.test_delete_all', plugin_id=plugin_id)}}">Delete all</a>
 {% endif %}
   </div>
 </div>

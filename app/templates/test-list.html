@@ -35,7 +35,7 @@
       <a class="card-link btn btn-info"
          href="{{url_for('.firmware_show', firmware_id=test.firmware_id)}}"
          role="button">Details</a>
-{% if not test.success and test.started_ts and test.check_acl('@retry') %}
+{% if test.started_ts and test.check_acl('@retry') %}
       <a class="card-link btn btn-info"
          href="{{url_for('.test_retry', test_id=test.test_id)}}"
          role="button">Retry</a>
