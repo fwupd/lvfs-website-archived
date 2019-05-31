@@ -115,30 +115,29 @@ def _run_intelme_on_blob(self, test, md):
     offset = md.blob.find(b'$FPT')
     if offset == -1:
         # not an error if there's no ME...
-        test.add_pass('Offset', 'No partition table header found, ignoring')
+        test.add_pass('No partition table header found')
         return
     offset -= 0x10
-    test.add_pass('Offset', '{:#x}'.format(offset))
 
     # check signature
     fpt = PartitionHeader()
     try:
         fpt.unpack_from(md.blob[offset:], 0)
     except struct.error as e:
-        test.add_fail('FPT', str(e))
+        test.add_fail('FPT invalid at {:#x}'.format(offset), str(e))
         return
     if fpt.data.sig != b'$FPT':
-        test.add_fail('Signature', 'Invalid: ' + str(fpt.data.sig))
+        test.add_fail('Signature invalid: ' + str(fpt.data.sig))
         return
 
     # check number of entries
     if not len(fpt.entries):
-        test.add_pass('Entries', 'Possibly compression issue?')
+        test.add_pass('No entries -- possibly compression issue?')
         return
 
     # check version
     if fpt.data.ver in (0x0, 0xff):
-        test.add_fail('Version', 'Version {:#x} invalid'.format(fpt.data.ver))
+        test.add_fail('Version {:#x} invalid'.format(fpt.data.ver))
         return
 
     # add shards to component
@@ -149,7 +148,7 @@ def _run_intelme_on_blob(self, test, md):
     for entry in fpt.entries:
         if entry.sig:
             entries.append(entry.sig)
-    test.add_pass('Found', ','.join(entries))
+    test.add_pass('Found {}'.format(','.join(entries)))
 
 class Plugin(PluginBase):
     def __init__(self):

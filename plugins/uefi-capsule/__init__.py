@@ -71,7 +71,7 @@ class Plugin(PluginBase):
             elif guid in referenced_guids:
                 test.add_pass('GUID', guid)
             else:
-                test.add_fail('GUID', '%s not found in %s' % (guid, referenced_guids))
+                test.add_fail('GUID', '%s not found in %s' % (guid, ','.join(referenced_guids)))
 
             # check the header size
             if data[1] == 0:

@@ -13,7 +13,7 @@ from app.pluginloader import PluginBase, PluginError
 from app.pluginloader import PluginSettingBool, PluginSettingTextList
 from app.models import Test
 
-def _run_on_blob(self, test, blob):
+def _run_on_blob(self, test, title, blob):
 
     # find in a few different encodings
     values = self.get_setting('blocklist_values', required=True).split(',')
@@ -21,7 +21,7 @@ def _run_on_blob(self, test, blob):
         for encoding in ['utf8', 'utf_16_le', 'utf_16_be']:
             offset = blob.find(value.encode(encoding))
             if offset != -1:
-                test.add_fail('Found', '{}: {}'.format(encoding, value))
+                test.add_fail(title, 'Found: {}'.format(value))
 
     return len(values)
 
@@ -58,14 +58,13 @@ class Plugin(PluginBase):
         cnt = 0
         for md in fw.mds:
             if md.blob:
-                cnt += _run_on_blob(self, test, md.blob)
+                cnt += _run_on_blob(self, test, md.filename_contents, md.blob)
             for shard in md.shards:
                 if shard.blob:
-                    cnt += _run_on_blob(self, test, shard.blob)
+                    cnt += _run_on_blob(self, test, shard.info.name, shard.blob)
         if not cnt:
-            test.add_pass('Scanned', 'No input blobs to scan')
+            test.add_pass('No blobs to scan')
             return
-        test.add_pass('Scanned', str(cnt))
 
 # run with PYTHONPATH=. ./.env3/bin/python3 plugins/blocklist/__init__.py
 if __name__ == '__main__':

@@ -772,7 +772,7 @@ class Test(db.Model):
     def add_pass(self, title, message=None):
         self.attributes.append(TestAttribute(title=title, message=message))
 
-    def add_fail(self, title, message):
+    def add_fail(self, title, message=None):
         self.attributes.append(TestAttribute(title=title, message=message, success=False))
 
     def waive(self):

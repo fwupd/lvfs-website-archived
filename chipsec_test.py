@@ -51,8 +51,8 @@ if __name__ == '__main__':
                 # capture message
                 msg = []
                 for attr in test.attributes:
-                    msg.append(attr.message.replace('\n', ''))
-                data['msg'] = '\n'.join(msg)
+                    msg.append(attr.title)
+                data['msg'] = ','.join(msg)
 
                 # remove the elapsed time to keep diff clean
                 idx = data['msg'].find('time elapsed')

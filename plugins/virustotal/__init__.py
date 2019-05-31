@@ -59,13 +59,13 @@ class Plugin(PluginBase):
             r = requests.post(self.get_setting('virustotal_uri', required=True),
                               files=files, data=args, headers=headers)
             if r.status_code != 200:
-                test.add_fail('Uploading', r.text)
+                test.add_fail('Failed to upload', r.text)
                 return
         except IOError as e:
             raise PluginError(e)
 
         # success
-        test.add_pass('Uploaded', 'All OK')
+        test.add_pass('Uploaded')
 
     def run_test_on_fw(self, test, fw):
 

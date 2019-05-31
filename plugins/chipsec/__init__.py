@@ -61,16 +61,9 @@ def _run_chipsec_on_blob(self, test, md):
     src.write(md.blob)
     src.flush()
 
-    # log file output
-    log = tempfile.NamedTemporaryFile(mode='wb',
-                                      prefix='lvfs_',
-                                      suffix=".log",
-                                      dir=cwd.name,
-                                      delete=False)
-
     # run chipsec
     cmd = self.get_setting('chipsec_binary', required=True)
-    argv = [cmd, '--no_driver', '--log', log.name, 'uefi', 'decode', src.name]
+    argv = [cmd, '--no_driver', 'uefi', 'decode', src.name]
     ps = subprocess.Popen(argv, stdout=subprocess.PIPE, stderr=subprocess.PIPE, cwd=cwd.name)
     if ps.wait() != 0:
         raise PluginError('Failed to decode file: %s' % ps.stderr.read())
@@ -79,13 +72,9 @@ def _run_chipsec_on_blob(self, test, md):
     outdir = src.name + '.dir'
     files = glob.glob(outdir + '/FV/**/*.efi', recursive=True)
     if not files:
-        test.add_pass('Scanned', 'No firmware volumes found in {}'.format(md.filename_contents))
+        test.add_pass('No firmware volumes found in {}'.format(md.filename_contents))
         return
     _add_component_shards(self, md, files)
-
-    # print output
-    with open(log.name, 'r') as f:
-        test.add_pass('Scanned', f.read())
 
 class Plugin(PluginBase):
     def __init__(self):

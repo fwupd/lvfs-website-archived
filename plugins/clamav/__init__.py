@@ -48,11 +48,11 @@ class Plugin(PluginBase):
         try:
             ps = subprocess.Popen(argv, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
             if ps.wait() != 0:
-                test.add_fail('Version', ps.stderr.read())
+                test.add_fail('Failed to scan', ps.stderr.read())
                 return
             stdout, _ = ps.communicate()
         except OSError as e:
-            test.add_fail('Scanning', str(e))
+            test.add_fail('Failed to scan', str(e))
             return
         test.add_pass('Version', stdout)
 
@@ -79,20 +79,20 @@ class Plugin(PluginBase):
             ps = subprocess.Popen(argv, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
             rc = ps.wait()
             if rc == 2:
-                test.add_fail('Scanning', ps.stderr.read())
+                test.add_fail('Failed to scan', ps.stderr.read())
                 return
             stdout, _ = ps.communicate()
         except OSError as e:
-            test.add_fail('Scanning', str(e))
+            test.add_fail('Failed to scan', str(e))
             return
 
         # parse results
         if rc == 0:
-            test.add_pass('Scanned', 'All OK')
+            test.add_pass('All OK')
         else:
             for ln in stdout.split('\n'):
                 try:
                     fn, status = ln.split(': ', 2)
                 except ValueError as e:
                     continue
-                test.add_fail('Scanned', status)
+                test.add_fail('Failed to scan', status)

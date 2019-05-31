@@ -149,7 +149,6 @@ class Plugin(PluginBase):
             # get optional directory entry
             security = pe.OPTIONAL_HEADER.DATA_DIRECTORY[pefile.DIRECTORY_ENTRY['IMAGE_DIRECTORY_ENTRY_SECURITY']]
             if security.VirtualAddress == 0 or security.Size == 0:
-                test.add_pass(shard.info.name, 'No signatures')
                 return
 
             # format as a blob
@@ -160,7 +159,7 @@ class Plugin(PluginBase):
                               'Extracted: {} bytes, expected: {} bytes'.format(len(signature), security.Size - 8))
                 return
         except pefile.PEFormatError as _:
-            test.add_pass(shard.info.name, 'Not a PE file')
+            # not a PE file, which is fine
             return
 
         # get all the certificates and signer
