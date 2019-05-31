@@ -16,7 +16,7 @@ from pyasn1_modules import rfc2459
 import pefile
 
 from app import db
-from app.pluginloader import PluginBase, PluginError, PluginSettingBool
+from app.pluginloader import PluginBase, PluginError, PluginSettingBool, PluginSettingInteger
 from app.models import Test
 
 class Pkcs7Cert():
@@ -118,6 +118,7 @@ class Plugin(PluginBase):
     def settings(self):
         s = []
         s.append(PluginSettingBool('pecheck_enabled', 'Enabled', True))
+        s.append(PluginSettingInteger('pecheck_allowable', 'Number of years to relax failure', 3))
         return s
 
     def _require_test_for_md(self, md):
@@ -168,17 +169,15 @@ class Plugin(PluginBase):
             test.add_pass(shard.info.name, 'No certificates')
             return
 
-        # check the certs are valid
-        dtnow = datetime.datetime.now()
+        # check the certs are valid, relaxing the notAfter checks by a good margin
+        dtallowable = datetime.timedelta(days=self.get_setting_int('pecheck_allowable') * 365)
         for cert in certs:
-            if cert.not_before and cert.not_before > dtnow:
+            if cert.not_before and cert.not_before > shard.md.fw.timestamp:
                 test.add_fail(shard.info.name,
-                              'Invalid before {}: {}'.format(cert.not_before, cert.desc))
-            elif cert.not_after and cert.not_after < dtnow:
+                              'Authenticode certificate invalid before {}: {}'.format(cert.not_before, cert.desc))
+            elif cert.not_after and cert.not_after < shard.md.fw.timestamp - dtallowable:
                 test.add_fail(shard.info.name,
-                              'Invalid after {}: {}'.format(cert.not_after, cert.desc))
-            else:
-                test.add_pass(shard.info.name, 'Valid: {}'.format(cert.desc))
+                              'Authenticode certificate invalid after {}: {}'.format(cert.not_after, cert.desc))
 
     def run_test_on_fw(self, test, fw):
 

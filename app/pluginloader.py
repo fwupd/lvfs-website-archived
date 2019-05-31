@@ -21,6 +21,13 @@ class PluginSettingText:
         self.name = name
         self.default = default
 
+class PluginSettingInteger:
+
+    def __init__(self, key, name, default=0):
+        self.key = key
+        self.name = name
+        self.default = str(default)
+
 class PluginSettingTextList:
 
     def __init__(self, key, name, default=None):
@@ -70,6 +77,9 @@ class PluginBase:
         if self.get_setting(key) == 'enabled':
             return True
         return False
+
+    def get_setting_int(self, key):
+        return int(self.get_setting(key))
 
     @property
     def enabled(self):

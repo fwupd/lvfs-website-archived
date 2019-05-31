@@ -24,6 +24,9 @@
 {% elif s.__class__.__name__ == 'PluginSettingTextList' %}
       <label>{{s.name}}</label>
       <textarea type="text" class="form-control" name="{{s.key}}" rows="10">{{settings[s.key].replace(',', '\n')}}</textarea>
+{% elif s.__class__.__name__ == 'PluginSettingInteger' %}
+      <label>{{s.name}}</label>
+      <input type="number" class="form-control" name="{{s.key}}" value="{{settings[s.key]}}">
 {% else %}
       <label>{{s.name}}</label>
       <input type="text" class="form-control" name="{{s.key}}" value="{{settings[s.key]}}">
