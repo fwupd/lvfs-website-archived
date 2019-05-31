@@ -66,6 +66,29 @@ def component_shards(component_id):
                            category='firmware',
                            md=md, page='shards')
 
+@app.route('/lvfs/component/<int:component_id>/certificates')
+@login_required
+def component_certificates(component_id):
+    """
+    Show the shards of each component
+    """
+
+    # get firmware component
+    md = db.session.query(Component).filter(Component.component_id == component_id).first()
+    if not md:
+        return _error_internal('No component matched!')
+
+    # security check
+    fw = md.fw
+    if not fw:
+        return _error_internal('No firmware matched!')
+    if not fw.check_acl('@view'):
+        return _error_permission_denied('Unable to view component')
+
+    return render_template('component-certificates.html',
+                           category='firmware',
+                           md=md, page='certificates')
+
 @app.route('/lvfs/component/<int:component_id>/modify', methods=['POST'])
 @login_required
 def component_modify(component_id):

@@ -1,0 +1,50 @@
+{% extends "default.html" %}
+{% block title %}Component Certificates{% endblock %}
+
+{% block nav %}{% include 'component-nav.html' %}{% endblock %}
+
+{% block content %}
+
+{% for cert in md.certificates %}
+<div class="card mb-3">
+  <div class="card-header card-title list-group-item-{{cert.color}}">
+    {{cert.shard.info.name}}
+  </div>
+  <div class="card-body">
+    <table class="table card-text table-borderless">
+{% if cert.serial_number %}
+      <tr class="row">
+        <th class="col-2">Serial Number</th>
+        <td class="col">{{cert.serial_number}}</td>
+      </tr>
+{% endif %}
+{% if cert.description %}
+      <tr class="row">
+        <th class="col-2">Description</th>
+        <td class="col">{{cert.description}}</td>
+      </tr>
+{% endif %}
+{% if cert.not_before %}
+      <tr class="row">
+        <th class="col-2">Not Before</th>
+        <td class="col">{{cert.not_before}}</td>
+      </tr>
+{% endif %}
+{% if cert.not_after %}
+      <tr class="row">
+        <th class="col-2">Not After</th>
+        <td class="col">{{cert.not_after}}</td>
+      </tr>
+{% endif %}
+{% if cert.plugin_id %}
+      <tr class="row">
+        <th class="col-2">Plugin</th>
+        <td class="col">{{format_plugin_id(cert.plugin_id).name()}}</td>
+      </tr>
+{% endif %}
+    </table>
+  </div>
+</div>
+{% endfor %}
+
+{% endblock %}

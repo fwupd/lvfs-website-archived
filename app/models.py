@@ -999,6 +999,53 @@ class ComponentShardChecksum(db.Model):
     def __repr__(self):
         return "ComponentShardChecksum object %s(%s)" % (self.kind, self.value)
 
+class ComponentShardCertificate(db.Model):
+
+    # sqlalchemy metadata
+    __tablename__ = 'component_shard_certificates'
+    __table_args__ = {'mysql_character_set': 'utf8mb4'}
+
+    component_shard_certificate_id = Column(Integer, primary_key=True, unique=True, nullable=False)
+    component_shard_id = Column(Integer, ForeignKey('component_shards.component_shard_id'), nullable=False)
+    kind = Column(Text, default=None)
+    plugin_id = Column(Text, default=None)
+    description = Column(Text, default=None)
+    serial_number = Column(Text, default=None)
+    not_before = Column(DateTime, default=None)
+    not_after = Column(DateTime, default=None)
+
+    # link back to parent
+    shard = relationship('ComponentShard', back_populates="certificates")
+
+    def __init__(self, component_shard_id=None, kind=None, description=None):
+        """ Constructor for object """
+        self.component_shard_id = component_shard_id
+        self.kind = kind
+        self.description = description
+        self.serial_number = None
+        self.not_before = None
+        self.not_after = None
+
+    @property
+    def color(self):
+        if self.not_before and self.not_before > self.shard.md.fw.timestamp:
+            return 'danger'
+        if self.not_after and self.not_after < self.shard.md.fw.timestamp:
+            return 'danger'
+        return 'success'
+
+    def __repr__(self):
+        data = []
+        if self.serial_number:
+            data.append('serial_number:{}'.format(self.serial_number))
+        if self.not_before:
+            data.append('not_before:{}'.format(self.not_before))
+        if self.not_after:
+            data.append('not_after:{}'.format(self.not_after))
+        if self.desc:
+            data.append('desc:{}'.format(self.desc))
+        return 'ComponentShardCertificate ({})'.format(', '.join(data))
+
 def _calculate_entropy(s):
     probabilities = [n_x / len(s) for x, n_x in collections.Counter(s).items()]
     e_x = [- p_x * math.log(p_x, 2) for p_x in probabilities]
@@ -1023,6 +1070,10 @@ class ComponentShard(db.Model):
                              back_populates="shard",
                              cascade='all,delete-orphan',
                              lazy='joined')
+    certificates = relationship("ComponentShardCertificate",
+                                order_by="desc(ComponentShardCertificate.component_shard_certificate_id)",
+                                back_populates='shard',
+                                cascade='all,delete-orphan')
     info = relationship("ComponentShardInfo", lazy='joined')
 
     # link back to parent
@@ -1192,6 +1243,13 @@ class Component(db.Model):
         if not self.name:
             return None
         return self.name.split('/')
+
+    @property
+    def certificates(self):
+        certs = []
+        for shard in self.shards:
+            certs.extend(shard.certificates)
+        return certs
 
     @property
     def name_with_category(self):

@@ -23,6 +23,10 @@
       <a class="btn btn-falcon-{{'primary' if request.url_rule.endpoint == 'component_shards' else 'default'}}"
         href="{{url_for('.component_shards', component_id=md.component_id)}}">Shards</a>
 {% endif %}
+{% if md.certificates %}
+      <a class="btn btn-falcon-{{'primary' if request.url_rule.endpoint == 'component_certificates' else 'default'}}"
+        href="{{url_for('.component_certificates', component_id=md.component_id)}}">Certificates</a>
+{% endif %}
     </div>
   </div>
 </nav>

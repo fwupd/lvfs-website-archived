@@ -17,26 +17,7 @@ import pefile
 
 from app import db
 from app.pluginloader import PluginBase, PluginError, PluginSettingBool, PluginSettingInteger
-from app.models import Test
-
-class Pkcs7Cert():
-    def __init__(self):
-        self.serial_number = None
-        self.not_before = None
-        self.not_after = None
-        self.desc = None
-
-    def __str__(self):
-        data = []
-        if self.serial_number:
-            data.append('serial_number:{}'.format(self.serial_number))
-        if self.not_before:
-            data.append('not_before:{}'.format(self.not_before))
-        if self.not_after:
-            data.append('not_after:{}'.format(self.not_after))
-        if self.desc:
-            data.append('desc:{}'.format(self.desc))
-        return 'Pkcs7Cert ({})'.format(', '.join(data))
+from app.models import Test, ComponentShardCertificate
 
 def _build_rfc2459_description(value):
     descs = []
@@ -67,7 +48,7 @@ def _build_rfc2459_description(value):
 
 def _extract_authenticode_tbscerts(tbscert):
 
-    cert = Pkcs7Cert()
+    cert = ComponentShardCertificate(kind='Authenticode PKCS7')
     cert.serial_number = tbscert['serialNumber']
     if 'validity' in tbscert:
         validity = tbscert['validity']
@@ -75,7 +56,7 @@ def _extract_authenticode_tbscerts(tbscert):
         cert.not_after = validity['notAfter']['utcTime'].asDateTime.replace(tzinfo=None)
     issuer = tbscert['issuer']
     for value in issuer.values():
-        cert.desc = _build_rfc2459_description(value)
+        cert.description = _build_rfc2459_description(value)
         break
     return cert
 
@@ -174,17 +155,28 @@ class Plugin(PluginBase):
         for cert in certs:
             if cert.not_before and cert.not_before > shard.md.fw.timestamp:
                 test.add_fail(shard.info.name,
-                              'Authenticode certificate invalid before {}: {}'.format(cert.not_before, cert.desc))
+                              'Authenticode certificate invalid before {}: {}'.\
+                              format(cert.not_before, cert.description))
             elif cert.not_after and cert.not_after < shard.md.fw.timestamp - dtallowable:
                 test.add_fail(shard.info.name,
-                              'Authenticode certificate invalid after {}: {}'.format(cert.not_after, cert.desc))
+                              'Authenticode certificate invalid after {}: {}'.\
+                              format(cert.not_after, cert.description))
+
+        # save certificate
+        for cert in certs:
+            cert.plugin_id = self.id
+            cert.component_shard_id = shard.component_shard_id
+            shard.certificates.append(cert)
 
     def run_test_on_fw(self, test, fw):
 
-        # run analysis on the component and any shards
+        # run analysis on each shard
         for md in fw.mds:
             if not self._require_test_for_md(md):
                 continue
+            for cert in md.certificates:
+                if cert.plugin_id == self.id:
+                    db.session.delete(cert)
             for shard in md.shards:
                 if shard.blob:
                     self._run_test_on_shard(test, shard)
