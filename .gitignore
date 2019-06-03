@@ -7,3 +7,4 @@ gnupg
 app/custom.cfg
 hwinfo
 lvfs_*.sql
+report.csv
