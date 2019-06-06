@@ -1,13 +1,12 @@
 {% extends "default.html" %}
 {% block title %}Settings{% endblock %}
 
+{% block nav %}{% include 'settings-nav.html' %}{% endblock %}
+
 {% block content %}
 <div class="card">
   <div class="card-body">
-  <form class="form" method="post" action="{{url_for('.settings_modify', plugin_id=plugin_id)}}">
-
-{% for plugin in loader_plugins %}
-{% if plugin.id == plugin_id %}
+  <form class="form" method="post" action="{{url_for('.settings_modify', plugin_id=plugin.id)}}">
     <div class="card-title">{{plugin.name()}}</div>
     <p class="card-text">{{plugin.summary()}}</p>
 {% for s in plugin.settings() %}
@@ -32,8 +31,6 @@
       <input type="text" class="form-control" name="{{s.key}}" value="{{settings[s.key]}}">
 {% endif %}
     </div>
-{% endfor %}
-{% endif %}
 {% endfor %}
     <input type="submit" class="card-link btn btn-primary" value="Modify">
   </form>

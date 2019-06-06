@@ -9,8 +9,39 @@ from flask_login import login_required
 
 from app import app, db, ploader
 
-from .models import Setting
-from .util import _event_log, _error_permission_denied, _get_settings
+from .models import Setting, Test, Firmware
+from .util import _event_log, _error_permission_denied, _error_internal, _get_settings
+
+def _convert_tests_for_plugin(plugin):
+    tests_by_type = {}
+    for test in db.session.query(Test).join(Firmware).\
+                         filter(Test.plugin_id == plugin.id). \
+                         order_by(Test.scheduled_ts.desc()).all():
+        if 'recent' not in tests_by_type:
+            tests_by_type['recent'] = []
+        if len(tests_by_type['recent']) < 20:
+            tests_by_type['recent'].append(test)
+        if test.is_pending:
+            if 'pending' not in tests_by_type:
+                tests_by_type['pending'] = []
+            tests_by_type['pending'].append(test)
+        elif test.is_running:
+            if 'running' not in tests_by_type:
+                tests_by_type['running'] = []
+            tests_by_type['running'].append(test)
+        elif test.waived_ts:
+            if 'waived' not in tests_by_type:
+                tests_by_type['waived'] = []
+            tests_by_type['waived'].append(test)
+        elif test.success:
+            if 'success' not in tests_by_type:
+                tests_by_type['success'] = []
+            tests_by_type['success'].append(test)
+        else:
+            if 'failed' not in tests_by_type:
+                tests_by_type['failed'] = []
+            tests_by_type['failed'].append(test)
+    return tests_by_type
 
 @app.route('/lvfs/settings')
 @app.route('/lvfs/settings/<plugin_id>')
@@ -22,10 +53,34 @@ def settings_view(plugin_id='general'):
     # security check
     if not g.user.check_acl('@admin'):
         return _error_permission_denied('Only admin is allowed to change settings')
+    plugin = ploader.get_by_id(plugin_id)
+    if not plugin:
+        return _error_internal('No plugin {}'.format(plugin_id))
+    tests_by_type = _convert_tests_for_plugin(plugin)
     return render_template('settings.html',
                            category='settings',
                            settings=_get_settings(),
-                           plugin_id=plugin_id)
+                           plugin=plugin,
+                           tests_by_type=tests_by_type)
+
+@app.route('/lvfs/settings/<plugin_id>/tests/<kind>')
+@login_required
+def settings_tests(plugin_id, kind):
+    """
+    Allows the admin to change details about the LVFS instance
+    """
+    # security check
+    if not g.user.check_acl('@admin'):
+        return _error_permission_denied('Only admin is allowed to view tests')
+    plugin = ploader.get_by_id(plugin_id)
+    if not plugin:
+        return _error_internal('No plugin {}'.format(plugin_id))
+    tests_by_type = _convert_tests_for_plugin(plugin)
+    return render_template('settings-tests.html',
+                           category='settings',
+                           tests=tests_by_type[kind][:50],
+                           tests_by_type=tests_by_type,
+                           plugin=plugin)
 
 @app.route('/lvfs/settings_create')
 @login_required

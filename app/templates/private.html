@@ -155,7 +155,7 @@
           </a>
           <ul class="nav collapse {{'show' if category == 'settings'}}" id="settings" data-parent="#navbarVerticalCollapse">
 {% for plugin in loader_plugins %}
-            <li class="nav-item {{'active' if request.url_rule.endpoint == 'settings_view' and plugin_id == plugin.id}}">
+            <li class="nav-item {{'active' if category == 'settings' and plugin_id == plugin.id}}">
               <a class="nav-link" href="{{url_for('.settings_view', plugin_id=plugin.id)}}">{{plugin.name()}}</a>
             </li>
 {% endfor %}
