@@ -1,0 +1,11 @@
+Dear {{ user.display_name }},
+
+A firmware you uploaded to the Linux Vendor Firmware Service has been demoted back to {{user.vendor.remote.name}} due to a large number of failing user-submitted reports:
+{% for md in fw.mds %}
+ * {{md.name_with_category}} version {{md.version_display}}
+{% endfor %}
+Please log into the LVFS and view the failures: {{url_for('.firmware_analytics_reports', firmware_id=fw.firmware_id, state=3, _external=True)}}
+
+Regards,
+
+The LVFS admins

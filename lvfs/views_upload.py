@@ -224,6 +224,7 @@ def upload():
         f.write(cab_data)
 
     # create parent firmware object
+    settings = _get_settings()
     target = request.form['target']
     fw = ufile.fw
     fw.vendor_id = vendor.vendor_id
@@ -233,6 +234,8 @@ def upload():
     fw.checksum_signed = hashlib.sha1(cab_data).hexdigest()
     fw.checksum_pulp = hashlib.sha256(cab_data).hexdigest()
     fw.is_dirty = True
+    fw.failure_minimum = settings['default_failure_minimum']
+    fw.failure_percentage = settings['default_failure_percentage']
 
     # fix name
     for md in fw.mds:

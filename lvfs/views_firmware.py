@@ -314,6 +314,32 @@ def firmware_limit_delete(firmware_limit_id):
     flash('Deleted limit', 'info')
     return redirect(url_for('.firmware_limits', firmware_id=firmware_id))
 
+@app.route('/lvfs/firmware/<int:firmware_id>/modify', methods=['POST'])
+@login_required
+def firmware_modify(firmware_id):
+    """ Modifies the firmware properties """
+
+    # find firmware
+    fw = db.session.query(Firmware).filter(Firmware.firmware_id == firmware_id).first()
+    if not fw:
+        return _error_internal("No firmware %s" % firmware_id)
+
+    # security check
+    if not fw.check_acl('@modify'):
+        return _error_permission_denied('Insufficient permissions to modify firmware')
+
+    # set new metadata values
+    if 'failure_minimum' in request.form:
+        fw.failure_minimum = request.form['failure_minimum']
+    if 'failure_percentage' in request.form:
+        fw.failure_percentage = request.form['failure_percentage']
+
+    # modify
+    db.session.commit()
+    flash('Firmware updated', 'info')
+    return redirect(url_for('.firmware_limits',
+                            firmware_id=firmware_id))
+
 @app.route('/lvfs/firmware/limit/add', methods=['POST'])
 @login_required
 def firmware_limit_add():

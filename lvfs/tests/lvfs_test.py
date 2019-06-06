@@ -433,6 +433,46 @@ class LvfsTestCase(unittest.TestCase):
         assert b'Firmware deleted' not in rv.data, rv.data
         assert b'Insufficient permissions to delete firmware' in rv.data, rv.data
 
+    def test_firmware_limits_report_failure(self):
+
+        # upload firmware
+        self.login()
+        self.upload()
+
+        # enable emails
+        rv = self.app.post('/lvfs/user/1/modify_by_admin',
+                           data={'notify_demote_failures': '1',
+                                 'is_qa': '1',
+                                 'is_approved_public': '1'},
+                           follow_redirects=True)
+        assert b'Updated profile' in rv.data, rv.data
+
+        # change the failure minimum
+        rv = self.app.post('/lvfs/firmware/1/modify', data=dict(
+            failure_minimum='1',
+        ), follow_redirects=True)
+        assert b'Firmware updated' in rv.data, rv.data
+
+        # move to stable
+        self.run_cron_firmware()
+        rv = self.app.get('/lvfs/firmware/1/promote/stable',
+                          follow_redirects=True)
+        assert b'>stable<' in rv.data, rv.data
+
+        # upload a failed report
+        rv = self._report(signed=True, updatestate=3)
+        assert b'"success": true' in rv.data, rv.data
+
+        # run cron
+        self.run_cron_stats()
+
+        # check the firmware was demoted
+        rv = self.app.get('/lvfs/eventlog')
+        assert b'Demoted firmware' in rv.data, rv.data
+        assert b'Not sending email' in rv.data, rv.data
+        rv = self.app.get('/lvfs/firmware/1')
+        assert b'>embargo-admin<' in rv.data, rv.data
+
     def test_anonymize_db(self):
 
         # upload firmware

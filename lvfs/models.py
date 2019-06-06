@@ -141,6 +141,7 @@ class User(db.Model):
     atime = Column(DateTime, default=None)
     dtime = Column(DateTime, default=None)
     human_user_id = Column(Integer, ForeignKey('users.user_id'), nullable=True)
+    notify_demote_failures = Column(Boolean, default=False)
 
     # link using foreign keys
     vendor = relationship('Vendor', foreign_keys=[vendor_id])
@@ -1567,6 +1568,8 @@ class Firmware(db.Model):
     report_success_cnt = Column(Integer, default=0)     # updated by cron.py
     report_failure_cnt = Column(Integer, default=0)     # updated by cron.py
     report_issue_cnt = Column(Integer, default=0)       # updated by cron.py
+    failure_minimum = Column(Integer, default=0)
+    failure_percentage = Column(Integer, default=0)
 
     # include all Component objects
     mds = relationship("Component",
@@ -1643,6 +1646,18 @@ class Firmware(db.Model):
         for md in self.mds:
             names.extend(md.names)
         return names
+
+    @property
+    def is_failure(self):
+        if not self.report_failure_cnt:
+            return False
+        if not self.failure_minimum:
+            return False
+        if not self.failure_percentage:
+            return False
+        if self.report_failure_cnt < self.failure_minimum:
+            return False
+        return self.success < self.failure_percentage
 
     @property
     def inhibit_download(self):
@@ -1824,6 +1839,12 @@ class Firmware(db.Model):
                     new = 'embargo'
                 if old in ('private', 'embargo') and new in ('private', 'embargo'):
                     return True
+            return False
+        if action == '@modify':
+            if user.is_qa and self._is_vendor(user):
+                return True
+            if self._is_owner(user):
+                return True
             return False
         if action == '@add-limit':
             if user.is_qa and self._is_vendor(user):

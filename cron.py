@@ -12,13 +12,16 @@ import sys
 import hashlib
 import datetime
 
+from flask import render_template
+
 from cabarchive import CabArchive
 
 from lvfs import app, db, ploader
 from lvfs.dbutils import _execute_count_star
+from lvfs.emails import send_email
 from lvfs.models import Remote, Firmware, Vendor, Client, AnalyticVendor
 from lvfs.models import AnalyticFirmware, Useragent, UseragentKind, Analytic, Report
-from lvfs.models import ComponentShardInfo, Test, Component, Category, Protocol
+from lvfs.models import ComponentShardInfo, Test, Component, Category, Protocol, FirmwareEvent
 from lvfs.models import _get_datestr_from_datetime
 from lvfs.metadata import _metadata_update_targets, _metadata_update_pulp
 from lvfs.util import _event_log, _get_shard_path, _get_absolute_path
@@ -273,6 +276,23 @@ def _generate_stats_for_firmware(fw, datestr):
     analytic = AnalyticFirmware(fw.firmware_id, datestr, cnt)
     db.session.add(analytic)
 
+def _demote_back_to_embargo(fw):
+
+    # send email to uploading user
+    if fw.user.notify_demote_failures:
+        send_email("[LVFS] Firmware has been demoted",
+                   fw.user.email_address,
+                   render_template('email-firmware-demote.txt',
+                                   user=fw.user, fw=fw))
+
+    fw.mark_dirty()
+    remote = fw.vendor.remote
+    remote.is_dirty = True
+    fw.remote_id = remote.remote_id
+    fw.events.append(FirmwareEvent(fw.remote_id))
+    db.session.commit()
+    _event_log('Demoted firmware {} as reported success {}%%'.format(fw.firmware_id, fw.success))
+
 def _generate_stats_firmware_reports(fw):
 
     # count how many times any of the firmware files were downloaded
@@ -293,6 +313,10 @@ def _generate_stats_firmware_reports(fw):
     fw.report_success_cnt = reports_success
     fw.report_failure_cnt = reports_failure
     fw.report_issue_cnt = reports_issue
+
+    # check the limits and demote back to embargo if required
+    if fw.remote.is_public and fw.is_failure:
+        _demote_back_to_embargo(fw)
 
 def _get_app_from_ua(ua):
     # always exists

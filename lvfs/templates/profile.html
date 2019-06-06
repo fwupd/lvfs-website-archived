@@ -36,6 +36,30 @@
       </div>
     </div>
 
+    <!-- notifications -->
+    <form class="form" method="post" action="{{url_for('.user_modify', user_id=g.user.user_id)}}">
+    <div class="card mb-3 mb-xl-3">
+      <div class="card-body bg-light">
+        <div class="card-title">Email Notifications</div>
+        <p class="card-text">
+          The LVFS can optionally send an email when a condition is met.
+        </p>
+        <div class="row">
+          <div class="col">
+            <div class="custom-control custom-switch">
+              <input class="custom-control-input" type="checkbox" id="notify_demote_failures"
+                name="notify_demote_failures" value="1" {{'checked' if u.notify_demote_failures}}/>
+              <label class="custom-control-label" for="notify_demote_failures">
+                When my firmware is demoted due to reported problems.
+              </label>
+            </div>
+          </div>
+        </div>
+        <button class="btn btn-primary mt-3" type="submit">Update</button>
+      </div>
+    </div>
+    </form>
+
     <!-- certificates -->
     <div class="card mb-3 mb-xl-0">
       <div class="card-body bg-light">

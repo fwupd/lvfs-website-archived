@@ -6,6 +6,32 @@
 {% endblock %}
 
 {% block content %}
+
+<form method="post" action="{{url_for('.firmware_modify', firmware_id=fw.firmware_id)}}" class="form">
+<div class="card mb-3">
+  <div class="card-body">
+    <div class="card-title">Reported Success</div>
+    <p class="card-text">
+      Firmware will be pulled back to embargo from testing or stable if enough
+      failures are reported by end users.
+    </p>
+    <p class="card-text">
+      The values set here are not set instantly and may take up to one hour to
+      apply.
+    </p>
+    <div class="form-group">
+      <label>Failures Required</label>
+      <input type="number" min="1" max="100" class="form-control" name="failure_minimum" value="{{fw.failure_minimum}}">
+    </div>
+    <div class="form-group">
+      <label>Theshold Percentage</label>
+      <input type="number" min="1" max="100" class="form-control" name="failure_percentage" value="{{fw.failure_percentage}}">
+    </div>
+    <input type="submit" class="btn btn-primary card-link" value="Change"/>
+  </div>
+</div>
+</form>
+
 <div class="card">
   <div class="card-body">
   <div class="card-title">Download Limits</div>
