@@ -455,6 +455,7 @@ def vendor_user_add(vendor_id):
             flash('Failed to add user: '
                   'Admin has not set the account policy for this vendor',
                   'warning')
+            return redirect(url_for('.vendor_users', vendor_id=vendor_id), 302)
         if not _verify_username_vendor_glob(request.form['username'].lower(),
                                             vendor.username_glob):
             flash('Failed to add user: '
