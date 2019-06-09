@@ -13,7 +13,7 @@ from app import app, db
 
 from .models import Vendor, Remote
 from .util import admin_login_required
-from .util import _error_internal, _error_permission_denied
+from .util import _error_permission_denied
 
 @app.route('/lvfs/metadata/<group_id>')
 @login_required
@@ -25,7 +25,8 @@ def metadata_remote(group_id):
     # find the vendor
     vendor = db.session.query(Vendor).filter(Vendor.group_id == group_id).first()
     if not vendor:
-        return _error_internal('No vendor with that name')
+        flash('No vendor with that name', 'danger')
+        return redirect(url_for('.metadata_view'))
 
     # security check
     if not vendor.check_acl('@view-metadata'):
@@ -98,7 +99,8 @@ def metadata_rebuild_remote(remote_id):
     # update metadata
     r = db.session.query(Remote).filter(Remote.remote_id == remote_id).first()
     if not r:
-        return _error_internal('No remote with that ID')
+        flash('No remote with that ID', 'danger')
+        return redirect(url_for('.metadata_view'))
     r.is_dirty = True
 
     # modify

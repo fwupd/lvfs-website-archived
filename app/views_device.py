@@ -6,7 +6,7 @@
 
 import datetime
 
-from flask import render_template
+from flask import render_template, flash, redirect, url_for
 from flask_login import login_required
 
 from sqlalchemy import func
@@ -14,7 +14,6 @@ from sqlalchemy import func
 from app import app, db
 
 from .util import admin_login_required
-from .util import _error_internal
 from .models import Firmware, Component, Remote, Guid
 
 @app.route('/lvfs/device')
@@ -86,7 +85,8 @@ def device_shards(component_id):
     """
     md = db.session.query(Component).filter(Component.component_id == component_id).first()
     if not md:
-        return _error_internal("No component with ID %s exists" % component_id)
+        flash('No component with ID {} exists'.format(component_id), 'danger')
+        return redirect(url_for('.device_show', appstream_id=md.appstream_id))
     return render_template('device-shards.html', md=md, appstream_id=md.appstream_id)
 
 @app.route('/lvfs/device/component/<int:component_id_old>/<int:component_id_new>')
@@ -96,10 +96,12 @@ def device_shards_diff(component_id_old, component_id_new):
     """
     md_old = db.session.query(Component).filter(Component.component_id == component_id_old).first()
     if not md_old:
-        return _error_internal("No component with ID %s exists" % component_id_old)
+        flash('No component with ID {} exists'.format(component_id_old), 'danger')
+        return redirect(url_for('.device'))
     md_new = db.session.query(Component).filter(Component.component_id == component_id_new).first()
     if not md_new:
-        return _error_internal("No component with ID %s exists" % component_id_new)
+        flash('No component with ID {} exists'.format(component_id_new), 'danger')
+        return redirect(url_for('.device'))
 
     # shards added
     shard_guids = {}
@@ -147,7 +149,8 @@ def device_analytics(appstream_id):
     now = datetime.date.today()
     fws = _get_fws_for_appstream_id(appstream_id)
     if not fws:
-        return _error_internal('No firmware with that AppStream ID or GUID')
+        flash('No firmware with that AppStream ID or GUID exists', 'danger')
+        return redirect(url_for('.device'))
     for i in range(-2, 1):
         year = now.year + i
         for quarter in range(0, 4):

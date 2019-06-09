@@ -229,7 +229,8 @@ def user_reset_by_admin(user_id):
     # check exists
     user = db.session.query(User).filter(User.user_id == user_id).first()
     if not user:
-        return _error_internal('No user with that user_id', 422)
+        flash('No user matched!', 'danger')
+        return redirect(url_for('.dashboard'), 422)
 
     # security check
     if not user.vendor.check_acl('@manage-users'):
@@ -259,7 +260,8 @@ def user_modify_by_admin(user_id):
     # check exists
     user = db.session.query(User).filter(User.user_id == user_id).first()
     if not user:
-        return _error_internal('No user with that user_id', 422)
+        flash('No user matched!', 'danger')
+        return redirect(url_for('.dashboard'), 422)
 
     # security check
     if not user.vendor.check_acl('@manage-users'):
@@ -453,7 +455,8 @@ def user_certificate_remove(certificate_id):
     # check cert exists
     crt = db.session.query(Certificate).filter(Certificate.certificate_id == certificate_id).first()
     if not crt:
-        return _error_internal('No certificate found!')
+        flash('No certificate matched!', 'danger')
+        return redirect(url_for('.dashboard'), 422)
 
     # security check
     if not crt.check_acl('@delete'):
@@ -538,7 +541,8 @@ def user_add():
         return _error_permission_denied('Unable to add user as no display_name')
     user = db.session.query(User).filter(User.username == request.form['username']).first()
     if user:
-        return _error_internal('Already a user with that username', 422)
+        flash('Already a user with that username!', 'danger')
+        return redirect(url_for('.dashboard'), 422)
 
     # verify password
     password = request.form['password_new']

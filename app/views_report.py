@@ -12,7 +12,7 @@ from flask_login import login_required
 from app import app, db
 
 from .models import Firmware, Report, ReportAttribute, Issue, Certificate, Checksum
-from .util import _error_internal, _error_permission_denied, _event_log
+from .util import _error_permission_denied, _event_log
 from .util import _json_success, _json_error, _pkcs7_signature_info, _pkcs7_signature_verify
 from .hash import _is_sha1, _is_sha256
 
@@ -45,7 +45,8 @@ def report_details(report_id):
 def report_delete(report_id):
     report = db.session.query(Report).filter(Report.report_id == report_id).first()
     if not report:
-        return _error_internal('No report found!')
+        flash('No report found!', 'danger')
+        return redirect(url_for('.analytics_reports'))
     # security check
     if not report.check_acl('@delete'):
         return _error_permission_denied('Unable to delete report')

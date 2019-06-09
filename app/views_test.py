@@ -14,7 +14,7 @@ from app import app, db, ploader
 
 from .models import Test
 from .util import admin_login_required
-from .util import _error_internal, _error_permission_denied
+from .util import _error_permission_denied
 
 @app.route('/lvfs/test')
 @app.route('/lvfs/test/overview')
@@ -134,7 +134,8 @@ def test_retry(test_id):
     # get test
     test = db.session.query(Test).filter(Test.test_id == test_id).first()
     if not test:
-        return _error_internal('No test matched!')
+        flash('No test matched', 'danger')
+        return redirect(url_for('.test_overview'))
 
     # security check
     if not test.check_acl('@retry'):
@@ -155,7 +156,8 @@ def test_waive(test_id):
     # get test
     test = db.session.query(Test).filter(Test.test_id == test_id).first()
     if not test:
-        return _error_internal('No test matched!')
+        flash('No test matched', 'danger')
+        return redirect(url_for('.test_overview'))
 
     # security check
     if not test.waivable or not test.check_acl('@waive'):

@@ -78,7 +78,8 @@ def firmware_undelete(firmware_id):
     # check firmware exists in database
     fw = db.session.query(Firmware).filter(Firmware.firmware_id == firmware_id).first()
     if not fw:
-        return _error_internal("No firmware file with ID %s exists" % firmware_id)
+        flash('No firmware {} exists'.format(firmware_id), 'danger')
+        return redirect(url_for('.firmware'))
 
     # security check
     if not fw.check_acl('@undelete'):
@@ -132,7 +133,8 @@ def firmware_delete(firmware_id):
     # check firmware exists in database
     fw = db.session.query(Firmware).filter(Firmware.firmware_id == firmware_id).first()
     if not fw:
-        return _error_internal("No firmware file with ID %s exists" % firmware_id)
+        flash('No firmware {} exists'.format(firmware_id), 'danger')
+        return redirect(url_for('.firmware'))
 
     # security check
     if not fw.check_acl('@delete'):
@@ -153,7 +155,8 @@ def firmware_nuke(firmware_id):
     # check firmware exists in database
     fw = db.session.query(Firmware).filter(Firmware.firmware_id == firmware_id).first()
     if not fw:
-        return _error_internal("No firmware file with ID %s exists" % firmware_id)
+        flash('No firmware {} exists'.format(firmware_id), 'danger')
+        return redirect(url_for('.firmware'))
 
     # firmware is not deleted yet
     if not fw.is_deleted:
@@ -202,7 +205,8 @@ def firmware_promote(firmware_id, target):
     # check firmware exists in database
     fw = db.session.query(Firmware).filter(Firmware.firmware_id == firmware_id).first()
     if not fw:
-        return _error_internal('No firmware matched!')
+        flash('No firmware {} exists'.format(firmware_id), 'danger')
+        return redirect(url_for('.firmware'))
 
     # security check
     if not fw.check_acl('@promote-' + target):
@@ -257,7 +261,8 @@ def firmware_components(firmware_id):
     fw = db.session.query(Firmware).\
             filter(Firmware.firmware_id == firmware_id).first()
     if not fw:
-        return _error_internal('No firmware matched!')
+        flash('No firmware {} exists'.format(firmware_id), 'danger')
+        return redirect(url_for('.firmware'))
 
     # security check
     if not fw.check_acl('@view'):
@@ -275,7 +280,8 @@ def firmware_limits(firmware_id):
     fw = db.session.query(Firmware).\
             filter(Firmware.firmware_id == firmware_id).first()
     if not fw:
-        return _error_internal('No firmware matched!')
+        flash('No firmware matched!', 'danger')
+        return redirect(url_for('.firmware'))
 
     # security check
     if not fw.check_acl('@view'):
@@ -293,7 +299,8 @@ def firmware_limit_delete(firmware_limit_id):
     fl = db.session.query(FirmwareLimit).\
             filter(FirmwareLimit.firmware_limit_id == firmware_limit_id).first()
     if not fl:
-        return _error_internal('No firmware limit matched!')
+        flash('No firmware limit matched!', 'danger')
+        return redirect(url_for('.firmware'))
 
     # security check
     if not fl.fw.check_acl('delete-limit'):
@@ -314,7 +321,8 @@ def firmware_limit_add():
     fw = db.session.query(Firmware).\
             filter(Firmware.firmware_id == request.form['firmware_id']).first()
     if not fw:
-        return _error_internal('No firmware matched!')
+        flash('No firmware matched!', 'danger')
+        return redirect(url_for('.firmware'))
 
     # security check
     if not fw.check_acl('@add-limit'):
@@ -345,7 +353,8 @@ def firmware_affiliation(firmware_id):
     fw = db.session.query(Firmware).\
             filter(Firmware.firmware_id == firmware_id).first()
     if not fw:
-        return _error_internal('No firmware matched!')
+        flash('No firmware matched!', 'danger')
+        return redirect(url_for('.firmware'))
 
     # security check
     if not fw.check_acl('@modify-affiliation'):
@@ -379,7 +388,8 @@ def firmware_affiliation_change(firmware_id):
     # find firmware
     fw = db.session.query(Firmware).filter(Firmware.firmware_id == firmware_id).first()
     if not fw:
-        return _error_internal("No firmware %s" % firmware_id)
+        flash('No firmware matched!', 'danger')
+        return redirect(url_for('.firmware'))
 
     # security check
     if not fw.check_acl('@modify-affiliation'):
@@ -416,7 +426,8 @@ def firmware_problems(firmware_id):
     fw = db.session.query(Firmware).\
             filter(Firmware.firmware_id == firmware_id).first()
     if not fw:
-        return _error_internal('No firmware matched!')
+        flash('No firmware matched!', 'danger')
+        return redirect(url_for('.firmware'))
 
     # security check
     if not fw.check_acl('@view'):
@@ -434,7 +445,8 @@ def firmware_target(firmware_id):
     fw = db.session.query(Firmware).\
             filter(Firmware.firmware_id == firmware_id).first()
     if not fw:
-        return _error_internal('No firmware matched!')
+        flash('No firmware matched!', 'danger')
+        return redirect(url_for('.firmware'))
 
     # security check
     if not fw.check_acl('@view'):
@@ -454,7 +466,8 @@ def firmware_show(firmware_id):
             filter(Firmware.firmware_id == firmware_id).\
             first()
     if not fw:
-        return _error_internal('No firmware matched!')
+        flash('No firmware matched!', 'danger')
+        return redirect(url_for('.firmware'))
 
     # security check
     if not fw.check_acl('@view'):
@@ -504,7 +517,8 @@ def firmware_analytics_clients(firmware_id):
     # get details about the firmware
     fw = db.session.query(Firmware).filter(Firmware.firmware_id == firmware_id).first()
     if not fw:
-        return _error_internal('No firmware matched!')
+        flash('No firmware matched!', 'danger')
+        return redirect(url_for('.firmware'))
 
     # security check
     if not fw.check_acl('@view-analytics'):
@@ -526,7 +540,8 @@ def firmware_analytics_reports(firmware_id, state=None, limit=100):
     # get reports about the firmware
     fw = db.session.query(Firmware).filter(Firmware.firmware_id == firmware_id).first()
     if not fw:
-        return _error_internal('No firmware matched!')
+        flash('No firmware matched!', 'danger')
+        return redirect(url_for('.firmware'))
 
     # security check
     if not fw.check_acl('@view-analytics'):
@@ -554,7 +569,8 @@ def firmware_tests(firmware_id):
     fw = db.session.query(Firmware).\
             filter(Firmware.firmware_id == firmware_id).first()
     if not fw:
-        return _error_internal('No firmware matched!')
+        flash('No firmware matched!', 'danger')
+        return redirect(url_for('.firmware'))
 
     # security check
     if not fw.check_acl('@view'):

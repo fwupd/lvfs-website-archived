@@ -10,7 +10,7 @@ from flask_login import login_required
 from app import app, db, ploader
 
 from .models import Setting, Test, Firmware
-from .util import _event_log, _error_internal, _get_settings
+from .util import _event_log, _get_settings
 from .util import admin_login_required
 
 def _convert_tests_for_plugin(plugin):
@@ -54,7 +54,8 @@ def settings_view(plugin_id='general'):
     """
     plugin = ploader.get_by_id(plugin_id)
     if not plugin:
-        return _error_internal('No plugin {}'.format(plugin_id))
+        flash('No plugin {}'.format(plugin_id), 'danger')
+        return redirect(url_for('.settings_view'))
     tests_by_type = _convert_tests_for_plugin(plugin)
     return render_template('settings.html',
                            category='settings',
@@ -71,7 +72,8 @@ def settings_tests(plugin_id, kind):
     """
     plugin = ploader.get_by_id(plugin_id)
     if not plugin:
-        return _error_internal('No plugin {}'.format(plugin_id))
+        flash('No plugin {}'.format(plugin_id), 'danger')
+        return redirect(url_for('.settings_view'))
     tests_by_type = _convert_tests_for_plugin(plugin)
     return render_template('settings-tests.html',
                            category='settings',

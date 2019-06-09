@@ -15,7 +15,7 @@ from .models import Guid, Keyword, Vendor, SearchEvent, Component, Firmware, Rem
 from .models import _split_search_string
 from .hash import _addr_hash
 from .util import admin_login_required
-from .util import _get_client_address, _error_internal
+from .util import _get_client_address
 
 def _md_suitable_as_search_result(md):
     if not md:
@@ -58,7 +58,8 @@ def _get_md_priority_for_kws(kws):
 def search_delete(search_event_id):
     ev = db.session.query(SearchEvent).filter(SearchEvent.search_event_id == search_event_id).first()
     if not ev:
-        return _error_internal('No search found!')
+        flash('No search found!', 'danger')
+        return redirect(url_for('.search'))
     db.session.delete(ev)
     db.session.commit()
     flash('Deleted search event', 'info')
@@ -78,7 +79,8 @@ def _add_search_event(ev):
 def search_fw(max_results=100):
 
     if 'value' not in request.args:
-        return _error_internal('No search value!')
+        flash('No search value!', 'danger')
+        return redirect(url_for('.search'))
     keywords = _split_search_string(request.args['value'])
     if not keywords:
         keywords = request.args['value'].split(' ')

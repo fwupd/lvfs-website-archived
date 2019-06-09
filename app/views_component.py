@@ -53,12 +53,14 @@ def component_shards(component_id):
     # get firmware component
     md = db.session.query(Component).filter(Component.component_id == component_id).first()
     if not md:
-        return _error_internal('No component matched!')
+        flash('No component matched!', 'danger')
+        return redirect(url_for('.firmware'))
 
     # security check
     fw = md.fw
     if not fw:
-        return _error_internal('No firmware matched!')
+        flash('No component matched!', 'danger')
+        return redirect(url_for('.firmware'))
     if not fw.check_acl('@view'):
         return _error_permission_denied('Unable to view component')
 
@@ -76,12 +78,14 @@ def component_certificates(component_id):
     # get firmware component
     md = db.session.query(Component).filter(Component.component_id == component_id).first()
     if not md:
-        return _error_internal('No component matched!')
+        flash('No component matched!', 'danger')
+        return redirect(url_for('.firmware'))
 
     # security check
     fw = md.fw
     if not fw:
-        return _error_internal('No firmware matched!')
+        flash('No firmware matched!', 'danger')
+        return redirect(url_for('.firmware'))
     if not fw.check_acl('@view'):
         return _error_permission_denied('Unable to view component')
 
@@ -97,7 +101,8 @@ def component_modify(component_id):
     # find firmware
     md = db.session.query(Component).filter(Component.component_id == component_id).first()
     if not md:
-        return _error_internal("No component %s" % component_id)
+        flash('No component matched!', 'danger')
+        return redirect(url_for('.firmware'))
 
     # security check
     if not md.check_acl('@modify-updateinfo'):
@@ -165,12 +170,14 @@ def component_checksums(component_id):
     # get firmware component
     md = db.session.query(Component).filter(Component.component_id == component_id).first()
     if not md:
-        return _error_internal('No component matched!')
+        flash('No component matched!', 'danger')
+        return redirect(url_for('.firmware'))
 
     # security check
     fw = md.fw
     if not fw:
-        return _error_internal('No firmware matched!')
+        flash('No firmware matched!', 'danger')
+        return redirect(url_for('.firmware'))
     if not fw.check_acl('@view'):
         return _error_permission_denied('Unable to view component')
 
@@ -200,12 +207,14 @@ def component_show(component_id, page='overview'):
     # get firmware component
     md = db.session.query(Component).filter(Component.component_id == component_id).first()
     if not md:
-        return _error_internal('No component matched!')
+        flash('No component matched!', 'danger')
+        return redirect(url_for('.firmware'))
 
     # security check
     fw = md.fw
     if not fw:
-        return _error_internal('No firmware matched!')
+        flash('No firmware matched!', 'danger')
+        return redirect(url_for('.firmware'))
     if not fw.check_acl('@view'):
         return _error_permission_denied('Unable to view other vendor firmware')
 
@@ -229,7 +238,8 @@ def component_requirement_delete(component_id, requirement_id):
     # get firmware component
     rq = db.session.query(Requirement).filter(Requirement.requirement_id == requirement_id).first()
     if not rq:
-        return _error_internal('No requirement matched!')
+        flash('No requirement matched!', 'danger')
+        return redirect(url_for('.component_show', component_id=component_id))
 
     # get the firmware for the requirement
     md = rq.md
@@ -269,7 +279,8 @@ def component_requirement_add(component_id):
     md = db.session.query(Component).\
             filter(Component.component_id == component_id).first()
     if not md:
-        return _error_internal('No component matched!')
+        flash('No component matched!', 'danger')
+        return redirect(url_for('.firmware'))
 
     # security check
     if not md.check_acl('@modify-requirements'):
@@ -313,7 +324,8 @@ def component_requirement_modify(component_id):
     md = db.session.query(Component).\
             filter(Component.component_id == component_id).first()
     if not md:
-        return _error_internal('No component matched!')
+        flash('No component matched!', 'danger')
+        return redirect(url_for('.firmware'))
 
     # security check
     if not md.check_acl('@modify-requirements'):
@@ -376,7 +388,8 @@ def component_keyword_delete(component_id, keyword_id):
     # get firmware component
     kw = db.session.query(Keyword).filter(Keyword.keyword_id == keyword_id).first()
     if not kw:
-        return _error_internal('No keyword matched!')
+        flash('No keyword matched!', 'danger')
+        return redirect(url_for('.component_show', component_id=component_id))
 
     # get the firmware for the keyword
     md = kw.md
@@ -414,7 +427,8 @@ def component_keyword_add(component_id):
     md = db.session.query(Component).\
             filter(Component.component_id == component_id).first()
     if not md:
-        return _error_internal('No component matched!')
+        flash('No component matched!', 'danger')
+        return redirect(url_for('.firmware'))
 
     # security check
     if not md.check_acl('@modify-keywords'):
@@ -435,7 +449,8 @@ def component_checksum_delete(component_id, checksum_id):
     # get firmware component
     csum = db.session.query(Checksum).filter(Checksum.checksum_id == checksum_id).first()
     if not csum:
-        return _error_internal('No checksum matched!')
+        flash('No checksum matched!', 'danger')
+        return redirect(url_for('.component_show', component_id=component_id))
 
     # get the component for the checksum
     md = csum.md
@@ -473,7 +488,8 @@ def component_checksum_add(component_id):
     md = db.session.query(Component).\
             filter(Component.component_id == component_id).first()
     if not md:
-        return _error_internal('No component matched!')
+        flash('No component matched!', 'danger')
+        return redirect(url_for('.firmware'))
 
     # security check
     if not md.check_acl('@modify-checksums'):

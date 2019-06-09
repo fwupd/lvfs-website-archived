@@ -10,7 +10,6 @@ from flask_login import login_required
 from app import app, db
 
 from .util import admin_login_required
-from .util import _error_internal
 from .models import Agreement
 
 @app.route('/lvfs/agreement')
@@ -93,7 +92,8 @@ def agreement_modify(agreement_id):
     agreement = db.session.query(Agreement).\
                     filter(Agreement.agreement_id == agreement_id).first()
     if not agreement:
-        return _error_internal('No agreement with that ID')
+        flash('No agreement with that ID', 'danger')
+        return redirect(url_for('.agreement_list'))
 
     # view
     if request.method != 'POST':
@@ -117,7 +117,8 @@ def agreement_delete(agreement_id):
     agreement = db.session.query(Agreement).\
                     filter(Agreement.agreement_id == agreement_id).first()
     if not agreement:
-        return _error_internal('No agreement with that ID')
+        flash('No agreement with that ID', 'danger')
+        return redirect(url_for('.agreement_list'))
 
     # change
     db.session.delete(agreement)
