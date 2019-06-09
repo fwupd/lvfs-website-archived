@@ -8,26 +8,24 @@
 <form method="post" action="{{url_for('.category_modify', category_id=cat.category_id)}}">
   <div class="form-group">
     <label for="group_id">Value:</label>
-    <input type="text" class="form-control" name="value" value="{{cat.value}}" required {{'disabled' if not cat.check_acl('@modify')}}>
+    <input type="text" class="form-control" name="value" value="{{cat.value}}" required />
   </div>
   <div class="form-group">
     <label for="display_name">Name:</label>
-    <input type="text" class="form-control" name="name" value="{{cat.name if cat.name}}" required {{'disabled' if not cat.check_acl('@modify')}}>
+    <input type="text" class="form-control" name="name" value="{{cat.name if cat.name}}" required />
   </div>
   <div class="form-group">
     <label for="fallbacks">Fallbacks:</label>
-    <input type="text" class="form-control" name="fallbacks" value="{{cat.fallbacks if cat.fallbacks}}" {{'disabled' if not cat.check_acl('@modify')}}>
+    <input type="text" class="form-control" name="fallbacks" value="{{cat.fallbacks if cat.fallbacks}}" />
   </div>
   <div class="form-group">
     <label for="expect_device_checksum">
-      <input class="checkbox" type="checkbox" name="expect_device_checksum" value="1" {{'checked' if cat.expect_device_checksum}} {{'disabled' if not cat.check_acl('@modify')}}/>
+      <input class="checkbox" type="checkbox" name="expect_device_checksum" value="1" {{'checked' if cat.expect_device_checksum}} //>
       Expect a device checksum, e.g. a <code>PCR0</code>.
     </label>
   </div>
-{% if cat.check_acl('@modify') %}
   <input type="submit" class="btn btn-primary btn-large" value="Modify">
   <button type="button" class="btn btn-danger" data-toggle="modal" data-target="#deleteModal">Delete</button>
-{% endif %}
 </form>
   </div>
 </div>

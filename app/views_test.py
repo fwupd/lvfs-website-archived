@@ -6,23 +6,21 @@
 #
 # pylint: disable=singleton-comparison
 
-from flask import url_for, redirect, flash, g, render_template
+from flask import url_for, redirect, flash, render_template
 from flask_login import login_required
 from sqlalchemy.orm import joinedload
 
 from app import app, db, ploader
 
 from .models import Test
+from .util import admin_login_required
 from .util import _error_internal, _error_permission_denied
 
 @app.route('/lvfs/test')
 @app.route('/lvfs/test/overview')
 @login_required
+@admin_login_required
 def test_overview():
-
-    # security check
-    if not g.user.is_admin:
-        return _error_permission_denied('Permission denied')
 
     # get all the test data
     tests = db.session.query(Test).\
@@ -73,11 +71,8 @@ def test_overview():
 
 @app.route('/lvfs/test/recent')
 @login_required
+@admin_login_required
 def test_recent():
-
-    # security check
-    if not g.user.is_admin:
-        return _error_permission_denied('Permission denied')
     tests = db.session.query(Test).\
                 filter(Test.started_ts != None). \
                 filter(Test.ended_ts != None). \
@@ -87,11 +82,8 @@ def test_recent():
 
 @app.route('/lvfs/test/running')
 @login_required
+@admin_login_required
 def test_running():
-
-    # security check
-    if not g.user.is_admin:
-        return _error_permission_denied('Permission denied')
     tests = db.session.query(Test). \
                 filter(Test.started_ts != None). \
                 filter(Test.ended_ts == None). \
@@ -101,11 +93,8 @@ def test_running():
 
 @app.route('/lvfs/test/pending')
 @login_required
+@admin_login_required
 def test_pending():
-
-    # security check
-    if not g.user.is_admin:
-        return _error_permission_denied('Permission denied')
     tests = db.session.query(Test). \
                 filter(Test.started_ts == None). \
                 options(joinedload('attributes')). \
@@ -114,11 +103,8 @@ def test_pending():
 
 @app.route('/lvfs/test/failed')
 @login_required
+@admin_login_required
 def test_failed():
-
-    # security check
-    if not g.user.is_admin:
-        return _error_permission_denied('Permission denied')
     tests = db.session.query(Test).\
                 filter(Test.ended_ts != None). \
                 filter(Test.waived_ts == None). \
@@ -132,11 +118,8 @@ def test_failed():
 
 @app.route('/lvfs/test/waived')
 @login_required
+@admin_login_required
 def test_waived():
-
-    # security check
-    if not g.user.is_admin:
-        return _error_permission_denied('Permission denied')
     tests = db.session.query(Test).\
                 filter(Test.ended_ts != None). \
                 filter(Test.waived_ts != None). \
@@ -188,11 +171,8 @@ def test_waive(test_id):
 
 @app.route('/lvfs/test/retry/<plugin_id>')
 @login_required
+@admin_login_required
 def test_retry_all(plugin_id):
-
-    # security check
-    if not g.user.is_admin:
-        return _error_permission_denied('Permission denied')
 
     # get tests
     tests = db.session.query(Test).\
@@ -212,11 +192,8 @@ def test_retry_all(plugin_id):
 
 @app.route('/lvfs/test/waive/<plugin_id>')
 @login_required
+@admin_login_required
 def test_waive_all(plugin_id):
-
-    # security check
-    if not g.user.is_admin:
-        return _error_permission_denied('Permission denied')
 
     # get tests
     tests = db.session.query(Test).\
@@ -240,11 +217,8 @@ def test_waive_all(plugin_id):
 
 @app.route('/lvfs/test/delete/<plugin_id>')
 @login_required
+@admin_login_required
 def test_delete_all(plugin_id):
-
-    # security check
-    if not g.user.is_admin:
-        return _error_permission_denied('Permission denied')
 
     # get tests
     tests = db.session.query(Test).\

@@ -15,6 +15,7 @@ from flask_login import login_required
 from app import app, db
 
 from .emails import send_email
+from .util import admin_login_required
 from .util import _error_internal, _error_permission_denied, _email_check, _generate_password
 from .util import _pkcs7_certificate_info
 from .models import User, Vendor, Remote, Firmware, Event, FirmwareEvent, Certificate
@@ -519,16 +520,13 @@ def user_certificate_add():
 
 @app.route('/lvfs/user/add', methods=['GET', 'POST'])
 @login_required
+@admin_login_required
 def user_add():
     """ Add a user [ADMIN ONLY] """
 
     # only accept form data
     if request.method != 'POST':
         return redirect(url_for('.profile'))
-
-    # security check
-    if not g.user.check_acl('@admin'):
-        return _error_permission_denied('Unable to add user as non-admin')
 
     if not 'username' in request.form:
         return _error_permission_denied('Unable to add user as no username')
@@ -585,12 +583,9 @@ def user_add():
 
 @app.route('/lvfs/user/<int:user_id>/delete')
 @login_required
+@admin_login_required
 def user_delete(user_id):
     """ Delete a user """
-
-    # security check
-    if not g.user.check_acl('@admin'):
-        return _error_permission_denied('Unable to remove user as not admin')
 
     # check whether exists in database
     user = db.session.query(User).filter(User.user_id == user_id).first()
@@ -604,12 +599,11 @@ def user_delete(user_id):
 
 @app.route('/lvfs/userlist')
 @login_required
+@admin_login_required
 def user_list():
     """
     Show a list of all users
     """
-    if not g.user.check_acl('@admin'):
-        return _error_permission_denied('Unable to show userlist for non-admin user')
     return render_template('userlist.html',
                            category='admin',
                            users=db.session.query(User).all())

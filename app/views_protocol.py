@@ -4,21 +4,19 @@
 # Copyright (C) 2018 Richard Hughes <richard@hughsie.com>
 # Licensed under the GNU General Public License Version 2
 
-from flask import request, url_for, redirect, flash, g, render_template
+from flask import request, url_for, redirect, flash, render_template
 from flask_login import login_required
 
 from app import app, db
 
 from .models import Protocol
-from .util import _error_internal, _error_permission_denied
+from .util import _error_internal
+from .util import admin_login_required
 
 @app.route('/lvfs/protocols')
 @login_required
+@admin_login_required
 def protocol_all():
-
-    # security check
-    if not g.user.check_acl('@view-protocols'):
-        return _error_permission_denied('Unable to view protocols')
 
     # only show protocols with the correct group_id
     protocols = db.session.query(Protocol).order_by(Protocol.protocol_id.asc()).all()
@@ -28,11 +26,8 @@ def protocol_all():
 
 @app.route('/lvfs/protocol/add', methods=['POST'])
 @login_required
+@admin_login_required
 def protocol_add():
-
-    # security check
-    if not Protocol('').check_acl('@create'):
-        return _error_permission_denied('Unable to add protocol')
 
     # ensure has enough data
     if 'value' not in request.form:
@@ -56,6 +51,7 @@ def protocol_add():
 
 @app.route('/lvfs/protocol/<int:protocol_id>/delete')
 @login_required
+@admin_login_required
 def protocol_delete(protocol_id):
 
     # get protocol
@@ -65,10 +61,6 @@ def protocol_delete(protocol_id):
         flash('No protocol found', 'info')
         return redirect(url_for('.protocol_all'))
 
-    # security check
-    if not protocol.check_acl('@modify'):
-        return _error_permission_denied('Unable to delete protocol')
-
     # delete
     db.session.delete(protocol)
     db.session.commit()
@@ -77,6 +69,7 @@ def protocol_delete(protocol_id):
 
 @app.route('/lvfs/protocol/<int:protocol_id>/modify', methods=['POST'])
 @login_required
+@admin_login_required
 def protocol_modify(protocol_id):
 
     # find protocol
@@ -85,10 +78,6 @@ def protocol_modify(protocol_id):
     if not protocol:
         flash('No protocol found', 'info')
         return redirect(url_for('.protocol_all'))
-
-    # security check
-    if not protocol.check_acl('@modify'):
-        return _error_permission_denied('Unable to modify protocol')
 
     # modify protocol
     protocol.is_signed = bool('is_signed' in request.form)
@@ -106,6 +95,7 @@ def protocol_modify(protocol_id):
 
 @app.route('/lvfs/protocol/<int:protocol_id>/details')
 @login_required
+@admin_login_required
 def protocol_details(protocol_id):
 
     # find protocol
@@ -114,10 +104,6 @@ def protocol_details(protocol_id):
     if not protocol:
         flash('No protocol found', 'info')
         return redirect(url_for('.protocol_all'))
-
-    # security check
-    if not protocol.check_acl('@view'):
-        return _error_permission_denied('Unable to view protocol details')
 
     # show details
     return render_template('protocol-details.html', protocol=protocol)

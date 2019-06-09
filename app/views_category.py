@@ -4,23 +4,19 @@
 # Copyright (C) 2019 Richard Hughes <richard@hughsie.com>
 # Licensed under the GNU General Public License Version 2
 
-from flask import request, url_for, redirect, flash, g, render_template
+from flask import request, url_for, redirect, flash, render_template
 from flask_login import login_required
 
 from app import app, db
 
 from .models import Category
-from .util import _error_internal, _error_permission_denied
+from .util import admin_login_required
+from .util import _error_internal
 
 @app.route('/lvfs/category/all')
 @login_required
+@admin_login_required
 def category_all():
-
-    # security check
-    if not g.user.check_acl('@view-categories'):
-        return _error_permission_denied('Unable to view categories')
-
-    # only show categories with the correct group_id
     categories = db.session.query(Category).order_by(Category.category_id.asc()).all()
     return render_template('category-list.html',
                            category='admin',
@@ -28,12 +24,8 @@ def category_all():
 
 @app.route('/lvfs/category/add', methods=['POST'])
 @login_required
+@admin_login_required
 def category_add():
-
-    # security check
-    if not Category('').check_acl('@create'):
-        return _error_permission_denied('Unable to add category')
-
     # ensure has enough data
     if 'value' not in request.form:
         return _error_internal('No form data found!')
@@ -56,6 +48,7 @@ def category_add():
 
 @app.route('/lvfs/category/<int:category_id>/delete')
 @login_required
+@admin_login_required
 def category_delete(category_id):
 
     # get category
@@ -65,10 +58,6 @@ def category_delete(category_id):
         flash('No category found', 'info')
         return redirect(url_for('.category_all'))
 
-    # security check
-    if not cat.check_acl('@modify'):
-        return _error_permission_denied('Unable to delete category')
-
     # delete
     db.session.delete(cat)
     db.session.commit()
@@ -77,6 +66,7 @@ def category_delete(category_id):
 
 @app.route('/lvfs/category/<int:category_id>/modify', methods=['POST'])
 @login_required
+@admin_login_required
 def category_modify(category_id):
 
     # find category
@@ -85,10 +75,6 @@ def category_modify(category_id):
     if not cat:
         flash('No category found', 'info')
         return redirect(url_for('.category_all'))
-
-    # security check
-    if not cat.check_acl('@modify'):
-        return _error_permission_denied('Unable to modify category')
 
     # modify category
     cat.expect_device_checksum = bool('expect_device_checksum' in request.form)
@@ -103,6 +89,7 @@ def category_modify(category_id):
 
 @app.route('/lvfs/category/<int:category_id>/details')
 @login_required
+@admin_login_required
 def category_details(category_id):
 
     # find category
@@ -111,10 +98,6 @@ def category_details(category_id):
     if not cat:
         flash('No category found', 'info')
         return redirect(url_for('.category_all'))
-
-    # security check
-    if not cat.check_acl('@view'):
-        return _error_permission_denied('Unable to view category details')
 
     # show details
     return render_template('category-details.html',

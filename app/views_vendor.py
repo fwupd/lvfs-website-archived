@@ -17,6 +17,7 @@ from sqlalchemy.orm import joinedload
 from app import app, db
 
 from .emails import send_email
+from .util import admin_login_required
 from .util import _error_permission_denied, _error_internal, _email_check
 from .models import Vendor, Restriction, User, Remote, Affiliation
 from .util import _generate_password
@@ -167,16 +168,13 @@ def vendor_list():
 
 @app.route('/lvfs/vendor/add', methods=['GET', 'POST'])
 @login_required
+@admin_login_required
 def vendor_add():
     """ Add a vendor [ADMIN ONLY] """
 
     # only accept form data
     if request.method != 'POST':
         return redirect(url_for('.vendor_list'))
-
-    # security check
-    if not g.user.check_acl('@admin'):
-        return _error_permission_denied('Unable to add vendor as non-admin')
 
     if not 'group_id' in request.form:
         return _error_permission_denied('Unable to add vendor as no data')
@@ -197,12 +195,9 @@ def vendor_add():
 
 @app.route('/lvfs/vendor/<int:vendor_id>/delete')
 @login_required
+@admin_login_required
 def vendor_delete(vendor_id):
     """ Removes a vendor [ADMIN ONLY] """
-
-    # security check
-    if not g.user.check_acl('@admin'):
-        return _error_permission_denied('Unable to remove vendor as non-admin')
     vendor = db.session.query(Vendor).filter(Vendor.vendor_id == vendor_id).first()
     if not vendor:
         flash('Failed to delete vendor: No a vendor with that group ID', 'warning')
@@ -215,12 +210,9 @@ def vendor_delete(vendor_id):
 @app.route('/lvfs/vendor/<int:vendor_id>')
 @app.route('/lvfs/vendor/<int:vendor_id>/details')
 @login_required
+@admin_login_required
 def vendor_details(vendor_id):
     """ Allows changing a vendor [ADMIN ONLY] """
-
-    # security check
-    if not g.user.check_acl('@admin'):
-        return _error_permission_denied('Unable to edit vendor as non-admin')
     vendor = db.session.query(Vendor).filter(Vendor.vendor_id == vendor_id).first()
     if not vendor:
         flash('Failed to get vendor details: No a vendor with that group ID', 'warning')
@@ -231,12 +223,9 @@ def vendor_details(vendor_id):
 
 @app.route('/lvfs/vendor/<int:vendor_id>/restrictions')
 @login_required
+@admin_login_required
 def vendor_restrictions(vendor_id):
     """ Allows changing a vendor [ADMIN ONLY] """
-
-    # security check
-    if not g.user.check_acl('@admin'):
-        return _error_permission_denied('Unable to edit vendor as non-admin')
     vendor = db.session.query(Vendor).filter(Vendor.vendor_id == vendor_id).first()
     if not vendor:
         flash('Failed to get vendor details: No a vendor with that group ID', 'warning')
@@ -299,12 +288,9 @@ def vendor_oauth(vendor_id):
 
 @app.route('/lvfs/vendor/<int:vendor_id>/restriction/add', methods=['POST'])
 @login_required
+@admin_login_required
 def vendor_restriction_add(vendor_id):
     """ Allows changing a vendor [ADMIN ONLY] """
-
-    # security check
-    if not g.user.check_acl('@admin'):
-        return _error_permission_denied('Unable to edit vendor as non-admin')
 
     # check exists
     vendor = db.session.query(Vendor).filter(Vendor.vendor_id == vendor_id).first()
@@ -320,12 +306,9 @@ def vendor_restriction_add(vendor_id):
 
 @app.route('/lvfs/vendor/<int:vendor_id>/restriction/<int:restriction_id>/delete')
 @login_required
+@admin_login_required
 def vendor_restriction_delete(vendor_id, restriction_id):
     """ Allows changing a vendor [ADMIN ONLY] """
-
-    # security check
-    if not g.user.check_acl('@admin'):
-        return _error_permission_denied('Unable to edit vendor as non-admin')
 
     # check exists
     vendor = db.session.query(Vendor).filter(Vendor.vendor_id == vendor_id).first()
@@ -342,16 +325,13 @@ def vendor_restriction_delete(vendor_id, restriction_id):
 
 @app.route('/lvfs/vendor/<int:vendor_id>/modify_by_admin', methods=['GET', 'POST'])
 @login_required
+@admin_login_required
 def vendor_modify_by_admin(vendor_id):
     """ Change details about the any vendor """
 
     # only accept form data
     if request.method != 'POST':
         return redirect(url_for('.vendor_list'))
-
-    # security check
-    if not g.user.check_acl('@admin'):
-        return _error_permission_denied('Unable to modify vendor as non-admin')
 
     # save to database
     vendor = db.session.query(Vendor).filter(Vendor.vendor_id == vendor_id).first()
@@ -386,11 +366,8 @@ def vendor_modify_by_admin(vendor_id):
 
 @app.route('/lvfs/vendor/<int:vendor_id>/upload', methods=['POST'])
 @login_required
+@admin_login_required
 def vendor_upload(vendor_id):
-
-    # security check
-    if not g.user.check_acl('@admin'):
-        return _error_permission_denied('Unable to modify vendor as non-admin')
 
     # check exists
     vendor = db.session.query(Vendor).filter(Vendor.vendor_id == vendor_id).first()

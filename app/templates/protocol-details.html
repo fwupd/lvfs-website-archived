@@ -8,40 +8,38 @@
 <form method="post" action="{{url_for('.protocol_modify', protocol_id=protocol.protocol_id)}}">
   <div class="form-group">
     <label for="group_id">Value:</label>
-    <input type="text" class="form-control" name="value" value="{{protocol.value}}" required {{'disabled' if not protocol.check_acl('@modify')}}>
+    <input type="text" class="form-control" name="value" value="{{protocol.value}}" required />
   </div>
   <div class="form-group">
     <label for="display_name">Name:</label>
-    <input type="text" class="form-control" name="name" value="{{protocol.name if protocol.name}}" required {{'disabled' if not protocol.check_acl('@modify')}}>
+    <input type="text" class="form-control" name="name" value="{{protocol.name if protocol.name}}" required />
   </div>
   <div class="form-group">
     <label for="is_public">
-      <input class="checkbox" type="checkbox" name="is_public" value="1" {{'checked' if protocol.is_public}} {{'disabled' if not protocol.check_acl('@modify')}}/>
+      <input class="checkbox" type="checkbox" name="is_public" value="1" {{'checked' if protocol.is_public}} />
       Firmware protocol is public
     </label>
   </div>
   <div class="form-group">
     <label for="is_signed">
-      <input class="checkbox" type="checkbox" name="is_signed" value="1" {{'checked' if protocol.is_signed}} {{'disabled' if not protocol.check_acl('@modify')}}/>
+      <input class="checkbox" type="checkbox" name="is_signed" value="1" {{'checked' if protocol.is_signed}} />
       Cryptographically signed images or transfer, e.g. GPG, PKCS-7, X509
     </label>
   </div>
   <div class="form-group">
     <label for="can_verify">
-      <input class="checkbox" type="checkbox" name="can_verify" value="1" {{'checked' if protocol.can_verify}} {{'disabled' if not protocol.check_acl('@modify')}}/>
+      <input class="checkbox" type="checkbox" name="can_verify" value="1" {{'checked' if protocol.can_verify}} />
       Can verify checksum on device
     </label>
   </div>
   <div class="form-group">
     <label for="has_header">
-      <input class="checkbox" type="checkbox" name="has_header" value="1" {{'checked' if protocol.has_header}} {{'disabled' if not protocol.check_acl('@modify')}}/>
+      <input class="checkbox" type="checkbox" name="has_header" value="1" {{'checked' if protocol.has_header}} />
       Has header or footer requirement that can be tested, e.g. <code>CAPSULE_HEADER</code> or <code>UFD</code>
     </label>
   </div>
-{% if protocol.check_acl('@modify') %}
   <input type="submit" class="card-link btn btn-primary" value="Modify">
   <button type="button" class="card-link btn btn-danger" data-toggle="modal" data-target="#deleteModal">Delete</button>
-{% endif %}
 </form>
   </div>
 </div>

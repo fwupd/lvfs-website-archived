@@ -750,7 +750,7 @@ class LvfsTestCase(unittest.TestCase):
 
         # try to self-delete
         rv = self.app.get('/lvfs/user/3/delete')
-        assert b'Unable to remove user as not admin' in rv.data, rv.data
+        assert b'Only the admin team can access this resource' in rv.data, rv.data
 
         # delete the user as the admin
         self.logout()

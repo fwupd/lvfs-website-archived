@@ -4,7 +4,7 @@
 # Copyright (C) 2018 Richard Hughes <richard@hughsie.com>
 # Licensed under the GNU General Public License Version 2
 
-from flask import request, render_template, flash, redirect, url_for, g
+from flask import request, render_template, flash, redirect, url_for
 from flask_login import login_required
 
 from sqlalchemy import func
@@ -14,7 +14,8 @@ from app import app, db
 from .models import Guid, Keyword, Vendor, SearchEvent, Component, Firmware, Remote
 from .models import _split_search_string
 from .hash import _addr_hash
-from .util import _get_client_address, _error_internal, _error_permission_denied
+from .util import admin_login_required
+from .util import _get_client_address, _error_internal
 
 def _md_suitable_as_search_result(md):
     if not md:
@@ -53,10 +54,8 @@ def _get_md_priority_for_kws(kws):
 
 @app.route('/lvfs/search/<int:search_event_id>/delete')
 @login_required
+@admin_login_required
 def search_delete(search_event_id):
-    # security check
-    if not g.user.check_acl('@admin'):
-        return _error_permission_denied('Unable to delete search')
     ev = db.session.query(SearchEvent).filter(SearchEvent.search_event_id == search_event_id).first()
     if not ev:
         return _error_internal('No search found!')

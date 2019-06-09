@@ -6,12 +6,13 @@
 
 import humanize
 
-from flask import render_template, g, make_response, flash, redirect, url_for
+from flask import render_template, make_response, flash, redirect, url_for
 from flask_login import login_required
 
 from app import app, db
 
 from .models import Vendor, Remote
+from .util import admin_login_required
 from .util import _error_internal, _error_permission_denied
 
 @app.route('/lvfs/metadata/<group_id>')
@@ -67,14 +68,11 @@ def metadata_view():
 
 @app.route('/lvfs/metadata/rebuild')
 @login_required
+@admin_login_required
 def metadata_rebuild():
     """
     Forces a rebuild of all metadata.
     """
-
-    # security check
-    if not g.user.check_acl('@admin'):
-        return _error_permission_denied('Only admin is allowed to force-rebuild metadata')
 
     # update metadata
     scheduled_signing = None
@@ -91,14 +89,11 @@ def metadata_rebuild():
 
 @app.route('/lvfs/metadata/rebuild/<remote_id>')
 @login_required
+@admin_login_required
 def metadata_rebuild_remote(remote_id):
     """
     Forces a rebuild of one metadata remote.
     """
-
-    # security check
-    if not g.user.check_acl('@admin'):
-        return _error_permission_denied('Only admin is allowed to rebuild metadata')
 
     # update metadata
     r = db.session.query(Remote).filter(Remote.remote_id == remote_id).first()

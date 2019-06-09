@@ -220,8 +220,6 @@ class User(db.Model):
         # decide based on the action
         if action == '@admin':
             return False
-        if action == '@view-protocols':
-            return False
         if action == '@view-profile':
             return self.auth_type == 'local'
         if action == '@view-analytics':
@@ -906,23 +904,6 @@ class Category(db.Model):
                     return True
         return False
 
-    def check_acl(self, action, user=None):
-
-        # fall back
-        if not user:
-            user = g.user
-        if user.is_admin:
-            return True
-
-        # depends on the action requested
-        if action == '@view':
-            return False
-        if action == '@create':
-            return False
-        if action == '@modify':
-            return False
-        raise NotImplementedError('unknown security check action: %s:%s' % (self, action))
-
     def __repr__(self):
         return "Category object %s:%s" % (self.category_id, self.value)
 
@@ -958,21 +939,6 @@ class ComponentShardInfo(db.Model):
             return 'The Driver Execution Environment phase is where most of the system \
                     initialization is performed.'
         return None
-
-    def check_acl(self, action, user=None):
-
-        # fall back
-        if not user:
-            user = g.user
-        if user.is_admin:
-            return True
-
-        # depends on the action requested
-        if action == '@view':
-            return False
-        if action == '@modify':
-            return False
-        raise NotImplementedError('unknown security check action: %s:%s' % (self, action))
 
     def __repr__(self):
         return "ComponentShardInfo object %s" % self.component_shard_info_id
@@ -2269,23 +2235,6 @@ class Protocol(db.Model):
     is_public = Column(Boolean, default=False)
     can_verify = Column(Boolean, default=False)
     has_header = Column(Boolean, default=False)
-
-    def check_acl(self, action, user=None):
-
-        # fall back
-        if not user:
-            user = g.user
-        if user.is_admin:
-            return True
-
-        # depends on the action requested
-        if action == '@view':
-            return False
-        if action == '@create':
-            return False
-        if action == '@modify':
-            return False
-        raise NotImplementedError('unknown security check action: %s:%s' % (self, action))
 
     @property
     def security_claim(self):

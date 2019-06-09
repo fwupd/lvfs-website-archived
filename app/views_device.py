@@ -6,26 +6,24 @@
 
 import datetime
 
-from flask import render_template, g
+from flask import render_template
 from flask_login import login_required
 
 from sqlalchemy import func
 
 from app import app, db
 
-from .util import _error_permission_denied, _error_internal
+from .util import admin_login_required
+from .util import _error_internal
 from .models import Firmware, Component, Remote, Guid
 
 @app.route('/lvfs/device')
 @login_required
+@admin_login_required
 def device():
     """
     Show all devices -- probably only useful for the admin user.
     """
-
-    # security check
-    if not g.user.check_acl('@admin'):
-        return _error_permission_denied('Unable to view devices')
 
     # get all the appstream_ids we can target
     devices = []

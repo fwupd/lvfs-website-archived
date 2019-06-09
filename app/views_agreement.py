@@ -9,7 +9,8 @@ from flask_login import login_required
 
 from app import app, db
 
-from .util import _error_internal, _error_permission_denied
+from .util import admin_login_required
+from .util import _error_internal
 from .models import Agreement
 
 @app.route('/lvfs/agreement')
@@ -31,11 +32,8 @@ def agreement_show(agreement_id=None):
 
 @app.route('/lvfs/agreement/list')
 @login_required
+@admin_login_required
 def agreement_list():
-
-    # security check
-    if not g.user.check_acl('@admin'):
-        return _error_permission_denied('Only admin is allowed to list agreements')
 
     # find the right version
     agreements = db.session.query(Agreement).all()
@@ -45,11 +43,8 @@ def agreement_list():
 
 @app.route('/lvfs/agreement/create')
 @login_required
+@admin_login_required
 def agreement_create():
-
-    # security check
-    if not g.user.check_acl('@admin'):
-        return _error_permission_denied('Only admin is allowed to create agreements')
 
     # create something
     agreement = Agreement(version=1, text='New agreement text')
@@ -91,11 +86,8 @@ def agreement_decline(agreement_id=None):
 
 @app.route('/lvfs/agreement/<int:agreement_id>/modify', methods=['GET', 'POST'])
 @login_required
+@admin_login_required
 def agreement_modify(agreement_id):
-
-    # security check
-    if not g.user.check_acl('@admin'):
-        return _error_permission_denied('Only admin is allowed to modify agreements')
 
     # match
     agreement = db.session.query(Agreement).\
@@ -118,11 +110,8 @@ def agreement_modify(agreement_id):
 
 @app.route('/lvfs/agreement/<int:agreement_id>/delete')
 @login_required
+@admin_login_required
 def agreement_delete(agreement_id):
-
-    # security check
-    if not g.user.check_acl('@admin'):
-        return _error_permission_denied('Only admin is allowed to delete agreements')
 
     # match
     agreement = db.session.query(Agreement).\

@@ -16,6 +16,7 @@ import subprocess
 import tempfile
 
 from glob import fnmatch
+from functools import wraps
 
 from lxml import etree as ET
 from flask import request, flash, render_template, g, Response
@@ -463,3 +464,11 @@ def _pkcs7_signature_verify(certificate, payload, signature):
         except ValueError as _:
             pass
     return status == 'ok'
+
+def admin_login_required(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if not g.user.check_acl('@admin'):
+            return _error_permission_denied('Only the admin team can access this resource')
+        return f(*args, **kwargs)
+    return decorated_function

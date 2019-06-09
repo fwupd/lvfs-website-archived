@@ -8,25 +8,23 @@ import datetime
 
 from sqlalchemy import and_
 
-from flask import render_template, g
+from flask import render_template
 from flask_login import login_required
 
 from app import app, db
 
 from .models import Analytic, Client, Report, Useragent, UseragentKind, SearchEvent, AnalyticVendor
 from .models import _get_datestr_from_datetime, _split_search_string
+from .util import admin_login_required
 from .util import _error_permission_denied
 from .util import _get_chart_labels_months, _get_chart_labels_days
 
 @app.route('/lvfs/analytics')
 @app.route('/lvfs/analytics/month')
 @login_required
+@admin_login_required
 def analytics_month():
     """ A analytics screen to show information about users """
-
-    # security check
-    if not g.user.check_acl('@admin'):
-        return _error_permission_denied('Unable to view analytics')
 
     # this is somewhat klunky
     data = []
@@ -51,12 +49,9 @@ def analytics_month():
 
 @app.route('/lvfs/analytics/year')
 @login_required
+@admin_login_required
 def analytics_year():
     """ A analytics screen to show information about users """
-
-    # security check
-    if not g.user.check_acl('@admin'):
-        return _error_permission_denied('Unable to view analytics')
 
     # this is somewhat klunky
     data = []
@@ -98,12 +93,9 @@ def _user_agent_wildcard(user_agent):
 @app.route('/lvfs/analytics/user_agent/<kind>')
 @app.route('/lvfs/analytics/user_agent/<kind>/<int:timespan_days>')
 @login_required
+@admin_login_required
 def analytics_user_agents(kind='APP', timespan_days=30):
     """ A analytics screen to show information about users """
-
-    # security check
-    if not g.user.check_acl('@admin'):
-        return _error_permission_denied('Unable to view analytics')
 
     # map back to UseragentKind
     try:
@@ -174,12 +166,9 @@ def analytics_user_agents(kind='APP', timespan_days=30):
 @app.route('/lvfs/analytics/vendor')
 @app.route('/lvfs/analytics/vendor/<int:timespan_days>')
 @login_required
+@admin_login_required
 def analytics_vendor(timespan_days=30):
     """ A analytics screen to show information about users """
-
-    # security check
-    if not g.user.check_acl('@admin'):
-        return _error_permission_denied('Unable to view analytics')
 
     # get data for this time period
     cnt_total = {}
@@ -239,12 +228,10 @@ def analytics_vendor(timespan_days=30):
 
 @app.route('/lvfs/analytics/clients')
 @login_required
+@admin_login_required
 def analytics_clients():
     """ A analytics screen to show information about users """
 
-    # security check
-    if not g.user.check_acl('@admin'):
-        return _error_permission_denied('Unable to view analytics')
     clients = db.session.query(Client).\
                     order_by(Client.timestamp.desc()).\
                     limit(25).all()
@@ -254,12 +241,9 @@ def analytics_clients():
 
 @app.route('/lvfs/analytics/reports')
 @login_required
+@admin_login_required
 def analytics_reports():
     """ A analytics screen to show information about users """
-
-    # security check
-    if not g.user.check_acl('@admin'):
-        return _error_permission_denied('Unable to view analytics')
     reports = db.session.query(Report).\
                     order_by(Report.timestamp.desc()).\
                     limit(25).all()
@@ -269,10 +253,8 @@ def analytics_reports():
 
 @app.route('/lvfs/analytics/search_history')
 @login_required
+@admin_login_required
 def analytics_search_history():
-    # security check
-    if not g.user.check_acl('@admin'):
-        return _error_permission_denied('Unable to view analytics')
     search_events = db.session.query(SearchEvent).\
                         order_by(SearchEvent.timestamp.desc()).\
                         limit(1000).all()
@@ -283,12 +265,8 @@ def analytics_search_history():
 @app.route('/lvfs/analytics/search_stats')
 @app.route('/lvfs/analytics/search_stats/<int:limit>')
 @login_required
+@admin_login_required
 def analytics_search_stats(limit=20):
-
-    # security check
-    if not g.user.check_acl('@admin'):
-        return _error_permission_denied('Unable to view analytics')
-
     search_events = db.session.query(SearchEvent).\
                         order_by(SearchEvent.timestamp.desc()).\
                         limit(99999).all()
