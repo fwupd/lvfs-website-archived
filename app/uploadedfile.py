@@ -232,6 +232,10 @@ class UploadedFile:
             raise MetadataInvalid('The metadata file was not complete; '
                                   'Any FIXME text must be replaced with the correct values.')
 
+        # check the ID does not contain a forward slash
+        if component.get_id().find('/') != -1:
+            raise MetadataInvalid('The AppStream ID cannot contain forward slashes.')
+
         # check the firmware provides something
         if len(component.get_provides()) == 0:
             raise MetadataInvalid('The metadata file did not provide any GUID.')
