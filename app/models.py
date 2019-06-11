@@ -204,6 +204,24 @@ class User(db.Model):
         return 'otpauth://totp/LVFS:{0}?secret={1}&issuer=LVFS' \
             .format(self.username, self.otp_secret)
 
+    @property
+    def needs_2fa(self):
+
+        # already done
+        if self.is_otp_enabled:
+            return False
+
+        # not applicable
+        if self.auth_type != 'local':
+            return False
+
+        # created in the last 1h...
+        if (datetime.datetime.now() - self.ctime).total_seconds() > 60 * 60:
+            return False
+
+        # of required userclass
+        return self.is_admin or self.is_vendor_manager
+
     def verify_totp(self, token):
         return onetimepass.valid_totp(token, self.otp_secret)
 

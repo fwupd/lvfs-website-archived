@@ -14,6 +14,16 @@
 </div>
 {% endif %}
 
+{% if g.user.needs_2fa %}
+<div class="alert alert-warning mb-3" role="alert">
+  <b>WARNING</b> This user account should to be secured with two factor
+  authentication to comply with site policy.
+  Please visit <a href="{{url_for('.profile')}}">your profile</a> and
+  set up 2FA as soon as possible.
+  Some LVFS actions may be unavailable until this is completed.
+</div>
+{% endif %}
+
 {% if download_cnt > 0 %}
 <div class="card">
   <div class="card-body rounded-soft bg-gradient">
