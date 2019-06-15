@@ -18,10 +18,18 @@ def _run_on_blob(self, test, title, blob):
     # find in a few different encodings
     values = self.get_setting('blocklist_values', required=True).split(',')
     for value in values:
+        try:
+            match, desc = value.rsplit('::', 2)
+        except ValueError:
+            desc = None
+            match = value
         for encoding in ['utf8', 'utf_16_le', 'utf_16_be']:
-            offset = blob.find(value.encode(encoding))
+            offset = blob.find(match.encode(encoding))
             if offset != -1:
-                test.add_fail(title, 'Found: {}'.format(value))
+                if desc:
+                    test.add_fail(title, 'Found: {}: {}'.format(match, desc))
+                else:
+                    test.add_fail(title, 'Found: {}'.format(match))
 
     return len(values)
 
@@ -41,7 +49,9 @@ class Plugin(PluginBase):
     def settings(self):
         s = []
         s.append(PluginSettingBool('blocklist_enabled', 'Enabled', True))
-        s.append(PluginSettingTextList('blocklist_values', 'Values', ['DO NOT TRUST', 'DO NOT SHIP']))
+        s.append(PluginSettingTextList('blocklist_values', 'Values',
+                                       ['DO NOT TRUST::IBV example certificate being used',
+                                        'DO NOT SHIP::IBV example certificate being used']))
         return s
 
     def ensure_test_for_fw(self, fw):
