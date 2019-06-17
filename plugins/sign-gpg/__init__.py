@@ -9,9 +9,9 @@
 import os
 import gnupg
 
+from cabarchive import CabFile
 from app.pluginloader import PluginBase, PluginError, PluginSettingText, PluginSettingBool
 from app import ploader
-from app.util import _get_basename_safe, _archive_add, _archive_get_files_from_glob
 
 class Affidavit:
 
@@ -101,18 +101,17 @@ class Plugin(PluginBase):
         if fn.endswith('.xml.gz'):
             self._metadata_modified(fn)
 
-    def archive_sign(self, arc, firmware_cff):
+    def archive_sign(self, cabarchive, cabfile):
 
         # already signed
-        detached_fn = _get_basename_safe(firmware_cff.get_name() + '.asc')
-        if _archive_get_files_from_glob(arc, detached_fn):
+        detached_fn = cabfile.filename + '.asc'
+        if detached_fn in cabarchive:
             return
 
         # create the detached signature
         affidavit = Affidavit(self.get_setting('sign_gpg_firmware_uid', required=True),
                               self.get_setting('sign_gpg_keyring_dir', required=True))
-        contents = firmware_cff.get_bytes().get_data()
-        contents_asc = str(affidavit.create(contents))
+        contents_asc = str(affidavit.create(cabfile.buf))
 
         # add it to the archive
-        _archive_add(arc, detached_fn, contents_asc.encode('utf-8'))
+        cabarchive[detached_fn] = CabFile(contents_asc.encode('utf-8'))

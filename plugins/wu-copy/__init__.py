@@ -7,7 +7,6 @@
 # pylint: disable=no-self-use
 
 from app.pluginloader import PluginBase, PluginSettingBool
-from app.util import _get_basename_safe, _archive_add
 
 class Plugin(PluginBase):
     def __init__(self):
@@ -26,10 +25,8 @@ class Plugin(PluginBase):
         s.append(PluginSettingBool('wu_copy_cat', 'Include .cat files', True))
         return s
 
-    def archive_copy(self, arc, firmware_cff):
-
-        fn = _get_basename_safe(firmware_cff.get_name())
-        if fn.endswith('.inf') and self.get_setting_bool('wu_copy_inf'):
-            _archive_add(arc, fn, firmware_cff.get_bytes().get_data())
-        if fn.endswith('.cat') and self.get_setting_bool('wu_copy_cat'):
-            _archive_add(arc, fn, firmware_cff.get_bytes().get_data())
+    def archive_copy(self, cabarchive, cabfile):
+        if cabfile.filename.endswith('.inf') and self.get_setting_bool('wu_copy_inf'):
+            cabarchive[cabfile.filename] = cabfile
+        elif cabfile.filename.endswith('.cat') and self.get_setting_bool('wu_copy_cat'):
+            cabarchive[cabfile.filename] = cabfile

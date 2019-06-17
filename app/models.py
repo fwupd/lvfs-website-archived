@@ -19,12 +19,7 @@ from enum import Enum
 
 import onetimepass
 
-import gi
-gi.require_version('GCab', '1.0')
 from gi.repository import AppStreamGlib
-from gi.repository import GCab
-from gi.repository import Gio
-from gi.repository import GLib
 
 from flask import g, url_for
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -33,9 +28,10 @@ from sqlalchemy import Column, Integer, Float, String, Text, Boolean, DateTime, 
 from sqlalchemy.orm import relationship
 
 from app import db
+from cabarchive import CabArchive
 from .hash import _qa_hash, _password_hash, _otp_hash
 from .util import _generate_password, _xml_from_markdown, _get_update_description_problems
-from .util import _get_absolute_path, _archive_get_files_from_glob, _get_shard_path
+from .util import _get_absolute_path, _get_shard_path
 
 class SecurityClaim:
 
@@ -1759,19 +1755,13 @@ class Firmware(db.Model):
         return self.user_id == user.user_id
 
     def _ensure_blobs(self):
-        fn = _get_absolute_path(self)
-        try:
-            istream = Gio.File.new_for_path(fn).read()
-        except GLib.Error as e: # pylint: disable=catching-non-exception
-            raise RuntimeError(e)
-        cfarchive = GCab.Cabinet.new()
-        cfarchive.load(istream)
-        cfarchive.extract(None)
+        with open(_get_absolute_path(self), 'rb') as f:
+            cabarchive = CabArchive(f.read())
         for md in self.mds:
-            cfs = _archive_get_files_from_glob(cfarchive, md.filename_contents)
-            if not cfs or len(cfs) > 1:
-                continue
-            md._blob = cfs[0].get_bytes().get_data()
+            try:
+                md._blob = cabarchive[md.filename_contents].buf
+            except KeyError as _:
+                pass
 
     def _is_vendor(self, user):
         return self.vendor_id == user.vendor_id

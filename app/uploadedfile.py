@@ -8,18 +8,19 @@
 
 import os
 import hashlib
-import shutil
+import glob
 import subprocess
 import tempfile
 import configparser
+import fnmatch
 
-from gi.repository import GCab
-from gi.repository import Gio
 from gi.repository import GLib
 from gi.repository import AppStreamGlib
 
+from cabarchive import CabArchive, CabFile
+
 from .inf_parser import InfParser
-from .util import _archive_get_files_from_glob, _get_basename_safe, _validate_guid
+from .util import _validate_guid
 
 class FileTooLarge(Exception):
     pass
@@ -30,39 +31,27 @@ class FileNotSupported(Exception):
 class MetadataInvalid(Exception):
     pass
 
-def _listdir_recurse(basedir):
-    """ Return all files and folders """
-    files = []
-    for res in os.listdir(basedir):
-        fn = os.path.join(basedir, res)
-        if not os.path.isfile(fn):
-            children = _listdir_recurse(fn)
-            files.extend(children)
-            continue
-        files.append(fn)
-    return files
-
-def _repackage_archive(filename, buf, tmpdir=None):
-    """ Unpacks an archive (typically a .zip) into a GCab.Cabinet object """
+def _repackage_archive(filename, buf, tmpdir=None, flattern=True):
+    """ Unpacks an archive (typically a .zip) into a CabArchive object """
 
     # write to temp file
     src = tempfile.NamedTemporaryFile(mode='wb',
                                       prefix='foreignarchive_',
-                                      suffix=".cab",
+                                      suffix=".zip",
                                       dir=tmpdir,
                                       delete=True)
     src.write(buf)
     src.flush()
 
     # decompress to a temp directory
-    dest_fn = tempfile.mkdtemp(prefix='foreignarchive_', dir=tmpdir)
+    dest = tempfile.TemporaryDirectory(prefix='foreignarchive_')
 
     # work out what binary to use
     split = filename.rsplit('.', 1)
     if len(split) < 2:
         raise NotImplementedError('Filename not valid')
     if split[1] == 'zip':
-        argv = ['/usr/bin/bsdtar', '--directory', dest_fn, '-xvf', src.name]
+        argv = ['/usr/bin/bsdtar', '--directory', dest.name, '-xvf', src.name]
     else:
         raise NotImplementedError('Filename had no supported extension')
 
@@ -76,17 +65,14 @@ def _repackage_archive(filename, buf, tmpdir=None):
         raise IOError('Failed to extract: %s' % ps.stderr.read())
 
     # add all the fake CFFILE objects
-    arc = GCab.Cabinet.new()
-    cffolder = GCab.Folder.new(GCab.Compression.MSZIP)
-    arc.add_folder(cffolder)
-    for fn in _listdir_recurse(dest_fn):
+    cabarchive = CabArchive()
+    for fn in glob.glob(dest.name + '/**/*.*', recursive=True):
         with open(fn, 'rb') as f:
-            contents = f.read()
-        cffile = GCab.File.new_with_bytes(_get_basename_safe(fn),
-                                          GLib.Bytes.new(contents))
-        cffolder.add_file(cffile, False)
-    shutil.rmtree(dest_fn)
-    return arc
+            fn = fn.replace('\\', '/')
+            if flattern:
+                fn = os.path.basename(fn)
+            cabarchive[fn] = CabFile(f.read())
+    return cabarchive
 
 def detect_encoding_from_bom(b):
 
@@ -117,25 +103,20 @@ class UploadedFile:
         self.version_formats = ['plain', 'pair', 'triplet', 'quad', 'intel-me', 'intel-me2']
 
         # strip out any unlisted files
-        self._repacked_cfarchive = GCab.Cabinet.new()
-        self._repacked_cffolder = GCab.Folder.new(GCab.Compression.MSZIP)
-        self._repacked_cfarchive.add_folder(self._repacked_cffolder)
+        self.cabarchive_repacked = CabArchive()
 
         # private
         self._components = []
         self._data_size = 0
-        self._source_cfarchive = None
+        self.cabarchive_upload = None
         self._version_inf = None
 
     def _load_archive(self, filename, data):
         try:
             if filename.endswith('.cab'):
-                istream = Gio.MemoryInputStream.new_from_bytes(GLib.Bytes.new(data))
-                self._source_cfarchive = GCab.Cabinet.new()
-                self._source_cfarchive.load(istream)
-                self._source_cfarchive.extract(None)
+                self.cabarchive_upload = CabArchive(data, flattern=True)
             else:
-                self._source_cfarchive = _repackage_archive(filename, data)
+                self.cabarchive_upload = _repackage_archive(filename, data)
         except NotImplementedError as e:
             raise FileNotSupported('Invalid file type: %s' % str(e))
 
@@ -184,50 +165,38 @@ class UploadedFile:
             pass
 
     def _verify_infs(self):
-
-        for cf in _archive_get_files_from_glob(self._source_cfarchive, '*.inf'):
+        inffiles = [cabfile for cabfile in self.cabarchive_upload.values()
+                    if fnmatch.fnmatch(cabfile.filename, '*.inf')]
+        for cabfile in inffiles:
             # accept basically any encoding
-            contents_blob = cf.get_bytes().get_data()
-            contents = contents_blob.decode(detect_encoding_from_bom(contents_blob))
-            self._verify_inf(contents)
+            encoding = detect_encoding_from_bom(cabfile.buf)
+            self._verify_inf(cabfile.buf.decode(encoding))
 
-    def _add_cf_to_repacked_folder(self, cf):
-
-        # check for duplicate name
-        basename = _get_basename_safe(cf.get_name())
-        for cffile in self._repacked_cffolder.get_files():
-            if basename == cffile.get_name():
-                return
-
-        # add file to archive with new safe filename
-        cf_safe = GCab.File.new_with_bytes(basename, cf.get_bytes())
-        self._repacked_cffolder.add_file(cf_safe, False)
-
-    def _load_metainfo(self, cf):
+    def _load_metainfo(self, cabfile):
 
         component = AppStreamGlib.App.new()
         try:
             # check this is valid UTF-8
-            cf.get_bytes().get_data().decode('utf-8')
-            component.parse_data(cf.get_bytes(), AppStreamGlib.AppParseFlags.NONE)
+            cabfile.buf.decode('utf-8')
+            component.parse_data(GLib.Bytes.new(cabfile.buf), AppStreamGlib.AppParseFlags.NONE)
             fmt = AppStreamGlib.Format.new()
             fmt.set_kind(AppStreamGlib.FormatKind.METAINFO)
             component.add_format(fmt)
             component.validate(AppStreamGlib.AppValidateFlags.NONE)
         except UnicodeDecodeError as e:
-            raise MetadataInvalid('The metadata %s could not be parsed: %s' % (cf.get_name(), str(e)))
+            raise MetadataInvalid('The metadata %s could not be parsed: %s' % (cabfile.filename, str(e)))
         except Exception as e:
             try:
                 msg = e.message.decode('utf-8')
             except AttributeError:
                 msg = str(e)
-            raise MetadataInvalid('The metadata %s could not be parsed: %s' % (cf.get_name(), msg))
+            raise MetadataInvalid('The metadata %s could not be parsed: %s' % (cabfile.filename, msg))
 
         # add to the archive
-        self._add_cf_to_repacked_folder(cf)
+        self.cabarchive_repacked[cabfile.filename] = cabfile
 
         # check the file does not have any missing request.form
-        contents = cf.get_bytes().get_data()
+        contents = cabfile.buf
         if contents.decode('utf-8', 'ignore').find('FIXME') != -1:
             raise MetadataInvalid('The metadata file was not complete; '
                                   'Any FIXME text must be replaced with the correct values.')
@@ -254,8 +223,7 @@ class UploadedFile:
             for word in release_description.split(' '):
                 if word.find('.') == -1: # any word without a dot is not a fn
                     continue
-                cfs = _archive_get_files_from_glob(self._source_cfarchive, word)
-                if len(cfs):
+                if word in self.cabarchive_upload:
                     raise MetadataInvalid('The release description should not reference other files.')
 
         # fix up hex value
@@ -303,22 +271,19 @@ class UploadedFile:
             release.add_checksum(csum)
 
         # get the contents checksum
-        cf_name_safe = cf.get_name().replace('\\', '/')
-        dirname = os.path.dirname(cf_name_safe)
-        firmware_filename = os.path.join(dirname, csum.get_filename())
-        cfs = _archive_get_files_from_glob(self._source_cfarchive, firmware_filename)
-        if not cfs:
-            raise MetadataInvalid('No %s found in the archive' % firmware_filename)
+        try:
+            cabfile = self.cabarchive_upload[csum.get_filename()]
+        except KeyError as _:
+            raise MetadataInvalid('No %s found in the archive' % csum.get_filename())
 
         # add to the archive
-        self._add_cf_to_repacked_folder(cfs[0])
+        self.cabarchive_repacked[cabfile.filename] = cabfile
 
-        contents = cfs[0].get_bytes().get_data()
         csum.set_kind(GLib.ChecksumType.SHA1)
-        csum.set_value(hashlib.sha1(contents).hexdigest())
+        csum.set_value(hashlib.sha1(cabfile.buf).hexdigest())
 
         # set the sizes
-        release.set_size(AppStreamGlib.SizeKind.INSTALLED, len(contents))
+        release.set_size(AppStreamGlib.SizeKind.INSTALLED, len(cabfile.buf))
         release.set_size(AppStreamGlib.SizeKind.DOWNLOAD, self._data_size)
 
         # add to array
@@ -327,13 +292,14 @@ class UploadedFile:
     def _load_metainfos(self):
 
         # check metainfo exists
-        cfs = _archive_get_files_from_glob(self._source_cfarchive, '*.metainfo.xml')
-        if len(cfs) == 0:
+        cabfiles = [cabfile for cabfile in self.cabarchive_upload.values()
+                    if fnmatch.fnmatch(cabfile.filename, '*.metainfo.xml')]
+        if not cabfiles:
             raise MetadataInvalid('The firmware file had no .metadata.xml files')
 
         # parse each MetaInfo file
-        for cf in cfs:
-            self._load_metainfo(cf)
+        for cabfile in cabfiles:
+            self._load_metainfo(cabfile)
 
     def parse(self, filename, data, use_hashed_prefix=True):
 
@@ -363,11 +329,3 @@ class UploadedFile:
     def get_components(self):
         """ gets all detected AppStream components """
         return self._components
-
-    def get_source_cabinet(self):
-        """ gets the source archive with all files """
-        return self._source_cfarchive
-
-    def get_repacked_cabinet(self):
-        """ gets the filtered archive with only the defined files """
-        return self._repacked_cfarchive

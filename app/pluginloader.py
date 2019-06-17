@@ -191,7 +191,7 @@ class Pluginloader:
                     _event_log('Plugin %s failed for FileModifed(%s): %s' % (plugin.id, fn, str(e)))
 
     # an archive is being built
-    def archive_sign(self, arc, firmware_cff):
+    def archive_sign(self, cabarchive, cabfile):
         if not self.loaded:
             self.load_plugins()
         for plugin in self._plugins:
@@ -199,12 +199,12 @@ class Pluginloader:
                 if not plugin.enabled:
                     continue
                 try:
-                    plugin.archive_sign(arc, firmware_cff)
+                    plugin.archive_sign(cabarchive, cabfile)
                 except PluginError as e:
                     _event_log('Plugin %s failed for ArchiveSign(): %s' % (plugin.id, str(e)))
 
     # an archive is being built
-    def archive_copy(self, arc, firmware_cff):
+    def archive_copy(self, cabarchive, cabfile):
         if not self.loaded:
             self.load_plugins()
         for plugin in self._plugins:
@@ -212,12 +212,12 @@ class Pluginloader:
                 if not plugin.enabled:
                     continue
                 try:
-                    plugin.archive_copy(arc, firmware_cff)
+                    plugin.archive_copy(cabarchive, cabfile)
                 except PluginError as e:
                     _event_log('Plugin %s failed for archive_copy(): %s' % (plugin.id, str(e)))
 
     # an archive is being built
-    def archive_finalize(self, arc, metadata=None):
+    def archive_finalize(self, cabarchive, metadata=None):
         if not self.loaded:
             self.load_plugins()
         if not metadata:
@@ -227,7 +227,7 @@ class Pluginloader:
                 if not plugin.enabled:
                     continue
                 try:
-                    plugin.archive_finalize(arc, metadata)
+                    plugin.archive_finalize(cabarchive, metadata)
                 except PluginError as e:
                     _event_log('Plugin %s failed for ArchiveFinalize(): %s' % (plugin.id, str(e)))
 

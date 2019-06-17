@@ -10,25 +10,24 @@ import os
 import sys
 import hashlib
 import datetime
+import fnmatch
 
 import gi
 gi.require_version('AppStreamGlib', '1.0')
 from gi.repository import AppStreamGlib
-gi.require_version('GCab', '1.0')
-from gi.repository import GCab
-from gi.repository import Gio
 from gi.repository import GLib
+
+from cabarchive import CabArchive
 
 import app as application   #lgtm [py/import-and-import-from]
 from app import db, ploader
-
 from app.dbutils import _execute_count_star
 from app.models import Remote, Firmware, Vendor, Client, AnalyticVendor
 from app.models import AnalyticFirmware, Useragent, UseragentKind, Analytic, Report
 from app.models import ComponentShardInfo
 from app.models import _get_datestr_from_datetime
 from app.metadata import _metadata_update_targets, _metadata_update_pulp
-from app.util import _archive_get_files_from_glob, _get_dirname_safe, _event_log, _get_shard_path
+from app.util import _get_dirname_safe, _event_log, _get_shard_path
 
 # make compatible with Flask
 app = application.app
@@ -80,13 +79,13 @@ def _regenerate_and_sign_metadata():
     for r in remotes:
         _event_log('Signed metadata %s' % r.name)
 
-def _sign_md(cfarchive, cf):
+def _sign_md(cabarchive, cabfile):
     # parse each metainfo file
     try:
         component = AppStreamGlib.App.new()
-        component.parse_data(cf.get_bytes(), AppStreamGlib.AppParseFlags.NONE)
+        component.parse_data(GLib.Bytes.new(cabfile.buf), AppStreamGlib.AppParseFlags.NONE)
     except Exception as e:
-        raise NotImplementedError('Invalid metadata in %s: %s' % (cf.get_name(), str(e)))
+        raise NotImplementedError('Invalid metadata in %s: %s' % (cabfile.filename, str(e)))
 
     # sign each firmware
     release = component.get_release_default()
@@ -96,13 +95,14 @@ def _sign_md(cfarchive, cf):
         csum.set_filename('firmware.bin')
 
     # get the filename including the correct dirname
-    fn = os.path.join(_get_dirname_safe(cf.get_name()), csum.get_filename())
-    cfs = _archive_get_files_from_glob(cfarchive, fn)
-    if not cfs:
-        raise NotImplementedError('no %s firmware found in %s' % (fn, cf.get_name()))
+    fn = os.path.join(_get_dirname_safe(cabfile.filename), csum.get_filename())
+    try:
+        cabfile_fw = cabarchive[fn]
+    except KeyError as _:
+        raise NotImplementedError('no %s firmware found in %s' % (fn, cabfile.filename))
 
     # sign the firmware.bin file
-    ploader.archive_sign(cfarchive, cfs[0])
+    ploader.archive_sign(cabarchive, cabfile_fw)
 
 def _sign_fw(fw):
 
@@ -111,30 +111,23 @@ def _sign_fw(fw):
     fn = os.path.join(download_dir, fw.filename)
     try:
         with open(fn, 'rb') as f:
-            data = f.read()
+            cabarchive = CabArchive(f.read())
     except IOError as e:
         raise NotImplementedError('cannot read %s: %s' % (fn, str(e)))
-    istream = Gio.MemoryInputStream.new_from_bytes(GLib.Bytes.new(data))
-    cfarchive = GCab.Cabinet.new()
-    cfarchive.load(istream)
-    cfarchive.extract(None)
 
     # look for each metainfo file
-    cfs = _archive_get_files_from_glob(cfarchive, '*.metainfo.xml')
-    if len(cfs) == 0:
-        raise NotImplementedError('no .metadata.xml files in %s' % fn)
+    cabfiles = [cabfile for cabfile in cabarchive.values()
+                if fnmatch.fnmatch(cabfile.filename, '*.metainfo.xml')]
+    if not cabfiles:
+        raise NotImplementedError('no .metadata.xml files in {}: {}'.format(fn, cabarchive))
 
     # parse each MetaInfo file
     print('Signing: %s' % fn)
-    for cf in cfs:
-        _sign_md(cfarchive, cf)
-
-    # save the new archive
-    ostream = Gio.MemoryOutputStream.new_resizable()
-    cfarchive.write_simple(ostream)
-    cab_data = Gio.MemoryOutputStream.steal_as_bytes(ostream).get_data()
+    for cabfile in cabfiles:
+        _sign_md(cabarchive, cabfile)
 
     # overwrite old file
+    cab_data = cabarchive.save()
     with open(fn, 'wb') as f:
         f.write(cab_data)
 

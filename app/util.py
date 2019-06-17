@@ -15,16 +15,10 @@ import random
 import subprocess
 import tempfile
 
-from glob import fnmatch
 from functools import wraps
 
 from lxml import etree as ET
 from flask import request, flash, render_template, g, Response
-
-import gi
-gi.require_version('GCab', '1.0')
-from gi.repository import GCab
-from gi.repository import GLib
 
 def _fix_component_name(name, developer_name=None):
     if not name:
@@ -234,30 +228,9 @@ def _get_shard_path(shard):
     from app import app
     return os.path.join(app.config['SHARD_DIR'], str(shard.component_id), shard.info.name)
 
-def _get_basename_safe(fn):
-    """ gets the file basename, also with win32-style backslashes """
-    return os.path.basename(fn.replace('\\', '/'))
-
 def _get_dirname_safe(fn):
     """ gets the file dirname, also with win32-style backslashes """
     return os.path.dirname(fn.replace('\\', '/'))
-
-def _archive_get_files_from_glob(arc, glob):
-    arr = []
-    for cffolder in arc.get_folders():
-        for cffile in cffolder.get_files():
-            filename = cffile.get_name().replace('\\', '/')
-            if fnmatch.fnmatch(filename, glob):
-                arr.append(cffile)
-    return arr
-
-def _archive_add(arc, filename, contents):
-    cffile = GCab.File.new_with_bytes(filename, GLib.Bytes.new(contents))
-    cffolders = arc.get_folders()
-    if not cffolders:
-        cffolders = [GCab.Folder.new(GCab.Compression.NONE)]
-        arc.add_folder(cffolders[0])
-    cffolders[0].add_file(cffile, False)
 
 def _get_client_address():
     """ Gets user IP address """

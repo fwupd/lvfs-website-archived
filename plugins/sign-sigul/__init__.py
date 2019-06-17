@@ -9,9 +9,9 @@
 import subprocess
 import tempfile
 
+from cabarchive import CabFile
 from app.pluginloader import PluginBase, PluginError, PluginSettingText, PluginSettingBool
 from app import ploader
-from app.util import _get_basename_safe, _archive_add, _archive_get_files_from_glob
 
 def _sigul_detached_sign_data(contents, config, key):
 
@@ -85,17 +85,17 @@ class Plugin(PluginBase):
         if fn.endswith('.xml.gz'):
             self._metadata_modified(fn)
 
-    def archive_sign(self, arc, firmware_cff):
+    def archive_sign(self, cabarchive, cabfile):
 
         # already signed
-        detached_fn = _get_basename_safe(firmware_cff.get_name() + '.asc')
-        if _archive_get_files_from_glob(arc, detached_fn):
+        detached_fn = cabfile.filename + '.asc'
+        if detached_fn in cabarchive:
             return
 
         # create the detached signature
-        blob_asc = _sigul_detached_sign_data(firmware_cff.get_bytes().get_data(),
+        blob_asc = _sigul_detached_sign_data(cabfile.buf,
                                              self.get_setting('sign_sigul_config_file', required=True),
                                              self.get_setting('sign_sigul_firmware_key', required=True))
 
         # add it to the archive
-        _archive_add(arc, detached_fn, blob_asc.encode('utf-8'))
+        cabarchive[detached_fn] = CabFile(blob_asc.encode('utf-8'))

@@ -9,18 +9,14 @@
 import unittest
 import zipfile
 import io
-import gi
-
-gi.require_version('GCab', '1.0')
-
-from gi.repository import GCab
-from gi.repository import Gio
 
 from app.uploadedfile import UploadedFile, FileTooSmall, FileNotSupported, MetadataInvalid
-from app.util import _archive_get_files_from_glob, _archive_add, _validate_guid
+from app.util import _validate_guid
+
+from cabarchive import CabArchive, CabFile
 
 def _get_valid_firmware():
-    return 'fubar'.ljust(1024).encode('utf-8')
+    return CabFile('fubar'.ljust(1024).encode('utf-8'))
 
 def _get_valid_metainfo(release_description='This stable release fixes bugs',
                         version_format='quad'):
@@ -51,12 +47,7 @@ def _get_valid_metainfo(release_description='This stable release fixes bugs',
   </custom>
 </component>
 """ % (release_description, version_format)
-    return txt.encode('utf-8')
-
-def _archive_to_contents(arc):
-    ostream = Gio.MemoryOutputStream.new_resizable()
-    arc.write_simple(ostream)
-    return Gio.MemoryOutputStream.steal_as_bytes(ostream).get_data()
+    return CabFile(txt.encode('utf-8'))
 
 class InMemoryZip:
     def __init__(self):
@@ -95,75 +86,75 @@ class TestStringMethods(unittest.TestCase):
 
     # no metainfo.xml
     def test_metainfo_missing(self):
-        arc = GCab.Cabinet.new()
-        _archive_add(arc, 'firmware.bin', _get_valid_firmware())
+        cabarchive = CabArchive()
+        cabarchive['firmware.bin'] = _get_valid_firmware()
         with self.assertRaises(MetadataInvalid):
             ufile = UploadedFile()
-            ufile.parse('foo.cab', _archive_to_contents(arc))
+            ufile.parse('foo.cab', cabarchive.save())
 
     # trying to upload the wrong type
     def test_invalid_type(self):
-        arc = GCab.Cabinet.new()
-        _archive_add(arc, 'firmware.bin', _get_valid_firmware())
+        cabarchive = CabArchive()
+        cabarchive['firmware.bin'] = _get_valid_firmware()
         with self.assertRaises(FileNotSupported):
             ufile = UploadedFile()
-            ufile.parse('foo.doc', _archive_to_contents(arc))
+            ufile.parse('foo.doc', cabarchive.save())
 
     # invalid metainfo
     def test_metainfo_invalid(self):
-        arc = GCab.Cabinet.new()
-        _archive_add(arc, 'firmware.bin', _get_valid_firmware())
-        _archive_add(arc, 'firmware.metainfo.xml', b'<compoXXXXnent/>')
+        cabarchive = CabArchive()
+        cabarchive['firmware.bin'] = _get_valid_firmware()
+        cabarchive['firmware.metainfo.xml'] = CabFile(b'<compoXXXXnent/>')
         with self.assertRaises(MetadataInvalid):
             ufile = UploadedFile()
-            ufile.parse('foo.cab', _archive_to_contents(arc))
+            ufile.parse('foo.cab', cabarchive.save())
 
     # invalid .inf file
     def test_inf_invalid(self):
-        arc = GCab.Cabinet.new()
-        _archive_add(arc, 'firmware.bin', _get_valid_firmware())
-        _archive_add(arc, 'firmware.metainfo.xml', b'<component/>')
-        _archive_add(arc, 'firmware.inf', b'fubar')
+        cabarchive = CabArchive()
+        cabarchive['firmware.bin'] = _get_valid_firmware()
+        cabarchive['firmware.metainfo.xml'] = CabFile(b'<component/>')
+        cabarchive['firmware.inf'] = CabFile(b'fubar')
         with self.assertRaises(MetadataInvalid):
             ufile = UploadedFile()
-            ufile.parse('foo.cab', _archive_to_contents(arc))
+            ufile.parse('foo.cab', cabarchive.save())
 
     # archive .cab with firmware.bin of the wrong name
     def test_missing_firmware(self):
-        arc = GCab.Cabinet.new()
-        _archive_add(arc, 'firmware123.bin', _get_valid_firmware())
-        _archive_add(arc, 'firmware.metainfo.xml', _get_valid_metainfo())
+        cabarchive = CabArchive()
+        cabarchive['firmware123.bin'] = _get_valid_firmware()
+        cabarchive['firmware.metainfo.xml'] = _get_valid_metainfo()
         with self.assertRaises(MetadataInvalid):
             ufile = UploadedFile()
-            ufile.parse('foo.cab', _archive_to_contents(arc))
+            ufile.parse('foo.cab', cabarchive.save())
 
     # valid firmware
     def test_valid(self):
-        arc = GCab.Cabinet.new()
-        _archive_add(arc, 'firmware.bin', _get_valid_firmware())
-        _archive_add(arc, 'firmware.metainfo.xml', _get_valid_metainfo())
+        cabarchive = CabArchive()
+        cabarchive['firmware.bin'] = _get_valid_firmware()
+        cabarchive['firmware.metainfo.xml'] = _get_valid_metainfo()
         ufile = UploadedFile()
-        ufile.parse('foo.cab', _archive_to_contents(arc))
-        arc2 = ufile.get_repacked_cabinet()
-        self.assertIsNotNone(_archive_get_files_from_glob(arc2, 'firmware.bin'))
-        self.assertIsNotNone(_archive_get_files_from_glob(arc2, 'firmware.metainfo.xml'))
+        ufile.parse('foo.cab', cabarchive.save())
+        cabarchive2 = ufile.cabarchive_repacked
+        self.assertIsNotNone(cabarchive2['firmware.bin'])
+        self.assertIsNotNone(cabarchive2['firmware.metainfo.xml'])
 
     # invalid version-format
     def test_invalid_version_format(self):
-        arc = GCab.Cabinet.new()
-        _archive_add(arc, 'firmware.bin', _get_valid_firmware())
-        _archive_add(arc, 'firmware.metainfo.xml', _get_valid_metainfo(version_format='foo'))
+        cabarchive = CabArchive()
+        cabarchive['firmware.bin'] = _get_valid_firmware()
+        cabarchive['firmware.metainfo.xml'] = _get_valid_metainfo(version_format='foo')
         with self.assertRaises(MetadataInvalid):
             ufile = UploadedFile()
-            ufile.parse('foo.cab', _archive_to_contents(arc))
+            ufile.parse('foo.cab', cabarchive.save())
 
     # valid metadata
     def test_metadata(self):
-        arc = GCab.Cabinet.new()
-        _archive_add(arc, 'firmware.bin', _get_valid_firmware())
-        _archive_add(arc, 'firmware.metainfo.xml', _get_valid_metainfo())
+        cabarchive = CabArchive()
+        cabarchive['firmware.bin'] = _get_valid_firmware()
+        cabarchive['firmware.metainfo.xml'] = _get_valid_metainfo()
         ufile = UploadedFile()
-        ufile.parse('foo.cab', _archive_to_contents(arc))
+        ufile.parse('foo.cab', cabarchive.save())
         metadata = ufile.get_components()[0].get_metadata()
         self.assertTrue('foo' in metadata)
         self.assertTrue('LVFS::InhibitDownload' in metadata)
@@ -174,74 +165,75 @@ class TestStringMethods(unittest.TestCase):
 
     # update description references another file
     def test_release_mentions_file(self):
-        arc = GCab.Cabinet.new()
-        _archive_add(arc, 'firmware.bin', _get_valid_firmware())
-        _archive_add(arc, 'README.txt', _get_valid_firmware())
-        _archive_add(arc, 'firmware.metainfo.xml',
-                     _get_valid_metainfo(release_description='See README.txt for details.'))
+        cabarchive = CabArchive()
+        cabarchive['firmware.bin'] = _get_valid_firmware()
+        cabarchive['README.txt'] = _get_valid_firmware()
+        cabarchive['firmware.metainfo.xml'] = \
+            _get_valid_metainfo(release_description='See README.txt for details.')
         with self.assertRaises(MetadataInvalid):
             ufile = UploadedFile()
-            ufile.parse('foo.cab', _archive_to_contents(arc))
+            ufile.parse('foo.cab', cabarchive.save())
 
     # archive .cab with path with forward-slashes
     def test_valid_path(self):
-        arc = GCab.Cabinet.new()
-        _archive_add(arc, 'DriverPackage/firmware.bin', _get_valid_firmware())
-        _archive_add(arc, 'DriverPackage/firmware.metainfo.xml', _get_valid_metainfo())
+        cabarchive = CabArchive()
+        cabarchive['DriverPackage/firmware.bin'] = _get_valid_firmware()
+        cabarchive['DriverPackage/firmware.metainfo.xml'] = _get_valid_metainfo()
         ufile = UploadedFile()
-        ufile.parse('foo.cab', _archive_to_contents(arc))
-        arc2 = ufile.get_repacked_cabinet()
-        self.assertTrue(_archive_get_files_from_glob(arc2, 'firmware.bin'))
-        self.assertTrue(_archive_get_files_from_glob(arc2, 'firmware.metainfo.xml'))
+        ufile.parse('foo.cab', cabarchive.save())
+        cabarchive2 = ufile.cabarchive_repacked
+        self.assertIsNotNone(cabarchive2['firmware.bin'])
+        self.assertIsNotNone(cabarchive2['firmware.metainfo.xml'])
 
     # archive .cab with path with backslashes
     def test_valid_path_back(self):
-        arc = GCab.Cabinet.new()
-        _archive_add(arc, 'DriverPackage\\firmware.bin', _get_valid_firmware())
-        _archive_add(arc, 'DriverPackage\\firmware.metainfo.xml', _get_valid_metainfo())
+        cabarchive = CabArchive()
+        cabarchive['DriverPackage\\firmware.bin'] = _get_valid_firmware()
+        cabarchive['DriverPackage\\firmware.metainfo.xml'] = _get_valid_metainfo()
         ufile = UploadedFile()
-        ufile.parse('foo.cab', _archive_to_contents(arc))
-        arc2 = ufile.get_repacked_cabinet()
-        self.assertTrue(_archive_get_files_from_glob(arc2, 'firmware.bin'))
-        self.assertTrue(_archive_get_files_from_glob(arc2, 'firmware.metainfo.xml'))
+        ufile.parse('foo.cab', cabarchive.save())
+        cabarchive2 = ufile.cabarchive_repacked
+        self.assertIsNotNone(cabarchive2['firmware.bin'])
+        self.assertIsNotNone(cabarchive2['firmware.metainfo.xml'])
 
     # archive with extra files
     def test_extra_files(self):
-        arc = GCab.Cabinet.new()
-        _archive_add(arc, 'firmware.bin', _get_valid_firmware())
-        _archive_add(arc, 'firmware.metainfo.xml', _get_valid_metainfo())
-        _archive_add(arc, 'README.txt', b'fubar')
+        cabarchive = CabArchive()
+        cabarchive['firmware.bin'] = _get_valid_firmware()
+        cabarchive['firmware.metainfo.xml'] = _get_valid_metainfo()
+        cabarchive['README.txt'] = CabFile(b'fubar')
         ufile = UploadedFile()
-        ufile.parse('foo.cab', _archive_to_contents(arc))
-        arc2 = ufile.get_repacked_cabinet()
-        self.assertTrue(_archive_get_files_from_glob(arc2, 'firmware.bin'))
-        self.assertTrue(_archive_get_files_from_glob(arc2, 'firmware.metainfo.xml'))
-        self.assertFalse(_archive_get_files_from_glob(arc2, 'README.txt'))
+        ufile.parse('foo.cab', cabarchive.save())
+        cabarchive2 = ufile.cabarchive_repacked
+        self.assertIsNotNone(cabarchive2['firmware.bin'])
+        self.assertIsNotNone(cabarchive2['firmware.metainfo.xml'])
+        with self.assertRaises(KeyError):
+            self.assertIsNotNone(cabarchive2['README.txt'])
 
     # archive with multiple metainfo files pointing to the same firmware
     def test_multiple_metainfo_same_firmware(self):
-        arc = GCab.Cabinet.new()
-        _archive_add(arc, 'firmware.bin', _get_valid_firmware())
-        _archive_add(arc, 'firmware1.metainfo.xml', _get_valid_metainfo())
-        _archive_add(arc, 'firmware2.metainfo.xml', _get_valid_metainfo())
+        cabarchive = CabArchive()
+        cabarchive['firmware.bin'] = _get_valid_firmware()
+        cabarchive['firmware1.metainfo.xml'] = _get_valid_metainfo()
+        cabarchive['firmware2.metainfo.xml'] = _get_valid_metainfo()
 
         ufile = UploadedFile()
-        ufile.parse('foo.cab', _archive_to_contents(arc))
-        arc2 = ufile.get_repacked_cabinet()
-        self.assertTrue(_archive_get_files_from_glob(arc2, 'firmware.bin'))
-        self.assertTrue(_archive_get_files_from_glob(arc2, 'firmware1.metainfo.xml'))
-        self.assertTrue(_archive_get_files_from_glob(arc2, 'firmware2.metainfo.xml'))
+        ufile.parse('foo.cab', cabarchive.save())
+        cabarchive2 = ufile.cabarchive_repacked
+        self.assertIsNotNone(cabarchive2['firmware.bin'])
+        self.assertIsNotNone(cabarchive2['firmware1.metainfo.xml'])
+        self.assertIsNotNone(cabarchive2['firmware2.metainfo.xml'])
 
     # windows .zip with path with backslashes
     def test_valid_zipfile(self):
         imz = InMemoryZip()
-        imz.append('DriverPackage\\firmware.bin', _get_valid_firmware())
-        imz.append('DriverPackage\\firmware.metainfo.xml', _get_valid_metainfo())
+        imz.append('DriverPackage\\firmware.bin', _get_valid_firmware().buf)
+        imz.append('DriverPackage\\firmware.metainfo.xml', _get_valid_metainfo().buf)
         ufile = UploadedFile()
         ufile.parse('foo.zip', imz.read())
-        arc2 = ufile.get_repacked_cabinet()
-        self.assertTrue(_archive_get_files_from_glob(arc2, 'firmware.bin'))
-        self.assertTrue(_archive_get_files_from_glob(arc2, 'firmware.metainfo.xml'))
+        cabarchive2 = ufile.cabarchive_repacked
+        self.assertIsNotNone(cabarchive2['firmware.bin'])
+        self.assertIsNotNone(cabarchive2['firmware.metainfo.xml'])
 
 if __name__ == '__main__':
     unittest.main()

@@ -11,7 +11,6 @@ import datetime
 import hashlib
 
 from gi.repository import AppStreamGlib
-from gi.repository import Gio
 from gi.repository import GLib
 
 from flask import request, flash, url_for, redirect, render_template, g
@@ -354,24 +353,19 @@ def upload():
             return redirect(request.url)
 
     # allow plugins to copy any extra files from the source archive
-    for cffolder in ufile.get_source_cabinet().get_folders():
-        for cffile in cffolder.get_files():
-            ploader.archive_copy(ufile.get_repacked_cabinet(), cffile)
+    for cffile in ufile.cabarchive_upload.values():
+        ploader.archive_copy(ufile.cabarchive_repacked, cffile)
 
     # allow plugins to add files
-    ploader.archive_finalize(ufile.get_repacked_cabinet(),
+    ploader.archive_finalize(ufile.cabarchive_repacked,
                              _get_plugin_metadata_for_uploaded_file(ufile))
-
-    # export the new archive and get the checksum
-    ostream = Gio.MemoryOutputStream.new_resizable()
-    ufile.get_repacked_cabinet().write_simple(ostream)
-    cab_data = Gio.MemoryOutputStream.steal_as_bytes(ostream).get_data()
 
     # dump to a file
     download_dir = app.config['DOWNLOAD_DIR']
     if not os.path.exists(download_dir):
         os.mkdir(download_dir)
     fn = os.path.join(download_dir, ufile.filename_new)
+    cab_data = ufile.cabarchive_repacked.save(compress=True)
     with open(fn, 'wb') as f:
         f.write(cab_data)
 

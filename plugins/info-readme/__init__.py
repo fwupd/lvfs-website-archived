@@ -6,8 +6,8 @@
 #
 # pylint: disable=no-self-use
 
+from cabarchive import CabFile
 from app.pluginloader import PluginBase, PluginError, PluginSettingText, PluginSettingBool
-from app.util import _archive_get_files_from_glob, _archive_add
 
 class Plugin(PluginBase):
     def __init__(self):
@@ -28,12 +28,11 @@ class Plugin(PluginBase):
                                    'plugins/info-readme/template.txt'))
         return s
 
-    def archive_finalize(self, arc, metadata):
+    def archive_finalize(self, cabarchive, metadata):
 
         # does the readme file already exist?
         filename = self.get_setting('info_readme_filename', required=True)
-        if _archive_get_files_from_glob(arc, filename):
-            print("archive already has %s" % filename)
+        if filename in cabarchive:
             return
 
         # read in the file and do substititons
@@ -46,4 +45,4 @@ class Plugin(PluginBase):
             template = template.replace(key, metadata[key])
 
         # add it to the archive
-        _archive_add(arc, filename, template.encode('utf-8'))
+        cabarchive[filename] = CabFile(template.encode('utf-8'))

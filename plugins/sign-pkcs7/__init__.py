@@ -9,9 +9,9 @@
 import subprocess
 import tempfile
 
+from cabarchive import CabFile
 from app.pluginloader import PluginBase, PluginError, PluginSettingText, PluginSettingBool
 from app import ploader
-from app.util import _get_basename_safe, _archive_add, _archive_get_files_from_glob
 
 class Plugin(PluginBase):
     def __init__(self):
@@ -85,18 +85,17 @@ class Plugin(PluginBase):
         if fn.endswith('.xml.gz'):
             self._metadata_modified(fn)
 
-    def archive_sign(self, arc, firmware_cff):
+    def archive_sign(self, cabarchive, cabfile):
 
         # already signed
-        detached_fn = _get_basename_safe(firmware_cff.get_name() + '.p7b')
-        if _archive_get_files_from_glob(arc, detached_fn):
+        detached_fn = cabfile.filename + '.p7b'
+        if detached_fn in cabarchive:
             return
 
         # create the detached signature
-        blob = firmware_cff.get_bytes().get_data()
-        blob_p7b = self._sign_blob(blob)
+        blob_p7b = self._sign_blob(cabfile.buf)
         if not blob_p7b:
             return
 
         # add it to the archive
-        _archive_add(arc, detached_fn, blob_p7b.encode('utf-8'))
+        cabarchive[detached_fn] = CabFile(blob_p7b.encode('utf-8'))
