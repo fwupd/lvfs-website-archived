@@ -11,18 +11,14 @@ import os
 import datetime
 import hashlib
 
-from gi.repository import AppStreamGlib
-from gi.repository import GLib
-
 from flask import request, flash, url_for, redirect, render_template, g
 from flask_login import login_required
 
 from app import app, db, ploader
 
-from .models import Firmware, Component, Requirement, Guid, FirmwareEvent
-from .models import Vendor, Remote, Agreement, Affiliation, Checksum, Protocol, Category
+from .models import Firmware, FirmwareEvent, Vendor, Remote, Agreement, Affiliation, Protocol, Category
 from .uploadedfile import UploadedFile, FileTooLarge, FileTooSmall, FileNotSupported, MetadataInvalid
-from .util import _get_client_address, _get_settings, _markdown_from_xml, _fix_component_name
+from .util import _get_client_address, _get_settings, _fix_component_name
 from .util import _error_internal, _error_permission_denied
 from .util import _json_success, _json_error
 from .views_firmware import _firmware_delete
@@ -32,7 +28,7 @@ def _get_plugin_metadata_for_uploaded_file(ufile):
     metadata = {}
     metadata['$DATE$'] = datetime.datetime.now().replace(microsecond=0).isoformat()
     metadata['$FWUPD_MIN_VERSION$'] = ufile.fwupd_min_version
-    metadata['$CAB_FILENAME$'] = ufile.filename_new
+    metadata['$CAB_FILENAME$'] = ufile.fw.filename
     metadata['$FIRMWARE_BASEURI$'] = settings['firmware_baseuri']
     return metadata
 
@@ -52,146 +48,6 @@ def _user_can_upload(user):
 
     # works for us
     return True
-
-def _create_fw_from_uploaded_file(ufile):
-
-    # create empty firmware
-    fw = Firmware()
-    fw.filename = ufile.filename_new
-    fw.checksum_upload = ufile.checksum_upload
-    if ufile.version_display:
-        fw.version_display = ufile.version_display
-
-    # create child metadata object for the components
-    for component in ufile.get_components():
-        md = Component()
-        md.appstream_id = component.get_id()
-        md.name = str(component.get_name())
-        md.summary = str(component.get_comment())
-        md.developer_name = str(component.get_developer_name())
-        md.metadata_license = component.get_metadata_license()
-        md.project_license = component.get_project_license()
-        md.url_homepage = str(component.get_url_item(AppStreamGlib.UrlKind.HOMEPAGE))
-        md.description = _markdown_from_xml(str(component.get_description()))
-        md.priority = component.get_priority()
-
-        # fix up the vendor
-        if md.developer_name == 'LenovoLtd.':
-            md.developer_name = 'Lenovo Ltd.'
-
-        # add manually added keywords
-        for keyword in component.get_keywords():
-            md.add_keywords_from_string(str(keyword), priority=5)
-
-        # add from the provided free text
-        if md.developer_name:
-            md.add_keywords_from_string(md.developer_name, priority=10)
-        if md.name:
-            md.add_keywords_from_string(md.name, priority=3)
-        if md.summary:
-            md.add_keywords_from_string(md.summary, priority=1)
-
-        # from the provide
-        for prov in component.get_provides():
-            if prov.get_kind() != AppStreamGlib.ProvideKind.FIRMWARE_FLASHED:
-                continue
-            md.guids.append(Guid(md.component_id, prov.get_value()))
-
-        # from the release
-        rel = component.get_release_default()
-        md.version = rel.get_version()
-        #allows this to work on older versions of appstream-glib
-        if hasattr(rel, 'get_install_duration'):
-            md.install_duration = rel.get_install_duration()
-        else:
-            md.install_duration = 0
-        md.release_description = _markdown_from_xml(str(rel.get_description()))
-        md.release_timestamp = rel.get_timestamp()
-        md.release_installed_size = rel.get_size(AppStreamGlib.SizeKind.INSTALLED)
-        md.release_download_size = rel.get_size(AppStreamGlib.SizeKind.DOWNLOAD)
-        md.release_urgency = AppStreamGlib.urgency_kind_to_string(rel.get_urgency())
-        if hasattr(AppStreamGlib.UrlKind, 'DETAILS'):
-            tmp = rel.get_url(AppStreamGlib.UrlKind.DETAILS) # pylint: disable=no-member
-            if tmp:
-                md.details_url = str(tmp)
-        if hasattr(AppStreamGlib.UrlKind, 'SOURCE'):
-            tmp = rel.get_url(AppStreamGlib.UrlKind.SOURCE) # pylint: disable=no-member
-            if tmp:
-                md.source_url = str(tmp)
-
-        # from requires
-        for req in component.get_requires():
-            req_kind = AppStreamGlib.Require.kind_to_string(req.get_kind())
-            req_compare = AppStreamGlib.Require.compare_to_string(req.get_compare())
-            req_value = req.get_value()
-            if req_kind == 'hardware':
-                req_values = req_value.split('|')
-            else:
-                req_values = [req_value]
-            for req_value in req_values:
-                rq = Requirement(md.component_id,
-                                 req_kind, req_value, req_compare,
-                                 req.get_version())
-                md.requirements.append(rq)
-
-        # from the first screenshot
-        if len(component.get_screenshots()) > 0:
-            ss = component.get_screenshots()[0]
-            tmp = ss.get_caption(None)
-            tmp = tmp.replace('<p>', '')
-            tmp = tmp.replace('</p>', '')
-            md.screenshot_caption = tmp
-            if len(ss.get_images()) > 0:
-                im = ss.get_images()[0]
-                md.screenshot_url = str(im.get_url())
-
-        # from the content checksum
-        csum = rel.get_checksum_by_target(AppStreamGlib.ChecksumTarget.CONTENT)
-        md.checksum_contents = csum.get_value()
-        md.filename_contents = csum.get_filename()
-
-        # from the device checksum
-        if hasattr(AppStreamGlib.ChecksumTarget, 'DEVICE'):
-            for csum in rel.get_checksums():
-                if csum.get_target() == AppStreamGlib.ChecksumTarget.DEVICE: # pylint: disable=no-member
-                    if csum.get_kind() == GLib.ChecksumType.SHA1:
-                        md.device_checksums.append(Checksum(csum.get_value(), 'SHA1'))
-                    elif csum.get_kind() == GLib.ChecksumType.SHA256:
-                        md.device_checksums.append(Checksum(csum.get_value(), 'SHA256'))
-
-        # allows OEM to hide the direct download link on the LVFS
-        metadata = component.get_metadata()
-        if 'LVFS::InhibitDownload' in metadata:
-            md.inhibit_download = True
-
-        # allows OEM to change the triplet (AA.BB.CCDD) to quad (AA.BB.CC.DD)
-        if 'LVFS::VersionFormat' in metadata:
-            md.version_format = metadata['LVFS::VersionFormat']
-
-        # allows OEM to specify protocol
-        if 'LVFS::UpdateProtocol' in metadata:
-            pr = db.session.query(Protocol).\
-                    filter(Protocol.value == metadata['LVFS::UpdateProtocol']).first()
-            if pr:
-                md.protocol_id = pr.protocol_id
-
-        # allows OEM to specify category
-        for category in component.get_categories():
-            cat = db.session.query(Category).filter(Category.value == category).first()
-            if cat:
-                md.category_id = cat.category_id
-                break
-        # fallback to device -- DROP THIS 2020-01-01
-        if not md.category_id:
-            md.category_id = db.session.query(Category).filter(Category.value == 'X-Device').first().category_id
-
-        # allows OEM to set banned country codes
-        if 'LVFS::BannedCountryCodes' in metadata:
-            fw.banned_country_codes = metadata['LVFS::BannedCountryCodes']
-
-        fw.mds.append(md)
-
-    return fw
 
 def _filter_fw_by_id_guid_version(fws, component_id, provides_value, release_version):
     for fw in fws:
@@ -276,13 +132,17 @@ def upload():
         return _error_internal('No file object')
     try:
         ufile = UploadedFile()
+        for cat in db.session.query(Category).all():
+            ufile.category_map[cat.value] = cat.category_id
+        for pro in db.session.query(Protocol).all():
+            ufile.protocol_map[pro.value] = pro.protocol_id
         ufile.parse(os.path.basename(fileitem.filename), fileitem.read())
     except (FileTooLarge, FileTooSmall, FileNotSupported, MetadataInvalid) as e:
         flash('Failed to upload file: ' + str(e), 'danger')
         return redirect(request.url)
 
     # check the file does not already exist
-    fw = db.session.query(Firmware).filter(Firmware.checksum_upload == ufile.checksum_upload).first()
+    fw = db.session.query(Firmware).filter(Firmware.checksum_upload == ufile.fw.checksum_upload).first()
     if fw:
         if fw.check_acl('@view'):
             flash('Failed to upload file: A file with hash %s already exists' % fw.checksum_upload, 'warning')
@@ -293,20 +153,17 @@ def upload():
     # check the guid and version does not already exist
     fws = db.session.query(Firmware).all()
     fws_already_exist = []
-    for component in ufile.get_components():
-        provides_value = component.get_provides()[0].get_value()
-        release_default = component.get_release_default()
-        release_version = release_default.get_version()
-        component_id = component.get_id()
+    for md in ufile.fw.mds:
+        provides_value = md.guids[0].value
         fw = _filter_fw_by_id_guid_version(fws,
-                                           component_id,
+                                           md.appstream_id,
                                            provides_value,
-                                           release_version)
+                                           md.version)
         if fw:
             fws_already_exist.append(fw)
 
     # all the components existed, so build an error out of all the versions
-    if len(fws_already_exist) == len(ufile.get_components()):
+    if len(fws_already_exist) == len(ufile.fw.mds):
         if g.user.is_robot and 'auto-delete' in request.form:
             for fw in fws_already_exist:
                 if fw.remote.is_public:
@@ -329,17 +186,15 @@ def upload():
 
     # check if the file dropped a GUID previously supported
     dropped_guids = []
-    for component in ufile.get_components():
+    for umd in ufile.fw.mds:
         new_guids = []
-        for prov in component.get_provides():
-            if prov.get_kind() != AppStreamGlib.ProvideKind.FIRMWARE_FLASHED:
-                continue
-            new_guids.append(prov.get_value())
+        for guid in umd.guids:
+            new_guids.append(guid.value)
         for fw in fws:
             if fw.is_deleted:
                 continue
             for md in fw.mds:
-                if md.appstream_id != component.get_id():
+                if md.appstream_id != umd.appstream_id:
                     continue
                 for old_guid in md.guids:
                     if not old_guid.value in new_guids and not old_guid.value in dropped_guids:
@@ -365,14 +220,14 @@ def upload():
     download_dir = app.config['DOWNLOAD_DIR']
     if not os.path.exists(download_dir):
         os.mkdir(download_dir)
-    fn = os.path.join(download_dir, ufile.filename_new)
+    fn = os.path.join(download_dir, ufile.fw.filename)
     cab_data = ufile.cabarchive_repacked.save(compress=True)
     with open(fn, 'wb') as f:
         f.write(cab_data)
 
     # create parent firmware object
     target = request.form['target']
-    fw = _create_fw_from_uploaded_file(ufile)
+    fw = ufile.fw
     fw.vendor_id = vendor.vendor_id
     fw.user_id = g.user.user_id
     fw.addr = _get_client_address()
@@ -400,7 +255,7 @@ def upload():
     # ensure the test has been added for the firmware type
     ploader.ensure_test_for_fw(fw)
 
-    flash('Uploaded file %s to %s' % (ufile.filename_new, target), 'info')
+    flash('Uploaded file %s to %s' % (ufile.fw.filename, target), 'info')
 
     # invalidate
     if target == 'embargo':

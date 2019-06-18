@@ -78,10 +78,9 @@ def _unwrap_xml_text(txt):
         new_lines.append(line.strip())
     return ' '.join(new_lines)
 
-def _markdown_from_xml(markup):
+def _markdown_from_root(root):
     """ return MarkDown for the XML input """
     tmp = ''
-    root = ET.fromstring('<description>' + markup + '</description>')
     for n in root:
         if n.tag == 'p':
             if n.text:
@@ -228,10 +227,6 @@ def _get_absolute_path(fw):
 def _get_shard_path(shard):
     from app import app
     return os.path.join(app.config['SHARD_DIR'], str(shard.component_id), shard.info.name)
-
-def _get_dirname_safe(fn):
-    """ gets the file dirname, also with win32-style backslashes """
-    return os.path.dirname(fn.replace('\\', '/'))
 
 def _get_client_address():
     """ Gets user IP address """

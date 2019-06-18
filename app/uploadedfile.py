@@ -5,7 +5,7 @@
 #
 # SPDX-License-Identifier: GPL-2.0+
 #
-# pylint: disable=fixme,too-many-instance-attributes
+# pylint: disable=fixme,too-many-instance-attributes,too-few-public-methods
 
 import os
 import hashlib
@@ -13,15 +13,16 @@ import glob
 import subprocess
 import tempfile
 import configparser
+import datetime
 import fnmatch
 
-from gi.repository import GLib
-from gi.repository import AppStreamGlib
+from lxml import etree as ET
 
 from cabarchive import CabArchive, CabFile
 from infparser import InfParser
 
-from .util import _validate_guid
+from .models import Firmware, Component, Guid, Requirement, Checksum
+from .util import _validate_guid, _markdown_from_root
 
 class FileTooLarge(Exception):
     pass
@@ -92,36 +93,57 @@ def detect_encoding_from_bom(b):
     # fallback
     return "cp1252"
 
+def _node_validate_text(node, minlen=3, maxlen=50):
+    """ Validates the style """
+
+    # unwrap description
+    if node.tag == 'description':
+        text = _markdown_from_root(node)
+    else:
+        text = node.text
+
+    # invalid length
+    if not text:
+        raise MetadataInvalid('{} has no value'.format(node.tag))
+
+    # some tags can be split for multiple models
+    if node.tag in ['name']:
+        textarray = text.split('/')
+    else:
+        textarray = [text]
+    for textsplit in textarray:
+        if len(textsplit) < minlen:
+            raise MetadataInvalid('<{}> is too short: {}/{}'.format(node.tag, len(textsplit), minlen))
+        if len(textsplit) > maxlen:
+            raise MetadataInvalid('<{}> is too long: {}/{}'.format(node.tag, len(textsplit), maxlen))
+
+    # contains hyperlink
+    for urlhandler in ['http://', 'https://', 'ftp://']:
+        if text.find(urlhandler) != -1:
+            raise MetadataInvalid('{} cannot contain a hyperlink: {}'.format(node.tag, text))
+
+    return text
+
 class UploadedFile:
 
     def __init__(self):
         """ default public attributes """
 
-        self.checksum_upload = None
-        self.filename_new = None
+        self.fw = Firmware()
         self.fwupd_min_version = '0.8.0'    # a guess, but everyone should have this
-        self.version_display = None
         self.version_formats = ['plain', 'pair', 'triplet', 'quad', 'intel-me', 'intel-me2']
+        self.category_map = {'X-Device' : 1}
+        self.protocol_map = {}
 
         # strip out any unlisted files
         self.cabarchive_repacked = CabArchive()
 
         # private
-        self._components = []
         self._data_size = 0
         self.cabarchive_upload = None
         self._version_inf = None
 
-    def _load_archive(self, filename, data):
-        try:
-            if filename.endswith('.cab'):
-                self.cabarchive_upload = CabArchive(data, flattern=True)
-            else:
-                self.cabarchive_upload = _repackage_archive(filename, data)
-        except NotImplementedError as e:
-            raise FileNotSupported('Invalid file type: %s' % str(e))
-
-    def _verify_inf(self, contents):
+    def _parse_inf(self, contents):
 
         # FIXME is banned...
         if contents.find('FIXME') != -1:
@@ -149,7 +171,7 @@ class UploadedFile:
             tmp = cfg.get('Version', 'DriverVer').split(',')
             if len(tmp) != 2:
                 raise MetadataInvalid('The inf file Version:DriverVer was invalid')
-            self.version_display = tmp[1]
+            self.fw.version_display = tmp[1]
         except configparser.NoOptionError as _:
             pass
 
@@ -164,142 +186,281 @@ class UploadedFile:
         except (configparser.NoOptionError, configparser.NoSectionError) as _:
             pass
 
-    def _verify_infs(self):
-        inffiles = [cabfile for cabfile in self.cabarchive_upload.values()
-                    if fnmatch.fnmatch(cabfile.filename, '*.inf')]
-        for cabfile in inffiles:
-            # accept basically any encoding
-            encoding = detect_encoding_from_bom(cabfile.buf)
-            self._verify_inf(cabfile.buf.decode(encoding))
+    @staticmethod
+    def _parse_release(md, release):
 
-    def _load_metainfo(self, cabfile):
-
-        component = AppStreamGlib.App.new()
+        # get description
         try:
-            # check this is valid UTF-8
-            cabfile.buf.decode('utf-8')
-            component.parse_data(GLib.Bytes.new(cabfile.buf), AppStreamGlib.AppParseFlags.NONE)
-            fmt = AppStreamGlib.Format.new()
-            fmt.set_kind(AppStreamGlib.FormatKind.METAINFO)
-            component.add_format(fmt)
-            component.validate(AppStreamGlib.AppValidateFlags.NONE)
-        except UnicodeDecodeError as e:
-            raise MetadataInvalid('The metadata %s could not be parsed: %s' % (cabfile.filename, str(e)))
-        except Exception as e:
-            try:
-                msg = e.message.decode('utf-8')
-            except AttributeError:
-                msg = str(e)
-            raise MetadataInvalid('The metadata %s could not be parsed: %s' % (cabfile.filename, msg))
+            md.release_description = _node_validate_text(release.xpath('description')[0], maxlen=1000)
+        except AttributeError as _:
+            raise MetadataInvalid('<description> tag not founf')
 
-        # add to the archive
-        self.cabarchive_repacked[cabfile.filename] = cabfile
+        md.install_duration = int(release.get('install_duration', '0'))
+        md.release_urgency = release.get('urgency')
 
-        # check the file does not have any missing request.form
-        contents = cabfile.buf
-        if contents.decode('utf-8', 'ignore').find('FIXME') != -1:
-            raise MetadataInvalid('The metadata file was not complete; '
-                                  'Any FIXME text must be replaced with the correct values.')
+        # date, falling back to timestamp
+        try:
+            dt = datetime.datetime.strptime(release.get('date'), "%Y-%m-%d")
+        except TypeError as _:
+            md.release_timestamp = int(release.get('timestamp', '0'))
+        else:
+            md.release_timestamp = dt.fromtimestamp(0)
+        if not md.release_timestamp:
+            raise MetadataInvalid('<release> had no date attribute')
 
-        # check the ID does not contain a forward slash
-        if component.get_id().find('/') != -1:
-            raise MetadataInvalid('The AppStream ID cannot contain forward slashes.')
+        # get <url type="details">
+        try:
+            md.details_url = release.xpath('url[@type="details"]')[0].text
+        except IndexError as _:
+            pass
 
-        # check the firmware provides something
-        if len(component.get_provides()) == 0:
+        # get <url type="source">
+        try:
+            md.source_url = release.xpath('url[@type="source"]')[0].text
+        except IndexError as _:
+            pass
+
+        # fix up hex version
+        md.version = release.get('version')
+        if not md.version:
+            raise MetadataInvalid('<release> had no version attribute')
+        if md.version.startswith('0x'):
+            md.version = str(int(md.version[2:], 16))
+
+        # ensure there's always a contents filename
+        try:
+            md.filename_contents = release.xpath('checksum[@target="content"]')[0].get('filename')
+        except IndexError as _:
+            pass
+        if not md.filename_contents:
+            md.filename_contents = 'firmware.bin'
+
+        # ensure there's always a contents filename
+        for csum in release.xpath('checksum[@target="device"]'):
+            if csum.get('kind') == 'sha1':
+                md.device_checksums.append(Checksum(csum.text, 'SHA1'))
+            elif csum.get('kind') == 'sha256':
+                md.device_checksums.append(Checksum(csum.text, 'SHA256'))
+        if not md.filename_contents:
+            md.filename_contents = 'firmware.bin'
+
+    def _parse_component(self, component):
+
+        # get priority
+        md = Component()
+        md.priority = int(component.get('priority', '0'))
+
+        # check type
+        if component.get('type') != 'firmware':
+            raise MetadataInvalid('<component type="firmware"> required')
+
+        # get <id>
+        try:
+            md.appstream_id = component.xpath('id')[0].text
+            if not md.appstream_id:
+                raise MetadataInvalid('<id> value invalid')
+            for char in md.appstream_id:
+                if char in ['/', '\\']:
+                    raise MetadataInvalid('<id> Cannot contain {}'.format(char))
+                if char not in ['-', '_', '.'] and not char.isalnum():
+                    raise MetadataInvalid('<id> Cannot contain {}'.format(char))
+            if len(md.appstream_id.split('.')) < 4:
+                raise MetadataInvalid('<id> Should contain at least 4 sections to identify the model')
+        except IndexError as _:
+            raise MetadataInvalid('<id> tag missing')
+
+        # get <name>
+        try:
+            md.name = _node_validate_text(component.xpath('name')[0])
+            md.add_keywords_from_string(md.name, priority=3)
+        except IndexError as _:
+            raise MetadataInvalid('<name> tag missing')
+
+        # get <summary>
+        try:
+            md.summary = _node_validate_text(component.xpath('summary')[0])
+            md.add_keywords_from_string(md.summary, priority=1)
+        except IndexError as _:
+            raise MetadataInvalid('<summary> tag missing')
+
+        # get optional <description}
+        try:
+            md.description = _node_validate_text(component.xpath('description')[0], maxlen=1000)
+        except IndexError as _:
+            pass
+
+        # get <developer_name>
+        try:
+            md.developer_name = _node_validate_text(component.xpath('developer_name')[0])
+            if md.developer_name == 'LenovoLtd.':
+                md.developer_name = 'Lenovo Ltd.'
+            md.add_keywords_from_string(md.developer_name, priority=10)
+        except IndexError as _:
+            raise MetadataInvalid('<developer_name> tag missing')
+        if md.developer_name.find('@') != -1 or md.developer_name.find('_at_') != -1:
+            raise MetadataInvalid('<developer_name> cannot contain an email address')
+
+        # get <metadata_license>
+        try:
+            md.metadata_license = component.xpath('metadata_license')[0].text
+            if md.metadata_license not in ['CC0-1.0', 'FSFAP',
+                                           'CC-BY-3.0', 'CC-BY-SA-3.0', 'CC-BY-4.0', 'CC-BY-SA-4.0',
+                                           'GFDL-1.1', 'GFDL-1.2', 'GFDL-1.3']:
+                raise MetadataInvalid('Invalid <metadata_license> tag of {}'.format(md.metadata_license))
+        except AttributeError as _:
+            raise MetadataInvalid('<metadata_license> tag')
+
+        # get <project_license>
+        try:
+            md.project_license = component.xpath('project_license')[0].text
+        except IndexError as _:
+            raise MetadataInvalid('<project_license> tag missing')
+        if not md.project_license:
+            raise MetadataInvalid('<project_license> value invalid')
+
+        # get <url type="homepage">
+        try:
+            md.url_homepage = component.xpath('url[@type="homepage"]')[0].text
+        except IndexError as _:
+            raise MetadataInvalid('<url type="homepage"> tag missing')
+        if not md.url_homepage:
+            raise MetadataInvalid('<url type="homepage"> value invalid')
+
+        # add manually added keywords
+        for keyword in component.xpath('keywords/keyword'):
+            md.add_keywords_from_string(keyword.text, priority=5)
+
+        # add provides
+        for prov in component.xpath('provides/firmware[@type="flashed"]'):
+            if not _validate_guid(prov.text):
+                raise MetadataInvalid('The GUID {} was invalid.'.format(prov.text))
+            md.guids.append(Guid(md.component_id, prov.text))
+        if not md.guids:
             raise MetadataInvalid('The metadata file did not provide any GUID.')
-        for prov in component.get_provides():
-            if prov.get_kind() == AppStreamGlib.ProvideKind.FIRMWARE_FLASHED:
-                guid = prov.get_value()
-                if not _validate_guid(guid):
-                    raise MetadataInvalid('The GUID %s was invalid.' % guid)
-        release_default = component.get_release_default()
-        if not release_default:
-            raise MetadataInvalid('The metadata file did not provide any releases.')
-
-        # ensure the update description does not refer to a file in the archive
-        release_description = release_default.get_description()
-        if release_description:
-            for word in release_description.split(' '):
-                if word.find('.') == -1: # any word without a dot is not a fn
-                    continue
-                if word in self.cabarchive_upload:
-                    raise MetadataInvalid('The release description should not reference other files.')
-
-        # fix up hex value
-        release_version = release_default.get_version()
-        if release_version.startswith('0x'):
-            release_version = str(int(release_version[2:], 16))
-            release_default.set_version(release_version)
-
-        # check the inf file matches up with the .xml file
-        if self._version_inf and self._version_inf != release_version:
-            raise MetadataInvalid('The inf Firmware_AddReg[HKR->FirmwareVersion] '
-                                  '%s did not match the metainfo.xml value %s.'
-                                  % (self._version_inf, release_version))
 
         # check the file didn't try to add it's own <require> on vendor-id
         # to work around the vendor-id security checks in fwupd
-        req = component.get_require_by_value(AppStreamGlib.RequireKind.FIRMWARE, 'vendor-id')
-        if req:
+        if component.xpath('requires/firmware[text()="vendor-id"]'):
             raise MetadataInvalid('Firmware cannot specify vendor-id')
 
         # check only recognised requirements are added
-        for req in component.get_requires():
-            if req.get_kind() == AppStreamGlib.RequireKind.UNKNOWN:
-                raise MetadataInvalid('Requirement \'%s\' was invalid' % req.get_value())
+        for req in component.xpath('requires/*'):
+            if req.tag not in ['firmware', 'id', 'hardware']:
+                raise MetadataInvalid('Requirement \'%s\' was invalid' % req.tag)
+            if req.tag == 'id' and req.text == 'org.freedesktop.fwupd':
+                self.fwupd_min_version = req.get('version')
+            if req.tag == 'hardware':
+                req_values = req.text.split('|')
+            else:
+                req_values = [req.text]
+            for req_value in req_values:
+                rq = Requirement(md.component_id,
+                                 req.tag, req_value, req.get('compare'),
+                                 req.get('version'))
+                md.requirements.append(rq)
 
-        # check the version format
-        version_format = component.get_metadata_item('LVFS::VersionFormat')
-        if version_format:
-            if version_format not in self.version_formats:
-                raise MetadataInvalid('LVFS::VersionFormat can only be %s' % self.version_formats)
-
-        # does the firmware require a specific fwupd version?
-        req = component.get_require_by_value(AppStreamGlib.RequireKind.ID,
-                                             'org.freedesktop.fwupd')
-        if req:
-            self.fwupd_min_version = req.get_version()
-
-        # ensure there's always a container checksum
-        release = component.get_release_default()
-        csum = release.get_checksum_by_target(AppStreamGlib.ChecksumTarget.CONTENT)
-        if not csum:
-            csum = AppStreamGlib.Checksum.new()
-            csum.set_target(AppStreamGlib.ChecksumTarget.CONTENT)
-            csum.set_filename('firmware.bin')
-            release.add_checksum(csum)
-
-        # get the contents checksum
+        # from the first screenshot
         try:
-            cabfile = self.cabarchive_upload[csum.get_filename()]
-        except KeyError as _:
-            raise MetadataInvalid('No %s found in the archive' % csum.get_filename())
+            md.screenshot_caption = component.xpath('screenshots/screenshot/caption')[0]
+            md.screenshot_caption = md.screenshot_caption.replace('<p>', '')
+            md.screenshot_caption = md.screenshot_caption.replace('</p>', '')
+        except IndexError as _:
+            pass
+        try:
+            md.screenshot_url = component.xpath('screenshots/screenshot/image')[0]
+        except IndexError as _:
+            pass
+
+        # allows OEM to hide the direct download link on the LVFS
+        if component.xpath('custom/value[@key="LVFS::InhibitDownload"]'):
+            md.inhibit_download = True
+
+        # allows OEM to change the triplet (AA.BB.CCDD) to quad (AA.BB.CC.DD)
+        try:
+            md.version_format = component.xpath('custom/value[@key="LVFS::VersionFormat"]')[0].text
+            if md.version_format not in self.version_formats:
+                raise MetadataInvalid('LVFS::VersionFormat can only be %s' % self.version_formats)
+        except IndexError as _:
+            pass
+
+        # allows OEM to specify protocol
+        try:
+            update_protocol = component.xpath('custom/value[@key="LVFS::UpdateProtocol"]')[0].text
+            if update_protocol not in self.protocol_map:
+                raise MetadataInvalid('No valid UpdateProtocol {} found'.format(update_protocol))
+            md.protocol_id = self.protocol_map[update_protocol]
+        except IndexError as _:
+            pass
+
+        # allows OEM to set banned country codes
+        try:
+            self.fw.banned_country_codes = component.xpath('custom/value[@key="LVFS::BannedCountryCodes"]')[0].text
+        except IndexError as _:
+            pass
+
+        # allows OEM to specify category
+        for category in component.xpath('categories/category'):
+            if category.text in self.category_map:
+                md.category_id = self.category_map[category.text]
+                break
+        # fallback to device -- DROP THIS 2020-01-01
+        if not md.category_id:
+            md.category_id = self.category_map['X-Device']
+
+        # parse the default (first) release
+        try:
+            default_release = component.xpath('releases/release')[0]
+        except IndexError as _:
+            raise MetadataInvalid('The metadata file did not provide any releases')
+        self._parse_release(md, default_release)
+
+        # ensure the update description does not refer to a file in the archive
+        for word in md.release_description.split(' '):
+            if word.find('.') == -1: # any word without a dot is not a fn
+                continue
+            if word in self.cabarchive_upload:
+                raise MetadataInvalid('The release description should not reference other files.')
+
+        # check the inf file matches up with the .xml file
+        if self._version_inf and self._version_inf != md.version:
+            raise MetadataInvalid('The inf Firmware_AddReg[HKR->FirmwareVersion] '
+                                  '%s did not match the metainfo.xml value %s.'
+                                  % (self._version_inf, md.version))
+
+        # success
+        return md
+
+    def _parse_metainfo(self, cabfile):
+
+        # check the file does not have any missing request.form
+        if cabfile.buf.decode('utf-8', 'ignore').find('FIXME') != -1:
+            raise MetadataInvalid('The metadata file was not complete; '
+                                  'Any FIXME text must be replaced with the correct values.')
 
         # add to the archive
         self.cabarchive_repacked[cabfile.filename] = cabfile
 
-        csum.set_kind(GLib.ChecksumType.SHA1)
-        csum.set_value(hashlib.sha1(cabfile.buf).hexdigest())
+        # parse MetaInfo file
+        try:
+            components = ET.fromstring(cabfile.buf).xpath('/component')
+            if not components:
+                raise MetadataInvalid('<component> tag missing')
+            if len(components) > 1:
+                raise MetadataInvalid('Multiple <component> tags')
+        except UnicodeDecodeError as e:
+            raise MetadataInvalid('The metadata file could not be parsed: {}'.format(str(e)))
+        md = self._parse_component(components[0])
+        md.release_download_size = self._data_size
 
-        # set the sizes
-        release.set_size(AppStreamGlib.SizeKind.INSTALLED, len(cabfile.buf))
-        release.set_size(AppStreamGlib.SizeKind.DOWNLOAD, self._data_size)
-
-        # add to array
-        self._components.append(component)
-
-    def _load_metainfos(self):
-
-        # check metainfo exists
-        cabfiles = [cabfile for cabfile in self.cabarchive_upload.values()
-                    if fnmatch.fnmatch(cabfile.filename, '*.metainfo.xml')]
-        if not cabfiles:
-            raise MetadataInvalid('The firmware file had no .metadata.xml files')
-
-        # parse each MetaInfo file
-        for cabfile in cabfiles:
-            self._load_metainfo(cabfile)
+        # add the firmware.bin to the archive
+        try:
+            cabfile_fw = self.cabarchive_upload[md.filename_contents]
+        except KeyError as _:
+            raise MetadataInvalid('No {} found in the archive'.format(md.filename_contents))
+        self.cabarchive_repacked[cabfile_fw.filename] = cabfile_fw
+        md.checksum_contents = hashlib.sha1(cabfile_fw.buf).hexdigest()
+        md.release_installed_size = len(cabfile_fw.buf)
+        self.fw.mds.append(md)
 
     def parse(self, filename, data, use_hashed_prefix=True):
 
@@ -311,21 +472,34 @@ class UploadedFile:
             raise FileTooSmall('File too small, minimum is 1k')
 
         # get new filename
-        self.checksum_upload = hashlib.sha1(data).hexdigest()
+        self.fw.checksum_upload = hashlib.sha1(data).hexdigest()
         if use_hashed_prefix:
-            self.filename_new = self.checksum_upload + '-' + filename.replace('.zip', '.cab')
+            self.fw.filename = self.fw.checksum_upload + '-' + filename.replace('.zip', '.cab')
         else:
-            self.filename_new = filename.replace('.zip', '.cab')
+            self.fw.filename = filename.replace('.zip', '.cab')
 
         # parse the file
-        self._load_archive(filename, data)
+        try:
+            if filename.endswith('.cab'):
+                self.cabarchive_upload = CabArchive(data, flattern=True)
+            else:
+                self.cabarchive_upload = _repackage_archive(filename, data)
+        except NotImplementedError as e:
+            raise FileNotSupported('Invalid file type: %s' % str(e))
 
         # verify .inf files if they exists
-        self._verify_infs()
+        inffiles = [cabfile for cabfile in self.cabarchive_upload.values()
+                    if fnmatch.fnmatch(cabfile.filename, '*.inf')]
+        for cabfile in inffiles:
+            encoding = detect_encoding_from_bom(cabfile.buf)
+            self._parse_inf(cabfile.buf.decode(encoding))
 
         # load metainfo files
-        self._load_metainfos()
+        cabfiles = [cabfile for cabfile in self.cabarchive_upload.values()
+                    if fnmatch.fnmatch(cabfile.filename, '*.metainfo.xml')]
+        if not cabfiles:
+            raise MetadataInvalid('The firmware file had no .metadata.xml files')
 
-    def get_components(self):
-        """ gets all detected AppStream components """
-        return self._components
+        # parse each MetaInfo file
+        for cabfile in cabfiles:
+            self._parse_metainfo(cabfile)

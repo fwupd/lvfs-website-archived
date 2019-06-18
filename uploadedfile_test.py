@@ -21,8 +21,7 @@ def _get_valid_firmware():
 
 def _get_valid_metainfo(release_description='This stable release fixes bugs',
                         version_format='quad'):
-    txt = """
-<?xml version="1.0" encoding="UTF-8"?>
+    txt = """<?xml version="1.0" encoding="UTF-8"?>
 <!-- Copyright 2015 Richard Hughes <richard@hughsie.com> -->
 <component type="firmware">
   <id>com.hughski.ColorHug.firmware</id>
@@ -156,13 +155,8 @@ class TestStringMethods(unittest.TestCase):
         cabarchive['firmware.metainfo.xml'] = _get_valid_metainfo()
         ufile = UploadedFile()
         ufile.parse('foo.cab', cabarchive.save())
-        metadata = ufile.get_components()[0].get_metadata()
-        self.assertTrue('foo' in metadata)
-        self.assertTrue('LVFS::InhibitDownload' in metadata)
-        self.assertTrue(metadata['foo'] == 'bar')
-        self.assertTrue('LVFS::VersionFormat' in metadata)
-        self.assertTrue(metadata['LVFS::VersionFormat'] == 'quad')
-        self.assertFalse('NotGoingToExist' in metadata)
+        self.assertTrue(ufile.fw.mds[0].inhibit_download)
+        self.assertTrue(ufile.fw.mds[0].version_format == 'quad')
 
     # update description references another file
     def test_release_mentions_file(self):

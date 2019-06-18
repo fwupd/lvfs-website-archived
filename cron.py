@@ -11,12 +11,6 @@ import os
 import sys
 import hashlib
 import datetime
-import fnmatch
-
-import gi
-gi.require_version('AppStreamGlib', '1.0')
-from gi.repository import AppStreamGlib
-from gi.repository import GLib
 
 from cabarchive import CabArchive
 
@@ -28,7 +22,7 @@ from app.models import AnalyticFirmware, Useragent, UseragentKind, Analytic, Rep
 from app.models import ComponentShardInfo
 from app.models import _get_datestr_from_datetime
 from app.metadata import _metadata_update_targets, _metadata_update_pulp
-from app.util import _get_dirname_safe, _event_log, _get_shard_path
+from app.util import _event_log, _get_shard_path
 
 # make compatible with Flask
 app = application.app
@@ -80,31 +74,6 @@ def _regenerate_and_sign_metadata():
     for r in remotes:
         _event_log('Signed metadata %s' % r.name)
 
-def _sign_md(cabarchive, cabfile):
-    # parse each metainfo file
-    try:
-        component = AppStreamGlib.App.new()
-        component.parse_data(GLib.Bytes.new(cabfile.buf), AppStreamGlib.AppParseFlags.NONE)
-    except Exception as e:
-        raise NotImplementedError('Invalid metadata in %s: %s' % (cabfile.filename, str(e)))
-
-    # sign each firmware
-    release = component.get_release_default()
-    csum = release.get_checksum_by_target(AppStreamGlib.ChecksumTarget.CONTENT)
-    if not csum:
-        csum = AppStreamGlib.Checksum.new()
-        csum.set_filename('firmware.bin')
-
-    # get the filename including the correct dirname
-    fn = os.path.join(_get_dirname_safe(cabfile.filename), csum.get_filename())
-    try:
-        cabfile_fw = cabarchive[fn]
-    except KeyError as _:
-        raise NotImplementedError('no %s firmware found in %s' % (fn, cabfile.filename))
-
-    # sign the firmware.bin file
-    ploader.archive_sign(cabarchive, cabfile_fw)
-
 def _sign_fw(fw):
 
     # load the .cab file
@@ -116,16 +85,13 @@ def _sign_fw(fw):
     except IOError as e:
         raise NotImplementedError('cannot read %s: %s' % (fn, str(e)))
 
-    # look for each metainfo file
-    cabfiles = [cabfile for cabfile in cabarchive.values()
-                if fnmatch.fnmatch(cabfile.filename, '*.metainfo.xml')]
-    if not cabfiles:
-        raise NotImplementedError('no .metadata.xml files in {}: {}'.format(fn, cabarchive))
-
-    # parse each MetaInfo file
+    # sign each component in the archive
     print('Signing: %s' % fn)
-    for cabfile in cabfiles:
-        _sign_md(cabarchive, cabfile)
+    for md in fw.mds:
+        try:
+            ploader.archive_sign(cabarchive, cabarchive[md.filename_contents])
+        except KeyError as _:
+            raise NotImplementedError('no {} firmware found'.format(md.filename_contents))
 
     # overwrite old file
     cab_data = cabarchive.save()

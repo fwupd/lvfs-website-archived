@@ -18,13 +18,11 @@ from flask import send_from_directory, abort, Response, g
 from flask_login import login_required, login_user, logout_user
 from sqlalchemy.orm import joinedload
 
-import gi
-gi.require_version('AppStreamGlib', '1.0')
-from gi.repository import AppStreamGlib
-
 import GeoIP
 
 from app import app, db, lm, ploader
+from pkgversion import vercmp
+
 from .dbutils import _execute_count_star
 from .pluginloader import PluginError
 
@@ -46,14 +44,14 @@ def _user_agent_safe_for_requirement(user_agent):
     for chunk in sections:
         toks = chunk.split('/')
         if len(toks) == 2 and toks[0] == 'fwupd':
-            return AppStreamGlib.utils_vercmp(toks[1], '0.8.0') >= 0
+            return vercmp(toks[1], '0.8.0') >= 0
 
     # this is a heuristic; the logic is that it's unlikely that a distro would
     # ship a very new gnome-software and a very old fwupd
     for chunk in sections:
         toks = chunk.split('/')
         if len(toks) == 2 and toks[0] == 'gnome-software':
-            return AppStreamGlib.utils_vercmp(toks[1], '3.26.0') >= 0
+            return vercmp(toks[1], '3.26.0') >= 0
 
     # is is probably okay
     return True

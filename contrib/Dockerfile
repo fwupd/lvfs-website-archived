@@ -8,7 +8,6 @@ RUN yum -y install \
 	flatpak \
 	geolite2-country \
 	gnutls-utils \
-	libappstream-glib \
 	libgcab1 \
 	libstemmer \
 	GeoIP-devel \

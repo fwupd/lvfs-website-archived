@@ -12,7 +12,6 @@ import sys
 
 from app.metadata import _generate_metadata_kind
 from app.uploadedfile import UploadedFile
-from app.views_upload import _create_fw_from_uploaded_file
 
 def parse_args():
     import argparse
@@ -37,8 +36,7 @@ def create_metadata(archive_dir, basename, metadata_fn):
             ufile = UploadedFile()
             with open(os.path.join(root, filename), 'r') as f:
                 ufile.parse(filename, f.read(), use_hashed_prefix=False)
-            firmware = _create_fw_from_uploaded_file(ufile)
-            fws.append(firmware)
+            fws.append(ufile.fw)
 
     # write metadata
     print('Writing %s' % metadata_fn)

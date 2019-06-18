@@ -9,7 +9,7 @@
 
 import unittest
 from lxml import etree as ET
-from app.util import _markdown_from_xml, _xml_from_markdown, _get_update_description_problems
+from app.util import _markdown_from_root, _xml_from_markdown, _get_update_description_problems
 
 class MarkdownTest(unittest.TestCase):
 
@@ -34,7 +34,7 @@ class MarkdownTest(unittest.TestCase):
 <li>Nothing.</li>
 </ul>
 """
-        markdown = _markdown_from_xml(markup)
+        markdown = _markdown_from_root(ET.fromstring('<xxx>' + markup + '</xxx>'))
         print('`'+markdown+'`')
 
         # convert from markdown back to XML

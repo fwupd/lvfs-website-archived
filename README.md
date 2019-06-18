@@ -15,7 +15,7 @@ Setting up the web service
 The official instance is set up using puppet on RHEL 7, on which you could use:
 
     yum-config-manager --add-repo https://copr.fedorainfracloud.org/coprs/rhughes/lvfs-website/repo/epel-7/rhughes-lvfs-website-epel-7.repo
-    yum install epel-release libappstream-glib libgcab1 puppet
+    yum install epel-release libgcab1 puppet
     git clone https://github.com/hughsie/lvfs-puppet.git
     cd lvfs-puppet
     hostname admin
@@ -50,7 +50,7 @@ The admin user is set as `sign-test@fwupd.org` with password `Pa$$w0rd`.
 
 You may also need to install introspection dependencies.  For example on Ubuntu the following is required:
 
-    sudo apt install -y python3-gi gcab gir1.2-libgcab-1.0 libappstream-glib-dev gir1.2-appstreamglib-1.0
+    sudo apt install -y python3-gi gcab gir1.2-libgcab-1.0
 
 ## Generating a SSL certificate ##
 

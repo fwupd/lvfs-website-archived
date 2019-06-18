@@ -1433,7 +1433,7 @@ ma+I7fM5pmgsEL4tkCZAg0+CPTyhHkMV/cWuOZUjqTsYbDq1pZI=
         assert b'>dave<' in rv.data, rv.data
 
         # delete one of the added keywords
-        rv = self.app.get('/lvfs/component/1/keyword/5/delete', follow_redirects=True)
+        rv = self.app.get('/lvfs/component/1/keyword/3/delete', follow_redirects=True)
         assert b'Removed keyword' in rv.data, rv.data
         assert b'>alice<' in rv.data, rv.data
         assert b'>colorimeter<' not in rv.data, rv.data

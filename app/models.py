@@ -20,8 +20,6 @@ from enum import Enum
 
 import onetimepass
 
-from gi.repository import AppStreamGlib
-
 from flask import g, url_for
 from werkzeug.security import generate_password_hash, check_password_hash
 
@@ -30,6 +28,8 @@ from sqlalchemy.orm import relationship
 
 from app import db
 from cabarchive import CabArchive
+from pkgversion import vercmp
+
 from .hash import _qa_hash, _password_hash, _otp_hash
 from .util import _generate_password, _xml_from_markdown, _get_update_description_problems
 from .util import _get_absolute_path, _get_shard_path
@@ -1901,13 +1901,13 @@ class Condition(db.Model):
         if self.compare == 'eq':
             return value == self.value
         if self.compare == 'lt':
-            return AppStreamGlib.utils_vercmp(value, self.value) < 0
+            return vercmp(value, self.value) < 0
         if self.compare == 'le':
-            return AppStreamGlib.utils_vercmp(value, self.value) <= 0
+            return vercmp(value, self.value) <= 0
         if self.compare == 'gt':
-            return AppStreamGlib.utils_vercmp(value, self.value) > 0
+            return vercmp(value, self.value) > 0
         if self.compare == 'ge':
-            return AppStreamGlib.utils_vercmp(value, self.value) >= 0
+            return vercmp(value, self.value) >= 0
         if self.compare == 'glob':
             return fnmatch.fnmatch(value, self.value)
         if self.compare == 'regex':
