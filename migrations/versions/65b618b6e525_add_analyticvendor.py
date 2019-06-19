@@ -16,9 +16,9 @@ from alembic import op
 import sqlalchemy as sa
 from sqlalchemy.dialects import mysql
 
-from app import db
-from app.models import Client, Vendor, AnalyticVendor, _get_datestr_from_datetime
-from app.dbutils import _execute_count_star
+from lvfs import db
+from lvfs.models import Client, Vendor, AnalyticVendor, _get_datestr_from_datetime
+from lvfs.dbutils import _execute_count_star
 
 def upgrade():
     if 1:

@@ -12,7 +12,7 @@ from sqlalchemy import and_
 from flask import render_template
 from flask_login import login_required
 
-from app import app, db
+from lvfs import app, db
 
 from .models import Analytic, Client, Report, Useragent, UseragentKind, SearchEvent, AnalyticVendor
 from .models import _get_datestr_from_datetime, _split_search_string

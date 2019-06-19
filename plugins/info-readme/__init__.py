@@ -8,7 +8,7 @@
 # pylint: disable=no-self-use
 
 from cabarchive import CabFile
-from app.pluginloader import PluginBase, PluginError, PluginSettingText, PluginSettingBool
+from lvfs.pluginloader import PluginBase, PluginError, PluginSettingText, PluginSettingBool
 
 class Plugin(PluginBase):
     def __init__(self):

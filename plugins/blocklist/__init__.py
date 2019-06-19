@@ -9,10 +9,10 @@
 
 import os
 
-from app import db
-from app.pluginloader import PluginBase, PluginError
-from app.pluginloader import PluginSettingBool, PluginSettingTextList
-from app.models import Test
+from lvfs import db
+from lvfs.pluginloader import PluginBase, PluginError
+from lvfs.pluginloader import PluginSettingBool, PluginSettingTextList
+from lvfs.models import Test
 
 def _run_on_blob(self, test, title, blob):
 
@@ -80,7 +80,7 @@ class Plugin(PluginBase):
 # run with PYTHONPATH=. ./.env3/bin/python3 plugins/blocklist/__init__.py
 if __name__ == '__main__':
     import sys
-    from app.models import Firmware, Component
+    from lvfs.models import Firmware, Component
 
     plugin = Plugin('blocklist')
     _test = Test(plugin.id)

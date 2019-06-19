@@ -10,11 +10,11 @@
 import csv
 import datetime
 
-import app as application   #lgtm [py/import-and-import-from]
-from app import db, ploader
+import lvfs as application
+from lvfs import db, ploader
 
-from app.models import Test, Firmware
-from app.pluginloader import PluginError
+from lvfs.models import Test, Firmware
+from lvfs.pluginloader import PluginError
 
 # make compatible with Flask
 app = application.app

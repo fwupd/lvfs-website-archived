@@ -10,7 +10,7 @@ from flask_login import login_required
 
 from sqlalchemy import func
 
-from app import app, db, ploader
+from lvfs import app, db, ploader
 
 from .models import Requirement, Component, Keyword, Checksum, Category
 from .models import Protocol, Report, ReportAttribute

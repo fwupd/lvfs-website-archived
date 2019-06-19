@@ -9,7 +9,7 @@
 
 import unittest
 from lxml import etree as ET
-from app.util import _markdown_from_root, _xml_from_markdown, _get_update_description_problems
+from lvfs.util import _markdown_from_root, _xml_from_markdown, _get_update_description_problems
 
 class MarkdownTest(unittest.TestCase):
 

@@ -16,9 +16,9 @@ from pyasn1_modules import rfc2459
 
 import pefile
 
-from app import db
-from app.pluginloader import PluginBase, PluginError, PluginSettingBool, PluginSettingInteger
-from app.models import Test, ComponentShardCertificate
+from lvfs import db
+from lvfs.pluginloader import PluginBase, PluginError, PluginSettingBool, PluginSettingInteger
+from lvfs.models import Test, ComponentShardCertificate
 
 def _build_rfc2459_description(value):
     descs = []
@@ -186,7 +186,7 @@ class Plugin(PluginBase):
 # run with PYTHONPATH=. ./.env3/bin/python3 plugins/pecheck/__init__.py ./test.efi
 if __name__ == '__main__':
     import sys
-    from app.models import Firmware, Component, ComponentShard, ComponentShardInfo, Protocol
+    from lvfs.models import Firmware, Component, ComponentShard, ComponentShardInfo, Protocol
 
     for argv in sys.argv[1:]:
         print('Processing', argv)

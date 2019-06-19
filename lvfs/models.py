@@ -26,7 +26,7 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from sqlalchemy import Column, Integer, Float, String, Text, Boolean, DateTime, ForeignKey, Index
 from sqlalchemy.orm import relationship
 
-from app import db
+from lvfs import db
 from cabarchive import CabArchive
 from pkgversion import vercmp
 

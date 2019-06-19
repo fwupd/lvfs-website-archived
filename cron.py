@@ -14,15 +14,15 @@ import datetime
 
 from cabarchive import CabArchive
 
-import app as application   #lgtm [py/import-and-import-from]
-from app import db, ploader
-from app.dbutils import _execute_count_star
-from app.models import Remote, Firmware, Vendor, Client, AnalyticVendor
-from app.models import AnalyticFirmware, Useragent, UseragentKind, Analytic, Report
-from app.models import ComponentShardInfo
-from app.models import _get_datestr_from_datetime
-from app.metadata import _metadata_update_targets, _metadata_update_pulp
-from app.util import _event_log, _get_shard_path
+import lvfs as application
+from lvfs import db, ploader
+from lvfs.dbutils import _execute_count_star
+from lvfs.models import Remote, Firmware, Vendor, Client, AnalyticVendor
+from lvfs.models import AnalyticFirmware, Useragent, UseragentKind, Analytic, Report
+from lvfs.models import ComponentShardInfo
+from lvfs.models import _get_datestr_from_datetime
+from lvfs.metadata import _metadata_update_targets, _metadata_update_pulp
+from lvfs.util import _event_log, _get_shard_path
 
 # make compatible with Flask
 app = application.app

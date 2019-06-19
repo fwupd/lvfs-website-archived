@@ -10,8 +10,8 @@
 import struct
 import uuid
 
-from app.pluginloader import PluginBase, PluginSettingBool
-from app.models import Test
+from lvfs.pluginloader import PluginBase, PluginSettingBool
+from lvfs.models import Test
 
 class Plugin(PluginBase):
     def __init__(self):

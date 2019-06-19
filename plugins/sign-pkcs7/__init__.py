@@ -11,8 +11,8 @@ import subprocess
 import tempfile
 
 from cabarchive import CabFile
-from app.pluginloader import PluginBase, PluginError, PluginSettingText, PluginSettingBool
-from app import ploader
+from lvfs.pluginloader import PluginBase, PluginError, PluginSettingText, PluginSettingBool
+from lvfs import ploader
 
 class Plugin(PluginBase):
     def __init__(self):

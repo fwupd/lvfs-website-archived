@@ -11,7 +11,7 @@ from flask import url_for, redirect, flash, render_template
 from flask_login import login_required
 from sqlalchemy.orm import joinedload
 
-from app import app, db, ploader
+from lvfs import app, db, ploader
 
 from .models import Test
 from .util import admin_login_required

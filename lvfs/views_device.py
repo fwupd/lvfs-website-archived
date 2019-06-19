@@ -12,7 +12,7 @@ from flask_login import login_required
 
 from sqlalchemy import func
 
-from app import app, db
+from lvfs import app, db
 
 from .util import admin_login_required
 from .models import Firmware, Component, Remote, Guid

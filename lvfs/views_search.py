@@ -10,7 +10,7 @@ from flask_login import login_required
 
 from sqlalchemy import func
 
-from app import app, db
+from lvfs import app, db
 
 from .models import Guid, Keyword, Vendor, SearchEvent, Component, Firmware, Remote
 from .models import _split_search_string

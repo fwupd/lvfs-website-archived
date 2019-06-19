@@ -14,8 +14,8 @@ from alembic import op
 import sqlalchemy as sa
 from sqlalchemy.dialects import mysql
 
-from app import db
-from app.models import Client, _get_datestr_from_datetime
+from lvfs import db
+from lvfs.models import Client, _get_datestr_from_datetime
 
 def upgrade():
     if 1:

@@ -13,9 +13,9 @@ import uuid
 
 from collections import namedtuple
 
-from app import db
-from app.pluginloader import PluginBase, PluginError, PluginSettingBool
-from app.models import Test, ComponentShard
+from lvfs import db
+from lvfs.pluginloader import PluginBase, PluginError, PluginSettingBool
+from lvfs.models import Test, ComponentShard
 
 class PartitionEntry():
 
@@ -210,7 +210,7 @@ class Plugin(PluginBase):
 # run with PYTHONPATH=. ./.env3/bin/python3 plugins/intelme/__init__.py ./firmware.bin
 if __name__ == '__main__':
     import sys
-    from app.models import Firmware, Component, Protocol, Category
+    from lvfs.models import Firmware, Component, Protocol, Category
 
     plugin = Plugin()
     _test = Test('intelme')

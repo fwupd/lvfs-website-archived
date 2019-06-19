@@ -7,7 +7,7 @@
 #
 # pylint: disable=no-self-use
 
-from app.pluginloader import PluginBase, PluginSettingBool
+from lvfs.pluginloader import PluginBase, PluginSettingBool
 
 class Plugin(PluginBase):
     def __init__(self):

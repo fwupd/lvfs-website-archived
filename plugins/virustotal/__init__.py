@@ -9,9 +9,9 @@
 
 import requests
 
-from app.pluginloader import PluginBase, PluginError
-from app.pluginloader import PluginSettingBool, PluginSettingText, PluginSettingTextList
-from app.models import Test
+from lvfs.pluginloader import PluginBase, PluginError
+from lvfs.pluginloader import PluginSettingBool, PluginSettingText, PluginSettingTextList
+from lvfs.models import Test
 
 class Plugin(PluginBase):
     def __init__(self):

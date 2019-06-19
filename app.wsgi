@@ -5,7 +5,7 @@
 #
 # SPDX-License-Identifier: GPL-2.0+
 
-from app import app as application
+from lvfs import lvfs as application
 
 if __name__ == '__main__':
     from flask import Flask

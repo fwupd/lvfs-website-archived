@@ -11,7 +11,7 @@ import os
 import hashlib
 from lxml import etree as ET
 
-from app import app, db
+from lvfs import app, db
 
 from .models import Firmware, Vendor
 from .util import _get_settings, _xml_from_markdown

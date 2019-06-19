@@ -10,10 +10,10 @@
 import sys
 import csv
 
-import app as application   #lgtm [py/import-and-import-from]
-from app import db
+import lvfs as application
+from lvfs import db
 
-from app.models import Firmware
+from lvfs.models import Firmware
 
 # make compatible with Flask
 app = application.app

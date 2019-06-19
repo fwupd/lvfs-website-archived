@@ -58,9 +58,9 @@ class LvfsTestCase(unittest.TestCase):
                 ]))
 
         # create instance
-        import app as lvfs
-        from app import db
-        from app.dbutils import init_db
+        import lvfs
+        from lvfs import db
+        from lvfs.dbutils import init_db
         self.app = lvfs.app.test_client()
         lvfs.app.config.from_pyfile(self.cfg_filename)
         with lvfs.app.app_context():
@@ -163,8 +163,8 @@ class LvfsTestCase(unittest.TestCase):
 
     def _ensure_checksums_from_upload(self):
         # peek into the database to get the checksums
-        from app import db
-        from app.models import Firmware
+        from lvfs import db
+        from lvfs.models import Firmware
         fw = db.session.query(Firmware).first()
         self.checksum_upload = fw.checksum_upload
         self.checksum_signed = fw.checksum_signed

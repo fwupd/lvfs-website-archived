@@ -9,7 +9,7 @@ import base64
 import os
 import hashlib
 
-from app import app
+from lvfs import app
 
 def _qa_hash(value):
     """ Generate a salted hash of the QA group """

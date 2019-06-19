@@ -10,7 +10,7 @@ from collections import defaultdict
 from flask import render_template, request, url_for, redirect, flash
 from flask_login import login_required
 
-from app import app, db, ploader
+from lvfs import app, db, ploader
 
 from .models import Setting, Test, Firmware
 from .util import _event_log, _get_settings

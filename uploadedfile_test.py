@@ -11,8 +11,8 @@ import unittest
 import zipfile
 import io
 
-from app.uploadedfile import UploadedFile, FileTooSmall, FileNotSupported, MetadataInvalid
-from app.util import _validate_guid
+from lvfs.uploadedfile import UploadedFile, FileTooSmall, FileNotSupported, MetadataInvalid
+from lvfs.util import _validate_guid
 
 from cabarchive import CabArchive, CabFile
 

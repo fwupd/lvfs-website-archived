@@ -14,7 +14,7 @@ import hashlib
 from flask import request, flash, url_for, redirect, render_template, g
 from flask_login import login_required
 
-from app import app, db, ploader
+from lvfs import app, db, ploader
 
 from .models import Firmware, FirmwareEvent, Vendor, Remote, Agreement, Affiliation, Protocol, Category
 from .uploadedfile import UploadedFile, FileTooLarge, FileTooSmall, FileNotSupported, MetadataInvalid

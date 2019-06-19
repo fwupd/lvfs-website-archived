@@ -8,7 +8,7 @@
 from flask import request, url_for, redirect, flash, render_template
 from flask_login import login_required
 
-from app import app, db
+from lvfs import app, db
 
 from .models import Protocol
 from .util import _error_internal

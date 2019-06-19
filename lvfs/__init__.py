@@ -84,22 +84,22 @@ def error_page_not_found(unused_msg=None):
         return Response(response='bad karma', status=404, mimetype="text/plain")
     return render_template('error.html'), 404
 
-from app import views
-from app import views_user
-from app import views_device
-from app import views_firmware
-from app import views_vendor
-from app import views_component
-from app import views_telemetry
-from app import views_report
-from app import views_metadata
-from app import views_settings
-from app import views_analytics
-from app import views_upload
-from app import views_issue
-from app import views_search
-from app import views_agreement
-from app import views_protocol
-from app import views_category
-from app import views_test
-from app import views_shard
+from lvfs import views
+from lvfs import views_user
+from lvfs import views_device
+from lvfs import views_firmware
+from lvfs import views_vendor
+from lvfs import views_component
+from lvfs import views_telemetry
+from lvfs import views_report
+from lvfs import views_metadata
+from lvfs import views_settings
+from lvfs import views_analytics
+from lvfs import views_upload
+from lvfs import views_issue
+from lvfs import views_search
+from lvfs import views_agreement
+from lvfs import views_protocol
+from lvfs import views_category
+from lvfs import views_test
+from lvfs import views_shard

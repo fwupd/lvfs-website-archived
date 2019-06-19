@@ -10,9 +10,9 @@
 import os
 import subprocess
 
-from app.pluginloader import PluginBase, PluginError, PluginSettingBool
-from app.util import _get_absolute_path
-from app.models import Test
+from lvfs.pluginloader import PluginBase, PluginError, PluginSettingBool
+from lvfs.util import _get_absolute_path
+from lvfs.models import Test
 
 class Plugin(PluginBase):
     def __init__(self):

@@ -7,9 +7,9 @@
 #
 # pylint: disable=singleton-comparison
 
-import app as application
+import lvfs as application
 
-from app.emails import send_email
+from lvfs.emails import send_email
 
 # make compatible with Flask
 app = application.app

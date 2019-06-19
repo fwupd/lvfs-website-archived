@@ -14,9 +14,9 @@ from alembic import op
 import sqlalchemy as sa
 from sqlalchemy.dialects import mysql
 
-from app import db
-from app.models import Component, Category
-from app.util import _fix_component_name
+from lvfs import db
+from lvfs.models import Component, Category
+from lvfs.util import _fix_component_name
 
 def upgrade():
 

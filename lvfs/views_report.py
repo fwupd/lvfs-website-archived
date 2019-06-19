@@ -10,7 +10,7 @@ import json
 from flask import request, url_for, redirect, flash, Response, render_template
 from flask_login import login_required
 
-from app import app, db
+from lvfs import app, db
 
 from .models import Firmware, Report, ReportAttribute, Issue, Certificate, Checksum
 from .util import _error_permission_denied, _event_log

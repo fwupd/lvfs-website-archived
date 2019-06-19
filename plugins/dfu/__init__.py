@@ -10,8 +10,8 @@
 import struct
 import zlib
 
-from app.pluginloader import PluginBase, PluginError, PluginSettingBool
-from app.models import Test
+from lvfs.pluginloader import PluginBase, PluginError, PluginSettingBool
+from lvfs.models import Test
 
 class Plugin(PluginBase):
     def __init__(self):

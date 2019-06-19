@@ -10,8 +10,8 @@
 import os
 import sys
 
-from app.metadata import _generate_metadata_kind
-from app.uploadedfile import UploadedFile
+from lvfs.metadata import _generate_metadata_kind
+from lvfs.uploadedfile import UploadedFile
 
 def parse_args():
     import argparse

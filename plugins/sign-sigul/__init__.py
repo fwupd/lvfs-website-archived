@@ -11,8 +11,8 @@ import subprocess
 import tempfile
 
 from cabarchive import CabFile
-from app.pluginloader import PluginBase, PluginError, PluginSettingText, PluginSettingBool
-from app import ploader
+from lvfs.pluginloader import PluginBase, PluginError, PluginSettingText, PluginSettingBool
+from lvfs import ploader
 
 def _sigul_detached_sign_data(contents, config, key):
 

@@ -12,9 +12,9 @@ import uuid
 from flask import session, request
 from flask_oauthlib.client import OAuthException
 
-from app import oauth
-from app.pluginloader import PluginBase, PluginSettingBool, PluginSettingText, PluginError
-from app.util import _get_settings
+from lvfs import oauth
+from lvfs.pluginloader import PluginBase, PluginSettingBool, PluginSettingText, PluginError
+from lvfs.util import _get_settings
 
 settings = _get_settings('auth_azure')
 if 'auth_azure_consumer_key' in settings and settings['auth_azure_consumer_key']:

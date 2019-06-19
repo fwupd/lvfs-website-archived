@@ -20,7 +20,7 @@ from sqlalchemy.orm import joinedload
 
 import GeoIP
 
-from app import app, db, lm, ploader
+from lvfs import app, db, lm, ploader
 from pkgversion import vercmp
 
 from .dbutils import _execute_count_star

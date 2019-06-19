@@ -11,8 +11,8 @@ import os
 import gnupg
 
 from cabarchive import CabFile
-from app.pluginloader import PluginBase, PluginError, PluginSettingText, PluginSettingBool
-from app import ploader
+from lvfs.pluginloader import PluginBase, PluginError, PluginSettingText, PluginSettingBool
+from lvfs import ploader
 
 class Affidavit:
 

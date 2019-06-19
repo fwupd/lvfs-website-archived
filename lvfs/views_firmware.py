@@ -14,7 +14,7 @@ from flask_login import login_required
 
 from sqlalchemy.orm import joinedload
 
-from app import app, db
+from lvfs import app, db
 
 from .models import Firmware, Report, Client, FirmwareEvent, FirmwareLimit
 from .models import Remote, Vendor, AnalyticFirmware, Component

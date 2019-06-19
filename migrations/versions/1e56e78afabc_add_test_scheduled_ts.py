@@ -14,8 +14,8 @@ from alembic import op
 import sqlalchemy as sa
 from sqlalchemy.dialects import mysql
 
-from app import db
-from app.models import Test
+from lvfs import db
+from lvfs.models import Test
 
 def upgrade():
     op.add_column('tests', sa.Column('scheduled_ts', sa.DateTime(), nullable=False))

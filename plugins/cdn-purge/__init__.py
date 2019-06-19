@@ -12,8 +12,8 @@ import fnmatch
 import json
 import requests
 
-from app.pluginloader import PluginBase, PluginError
-from app.pluginloader import PluginSettingText, PluginSettingBool, PluginSettingTextList
+from lvfs.pluginloader import PluginBase, PluginError
+from lvfs.pluginloader import PluginSettingText, PluginSettingBool, PluginSettingTextList
 
 def _basename_matches_globs(basename, globs):
     for glob in globs:

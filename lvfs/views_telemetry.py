@@ -10,7 +10,7 @@ import datetime
 from flask import render_template, g
 from flask_login import login_required
 
-from app import app, db
+from lvfs import app, db
 
 from .models import Firmware
 from .util import _error_permission_denied

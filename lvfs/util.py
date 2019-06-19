@@ -129,7 +129,7 @@ def _xml_from_markdown(markdown):
     return root
 
 def _add_problem(problems, title, line=None):
-    from app.models import Problem
+    from lvfs.models import Problem
     if line:
         tmp = "%s: [%s]" % (title, line)
     else:
@@ -208,7 +208,7 @@ def _get_update_description_problems(root):
 
 def _get_settings(prefix=None):
     """ return a dict of all the settings """
-    from app import db
+    from lvfs import db
     from .models import Setting
     settings = {}
     stmt = db.session.query(Setting)
@@ -219,13 +219,13 @@ def _get_settings(prefix=None):
     return settings
 
 def _get_absolute_path(fw):
-    from app import app
+    from lvfs import app
     if fw.is_deleted:
         return os.path.join(app.config['RESTORE_DIR'], fw.filename)
     return os.path.join(app.config['DOWNLOAD_DIR'], fw.filename)
 
 def _get_shard_path(shard):
-    from app import app
+    from lvfs import app
     return os.path.join(app.config['SHARD_DIR'], str(shard.component_id), shard.info.name)
 
 def _get_client_address():
@@ -247,7 +247,7 @@ def _event_log(msg, is_important=False):
     if request:
         request_path = request.path
     from .models import Event
-    from app import db
+    from lvfs import db
     event = Event(user_id=user_id,
                   message=msg,
                   vendor_id=vendor_id,
@@ -328,7 +328,7 @@ def _generate_password(size=10, chars=string.ascii_letters + string.digits):
     return ''.join(random.choice(chars) for _ in range(size))
 
 def _get_certtool():
-    from app import app
+    from lvfs import app
     return app.config['CERTTOOL'].split(' ')
 
 def _pkcs7_certificate_info(text):

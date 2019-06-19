@@ -35,9 +35,9 @@ You can set up the development database manually using:
 
 Then create the schema using:
 
-    FLASK_APP=app/__init__.py flask-3 initdb
-    FLASK_APP=app/__init__.py flask-3 db stamp
-    FLASK_APP=app/__init__.py flask-3 db upgrade
+    FLASK_APP=lvfs/__init__.py flask-3 initdb
+    FLASK_APP=lvfs/__init__.py flask-3 db stamp
+    FLASK_APP=lvfs/__init__.py flask-3 db upgrade
 
 The admin user is set as `sign-test@fwupd.org` with password `Pa$$w0rd`.
 

@@ -10,7 +10,7 @@ import humanize
 from flask import render_template, make_response, flash, redirect, url_for
 from flask_login import login_required
 
-from app import app, db
+from lvfs import app, db
 
 from .models import Vendor, Remote
 from .util import admin_login_required
