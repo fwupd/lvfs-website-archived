@@ -9,10 +9,5 @@ before_script:
   - docker build -t centos7 -f contrib/Dockerfile .
 
 script:
-  - docker run -t -v `pwd`:/build centos7 ./lvfs/tests/uploadedfile_test.py
-  - docker run -t -v `pwd`:/build centos7 ./lvfs/tests/markdown_test.py
-  - docker run -t -v `pwd`:/build centos7 ./cabarchive/tests/archive_test.py
-  - docker run -t -v `pwd`:/build centos7 ./infparser/tests/parser_test.py
-  - docker run -t -v `pwd`:/build centos7 ./pkgversion/tests/vercmp_test.py
   - docker run -t -v `pwd`:/build centos7 ./pylint_test.py
-  - docker run --privileged -t -v `pwd`:/build centos7 ./lvfs/tests/lvfs_test.py
+  - docker run --privileged -t -v `pwd`:/build centos7 pytest
