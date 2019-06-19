@@ -5,6 +5,8 @@
 #
 # SPDX-License-Identifier: GPL-2.0+
 
+from collections import defaultdict
+
 from flask import render_template, request, url_for, redirect, flash
 from flask_login import login_required
 
@@ -15,33 +17,21 @@ from .util import _event_log, _get_settings
 from .util import admin_login_required
 
 def _convert_tests_for_plugin(plugin):
-    tests_by_type = {}
+    tests_by_type = defaultdict(list)
     for test in db.session.query(Test).join(Firmware).\
                          filter(Test.plugin_id == plugin.id). \
                          order_by(Test.scheduled_ts.desc()).all():
-        if 'recent' not in tests_by_type:
-            tests_by_type['recent'] = []
         if len(tests_by_type['recent']) < 20:
             tests_by_type['recent'].append(test)
         if test.is_pending:
-            if 'pending' not in tests_by_type:
-                tests_by_type['pending'] = []
             tests_by_type['pending'].append(test)
         elif test.is_running:
-            if 'running' not in tests_by_type:
-                tests_by_type['running'] = []
             tests_by_type['running'].append(test)
         elif test.waived_ts:
-            if 'waived' not in tests_by_type:
-                tests_by_type['waived'] = []
             tests_by_type['waived'].append(test)
         elif test.success:
-            if 'success' not in tests_by_type:
-                tests_by_type['success'] = []
             tests_by_type['success'].append(test)
         else:
-            if 'failed' not in tests_by_type:
-                tests_by_type['failed'] = []
             tests_by_type['failed'].append(test)
     return tests_by_type
 
