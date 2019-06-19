@@ -74,9 +74,7 @@ def _generate_metadata_kind(filename, fws, firmware_baseuri='', local=False):
                 continue
 
             # allow specifying more than one ID
-            vendor_ids = []
-            for res in vendor.restrictions:
-                vendor_ids.append(res.value)
+            vendor_ids = [res.value for res in vendor.restrictions]
             child = ET.Element('firmware')
             child.text = 'vendor-id'
             if len(vendor_ids) == 1:

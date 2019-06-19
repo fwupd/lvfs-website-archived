@@ -187,9 +187,7 @@ def upload():
     # check if the file dropped a GUID previously supported
     dropped_guids = []
     for umd in ufile.fw.mds:
-        new_guids = []
-        for guid in umd.guids:
-            new_guids.append(guid.value)
+        new_guids = [guid.value for guid in umd.guids]
         for fw in fws:
             if fw.is_deleted:
                 continue

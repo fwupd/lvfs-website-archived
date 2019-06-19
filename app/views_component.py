@@ -19,9 +19,7 @@ from .hash import _is_sha1, _is_sha256
 
 def _sanitize_markdown_text(txt):
     txt = txt.replace('\r', '')
-    new_lines = []
-    for line in txt.split('\n'):
-        new_lines.append(line.strip())
+    new_lines = [line.strip() for line in txt.split('\n')]
     return '\n'.join(new_lines)
 
 @app.route('/lvfs/component/problems')
@@ -190,9 +188,7 @@ def component_checksums(component_id):
                                        filter(Report.firmware_id == fw.firmware_id).\
                                        filter(ReportAttribute.key == 'ChecksumDevice').\
                                        group_by(ReportAttribute.value).all()
-    device_checksums = []
-    for csum in md.device_checksums:
-        device_checksums.append(csum.value)
+    device_checksums = [csum.value for csum in md.device_checksums]
     return render_template('component-checksums.html',
                            category='firmware',
                            md=md, page='checksums',

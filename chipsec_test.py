@@ -50,9 +50,7 @@ if __name__ == '__main__':
                 data['shards'] = len(fw.md_prio.shards)
 
                 # capture message
-                msg = []
-                for attr in test.attributes:
-                    msg.append(attr.title)
+                msg = [attr.title for attr in test.attributes]
                 data['msg'] = ','.join(msg)
 
                 # remove the elapsed time to keep diff clean

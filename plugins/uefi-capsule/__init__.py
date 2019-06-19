@@ -64,9 +64,7 @@ class Plugin(PluginBase):
 
             # check the GUID
             guid = str(uuid.UUID(bytes_le=data[0]))
-            referenced_guids = []
-            for gu in md.guids:
-                referenced_guids.append(gu.value)
+            referenced_guids = [gu.value for gu in md.guids]
             if guid == '00000000-0000-0000-0000-000000000000':
                 test.add_fail('GUID', '%s is not valid' % guid)
             elif guid in referenced_guids:
