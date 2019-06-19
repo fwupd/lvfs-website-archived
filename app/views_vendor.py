@@ -2,7 +2,8 @@
 # -*- coding: utf-8 -*-
 #
 # Copyright (C) 2017 Richard Hughes <richard@hughsie.com>
-# Licensed under the GNU General Public License Version 2
+#
+# SPDX-License-Identifier: GPL-2.0+
 #
 # pylint: disable=too-few-public-methods
 

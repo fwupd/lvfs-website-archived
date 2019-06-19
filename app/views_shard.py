@@ -2,7 +2,8 @@
 # -*- coding: utf-8 -*-
 #
 # Copyright (C) 2019 Richard Hughes <richard@hughsie.com>
-# Licensed under the GNU General Public License Version 2
+#
+# SPDX-License-Identifier: GPL-2.0+
 
 from flask import request, url_for, redirect, flash, render_template
 from flask_login import login_required

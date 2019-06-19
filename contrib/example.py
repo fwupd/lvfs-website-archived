@@ -1,6 +1,7 @@
 #!/usr/bin/python
 # Copyright (C) 2015-2018 Richard Hughes <richard@hughsie.com>
-# Licensed under the GNU General Public License Version 2
+#
+# SPDX-License-Identifier: GPL-2.0+
 
 from __future__ import print_function
 
