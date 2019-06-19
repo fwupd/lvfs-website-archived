@@ -18,8 +18,8 @@ from gi.repository import GLib
 from gi.repository import AppStreamGlib
 
 from cabarchive import CabArchive, CabFile
+from infparser import InfParser
 
-from .inf_parser import InfParser
 from .util import _validate_guid
 
 class FileTooLarge(Exception):
@@ -128,9 +128,8 @@ class UploadedFile:
                                   'replaced with the correct values.')
 
         # check .inf file is valid
-        cfg = InfParser()
         try:
-            cfg.read_data(contents)
+            cfg = InfParser(contents)
         except configparser.MissingSectionHeaderError as _:
             raise MetadataInvalid('The inf file could not be parsed')
         try:
