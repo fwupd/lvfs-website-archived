@@ -6,7 +6,7 @@
 # SPDX-License-Identifier: GPL-2.0+
 #
 # pylint: disable=fixme,too-many-public-methods,line-too-long,too-many-lines
-# pylint: disable=too-many-instance-attributes
+# pylint: disable=too-many-instance-attributes,wrong-import-position
 
 import os
 import sys
@@ -15,6 +15,9 @@ import tempfile
 import subprocess
 import gzip
 import io
+
+# allows us to run this from the project root
+sys.path.append(os.path.realpath('.'))
 
 def _gzip_decompress_buffer(buf):
     fgz = io.BytesIO()

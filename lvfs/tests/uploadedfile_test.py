@@ -7,9 +7,14 @@
 #
 # pylint: disable=no-self-use,protected-access,wrong-import-position
 
+import os
+import sys
 import unittest
 import zipfile
 import io
+
+# allows us to run this from the project root
+sys.path.append(os.path.realpath('.'))
 
 from lvfs.uploadedfile import UploadedFile, FileTooSmall, FileNotSupported, MetadataInvalid
 from lvfs.util import _validate_guid

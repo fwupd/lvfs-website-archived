@@ -5,7 +5,13 @@
 #
 # SPDX-License-Identifier: GPL-2.0+
 #
-# pylint: disable=singleton-comparison
+# pylint: disable=singleton-comparison,wrong-import-position
+
+import os
+import sys
+
+# allows us to run this from the project root
+sys.path.append(os.path.realpath('.'))
 
 import lvfs as application
 

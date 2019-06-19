@@ -5,19 +5,20 @@
 #
 # SPDX-License-Identifier: GPL-2.0+
 #
-# pylint: disable=protected-access
+# pylint: disable=protected-access,wrong-import-position
 
+import os
+import sys
 import csv
 import datetime
 
-import lvfs as application
+# allows us to run this from the project root
+sys.path.append(os.path.realpath('.'))
+
 from lvfs import db, ploader
 
 from lvfs.models import Test, Firmware
 from lvfs.pluginloader import PluginError
-
-# make compatible with Flask
-app = application.app
 
 if __name__ == '__main__':
 

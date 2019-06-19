@@ -5,10 +5,17 @@
 #
 # SPDX-License-Identifier: GPL-2.0+
 #
-# pylint: disable=no-self-use,protected-access
+# pylint: disable=no-self-use,protected-access,wrong-import-position
+
+import os
+import sys
 
 import unittest
 from lxml import etree as ET
+
+# allows us to run this from the project root
+sys.path.append(os.path.realpath('.'))
+
 from lvfs.util import _markdown_from_root, _xml_from_markdown, _get_update_description_problems
 
 class MarkdownTest(unittest.TestCase):
