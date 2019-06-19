@@ -101,5 +101,5 @@ from lvfs import views_search
 from lvfs import views_agreement
 from lvfs import views_protocol
 from lvfs import views_category
-from lvfs import views_test
+from lvfs import views_tests
 from lvfs import views_shard
