@@ -7,9 +7,7 @@ RUN yum -y install \
 	bsdtar \
 	flatpak \
 	geolite2-country \
-	gnutls-utils \
 	libgcab1 \
-	libstemmer \
 	GeoIP-devel \
 	gcc \
 	python-GeoIP \
