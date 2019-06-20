@@ -10,13 +10,9 @@
 import sys
 import csv
 
-import lvfs as application
-from lvfs import db
+from lvfs import app, db
 
 from lvfs.models import Firmware
-
-# make compatible with Flask
-app = application.app
 
 def _write_report_for_plugin_id(writer, plugin_id):
 

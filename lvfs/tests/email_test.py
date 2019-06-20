@@ -13,12 +13,8 @@ import sys
 # allows us to run this from the project root
 sys.path.append(os.path.realpath('.'))
 
-import lvfs as application
-
+from lvfs import app
 from lvfs.emails import send_email
-
-# make compatible with Flask
-app = application.app
 
 if __name__ == '__main__':
     with app.test_request_context():

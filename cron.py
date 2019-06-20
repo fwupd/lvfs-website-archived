@@ -14,8 +14,7 @@ import datetime
 
 from cabarchive import CabArchive
 
-import lvfs as application
-from lvfs import db, ploader
+from lvfs import app, db, ploader
 from lvfs.dbutils import _execute_count_star
 from lvfs.models import Remote, Firmware, Vendor, Client, AnalyticVendor
 from lvfs.models import AnalyticFirmware, Useragent, UseragentKind, Analytic, Report
@@ -23,9 +22,6 @@ from lvfs.models import ComponentShardInfo
 from lvfs.models import _get_datestr_from_datetime
 from lvfs.metadata import _metadata_update_targets, _metadata_update_pulp
 from lvfs.util import _event_log, _get_shard_path
-
-# make compatible with Flask
-app = application.app
 
 def _regenerate_and_sign_metadata():
 
