@@ -33,15 +33,10 @@ def _generate_metadata_kind(filename, fws, firmware_baseuri='', local=False):
                 mds = components[md.appstream_id]
                 mds.append(md)
 
-    # process each component in ID order
+    # process each component in version order, but only include the latest 5
+    # releases to keep the metadata size sane
     for appstream_id in sorted(components):
-        mds = components[appstream_id]
-        mds.sort(key=lambda md: md.release_timestamp, reverse=True)
-
-        # only include the latest 5 releases
-        if len(mds) > 5:
-            mds = mds[:5]
-
+        mds = sorted(components[appstream_id], reverse=True)[:5]
         # assume all the components have the same parent firmware information
         md = mds[0]
         component = ET.SubElement(root, 'component')

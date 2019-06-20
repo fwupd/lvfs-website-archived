@@ -30,6 +30,9 @@ class TestpkgVersion(unittest.TestCase):
         assert vercmp('1.2.3', '1.2.2') > 0
         assert vercmp('001.002.009', '001.002.000') > 0
 
+        # int parsing
+        assert vercmp('4.01', '4.10') < 0
+
         # unequal depth
         assert vercmp('1.2.3', '1.2.3.1') < 0
         assert vercmp('1.2.3.1', '1.2.4') < 0

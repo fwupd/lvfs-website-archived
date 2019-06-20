@@ -1211,6 +1211,12 @@ class Component(db.Model):
         self.priority = 0
         self._blob = None
 
+    def __lt__(self, other):
+        return vercmp(self.version, other.version) < 0
+
+    def __eq__(self, other):
+        return vercmp(self.version, other.version) == 0
+
     @property
     def blob(self):
         if not hasattr(self, '_blob'):
