@@ -18,7 +18,7 @@ from lvfs import app, db, ploader
 from lvfs.dbutils import _execute_count_star
 from lvfs.models import Remote, Firmware, Vendor, Client, AnalyticVendor
 from lvfs.models import AnalyticFirmware, Useragent, UseragentKind, Analytic, Report
-from lvfs.models import ComponentShardInfo
+from lvfs.models import ComponentShardInfo, Test
 from lvfs.models import _get_datestr_from_datetime
 from lvfs.metadata import _metadata_update_targets, _metadata_update_pulp
 from lvfs.util import _event_log, _get_shard_path
@@ -42,7 +42,7 @@ def _regenerate_and_sign_metadata():
             remotes.append(r)
 
     # nothing to do
-    if not len(remotes):
+    if not remotes:
         return
 
     # update everything required
@@ -97,9 +97,33 @@ def _sign_fw(fw):
     # inform the plugin loader
     ploader.file_modified(fn)
 
+    # update the download size
+    for md in fw.mds:
+        md.release_download_size = len(cab_data)
+
     # update the database
     fw.checksum_signed = hashlib.sha1(cab_data).hexdigest()
+    fw.checksum_pulp = hashlib.sha256(cab_data).hexdigest()
     fw.signed_timestamp = datetime.datetime.utcnow()
+    db.session.commit()
+
+def _repair():
+
+    # fix all the checksums and file sizes
+    for fw in db.session.query(Firmware).all():
+        try:
+            with open(fw.filename_absolute, 'rb') as f:
+                fw.checksum_pulp = hashlib.sha256(f.read()).hexdigest()
+            for md in fw.mds:
+                md.release_download_size = os.path.getsize(fw.filename_absolute)
+        except FileNotFoundError as _:
+            pass
+
+        # ensure the test has been added for the firmware type
+        if not fw.is_deleted:
+            ploader.ensure_test_for_fw(fw)
+
+    # all done
     db.session.commit()
 
 def _regenerate_and_sign_firmware():
@@ -107,7 +131,7 @@ def _regenerate_and_sign_firmware():
     # find all unsigned firmware
     fws = db.session.query(Firmware).\
                         filter(Firmware.signed_timestamp == None).all()
-    if not len(fws):
+    if not fws:
         return
 
     # sign each firmware in each file
@@ -124,8 +148,9 @@ def _regenerate_and_sign_firmware():
 def _purge_old_deleted_firmware():
 
     # find all unsigned firmware
-    for fw in db.session.query(Firmware).all():
-        if fw.is_deleted and fw.target_duration > datetime.timedelta(days=30*6):
+    for fw in db.session.query(Firmware).\
+                    join(Remote).filter(Remote.name == 'deleted').all():
+        if fw.target_duration > datetime.timedelta(days=30*6):
             print('Deleting %s as age %s' % (fw.filename, fw.target_duration))
             path = os.path.join(app.config['RESTORE_DIR'], fw.filename)
             if os.path.exists(path):
@@ -146,55 +171,37 @@ def _test_priority_sort_func(test):
 
 def _check_firmware():
 
-    # ensure the test has been added for the firmware type
-    fws = db.session.query(Firmware).all()
-    for fw in fws:
-        if fw.is_deleted:
-            continue
-        ploader.ensure_test_for_fw(fw)
-    db.session.commit()
-
     # make a list of all the tests that need running
-    test_fws = {}
-    for fw in fws:
-        for test in fw.tests:
-            if test.needs_running:
-                if fw in test_fws:
-                    test_fws[fw].append(test)
-                else:
-                    test_fws[fw] = [test]
+    tests = db.session.query(Test).\
+                filter(Test.started_ts == None).\
+                filter(Test.ended_ts == None).all()
 
     # mark all the tests as started
-    for fw in test_fws:
-        for test in test_fws[fw]:
-            print('Marking test %s started for firmware %u...' % (test.plugin_id, fw.firmware_id))
-            test.started_ts = datetime.datetime.utcnow()
+    for test in tests:
+        print('Marking test {} started for firmware {}...'.format(test.plugin_id, test.fw.firmware_id))
+        test.started_ts = datetime.datetime.utcnow()
     db.session.commit()
 
     # process each test
-    for fw in test_fws:
-        for test in sorted(test_fws[fw], key=_test_priority_sort_func):
-            plugin = ploader.get_by_id(test.plugin_id)
-            if not plugin:
-                _event_log('No plugin %s' % test.plugin_id)
-                test.ended_ts = datetime.datetime.utcnow()
-                continue
-            if not hasattr(plugin, 'run_test_on_fw'):
-                _event_log('No run_test_on_fw in %s' % test.plugin_id)
-                test.ended_ts = datetime.datetime.utcnow()
-                continue
-            try:
-                print('Running test %s for firmware %s' % (test.plugin_id, fw.firmware_id))
-                plugin.run_test_on_fw(test, fw)
-                test.ended_ts = datetime.datetime.utcnow()
-                # don't leave a failed task running
-                db.session.commit()
-            except Exception as e: # pylint: disable=broad-except
-                test.ended_ts = datetime.datetime.utcnow()
-                test.add_fail('An exception occurred', str(e))
-
-        # unallocate the cached blob as it's no longer needed
-        fw.blob = None
+    for test in sorted(tests, key=_test_priority_sort_func):
+        plugin = ploader.get_by_id(test.plugin_id)
+        if not plugin:
+            _event_log('No plugin %s' % test.plugin_id)
+            test.ended_ts = datetime.datetime.utcnow()
+            continue
+        if not hasattr(plugin, 'run_test_on_fw'):
+            _event_log('No run_test_on_fw in %s' % test.plugin_id)
+            test.ended_ts = datetime.datetime.utcnow()
+            continue
+        try:
+            print('Running test {} for firmware {}'.format(test.plugin_id, test.fw.firmware_id))
+            plugin.run_test_on_fw(test, test.fw)
+            test.ended_ts = datetime.datetime.utcnow()
+            # don't leave a failed task running
+            db.session.commit()
+        except Exception as e: # pylint: disable=broad-except
+            test.ended_ts = datetime.datetime.utcnow()
+            test.add_fail('An exception occurred', str(e))
 
     # all done
     db.session.commit()
@@ -396,6 +403,13 @@ if __name__ == '__main__':
         sys.exit(1)
 
     # regenerate and sign firmware then metadata
+    if 'repair' in sys.argv:
+        try:
+            with app.test_request_context():
+                _repair()
+        except NotImplementedError as e:
+            print(str(e))
+            sys.exit(1)
     if 'firmware' in sys.argv:
         try:
             with app.test_request_context():

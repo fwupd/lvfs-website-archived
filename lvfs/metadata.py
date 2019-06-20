@@ -13,7 +13,7 @@ from lxml import etree as ET
 
 from lvfs import app, db
 
-from .models import Firmware, Vendor
+from .models import Firmware, Vendor, Remote
 from .util import _get_settings, _xml_from_markdown
 
 def _generate_metadata_kind(filename, fws, firmware_baseuri='', local=False):
@@ -289,36 +289,21 @@ def _metadata_update_targets(remotes):
         for fw in fws_filtered:
             fw.is_dirty = False
 
-def _hashfile(afile, hasher, blocksize=65536):
-    buf = afile.read(blocksize)
-    while len(buf) > 0:
-        hasher.update(buf)
-        buf = afile.read(blocksize)
-    return hasher.hexdigest()
-
 def _metadata_update_pulp():
+
     """ updates metadata for Pulp """
-    files_to_scan = ['firmware.xml.gz', 'firmware.xml.gz.asc']
-    for fw in db.session.query(Firmware).all():
-        if fw.remote.name != 'stable':
-            continue
-        files_to_scan.append(fw.filename)
-
-    # for each file in stable plus metadata
-    data = []
     download_dir = app.config['DOWNLOAD_DIR']
-    for basename in files_to_scan:
-        fn = os.path.join(download_dir, basename)
-        if not os.path.exists(fn):
-            continue
+    with open(os.path.join(download_dir, 'PULP_MANIFEST'), 'w') as manifest:
 
-        # filename,sha256,size
-        with open(fn, 'rb') as f:
-            sha256 = _hashfile(f, hashlib.sha256())
-        fn_sz = os.path.getsize(fn)
-        data.append('%s,%s,%i\n' % (basename, sha256, fn_sz))
+        # add metadata
+        for basename in ['firmware.xml.gz', 'firmware.xml.gz.asc']:
+            fn = os.path.join(download_dir, basename)
+            with open(fn, 'rb') as f:
+                checksum_pulp = hashlib.sha256(f.read()).hexdigest()
+            manifest.write('%s,%s,%i\n' % (basename, checksum_pulp, os.path.getsize(fn)))
 
-    # write file
-    filename = os.path.join(download_dir, 'PULP_MANIFEST')
-    with open(filename, 'w') as f:
-        f.writelines(data)
+        # add firmware in stable
+        for fw in db.session.query(Firmware).join(Remote).filter(Remote.is_public).all():
+            manifest.write('{},{},{}\n'.format(fw.filename,
+                                               fw.checksum_pulp,
+                                               fw.mds[0].release_download_size))

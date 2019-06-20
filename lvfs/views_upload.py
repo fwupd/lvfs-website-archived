@@ -231,6 +231,7 @@ def upload():
     fw.addr = _get_client_address()
     fw.remote_id = remote.remote_id
     fw.checksum_signed = hashlib.sha1(cab_data).hexdigest()
+    fw.checksum_pulp = hashlib.sha256(cab_data).hexdigest()
     fw.is_dirty = True
 
     # fix name

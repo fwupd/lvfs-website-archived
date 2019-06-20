@@ -822,25 +822,6 @@ class Test(db.Model):
         raise NotImplementedError('unknown security check action: %s:%s' % (self, action))
 
     @property
-    def needs_running(self):
-
-        # already running
-        if self.started_ts:
-            return False
-
-        # already finished
-        if self.ended_ts:
-            if self.max_age:
-                # might need to run it again, as max age has been set
-                tsdelta = datetime.datetime.now() - self.ended_ts
-                if tsdelta.total_seconds() > self.max_age:
-                    return True
-            return False
-
-        # not ever started
-        return True
-
-    @property
     def timestamp(self):
         if self.ended_ts:
             return self.ended_ts
@@ -1571,9 +1552,10 @@ class Firmware(db.Model):
     _version_display = Column('version_display', Text, nullable=True, default=None)
     remote_id = Column(Integer, ForeignKey('remotes.remote_id'), nullable=False)
     checksum_signed = Column(String(40), nullable=False)
+    checksum_pulp = Column(String(64), nullable=False)
     user_id = Column(Integer, ForeignKey('users.user_id'), nullable=False)
     signed_timestamp = Column(DateTime, default=None)
-    is_dirty = Column(Boolean, default=False)   # waiting to be included in metadata
+    is_dirty = Column(Boolean, default=False)           # waiting to be included in metadata
     _banned_country_codes = Column('banned_country_codes', Text, default=None) # ISO 3166, delimiter ','
     report_success_cnt = Column(Integer, default=0)     # updated by cron.py
     report_failure_cnt = Column(Integer, default=0)     # updated by cron.py
