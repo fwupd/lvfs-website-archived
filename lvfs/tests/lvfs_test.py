@@ -1570,6 +1570,17 @@ ma+I7fM5pmgsEL4tkCZAg0+CPTyhHkMV/cWuOZUjqTsYbDq1pZI=
                 '/lvfs/newaccount',
                 '/lvfs/devicelist',
                 '/lvfs/device/2082b5e0-7a64-478a-b1b2-e3404fab6dad',
+                '/lvfs/docs/introduction',
+                '/lvfs/docs/affiliates',
+                '/lvfs/docs/agreement',
+                '/lvfs/docs/metainfo',
+                '/lvfs/docs/composite',
+                '/lvfs/docs/telemetry',
+                '/lvfs/news',
+                '/users.html',
+                '/vendors.html',
+                '/developers.html',
+                '/index.html',
                ]
         for uri in uris:
             rv = self.app.get(uri, follow_redirects=True)
