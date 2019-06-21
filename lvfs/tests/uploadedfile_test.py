@@ -30,7 +30,7 @@ def _get_valid_metainfo(release_description='This stable release fixes bugs',
 <!-- Copyright 2015 Richard Hughes <richard@hughsie.com> -->
 <component type="firmware">
   <id>com.hughski.ColorHug.firmware</id>
-  <name>ColorHug Firmware</name>
+  <name>ColorHug</name>
   <summary>Firmware for the ColorHug</summary>
   <description><p>Updating the firmware improves performance.</p></description>
   <provides>
@@ -59,7 +59,7 @@ def _get_alternate_metainfo():
 <!-- Copyright 2019 Richard Hughes <richard@hughsie.com> -->
 <component type="firmware">
   <id>com.hughski.ColorHug.firmware</id>
-  <name>ColorHug Firmware</name>
+  <name>ColorHug</name>
   <summary>Firmware for the ColorHug</summary>
   <description><p>Updating the firmware improves performance.</p></description>
   <provides>
@@ -90,7 +90,7 @@ def _get_generated_metainfo():
   </firmware>
  </provides>
  <name>
-  XPS 7390 Thunderbolt update
+  XPS 7390 Thunderbolt
  </name>
  <summary>
   Update for the Thunderbolt host controller in a XPS 7390

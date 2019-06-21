@@ -287,11 +287,53 @@ class UploadedFile:
         except IndexError as _:
             raise MetadataInvalid('<id> tag missing')
 
+        # get <developer_name>
+        try:
+            md.developer_name = _node_validate_text(component.xpath('developer_name')[0],
+                                                    minlen=3, maxlen=50, nourl=True)
+            if md.developer_name == 'LenovoLtd.':
+                md.developer_name = 'Lenovo Ltd.'
+            md.add_keywords_from_string(md.developer_name, priority=10)
+        except IndexError as _:
+            raise MetadataInvalid('<developer_name> tag missing')
+        if md.developer_name.find('@') != -1 or md.developer_name.find('_at_') != -1:
+            raise MetadataInvalid('<developer_name> cannot contain an email address')
+
         # get <name>
         try:
             md.name = _node_validate_text(component.xpath('name')[0],
                                           minlen=3, maxlen=500)
             md.add_keywords_from_string(md.name, priority=3)
+
+            # use categories instead
+            if self.is_strict:
+                category = {
+                    'system' : 'X-System',
+                    'device' : 'X-Device',
+                    'bios' : 'X-System',
+                    'me' : 'X-ManagementEngine',
+                    'embedded' : 'X-EmbeddedController',
+                    'controller' : 'X-EmbeddedController',
+                }
+                words = [word.lower() for word in md.name.split(' ')]
+                for search in category:
+                    if search in words:
+                        raise MetadataInvalid('<name> tag should not contain {}, use '
+                                              '<categories><category>{}'
+                                              '</category></categories> instead'.\
+                                              format(search, category[search]))
+
+                # tokens banned outright
+                for search in ['firmware', 'update', '(r)', '(c)']:
+                    if search in words:
+                        raise MetadataInvalid('<name> tag should not contain '
+                                              'the word "{}"'.format(search))
+
+                # should not include the vendor in the name
+                if md.developer_name_display:
+                    if md.developer_name_display.lower() in words:
+                        raise MetadataInvalid('<name> tag should not contain '
+                                              'the vendor name "{}"'.format(md.developer_name_display))
         except IndexError as _:
             raise MetadataInvalid('<name> tag missing')
 
@@ -309,18 +351,6 @@ class UploadedFile:
                                                  minlen=25, maxlen=1000, nourl=True)
         except IndexError as _:
             pass
-
-        # get <developer_name>
-        try:
-            md.developer_name = _node_validate_text(component.xpath('developer_name')[0],
-                                                    minlen=3, maxlen=50, nourl=True)
-            if md.developer_name == 'LenovoLtd.':
-                md.developer_name = 'Lenovo Ltd.'
-            md.add_keywords_from_string(md.developer_name, priority=10)
-        except IndexError as _:
-            raise MetadataInvalid('<developer_name> tag missing')
-        if md.developer_name.find('@') != -1 or md.developer_name.find('_at_') != -1:
-            raise MetadataInvalid('<developer_name> cannot contain an email address')
 
         # get <metadata_license>
         if self.is_strict:

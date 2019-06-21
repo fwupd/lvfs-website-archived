@@ -126,12 +126,15 @@ def upload():
     if not remote:
         return _error_internal('No remote for target %s' % remote_name)
 
+    # if the vendor has uploaded a lot of firmware don't start changing the rules
+    is_strict = len(vendor.fws) < 500
+
     # load in the archive
     fileitem = request.files['file']
     if not fileitem:
         return _error_internal('No file object')
     try:
-        ufile = UploadedFile()
+        ufile = UploadedFile(is_strict=is_strict)
         for cat in db.session.query(Category).all():
             ufile.category_map[cat.value] = cat.category_id
         for pro in db.session.query(Protocol).all():

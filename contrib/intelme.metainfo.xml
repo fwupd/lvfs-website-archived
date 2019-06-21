@@ -2,8 +2,8 @@
 <!-- Copyright 2019 Richard Hughes <richard@hughsie.com> -->
 <component type="firmware">
   <id>com.acme.ME.firmware</id>
-  <name>ME Firmware</name>
-  <summary>ME Test Firmware</summary>
+  <name>Test</name>
+  <summary>Test Firmware</summary>
   <description><p>Test firmware for device.</p></description>
   <provides>
     <firmware type="flashed">cc4cbfa9-bf9d-540b-b92b-172ce31013c1</firmware>
