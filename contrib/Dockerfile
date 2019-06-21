@@ -14,7 +14,8 @@ RUN yum -y install \
 	python36-devel \
 	python36-gobject \
 	python36-pip \
-	python36-psutil
+	python36-psutil \
+	words
 RUN flatpak remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
 RUN flatpak -y install flathub org.freedesktop.fwupd
 COPY requirements.txt /tmp/requirements.txt

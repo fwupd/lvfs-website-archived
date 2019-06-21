@@ -61,37 +61,37 @@ def anonymize_db(db):
     # get vendor display names
     vendor_names = []
     with gzip.open('data/vendors.txt.gz', 'rb') as f:
-        for ln in f.read().split('\n'):
+        for ln in f.read().decode().split('\n'):
             if not ln:
                 continue
-            vendor_names.append(ln.decode('utf-8'))
+            vendor_names.append(ln)
     random.shuffle(vendor_names)
 
     # get some plausible user names
     user_names = []
     with gzip.open('data/users.txt.gz', 'rb') as f:
-        for ln in f.read().split('\n'):
+        for ln in f.read().decode().split('\n'):
             if not ln:
                 continue
-            user_names.append(ln.decode('utf-8'))
+            user_names.append(ln)
     random.shuffle(user_names)
 
     # get some plausible device names
     device_names = []
     with gzip.open('data/devices.txt.gz', 'rb') as f:
-        for ln in f.read().split('\n'):
+        for ln in f.read().decode().split('\n'):
             if not ln:
                 continue
-            device_names.append(ln.decode('utf-8'))
+            device_names.append(ln)
     random.shuffle(device_names)
 
     # get some random words for keywords
     generic_words = []
-    with open('/usr/share/dict/words', 'r') as f:
-        for ln in f.read().split('\n'):
+    with open('/usr/share/dict/words', 'rb') as f:
+        for ln in f.read().decode().split('\n'):
             if not ln:
                 continue
-            generic_words.append(ln.decode('utf-8'))
+            generic_words.append(ln)
     random.shuffle(generic_words)
 
     # anonymize vendors

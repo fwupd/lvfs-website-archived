@@ -340,6 +340,24 @@ class LvfsTestCase(unittest.TestCase):
         assert b'Firmware deleted' not in rv.data, rv.data
         assert b'Insufficient permissions to delete firmware' in rv.data, rv.data
 
+    def test_anonymize_db(self):
+
+        # upload firmware
+        self.login()
+        self.upload()
+        self.logout()
+
+        # anonymize everything
+        from lvfs import db, app
+        from lvfs.dbutils import anonymize_db
+        with app.app_context():
+            anonymize_db(db)
+
+        # check the device is not listed
+        self.login()
+        rv = self.app.get('/lvfs/firmware')
+        assert b'ColorHug2' not in rv.data, rv.data
+
     def test_firmware_limits(self):
 
         # upload firmware
