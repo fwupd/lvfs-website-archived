@@ -10,4 +10,4 @@ before_script:
 
 script:
   - docker run -t -v `pwd`:/build centos7 ./pylint_test.py
-  - docker run --privileged -t -v `pwd`:/build centos7 pytest
+  - docker run --privileged -t -v `pwd`:/build centos7 pytest --cov=lvfs --cov=plugins --cov=pkgversion --cov=infparser --cov=cabarchive --cov-fail-under=60

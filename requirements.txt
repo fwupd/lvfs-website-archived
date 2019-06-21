@@ -17,4 +17,4 @@ iso3166
 pefile
 pyasn1_modules
 pylint
-pytest
+pytest-cov
