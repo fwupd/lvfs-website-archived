@@ -1525,6 +1525,14 @@ ma+I7fM5pmgsEL4tkCZAg0+CPTyhHkMV/cWuOZUjqTsYbDq1pZI=
             assert b'favicon.ico' in rv.data, rv.data
             assert b'LVFS: Error' in rv.data, rv.data
 
+    def test_horrible_hackers(self):
+
+        # all these are an error when not logged in
+        uris = ['/wp-login.php']
+        for uri in uris:
+            rv = self.app.get(uri)
+            assert b'bad karma' in rv.data, rv.data
+
     def add_issue(self, issue_id=1, url='https://github.com/hughsie/fwupd/wiki/Arch-Linux', name='ColorHug on Fedora'):
 
         # create an issue
