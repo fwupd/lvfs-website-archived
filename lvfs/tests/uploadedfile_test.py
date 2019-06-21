@@ -88,6 +88,16 @@ def _get_generated_metainfo():
  <developer_name>
   Dell Inc.
  </developer_name>
+ <requires>
+  <id compare="ge" version="1.2.3">org.freedesktop.fwupd</id>
+  <hardware>
+   foo|bar|baz
+  </hardware>
+  <firmware compare="ge" version="0.2.3"/>
+  <firmware compare="eq" version="0.0.1">
+   bootloader
+  </firmware>
+ </requires>
  <keywords>
   <keyword>
    thunderbolt

@@ -93,17 +93,21 @@ def detect_encoding_from_bom(b):
     # fallback
     return "cp1252"
 
-def _node_validate_text(node, minlen=0, maxlen=0, nourl=False):
+def _node_validate_text(node, minlen=0, maxlen=0, nourl=False, allow_none=False):
     """ Validates the style """
 
     # unwrap description
     if node.tag == 'description':
         text = _markdown_from_root(node)
     else:
-        text = node.text.strip()
+        text = node.text
+        if text:
+            text = text.strip()
 
     # invalid length
     if not text:
+        if allow_none:
+            return None
         raise MetadataInvalid('{} has no value'.format(node.tag))
 
     # some tags can be split for multiple models
@@ -359,20 +363,29 @@ class UploadedFile:
 
         # check only recognised requirements are added
         for req in component.xpath('requires/*'):
-            if req.tag not in ['firmware', 'id', 'hardware']:
-                raise MetadataInvalid('Requirement \'%s\' was invalid' % req.tag)
-            text = _node_validate_text(req, minlen=3, maxlen=1000)
-            if req.tag == 'id' and text == 'org.freedesktop.fwupd':
-                self.fwupd_min_version = req.get('version')
-            if req.tag == 'hardware':
-                req_values = text.split('|')
-            else:
-                req_values = [text]
-            for req_value in req_values:
+            if req.tag == 'firmware':
+                text = _node_validate_text(req, minlen=3, maxlen=1000, allow_none=True)
                 rq = Requirement(md.component_id,
-                                 req.tag, req_value, req.get('compare'),
+                                 req.tag, text, req.get('compare'),
                                  req.get('version'))
                 md.requirements.append(rq)
+            elif req.tag == 'id':
+                text = _node_validate_text(req, minlen=3, maxlen=1000)
+                rq = Requirement(md.component_id,
+                                 req.tag, text, req.get('compare'),
+                                 req.get('version'))
+                md.requirements.append(rq)
+                if text == 'org.freedesktop.fwupd':
+                    self.fwupd_min_version = req.get('version')
+            elif req.tag == 'hardware':
+                text = _node_validate_text(req, minlen=3, maxlen=1000)
+                for req_value in text.split('|'):
+                    rq = Requirement(md.component_id,
+                                     req.tag, req_value, req.get('compare'),
+                                     req.get('version'))
+                    md.requirements.append(rq)
+            else:
+                raise MetadataInvalid('<{}> requirement was invalid'.format(req.tag))
 
         # from the first screenshot
         try:
