@@ -40,8 +40,6 @@ def _make_boring(val):
     return out
 
 def _should_anonymize(v):
-    if v.group_id == 'admin':
-        return False
     if v.group_id == 'hughski': # this is my hobby; I have no secrets
         return False
     return True
