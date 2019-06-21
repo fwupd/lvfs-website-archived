@@ -298,9 +298,10 @@ def _metadata_update_pulp():
         # add metadata
         for basename in ['firmware.xml.gz', 'firmware.xml.gz.asc']:
             fn = os.path.join(download_dir, basename)
-            with open(fn, 'rb') as f:
-                checksum_pulp = hashlib.sha256(f.read()).hexdigest()
-            manifest.write('%s,%s,%i\n' % (basename, checksum_pulp, os.path.getsize(fn)))
+            if os.path.exists(fn):
+                with open(fn, 'rb') as f:
+                    checksum_pulp = hashlib.sha256(f.read()).hexdigest()
+                manifest.write('%s,%s,%i\n' % (basename, checksum_pulp, os.path.getsize(fn)))
 
         # add firmware in stable
         for fw in db.session.query(Firmware).join(Remote).filter(Remote.is_public).all():

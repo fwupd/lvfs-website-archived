@@ -880,6 +880,11 @@ class LvfsTestCase(unittest.TestCase):
         assert b'Moved firmware' in rv.data, rv.data
         assert b'>stable<' in rv.data, rv.data
 
+        # build the pulp metadata
+        self.logout()
+        self.run_cron_metadata(['stable'])
+        self.login()
+
         # demote back to testing then private
         rv = self.app.get('/lvfs/firmware/1/promote/testing',
                           follow_redirects=True)
