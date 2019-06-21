@@ -41,6 +41,9 @@ class TestCabArchive(unittest.TestCase):
             with open('contrib/pylint.sh', 'rb') as f:
                 _ = CabArchive(f.read())
 
+    def test_cabfile_length(self):
+        self.assertEqual(len(CabFile(b'foofoofoofoofoofoofoofoo')), 24)
+
     def test_uncompressed(self):
         cabarchive = CabArchive()
         cabarchive['README.txt'] = CabFile(b'foofoofoofoofoofoofoofoo')
