@@ -1459,6 +1459,48 @@ ma+I7fM5pmgsEL4tkCZAg0+CPTyhHkMV/cWuOZUjqTsYbDq1pZI=
         assert b'>alice<' in rv.data, rv.data
         assert b'>colorimeter<' not in rv.data, rv.data
 
+    def test_device_checksums(self):
+
+        # upload file with keywords
+        self.login()
+        self.upload()
+
+        # add invalid checksums
+        rv = self.app.post('/lvfs/component/1/checksum/add', data=dict(
+            value='xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx',
+        ), follow_redirects=True)
+        assert b'is not a recognised SHA1 or SHA256 hash' in rv.data, rv.data
+        rv = self.app.post('/lvfs/component/1/checksum/add', data=dict(
+            value='xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx',
+        ), follow_redirects=True)
+        assert b'is not a recognised SHA1 or SHA256 hash' in rv.data, rv.data
+
+        # add a SHA256 checksum
+        rv = self.app.post('/lvfs/component/1/checksum/add', data=dict(
+            value='9d72ffd950d3bedcda99a197d760457e90f3d6f2a62b30b95a488511f0dfa4ad',
+        ), follow_redirects=True)
+        assert b'Added device checksum' in rv.data, rv.data
+        assert b'9d72ffd950d3bedcda99a197d760457e90f3d6f2a62b30b95a488511f0dfa4ad' in rv.data, rv.data
+
+        # add the same checksum again
+        rv = self.app.post('/lvfs/component/1/checksum/add', data=dict(
+            value='9d72ffd950d3bedcda99a197d760457e90f3d6f2a62b30b95a488511f0dfa4ad',
+        ), follow_redirects=True)
+        assert b'has already been added' in rv.data, rv.data
+
+        # add a SHA1 checksum
+        rv = self.app.post('/lvfs/component/1/checksum/add', data=dict(
+            value='fb6439cbda2add6c394f71b7cf955dd9a276ca5a',
+        ), follow_redirects=True)
+        assert b'Added device checksum' in rv.data, rv.data
+        assert b'fb6439cbda2add6c394f71b7cf955dd9a276ca5a' in rv.data, rv.data
+
+
+        # delete the checksum
+        rv = self.app.get('/lvfs/component/1/checksum/delete/1', follow_redirects=True)
+        assert b'Removed device checksum' in rv.data, rv.data
+        assert b'9d72ffd950d3bedcda99a197d760457e90f3d6f2a62b30b95a488511f0dfa4ad' not in rv.data, rv.data
+
     def test_anon_search(self):
 
         # upload file with keywords

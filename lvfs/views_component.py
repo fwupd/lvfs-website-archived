@@ -452,7 +452,8 @@ def component_checksum_delete(component_id, checksum_id):
     # get the component for the checksum
     md = csum.md
     if md.component_id != component_id:
-        return _error_internal('Wrong component ID for checksum!')
+        flash('Wrong component ID for checksum', 'danger')
+        return redirect(url_for('.component_show', component_id=component_id))
     if not md:
         return _error_internal('No metadata matched!')
 
@@ -466,7 +467,7 @@ def component_checksum_delete(component_id, checksum_id):
     db.session.commit()
 
     # log
-    flash('Removed checksum %s' % csum.value, 'info')
+    flash('Removed device checksum', 'info')
     return redirect(url_for('.component_show',
                             component_id=md.component_id,
                             page='checksums'))

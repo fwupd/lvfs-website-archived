@@ -25,7 +25,7 @@
     </td>
     <td class="col col-sm-2 text-right">
       <a class="btn btn-warning btn-block"
-        href="{{url_for('.component_requirement_delete', component_id=csum.md.component_id, checksum_id=csum.checksum_id)}}"
+        href="{{url_for('.component_checksum_delete', component_id=md.component_id, checksum_id=csum.checksum_id)}}"
         role="button">Delete</a>
     </td>
   </tr>
@@ -37,7 +37,7 @@
 {% endif %}
 {% if md.check_acl('@modify-checksums') %}
   <tr class="row table-borderless">
-    <form class="form-inline" action="/checksum/add" method="POST" >
+    <form class="form-inline" action="{{url_for('.component_checksum_add', component_id=md.component_id)}}" method="POST" >
       <td class="col col-sm-10">
         <input type="text" class="form-control fixed-width" name="value" placeholder="12d9c307380c4410fddfdb613b5dfba8b336cf49"/>
       </td>
