@@ -48,6 +48,7 @@ class TestCabArchive(unittest.TestCase):
         buf = cabarchive.save()
         self.assertEqual(len(buf), 156)
         self.assertEqual(hashlib.sha1(buf).hexdigest(), '676654685d6b5918d68081a786ae1d4dbfeb5e01')
+        self.assertEqual(str(cabarchive), "CabArchive(['CabFile(README.txt:18)', 'CabFile(firmware.bin:18)'])")
 
     def test_compressed(self):
         cabarchive = CabArchive()

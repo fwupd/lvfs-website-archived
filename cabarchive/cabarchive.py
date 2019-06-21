@@ -71,4 +71,4 @@ class CabArchive(dict):
         return Gio.MemoryOutputStream.steal_as_bytes(ostream).get_data()
 
     def __repr__(self):
-        return 'CabArchive({})'.format(self)
+        return 'CabArchive({})'.format([str(self[cabfile]) for cabfile in self])
