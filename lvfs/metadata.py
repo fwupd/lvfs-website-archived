@@ -9,6 +9,8 @@
 
 import os
 import hashlib
+
+from collections import defaultdict
 from lxml import etree as ET
 
 from lvfs import app, db
@@ -24,14 +26,10 @@ def _generate_metadata_kind(filename, fws, firmware_baseuri='', local=False):
     root.set('version', '0.9')
 
     # build a map of appstream_id:mds
-    components = {}
+    components = defaultdict(list)
     for fw in sorted(fws, key=lambda fw: fw.mds[0].appstream_id):
         for md in fw.mds:
-            if md.appstream_id not in components:
-                components[md.appstream_id] = [md]
-            else:
-                mds = components[md.appstream_id]
-                mds.append(md)
+            components[md.appstream_id].append(md)
 
     # process each component in version order, but only include the latest 5
     # releases to keep the metadata size sane
