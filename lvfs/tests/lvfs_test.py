@@ -10,11 +10,14 @@
 
 import os
 import sys
+import datetime
 import unittest
 import tempfile
 import subprocess
 import gzip
 import io
+
+from contextlib import redirect_stdout
 
 # allows us to run this from the project root
 sys.path.append(os.path.realpath('.'))
@@ -407,50 +410,54 @@ class LvfsTestCase(unittest.TestCase):
         # download, success
         self._download_firmware(useragent='fwupd/1.1.1')
 
-    def run_cron_firmware(self, fn='hughski-colorhug2-2.0.3'):
-        env = {}
-        env['LVFS_CUSTOM_SETTINGS'] = self.cfg_filename
-        ps = subprocess.Popen([sys.executable, './cron.py', 'firmware'], env=env,
-                              stdout=subprocess.PIPE,
-                              stderr=subprocess.PIPE)
-        stdout, stderr = ps.communicate()
-        if ps.returncode != 0:
-            raise IOError(stdout, stderr)
-        assert fn in stdout.decode('utf-8'), stdout
+    @staticmethod
+    def run_cron_firmware(fn='hughski-colorhug2-2.0.3'):
 
-    def run_cron_stats(self):
-        env = {}
-        env['LVFS_CUSTOM_SETTINGS'] = self.cfg_filename
-        ps = subprocess.Popen([sys.executable, './cron.py', 'stats', '0'], env=env,
-                              stdout=subprocess.PIPE,
-                              stderr=subprocess.PIPE)
-        stdout, stderr = ps.communicate()
-        if ps.returncode != 0:
-            raise IOError(stdout, stderr)
-        assert 'generated' in stdout.decode('utf-8'), stdout
+        from lvfs import app
+        from cron import _regenerate_and_sign_firmware
+        with app.test_request_context():
+            with io.StringIO() as buf, redirect_stdout(buf):
+                _regenerate_and_sign_firmware()
+                stdout = buf.getvalue()
 
-    def run_cron_metadata(self, remote_ids=None):
-        env = {}
-        env['LVFS_CUSTOM_SETTINGS'] = self.cfg_filename
-        ps = subprocess.Popen([sys.executable, './cron.py', 'metadata'], env=env,
-                              stdout=subprocess.PIPE,
-                              stderr=subprocess.PIPE)
-        stdout, stderr = ps.communicate()
-        if ps.returncode != 0:
-            raise IOError(stdout, stderr)
+        assert fn in stdout, stdout
+
+    @staticmethod
+    def run_cron_stats():
+
+        from lvfs import app
+        from cron import _generate_stats_for_datestr, _generate_stats
+        from lvfs.models import _get_datestr_from_datetime
+        with app.test_request_context():
+            with io.StringIO() as buf, redirect_stdout(buf):
+                _generate_stats_for_datestr(_get_datestr_from_datetime(datetime.date.today()))
+                _generate_stats()
+                stdout = buf.getvalue()
+
+        assert 'generated' in stdout, stdout
+
+    @staticmethod
+    def run_cron_metadata(remote_ids=None):
+
+        from lvfs import app
+        from cron import _regenerate_and_sign_metadata
+        with app.test_request_context():
+            with io.StringIO() as buf, redirect_stdout(buf):
+                _regenerate_and_sign_metadata()
+                stdout = buf.getvalue()
+
         if remote_ids:
             for remote_id in remote_ids:
-                assert 'Updating: %s' % remote_id in stdout.decode('utf-8'), stdout
+                assert 'Updating: %s' % remote_id in stdout, stdout
 
-    def run_cron_fwchecks(self):
-        env = {}
-        env['LVFS_CUSTOM_SETTINGS'] = self.cfg_filename
-        ps = subprocess.Popen([sys.executable, './cron.py', 'fwchecks'], env=env,
-                              stdout=subprocess.PIPE,
-                              stderr=subprocess.PIPE)
-        stdout, stderr = ps.communicate()
-        if ps.returncode != 0:
-            raise IOError(stdout, stderr)
+    @staticmethod
+    def run_cron_fwchecks():
+
+        from lvfs import app
+        from cron import _check_firmware
+        with app.test_request_context():
+            with io.StringIO() as buf, redirect_stdout(buf):
+                _check_firmware()
 
     def test_cron_metadata(self):
 
@@ -482,15 +489,7 @@ class LvfsTestCase(unittest.TestCase):
         assert b'Firmware is unsigned' in rv.data, rv.data
 
         # run the cron job manually
-        env = {}
-        env['LVFS_CUSTOM_SETTINGS'] = self.cfg_filename
-        ps = subprocess.Popen([sys.executable, './cron.py', 'firmware'], env=env,
-                              stdout=subprocess.PIPE,
-                              stderr=subprocess.PIPE)
-        stdout, stderr = ps.communicate()
-        if ps.returncode != 0:
-            raise IOError(stdout, stderr)
-        assert 'Signing: /tmp/' + self.checksum_upload + '-hughski-colorhug2-2.0.3.cab' in stdout.decode('utf-8'), stdout
+        self.run_cron_firmware()
 
         # verify the firmware is now signed
         rv = self.app.get('/lvfs/firmware/1')
