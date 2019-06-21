@@ -23,6 +23,9 @@ class TestpkgVersion(unittest.TestCase):
         # same
         assert vercmp('1.2.3', '1.2.3') == 0
         assert vercmp('001.002.003', '001.002.003') == 0
+        self.assertEqual(vercmp('0x123', '0x123'), 0)
+        self.assertEqual(vercmp('0x123', '291'), 0)
+        self.assertEqual(vercmp('291', '0x123'), 0)
 
         # upgrade and downgrade
         assert vercmp('1.2.3', '1.2.4') < 0
@@ -35,6 +38,7 @@ class TestpkgVersion(unittest.TestCase):
 
         # unequal depth
         assert vercmp('1.2.3', '1.2.3.1') < 0
+        assert vercmp('1.2.3.1', '1.2.3') > 0
         assert vercmp('1.2.3.1', '1.2.4') < 0
 
         # mixed-alpha-numeric

@@ -22,21 +22,6 @@ def _vercmp_char(chr1, chr2):
         return -1
     return 1
 
-def _vercmp_chunk(str1, str2):
-
-    # trivial
-    if str1 == str2:
-        return 0
-
-    # check each char of the chunk
-    for chr1, chr2 in zip_longest(str1, str2):
-        rc = _vercmp_char(chr1, chr2)
-        if rc != 0:
-            return rc
-
-    # we really shouldn't get here
-    return 0
-
 def _strtoll(val):
     """ Parses a value, returning the numberic part and any string suffix """
     num_part = ''
