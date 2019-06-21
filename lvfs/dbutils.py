@@ -120,6 +120,8 @@ def anonymize_db(db):
 
         # anonymize users
         for u in v.users:
+            if u.username == 'sign-test@fwupd.org':
+                continue
             u.display_name = user_names[idx_user_names]
             u.username = _make_boring(u.display_name) + u.vendor.username_glob[1:]
             idx_user_names += 1
