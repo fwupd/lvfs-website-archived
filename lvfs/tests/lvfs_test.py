@@ -81,6 +81,10 @@ class LvfsTestCase(unittest.TestCase):
             value='com.hughski.colorhug',
         ), follow_redirects=True)
         assert b'Added protocol' in rv.data, rv.data
+        rv = self.app.post('/lvfs/protocol/add', data=dict(
+            value='org.usb.dfu',
+        ), follow_redirects=True)
+        assert b'Added protocol' in rv.data, rv.data
         rv = self.app.post('/lvfs/category/add', data=dict(
             value='X-Device',
         ), follow_redirects=True)
@@ -197,6 +201,16 @@ class LvfsTestCase(unittest.TestCase):
         assert b'Incorrect username' in rv.data, rv.data
         rv = self._login('sign-test@fwupd.org', 'defaultx')
         assert b'Incorrect password' in rv.data, rv.data
+
+    def test_plugin_blocklist(self):
+
+        self.login()
+        self.upload(filename='contrib/blocklist.cab', target='private')
+        rv = self.app.get('/lvfs/firmware/1/tests')
+        assert 'CRC: 0x85f035a8' in rv.data.decode('utf-8'), rv.data
+        assert 'DFU Length: 0x10' in rv.data.decode('utf-8'), rv.data
+        assert 'DFU Version: 0x0100' in rv.data.decode('utf-8'), rv.data
+        assert 'Found: DO NOT SHIP' in rv.data.decode('utf-8'), rv.data
 
     def test_upload_invalid(self):
 
