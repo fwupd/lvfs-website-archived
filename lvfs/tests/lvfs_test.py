@@ -362,6 +362,37 @@ class LvfsTestCase(unittest.TestCase):
         rv = self.app.get('/lvfs/firmware/1/undelete', follow_redirects=True)
         assert b'Firmware undeleted' in rv.data, rv.data
 
+    def test_views_search(self):
+
+        # upload firmware and move to stable
+        self.login()
+        self.upload(target='embargo')
+        self.run_cron_firmware()
+        self.run_cron_fwchecks()
+        rv = self.app.get('/lvfs/firmware/1/promote/stable',
+                          follow_redirects=True)
+        assert b'>stable<' in rv.data, rv.data
+
+        # stats
+        rv = self.app.get('/lvfs/analytics/search_history')
+        assert b'No searches exist' in rv.data, rv.data
+
+        # search logged in
+        rv = self.app.get('/lvfs/firmware/search?value=colorhug2')
+        assert b'ColorHug2 X-Device' in rv.data, rv.data
+        rv = self.app.get('/lvfs/firmware/search?value=foobarbaz')
+        assert b'No firmware has been uploaded or is visible by this user' in rv.data, rv.data
+        self.logout()
+
+        # search anon
+        rv = self.app.get('/lvfs/search?value=colorhug2')
+        assert b'ColorHug2 X-Device' in rv.data, rv.data
+
+        # analytics
+        self.login()
+        rv = self.app.get('/lvfs/analytics/search_history')
+        assert b'No searches exist' not in rv.data, rv.data
+
     def test_user_delete_wrong_user(self):
 
         # create user
