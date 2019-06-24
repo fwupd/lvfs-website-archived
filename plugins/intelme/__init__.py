@@ -17,6 +17,9 @@ from lvfs import db
 from lvfs.pluginloader import PluginBase, PluginError, PluginSettingBool
 from lvfs.models import Test, ComponentShard
 
+INTELME_PART_ENTRY = '<4sIIIIIII'
+INTELME_PART_HEADER = '<16s4sIBBBBHHII'
+
 class PartitionEntry():
 
     def __init__(self):
@@ -34,7 +37,7 @@ class PartitionEntry():
                                          ['sig', 'owner', 'offset', 'len',
                                           'start_tokens', 'max_tokens',
                                           'scratch_sectors', 'flags'])
-        self.data = PartitionEntryTuple._make(struct.unpack_from('<4sIIIIIII', buf, offset))
+        self.data = PartitionEntryTuple._make(struct.unpack_from(INTELME_PART_ENTRY, buf, offset))
 
         if self.data.offset and self.data.len:
             self.blob = buf[self.data.offset:self.data.offset + self.data.len]
@@ -75,21 +78,22 @@ class PartitionHeader():
 
         # Partition table header
         PartitionHeaderTuple = namedtuple('PartitionHeaderTuple',
-                                          ['sig', 'entries', 'ver', 'type',
+                                          ['vec', 'sig', 'entries', 'ver', 'type',
                                            'len', 'chk', 'life', 'lim',
                                            'uma_size', 'flags'])
-        self.data = PartitionHeaderTuple._make(struct.unpack_from('<16x4sIBBBBHHII', buf, offset))
+        self.data = PartitionHeaderTuple._make(struct.unpack_from(INTELME_PART_HEADER, buf, offset))
 
         # sanity check
         if self.data.entries > 256:
             return
 
         # partition table entries
-        offset += 0x30
+        offset += struct.calcsize(INTELME_PART_HEADER)
+        offset += 8     # align
         for _ in range(0, self.data.entries):
             entry = PartitionEntry()
             entry.unpack_from(buf, offset)
-            offset += 0x20
+            offset += struct.calcsize(INTELME_PART_ENTRY)
             self.entries.append(entry)
 
 def _add_shards(self, fpt, md):
@@ -153,8 +157,8 @@ def _run_intelme_on_blob(self, test, md):
     test.add_pass('Found {}'.format(','.join(entries)))
 
 class Plugin(PluginBase):
-    def __init__(self):
-        PluginBase.__init__(self)
+    def __init__(self, plugin_id=None):
+        PluginBase.__init__(self, plugin_id)
 
     def name(self):
         return 'Intel ME'
@@ -206,26 +210,3 @@ class Plugin(PluginBase):
             if self._require_test_for_md(md):
                 _run_intelme_on_blob(self, test, md)
         db.session.commit()
-
-# run with PYTHONPATH=. ./.env3/bin/python3 plugins/intelme/__init__.py ./firmware.bin
-if __name__ == '__main__':
-    import sys
-    from lvfs.models import Firmware, Component, Protocol, Category
-
-    plugin = Plugin()
-    _test = Test('intelme')
-    _fw = Firmware()
-    _md = Component()
-    _md.protocol = Protocol('org.uefi.capsule')
-    _md.category = Category('X-ManagementEngine')
-    _fw.mds.append(_md)
-
-    with open(sys.argv[1], 'rb') as f:
-        _md.blob = f.read()
-    plugin.run_test_on_fw(_test, _fw)
-    for attribute in _test.attributes:
-        print(attribute)
-    for _shard in _md.shards:
-        if not _shard.checksums:
-            continue
-        print(_shard.info.guid, _shard.checksums[0])

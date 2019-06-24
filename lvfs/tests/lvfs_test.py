@@ -82,15 +82,13 @@ class LvfsTestCase(unittest.TestCase):
                 value=value,
             ), follow_redirects=True)
             assert b'Added protocol' in rv.data, rv.data
-        rv = self.app.post('/lvfs/category/add', data=dict(
-            value='X-Device',
-        ), follow_redirects=True)
-        assert b'Added category' in rv.data, rv.data
+        for value in ['X-Device', 'X-ManagementEngine']:
+            rv = self.app.post('/lvfs/category/add', data=dict(
+                value=value,
+            ), follow_redirects=True)
+            assert b'Added category' in rv.data, rv.data
         rv = self.app.post('/lvfs/settings/modify', data=dict(
             clamav_enable='disabled',
-        ), follow_redirects=True)
-        assert b'Updated settings' in rv.data, rv.data
-        rv = self.app.post('/lvfs/settings/modify', data=dict(
             chipsec_size_min='0',
         ), follow_redirects=True)
         assert b'Updated settings' in rv.data, rv.data
@@ -246,6 +244,18 @@ class LvfsTestCase(unittest.TestCase):
         # view component certificates
         rv = self.app.get('/lvfs/component/1/certificates')
         assert 'Default Company Ltd' in rv.data.decode('utf-8'), rv.data
+
+    def test_plugin_intelme(self):
+
+        self.login()
+        self.upload(filename='contrib/intelme.cab', target='private')
+        rv = self.app.get('/lvfs/firmware/1/tests')
+
+        # UEFI Capsule
+        assert 'CapsuleImageSize: 0x78' in rv.data.decode('utf-8'), rv.data
+        assert 'GUID: cc4cbfa9-bf9d-540b-b92b-172ce31013c1' in rv.data.decode('utf-8'), rv.data
+        assert 'Found: DO NOT SHIP' in rv.data.decode('utf-8'), rv.data
+        assert 'Found $MN2' in rv.data.decode('utf-8'), rv.data
 
     def test_upload_invalid(self):
 

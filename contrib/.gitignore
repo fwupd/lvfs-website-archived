@@ -12,4 +12,7 @@ chipsec.zlib
 firmware.bin
 firmware.inf
 firmware.metainfo.xml
+intelme.cap
+intelme.fvme
+intelme.partme
 secret.key

@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Copyright 2019 Richard Hughes <richard@hughsie.com> -->
+<component type="firmware">
+  <id>com.acme.ME.firmware</id>
+  <name>ME Firmware</name>
+  <summary>ME Test Firmware</summary>
+  <description><p>Test firmware for device.</p></description>
+  <provides>
+    <firmware type="flashed">cc4cbfa9-bf9d-540b-b92b-172ce31013c1</firmware>
+  </provides>
+  <url type="homepage">http://www.hughski.com/</url>
+  <metadata_license>CC0-1.0</metadata_license>
+  <project_license>GPL-2.0+</project_license>
+  <updatecontact>richard_at_hughsie.com</updatecontact>
+  <developer_name>Hughski Limited</developer_name>
+  <releases>
+    <release version="1.2.3" date="2018-02-10" urgency="low">
+      <checksum filename="intelme.cap" target="content"/>
+    </release>
+  </releases>
+  <categories>
+    <category>X-ManagementEngine</category>
+  </categories>
+  <custom>
+    <value key="LVFS::UpdateProtocol">org.uefi.capsule</value>
+  </custom>
+</component>

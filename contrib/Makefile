@@ -1,7 +1,7 @@
 # Copyright (C) 2019 Richard Hughes <richard@hughsie.com>
 # SPDX-License-Identifier: GPL-2.0+
 
-all: blocklist.cab chipsec.cab
+all: blocklist.cab chipsec.cab intelme.cab
 
 clean:
 	rm -rf ./tmp
@@ -74,4 +74,16 @@ chipsec.cap: chipsec.zlib
 	./build-firmware.py $^ $@
 
 chipsec.cab: chipsec.cap chipsec.metainfo.xml
+	gcab --create --nopath $@ $^
+
+intelme.partme:
+	echo "DO NOT SHIP" > $@
+
+intelme.fvme: intelme.partme
+	./build-firmware.py $^ $@
+
+intelme.cap: intelme.fvme
+	./build-firmware.py $^ $@
+
+intelme.cab: intelme.cap intelme.metainfo.xml
 	gcab --create --nopath $@ $^

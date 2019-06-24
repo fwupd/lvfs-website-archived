@@ -7,6 +7,44 @@ import sys
 import uuid
 import struct
 
+def _generate_fvme(buf, f):
+
+    INTELME_PART_HEADER = '<16s4sIBBBBHHIIHHHH'
+    INTELME_PART_ENTRY = '<4sIIIIIII'
+
+    # header
+    vect = b'\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00'
+    hdr = struct.pack(INTELME_PART_HEADER,
+                      vect,     # vector
+                      b'$FPT',  # Tag
+                      1,        # NumPartitions
+                      0x20,     # HeaderVersion
+                      0x0,      # EntryVersion
+                      struct.calcsize(INTELME_PART_HEADER), # HeaderLength
+                      0x0,      # HeaderChecksum
+                      0x0,      # FlashCycleLife
+                      0x0,      # FlashCycleLimit
+                      0x0,      # UMASize
+                      0x0,      # Flags
+                      0x0,      # FitMajor
+                      0x0,      # FitMinor
+                      0x0,      # FitHotfix
+                      0x1)      # FitBuild
+    f.write(hdr)
+
+    # entry
+    ent = struct.pack(INTELME_PART_ENTRY,
+                      b'$MN2',  # sig
+                      0x0,      # owner
+                      0x0,      # offset
+                      len(buf), # len
+                      0x0,      # start_tokens
+                      0x0,      # max_tokens
+                      0x0,      # scratch_sectors
+                      0x0)      # flags
+    f.write(ent)
+    f.write(buf)
+
 def _generate_cap(buf, f):
 
     UEFI_CAPSULE_HEADER = '<16sIII'
@@ -142,3 +180,5 @@ if __name__ == '__main__':
                 _generate_fvh(_buf, f_out)
             elif sys.argv[2].endswith('.cap'):
                 _generate_cap(_buf, f_out)
+            elif sys.argv[2].endswith('.fvme'):
+                _generate_fvme(_buf, f_out)
