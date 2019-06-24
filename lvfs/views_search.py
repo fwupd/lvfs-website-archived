@@ -18,41 +18,6 @@ from .hash import _addr_hash
 from .util import admin_login_required
 from .util import _get_client_address
 
-def _md_suitable_as_search_result(md):
-    if not md:
-        return False
-    if not md.fw.remote.is_public:
-        return False
-    return True
-
-def _order_by_summed_md_priority(md_priority):
-    dedupe = []
-    for md in md_priority:
-        dedupe.append((md, md_priority[md]))
-    filtered_mds = []
-    component_ids = {}
-    dedupe.sort(key=lambda k: k[0].component_id, reverse=True)
-    dedupe.sort(key=lambda k: k[1], reverse=True)
-    for md_compond in dedupe:
-        md = md_compond[0]
-        if md.appstream_id in component_ids:
-            continue
-        filtered_mds.append(md)
-        component_ids[md.appstream_id] = md
-    return filtered_mds
-
-def _get_md_priority_for_kws(kws):
-    md_priority = {}
-    for kw in kws:
-        md = kw.md
-        if not _md_suitable_as_search_result(md):
-            continue
-        if md not in md_priority:
-            md_priority[md] = kw.priority
-        else:
-            md_priority[md] += kw.priority
-    return md_priority
-
 @app.route('/lvfs/search/<int:search_event_id>/delete')
 @login_required
 @admin_login_required
