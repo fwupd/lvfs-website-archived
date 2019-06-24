@@ -420,6 +420,31 @@ class LvfsTestCase(unittest.TestCase):
         rv = self.app.get('/lvfs/firmware')
         assert b'ColorHug2' not in rv.data, rv.data
 
+    def test_views_analytics(self):
+
+        # upload firmware and download once
+        self.login()
+        self.upload()
+        self._download_firmware()
+        self._report(signed=True)
+
+        # get all global analytics pages
+        for uri in ['/lvfs/analytics/month',
+                    '/lvfs/analytics/year',
+                    '/lvfs/analytics/user_agent',
+                    '/lvfs/analytics/vendor',
+                    '/lvfs/analytics/search_stats']:
+            rv = self.app.get(uri)
+            assert b'Chart.js' in rv.data, rv.data
+
+        # downloads
+        rv = self.app.get('/lvfs/analytics/clients')
+        assert b'ColorHug2 X-Device' in rv.data, rv.data
+
+        # downloads
+        rv = self.app.get('/lvfs/analytics/reports')
+        assert b'failed to make /boot/efi/EFI/arch/fw' in rv.data, rv.data
+
     def test_firmware_limits(self):
 
         # upload firmware
