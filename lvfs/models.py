@@ -1004,8 +1004,8 @@ class ComponentShardCertificate(db.Model):
             data.append('not_before:{}'.format(self.not_before))
         if self.not_after:
             data.append('not_after:{}'.format(self.not_after))
-        if self.desc:
-            data.append('desc:{}'.format(self.desc))
+        if self.description:
+            data.append('desc:{}'.format(self.description))
         return 'ComponentShardCertificate ({})'.format(', '.join(data))
 
 def _calculate_entropy(s):
