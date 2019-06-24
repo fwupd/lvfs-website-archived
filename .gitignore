@@ -1,6 +1,6 @@
 *.pyc
 *.pyo
-.env3
+env
 deleted
 downloads
 gnupg
@@ -8,3 +8,4 @@ lvfs/custom.cfg
 hwinfo
 lvfs_*.sql
 report.csv
+.coverage

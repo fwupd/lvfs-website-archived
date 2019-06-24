@@ -1,0 +1,15 @@
+blocklist.bin
+blocklist.dfu
+cert.pem
+chipsec.cap
+chipsec.exe
+chipsec.fvh
+chipsec.o
+chipsec.pfs
+chipsec-signed.exe
+chipsec.so
+chipsec.zlib
+firmware.bin
+firmware.inf
+firmware.metainfo.xml
+secret.key

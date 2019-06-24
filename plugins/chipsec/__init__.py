@@ -100,6 +100,7 @@ class Plugin(PluginBase):
         # look for shards
         outdir = src.name + '.dir'
         files = glob.glob(outdir + '/FV/**/*.efi', recursive=True)
+        files.extend(glob.glob(outdir + '/FV/**/*.pe32', recursive=True))
         return self._convert_files_to_shards(files)
 
     def _find_dell_pfs(self, blob):

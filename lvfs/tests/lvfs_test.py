@@ -77,20 +77,21 @@ class LvfsTestCase(unittest.TestCase):
         self.app.get('/lvfs/settings_create')
         self.app.get('/lvfs/agreement/create')
         self.app.get('/lvfs/agreement/1/accept')
-        rv = self.app.post('/lvfs/protocol/add', data=dict(
-            value='com.hughski.colorhug',
-        ), follow_redirects=True)
-        assert b'Added protocol' in rv.data, rv.data
-        rv = self.app.post('/lvfs/protocol/add', data=dict(
-            value='org.usb.dfu',
-        ), follow_redirects=True)
-        assert b'Added protocol' in rv.data, rv.data
+        for value in ['com.hughski.colorhug', 'org.usb.dfu', 'org.uefi.capsule']:
+            rv = self.app.post('/lvfs/protocol/add', data=dict(
+                value=value,
+            ), follow_redirects=True)
+            assert b'Added protocol' in rv.data, rv.data
         rv = self.app.post('/lvfs/category/add', data=dict(
             value='X-Device',
         ), follow_redirects=True)
         assert b'Added category' in rv.data, rv.data
         rv = self.app.post('/lvfs/settings/modify', data=dict(
             clamav_enable='disabled',
+        ), follow_redirects=True)
+        assert b'Updated settings' in rv.data, rv.data
+        rv = self.app.post('/lvfs/settings/modify', data=dict(
+            chipsec_size_min='0',
         ), follow_redirects=True)
         assert b'Updated settings' in rv.data, rv.data
         self.logout()
@@ -211,6 +212,40 @@ class LvfsTestCase(unittest.TestCase):
         assert 'DFU Length: 0x10' in rv.data.decode('utf-8'), rv.data
         assert 'DFU Version: 0x0100' in rv.data.decode('utf-8'), rv.data
         assert 'Found: DO NOT SHIP' in rv.data.decode('utf-8'), rv.data
+
+    def test_plugin_chipsec(self):
+
+        self.login()
+        self.upload(filename='contrib/chipsec.cab', target='private')
+        rv = self.app.get('/lvfs/firmware/1/tests')
+
+        # UEFI Capsule
+        assert 'HeaderSize: 0x1c' in rv.data.decode('utf-8'), rv.data
+        assert 'GUID: cc4cbfa9-bf9d-540b-b92b-172ce31013c1' in rv.data.decode('utf-8'), rv.data
+
+        # does not always exist
+        if not os.path.exists('/usr/bin/chipsec_util'):
+            return
+
+        # CHIPSEC -> Blocklist
+        assert 'Found PFS in Zlib compressed blob' in rv.data.decode('utf-8'), rv.data
+        assert 'Found: DO NOT TRUST' in rv.data.decode('utf-8'), rv.data
+
+        # edit a shard description
+        rv = self.app.get('/lvfs/shard/all')
+        assert 'com.intel.Uefi.Driver.00_S_PE32' in rv.data.decode('utf-8'), rv.data
+        assert '12345678-1234-5678-1234-567812345678' in rv.data.decode('utf-8'), rv.data
+        rv = self.app.get('/lvfs/shard/1/details')
+        assert 'com.intel.Uefi.Driver.00_S_PE32' in rv.data.decode('utf-8'), rv.data
+        rv = self.app.post('/lvfs/shard/1/modify', data=dict(
+            description='Hello Dave',
+        ), follow_redirects=True)
+        assert b'Modified shard' in rv.data, rv.data
+        assert b'Hello Dave' in rv.data, rv.data
+
+        # view component certificates
+        rv = self.app.get('/lvfs/component/1/certificates')
+        assert 'Default Company Ltd' in rv.data.decode('utf-8'), rv.data
 
     def test_upload_invalid(self):
 
