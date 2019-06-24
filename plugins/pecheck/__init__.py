@@ -182,28 +182,3 @@ class Plugin(PluginBase):
             for shard in md.shards:
                 if shard.blob:
                     self._run_test_on_shard(test, shard)
-
-# run with PYTHONPATH=. ./.env3/bin/python3 plugins/pecheck/__init__.py ./test.efi
-if __name__ == '__main__':
-    import sys
-    from lvfs.models import Firmware, Component, ComponentShard, ComponentShardInfo, Protocol
-
-    for argv in sys.argv[1:]:
-        print('Processing', argv)
-        plugin = Plugin('pecheck')
-        _test = Test(plugin.id)
-        _fw = Firmware()
-        _md = Component()
-        _md.protocol = Protocol('org.uefi.capsule')
-        _shard = ComponentShard()
-        _shard.info = ComponentShardInfo(name=os.path.basename(argv))
-        try:
-            with open(argv, 'rb') as f:
-                _shard.set_blob(f.read())
-        except IsADirectoryError as _:
-            continue
-        _md.shards.append(_shard)
-        _fw.mds.append(_md)
-        plugin.run_test_on_fw(_test, _fw)
-        for attribute in _test.attributes:
-            print(attribute)
