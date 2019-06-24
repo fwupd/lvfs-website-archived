@@ -15,34 +15,8 @@ import subprocess
 import zlib
 
 from lvfs import db
-from lvfs.pluginloader import PluginBase, PluginError, PluginSettingBool, PluginSettingText
+from lvfs.pluginloader import PluginBase, PluginError, PluginSettingBool, PluginSettingText, PluginSettingInteger
 from lvfs.models import Test, ComponentShard
-
-def _find_dell_pfs(blob):
-    offset = 0
-
-    while 1:
-        # find Zlib header for default compression
-        offset_next = blob.find(b'\x78\x9C')
-        if offset_next == -1:
-            break
-
-        # decompress the buffer, which also checks if it's really Zlib or just
-        # two random bytes that happen to match for no good reason
-        try:
-            blob_decompressed = zlib.decompress(blob[offset_next:])
-        except zlib.error as _:
-            offset_next += 2
-        else:
-            # only include blobs greater than 512kB in size
-            if len(blob_decompressed) > 0x80000:
-                return blob_decompressed
-            offset_next += 2 + len(blob_decompressed)
-
-        blob = blob[offset_next:]
-        offset += offset_next
-
-    return None
 
 class Plugin(PluginBase):
     def __init__(self, plugin_id=None):
@@ -59,6 +33,8 @@ class Plugin(PluginBase):
         s.append(PluginSettingBool('chipsec_enabled', 'Enabled', True))
         s.append(PluginSettingBool('chipsec_write_shards', 'Write shards to disk', True))
         s.append(PluginSettingText('chipsec_binary', 'CHIPSEC executable', 'chipsec_util'))
+        s.append(PluginSettingInteger('chipsec_size_min', 'Minimum size of shards', 0x80000))   # 512kb
+        s.append(PluginSettingInteger('chipsec_size_max', 'Maximum size of shards', 0x2000000)) # 32Mb
         return s
 
     def _convert_files_to_shards(self, files):
@@ -126,6 +102,33 @@ class Plugin(PluginBase):
         files = glob.glob(outdir + '/FV/**/*.efi', recursive=True)
         return self._convert_files_to_shards(files)
 
+    def _find_dell_pfs(self, blob):
+        offset = 0
+
+        while 1:
+            # find Zlib header for default compression
+            offset_next = blob.find(b'\x78\x9C')
+            if offset_next == -1:
+                break
+
+            # decompress the buffer, which also checks if it's really Zlib or just
+            # two random bytes that happen to match for no good reason
+            try:
+                blob_decompressed = zlib.decompress(blob[offset_next:])
+            except zlib.error as _:
+                offset_next += 2
+            else:
+                # only include blobs of a sane size
+                if len(blob_decompressed) > self.get_setting_int('chipsec_size_min') and \
+                   len(blob_decompressed) < self.get_setting_int('chipsec_size_max'):
+                    return blob_decompressed
+                offset_next += 2 + len(blob_decompressed)
+
+            blob = blob[offset_next:]
+            offset += offset_next
+
+        return None
+
     def _run_chipsec_on_md(self, test, md):
 
         # remove any old shards we added
@@ -138,7 +141,7 @@ class Plugin(PluginBase):
         # then look for a Zlib section (with an optional PFS-prefixed) blob
         shards = self._get_shards_for_blob(md.blob)
         if not shards:
-            blob = _find_dell_pfs(md.blob)
+            blob = self._find_dell_pfs(md.blob)
             if blob:
                 if blob.startswith(b'PFS.HDR.'):
                     test.add_pass('Found PFS in Zlib compressed blob')
