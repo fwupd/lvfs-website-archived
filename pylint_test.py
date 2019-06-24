@@ -20,7 +20,7 @@ def main():
     for fn in sorted(filenames):
         if fn.find('migrations/') != -1:
             continue
-        if fn.find('.env') != -1:
+        if fn.startswith('./env'):
             continue
         print('Checking %s' % fn)
         argv.append(fn)
