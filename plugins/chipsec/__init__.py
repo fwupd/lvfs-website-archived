@@ -188,25 +188,3 @@ class Plugin(PluginBase):
                 continue
             self._run_chipsec_on_md(test, md)
         db.session.commit()
-
-# run with PYTHONPATH=. ./.env3/bin/python3 plugins/chipsec/__init__.py ./firmware.bin
-if __name__ == '__main__':
-    import sys
-    from lvfs.models import Firmware, Component, Protocol
-
-    for _argv in sys.argv[1:]:
-        print('Processing', _argv)
-        plugin = Plugin('chipsec')
-        _test = Test(plugin.id)
-        _fw = Firmware()
-        _md = Component()
-        _md.component_id = 999999
-        _md.filename_contents = 'filename.bin'
-        _md.protocol = Protocol('org.uefi.capsule')
-        with open(_argv, 'rb') as _f:
-            _md.blob = _f.read()
-        _fw.mds.append(_md)
-        plugin.run_test_on_fw(_test, _fw)
-        for attribute in _test.attributes:
-            print(attribute)
-        print(_md.shards)
