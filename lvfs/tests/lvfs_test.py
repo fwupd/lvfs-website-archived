@@ -525,8 +525,7 @@ class LvfsTestCase(unittest.TestCase):
         # download, success
         self._download_firmware(useragent='fwupd/1.1.1')
 
-    @staticmethod
-    def run_cron_firmware(fn='hughski-colorhug2-2.0.3'):
+    def run_cron_firmware(self, fn='hughski-colorhug2-2.0.3'):
 
         from lvfs import app
         from cron import _regenerate_and_sign_firmware
@@ -536,6 +535,8 @@ class LvfsTestCase(unittest.TestCase):
                 stdout = buf.getvalue()
 
         assert fn in stdout, stdout
+        # signing checksum has now changed
+        self._ensure_checksums_from_upload()
 
     @staticmethod
     def run_cron_stats():
