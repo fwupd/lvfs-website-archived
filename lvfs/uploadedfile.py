@@ -477,6 +477,10 @@ class UploadedFile:
             raise MetadataInvalid('The metadata file was not complete; '
                                   'Any FIXME text must be replaced with the correct values.')
 
+        # has UTF-8 BOM: https://en.wikipedia.org/wiki/Byte_order_mark
+        if cabfile.buf.startswith(b'\xEF\xBB\xBF'):
+            raise MetadataInvalid('The metadata file has a UTF-8 BOM that must be removed')
+
         # add to the archive
         self.cabarchive_repacked[cabfile.filename] = cabfile
 

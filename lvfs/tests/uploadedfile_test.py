@@ -246,6 +246,16 @@ class TestStringMethods(unittest.TestCase):
             ufile = UploadedFile()
             ufile.parse('foo.cab', cabarchive.save())
 
+    # invalid BOM header
+    def test_invalid_bom(self):
+        cabarchive = CabArchive()
+        cabarchive['firmware.bin'] = _get_valid_firmware()
+        cabarchive['firmware.metainfo.xml'] = CabFile(b'\xEF\xBB\xBF<?xml version="1.0" encoding="UTF-8"?>\n'
+                                                      b'<component type="firmware"/>\n')
+        with self.assertRaises(MetadataInvalid):
+            ufile = UploadedFile()
+            ufile.parse('foo.cab', cabarchive.save())
+
     # valid metadata
     def test_metadata(self):
         cabarchive = CabArchive()
