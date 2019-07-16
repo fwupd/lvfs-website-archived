@@ -65,6 +65,29 @@
 
 <div class="card mt-3">
   <div class="card-body">
+    <div class="card-title"><a id="requires-fw-versions"></a>Restricting to any other firmware version</div>
+    <p class="card-text">
+      Newer versions of fwupd can restrict updates on one device depending if another
+      firmware GUID exists on the system of any version.
+      This is similar to the CHID method above but uses the GUID of the firmware,
+      not a hardware ID.
+    </p>
+    <p class="card-text">
+      This can be used to ensure that a specific embedded controller is detected
+      for a specific system firmware update, for example.
+    </p>
+<pre>
+  &lt;!-- only newer versions of fwupd understand 'other firmware' requirements --&gt;
+  &lt;requires&gt;
+    &lt;id compare="ge" version="1.2.11"&gt;org.freedesktop.fwupd&lt;/id&gt;
+    &lt;firmware&gt;6de5d951-d755-576b-bd09-c5cf66b27234&lt;/firmware&gt;
+  &lt;/requires&gt;
+</pre>
+  </div>
+</div>
+
+<div class="card mt-3">
+  <div class="card-body">
     <div class="card-title"><a id="custom-direct-downloads"></a>Restricting direct downloads</div>
 <p class="card-text">
   If you'd rather not have users downloading the .cab archive directly you
