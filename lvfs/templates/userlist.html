@@ -32,6 +32,7 @@
   <div class="card-body">
     <div class="card-title">Create a new user</div>
 <form method="post" action="{{url_for('.user_add')}}" class="form">
+  <input type="hidden" name="csrf_token" value="{{csrf_token()}}"/>
   <div class="form-group">
     <label for="username">Username:</label>
     <input type="email" class="form-control" name="username" required>

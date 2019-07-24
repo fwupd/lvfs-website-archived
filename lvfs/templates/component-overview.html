@@ -12,6 +12,7 @@
     <th class="col-3">ID</th>
 {% if g.user.check_acl('@admin') %}
     <form class="form-inline" action="{{url_for('.component_modify', component_id=md.component_id)}}" method="POST">
+    <input type="hidden" name="csrf_token" value="{{csrf_token()}}"/>
     <td class="col-7">
       <textarea class="form-control fixed-width" name="appstream_id" cols="100" rows="1">{{md.appstream_id if md.appstream_id}}</textarea>
     </td>
@@ -27,6 +28,7 @@
     <th class="col-3">Name</th>
 {% if g.user.check_acl('@admin') %}
     <form class="form-inline" action="{{url_for('.component_modify', component_id=md.component_id)}}" method="POST">
+    <input type="hidden" name="csrf_token" value="{{csrf_token()}}"/>
     <td class="col-7">
       <textarea class="form-control fixed-width" name="name" cols="100" rows="1">{{md.name if md.name}}</textarea>
     </td>
@@ -67,6 +69,7 @@
   </tr>
 {% endif %}
   <form class="form-inline" action="{{url_for('.component_modify', component_id=md.component_id)}}" method="POST">
+  <input type="hidden" name="csrf_token" value="{{csrf_token()}}"/>
   <tr class="row">
     <th class="col-3">Protocol</th>
 {% if md.fw.remote.name != 'stable' or g.user.check_acl('@admin') %}
@@ -104,6 +107,7 @@
   </form>
 {% if md.screenshot_url %}
   <form class="form-inline" action="{{url_for('.component_modify', component_id=md.component_id)}}" method="POST">
+  <input type="hidden" name="csrf_token" value="{{csrf_token()}}"/>
   <tr class="row">
     <th class="col-3">Screenshot URL</th>
 {% if md.fw.remote.name != 'stable' or g.user.check_acl('@admin') %}
@@ -121,6 +125,7 @@
 {% endif %}
 {% if md.screenshot_caption %}
   <form class="form-inline" action="{{url_for('.component_modify', component_id=md.component_id)}}" method="POST">
+  <input type="hidden" name="csrf_token" value="{{csrf_token()}}"/>
   <tr class="row">
     <th class="col-3">Screenshot Caption</th>
 {% if md.fw.remote.name != 'stable' or g.user.check_acl('@admin') %}

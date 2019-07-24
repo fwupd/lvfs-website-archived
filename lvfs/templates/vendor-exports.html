@@ -47,6 +47,7 @@
 
 {% if v.check_acl('@modify-exports') %}
 <form method="post" action="{{url_for('.vendor_export_add', vendor_id=v.vendor_id)}}">
+<input type="hidden" name="csrf_token" value="{{csrf_token()}}"/>
 <div class="card">
   <div class="card-body">
     <div class="card-title">Add ISO 3166 country to export control list</div>

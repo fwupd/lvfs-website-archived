@@ -113,6 +113,7 @@
   This rebuilds metadata for all targets and QA groups.
 </p>
 <form method=\"get\" action="{{url_for('.metadata_rebuild')}}">
+<input type="hidden" name="csrf_token" value="{{csrf_token()}}"/>
 <button class="btn btn-danger">Rebuild Metadata</button>
 </form>
   </div>

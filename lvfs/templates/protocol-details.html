@@ -6,6 +6,7 @@
   <div class="card-body">
     <div class="card-title">Protocol Details</div>
 <form method="post" action="{{url_for('.protocol_modify', protocol_id=protocol.protocol_id)}}">
+  <input type="hidden" name="csrf_token" value="{{csrf_token()}}"/>
   <div class="form-group">
     <label for="group_id">Value:</label>
     <input type="text" class="form-control" name="value" value="{{protocol.value}}" required />

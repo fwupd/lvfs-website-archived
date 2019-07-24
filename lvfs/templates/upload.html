@@ -32,6 +32,7 @@
       Uploading firmware is covered by <a href="{{url_for('.agreement_show')}}">our legal agreement</a>.
     </p>
     <form action="{{url_for('.upload')}}" method="post" enctype="multipart/form-data" class="form">
+      <input type="hidden" name="csrf_token" value="{{csrf_token()}}"/>
 {% if affiliations|length %}
       <div class="form-group card-text">
         <label for="vendor_id">Upload for vendor</label>

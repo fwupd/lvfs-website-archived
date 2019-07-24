@@ -5,6 +5,7 @@
 
 {% if not g.user is defined %}
 <form method="GET" class="form-inline justify-content-center" action="{{url_for('.search')}}">
+  <input type="hidden" name="csrf_token" value="{{csrf_token()}}"/>
   <div class="input-group">
     <input type="text" class="form-control" aria-label="search" name="value" required>
     <div class="input-group-append">

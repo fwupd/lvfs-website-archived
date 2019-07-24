@@ -14,6 +14,7 @@
 {% endif %}
 
 <form method="post" action="{{url_for('.user_modify_by_admin', user_id=u.user_id)}}">
+  <input type="hidden" name="csrf_token" value="{{csrf_token()}}"/>
 {% if u.auth_type != 'oauth' %}
   <div class="form-group row">
     <label class="col col-sm-2 col-form-label" for="display_name">Display Name</label>

@@ -20,6 +20,7 @@
             </div>
           </div>
           <form method="post" action="{{url_for('.login')}}">
+            <input type="hidden" name="csrf_token" value="{{csrf_token()}}"/>
             <input type="hidden" name="username" value="{{u.username}}">
             <div class="form-group mt-3">
               <input class="form-control" type="password" name="password" placeholder="Password" />

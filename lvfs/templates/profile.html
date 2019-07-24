@@ -12,6 +12,7 @@
       <div class="card-body bg-light">
         <div class="card-title">Profile Settings</div>
         <form class="form" method="post" action="{{url_for('.user_modify', user_id=g.user.user_id)}}">
+          <input type="hidden" name="csrf_token" value="{{csrf_token()}}"/>
           <div class="row">
             <div class="col-lg-12">
               <div class="form-group">
@@ -38,6 +39,7 @@
 
     <!-- notifications -->
     <form class="form" method="post" action="{{url_for('.user_modify', user_id=g.user.user_id)}}">
+    <input type="hidden" name="csrf_token" value="{{csrf_token()}}"/>
     <div class="card mb-3 mb-xl-3">
       <div class="card-body bg-light">
         <div class="card-title">Email Notifications</div>
@@ -97,6 +99,7 @@
         </table>
 {% endif %}
         <form method="post" enctype="multipart/form-data" action="{{url_for('.user_certificate_add')}}" id="form">
+          <input type="hidden" name="csrf_token" value="{{csrf_token()}}"/>
           <label class="btn btn-primary card-text">
             Upload Certificate
             <input type="file" id="file" name="file" hidden>
@@ -115,6 +118,7 @@
         <div class="card-body bg-light">
           <div class="card-title">Authentication</div>
           <form method="post" action="{{url_for('.user_auth', user_id=g.user.user_id)}}">
+            <input type="hidden" name="csrf_token" value="{{csrf_token()}}"/>
             <p>Using 2 factor authentication secures your account more than just using a password.</p>
 {% if g.user.is_otp_working %}
             <div class="custom-control custom-switch">
@@ -138,6 +142,7 @@
         <div class="card-body bg-light">
           <div class="card-title">Change Password</div>
           <form method="post" action="{{url_for('.user_password', user_id=g.user.user_id)}}">
+            <input type="hidden" name="csrf_token" value="{{csrf_token()}}"/>
             <div class="form-group">
               <label for="password_old">Old Password</label>
               <input class="form-control" id="password_old" type="password" name="password_old" required>
@@ -198,6 +203,7 @@ document.getElementById("file").onchange = function() {
           <img id="qrcode" src="{{ url_for('user_qrcode') }}">
         </p>
         <form method="post" action="{{url_for('.user_otp_test')}}">
+          <input type="hidden" name="csrf_token" value="{{csrf_token()}}"/>
           <div class="form-group">
             <label for="otp">Test your OTP code:</label>
             <input id="otp" class="form-control" type="password" name="otp" placeholder="123456" aria-label="OTP">

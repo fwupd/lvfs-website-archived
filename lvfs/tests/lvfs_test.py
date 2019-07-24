@@ -61,6 +61,7 @@ class LvfsTestCase(unittest.TestCase):
                 "SECRET_ADDR_SALT = 'addr%%%'",
                 "SECRET_VENDOR_SALT = 'vendor%%%'",
                 "MAIL_SUPPRESS_SEND = True",
+                "WTF_CSRF_CHECK_DEFAULT = False",
                 ]))
 
         # create instance

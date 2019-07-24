@@ -44,6 +44,7 @@
     <div class="card-title">Create a new issue</div>
     <div class="card-text">
     <form method="post" action="{{url_for('issue_add')}}" class="form">
+      <input type="hidden" name="csrf_token" value="{{csrf_token()}}"/>
       <div class="form-group">
         <label for="url">Issue URL</label>
         <input class="form-control" id="url" type="text" name="url">

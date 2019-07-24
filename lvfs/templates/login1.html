@@ -26,6 +26,7 @@
             Accounts are only used by hardware vendors when uploading new firmware.
           </p>
           <form method="post" action="{{url_for('.login1_response')}}">
+            <input type="hidden" name="csrf_token" value="{{csrf_token()}}"/>
             <div class="form-group">
               <input class="form-control" type="email" name="username" placeholder="Email address" />
             </div>

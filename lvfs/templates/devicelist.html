@@ -6,6 +6,7 @@
   <div class="card-body">
     <div class="card-title">Search for devices</div>
     <form method="GET" class="form-inline" action="{{url_for('.search')}}">
+      <input type="hidden" name="csrf_token" value="{{csrf_token()}}"/>
       <div class="input-group">
         <input type="text" class="form-control" aria-label="search" name="value" required>
         <div class="input-group-append">

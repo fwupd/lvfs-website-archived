@@ -58,6 +58,7 @@
 {% endif %}
 
 <form method="post" action="{{url_for('.component_modify', component_id=md.component_id)}}">
+<input type="hidden" name="csrf_token" value="{{csrf_token()}}"/>
 
   <div class="form-group">
     <label for="urgency">Update Urgency</label>

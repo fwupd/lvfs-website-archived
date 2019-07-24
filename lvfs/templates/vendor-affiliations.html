@@ -17,6 +17,7 @@
 
 {% if v.check_acl('@modify-affiliations') %}
 <form method="post" action="{{url_for('.vendor_affiliation_add', vendor_id=v.vendor_id)}}">
+<input type="hidden" name="csrf_token" value="{{csrf_token()}}"/>
 <div class="card mt-3">
   <div class="card-body">
     <div class="card-title">Add affiliation</div>

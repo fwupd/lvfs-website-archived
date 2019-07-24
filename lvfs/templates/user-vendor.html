@@ -12,6 +12,7 @@
 <div class="card mt-3">
   <div class="card-body">
 <form method="post" action="{{url_for('.user_modify_by_admin', user_id=u.user_id)}}">
+  <input type="hidden" name="csrf_token" value="{{csrf_token()}}"/>
 {% if u.is_qa %}
   <input type="hidden" name="is_qa" value="1">
 {% endif %}

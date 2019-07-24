@@ -35,6 +35,7 @@
   <div class="card-body">
     <div class="card-title">Create a new category</div>
     <form method="post" action="{{url_for('.category_add')}}" class="form">
+      <input type="hidden" name="csrf_token" value="{{csrf_token()}}"/>
       <div class="form-group card-text">
         <label>Value name, e.g. <code>X-DeviceFoo</code></label>
         <input class="form-control" type="text" name="value" placeholder="Value" required />

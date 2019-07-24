@@ -58,6 +58,7 @@
 {% if issue.check_acl('@modify') %}
   <tr class="row">
     <form method="post" action="{{url_for('.issue_condition_add', issue_id=issue.issue_id)}}">
+    <input type="hidden" name="csrf_token" value="{{csrf_token()}}"/>
     <td class="col col-sm-3">
       <input type="text" class="form-control" name="key" value="" placeholder="Key..." required>
     </td>

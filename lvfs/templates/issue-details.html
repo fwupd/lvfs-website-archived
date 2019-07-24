@@ -8,6 +8,7 @@
   <div class="card-body">
     <div class="card-title">Issue Details</div>
 <form method="post" action="{{url_for('.issue_modify', issue_id=issue.issue_id)}}">
+  <input type="hidden" name="csrf_token" value="{{csrf_token()}}"/>
   <div class="form-group">
     <label for="group_id">URL:</label>
     <input type="text" class="form-control" name="url" value="{{issue.url}}" required {{'disabled' if not issue.check_acl('@modify')}}>

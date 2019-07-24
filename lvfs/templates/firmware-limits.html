@@ -8,6 +8,7 @@
 {% block content %}
 
 <form method="post" action="{{url_for('.firmware_modify', firmware_id=fw.firmware_id)}}" class="form">
+<input type="hidden" name="csrf_token" value="{{csrf_token()}}"/>
 <div class="card mb-3">
   <div class="card-body">
     <div class="card-title">Reported Success</div>
@@ -86,6 +87,7 @@
   </tr>
 {% endfor %}
   <form method="post" action="{{url_for('.firmware_limit_add')}}" class="form">
+  <input type="hidden" name="csrf_token" value="{{csrf_token()}}"/>
   <input type="hidden" name="firmware_id" value="{{fw.firmware_id}}">
   <tr class="row table-borderless">
     <td class="col col-3">

@@ -329,6 +329,7 @@
         <ul class="navbar-nav align-items-center d-none d-lg-block">
           <li class="nav-item">
             <form class="form-inline search-box" action="{{url_for('.search_fw')}}">
+              <input type="hidden" name="csrf_token" value="{{csrf_token()}}"/>
               <input class="form-control rounded-pill search-input" type="search" placeholder="Search firmware..." name="value" aria-label="Search" />
               <span class="position-absolute fas fa-search text-400 search-box-icon"></span>
             </form>

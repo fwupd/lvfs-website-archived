@@ -10,12 +10,13 @@
 import os
 import sqlalchemy
 
-from flask import Flask, flash, render_template, message_flashed, request, Response, g
+from flask import Flask, flash, render_template, message_flashed, request, redirect, url_for, Response, g
 from flask_login import LoginManager
 from flask_migrate import Migrate
 from flask_mail import Mail
 from flask_oauthlib.client import OAuth
 from flask_sqlalchemy import SQLAlchemy
+from flask_wtf.csrf import CSRFProtect, CSRFError
 from werkzeug.local import LocalProxy
 
 from .pluginloader import Pluginloader
@@ -36,6 +37,8 @@ oauth = OAuth(app)
 db = SQLAlchemy(app)
 
 mail = Mail(app)
+
+csrf = CSRFProtect(app)
 
 migrate = Migrate(app, db)
 
@@ -83,6 +86,11 @@ def error_page_not_found(unused_msg=None):
                         '/a2billing/common/javascript/misc.js']:
         return Response(response='bad karma', status=404, mimetype="text/plain")
     return render_template('error.html'), 404
+
+@app.errorhandler(CSRFError)
+def error_csrf(e):
+    flash(str(e), 'danger')
+    return redirect(url_for('.dashboard'))
 
 from lvfs import views
 from lvfs import views_user

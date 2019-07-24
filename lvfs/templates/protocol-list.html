@@ -65,6 +65,7 @@
 {% endif %}
 
 <form method="post" action="{{url_for('.protocol_add')}}" class="form">
+<input type="hidden" name="csrf_token" value="{{csrf_token()}}"/>
 <div class="card mt-3">
   <div class="card-body">
     <div class="card-title">Create a new update protocol</div>

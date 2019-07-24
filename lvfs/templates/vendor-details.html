@@ -14,6 +14,7 @@
 <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#iconModal">Change...</button>
 
 <form method="post" action="{{url_for('.vendor_modify_by_admin', vendor_id=v.vendor_id)}}">
+  <input type="hidden" name="csrf_token" value="{{csrf_token()}}"/>
   <div class="form-group">
     <label for="group_id">Group ID:</label>
     <input type="text" class="form-control" name="group_id" value="{{v.group_id}}" required>
@@ -120,6 +121,7 @@
   removing a vendor is not recommended.
 </p>
 <form method="get" action="{{url_for('.vendor_delete', vendor_id=v.vendor_id)}}">
+  <input type="hidden" name="csrf_token" value="{{csrf_token()}}"/>
   <button class="btn btn-danger">Delete</button>
 </form>
   </div>
@@ -136,6 +138,7 @@
         </button>
       </div>
       <form action="{{url_for('.vendor_upload', vendor_id=v.vendor_id)}}" method="post" enctype="multipart/form-data" class="form">
+        <input type="hidden" name="csrf_token" value="{{csrf_token()}}"/>
         <div class="modal-body">
           <p class="card-text">
             Upload a new 128x128 PNG below:
