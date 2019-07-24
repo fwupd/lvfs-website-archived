@@ -59,8 +59,8 @@ def flash_save_eventlog(unused_sender, message, category, **unused_extra):
 
 message_flashed.connect(flash_save_eventlog, app)
 
-lm = LoginManager()
-lm.init_app(app)
+lm = LoginManager(app)
+lm.login_view = 'login1'
 
 ploader = Pluginloader('plugins')
 
