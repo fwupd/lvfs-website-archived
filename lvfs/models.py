@@ -142,6 +142,7 @@ class User(db.Model):
     dtime = Column(DateTime, default=None)
     human_user_id = Column(Integer, ForeignKey('users.user_id'), nullable=True)
     notify_demote_failures = Column(Boolean, default=False)
+    notify_server_error = Column(Boolean, default=False)
 
     # link using foreign keys
     vendor = relationship('Vendor', foreign_keys=[vendor_id])

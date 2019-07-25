@@ -75,7 +75,8 @@ def user_modify(user_id):
         user.human_user_id = human_user.user_id
 
     # unchecked checkbuttons are not included in the form data
-    for key in ['notify_demote_failures']:
+    for key in ['notify_demote_failures',
+                'notify_server_error']:
         setattr(user, key, bool(key in request.form))
 
     # save to database
@@ -319,7 +320,8 @@ def user_modify_by_admin(user_id):
     # unchecked checkbuttons are not included in the form data
     for key in ['is_qa', 'is_analyst', 'is_vendor_manager',
                 'is_approved_public', 'is_robot', 'is_admin',
-                'is_otp_enabled', 'notify_demote_failures']:
+                'is_otp_enabled', 'notify_demote_failures',
+                'notify_server_error']:
         setattr(user, key, bool(key in request.form))
 
     # password is optional, and hashed

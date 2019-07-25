@@ -55,6 +55,19 @@
             </div>
           </div>
         </div>
+{% if g.user.is_admin %}
+        <div class="row">
+          <div class="col">
+            <div class="custom-control custom-switch">
+              <input class="custom-control-input" type="checkbox" id="notify_server_error"
+                name="notify_server_error" value="1" {{'checked' if u.notify_server_error}}/>
+              <label class="custom-control-label" for="notify_server_error">
+                When a critical server error occurs.
+              </label>
+            </div>
+          </div>
+        </div>
+{% endif %}
         <button class="btn btn-primary mt-3" type="submit">Update</button>
       </div>
     </div>

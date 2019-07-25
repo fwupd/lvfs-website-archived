@@ -9,6 +9,9 @@
 
 import os
 import sqlalchemy
+import logging
+
+from logging.handlers import SMTPHandler
 
 from flask import Flask, flash, render_template, message_flashed, request, Response, g
 from flask_login import LoginManager
@@ -38,6 +41,27 @@ db = SQLAlchemy(app)
 mail = Mail(app)
 
 migrate = Migrate(app, db)
+
+# email any admins opting-in to the email notification for a server error
+if not app.debug and app.config['MAIL_SERVER']:
+    _set_up_notify_server_error()
+
+def _set_up_notify_server_error():
+    from .models import User
+    toaddrs = [user.username for user in db.session.query(User).\
+                                            filter(User.is_admin).\
+                                            filter(User.notify_server_error).all()]
+    if not toaddrs:
+        return
+    mail_handler = SMTPHandler(
+        mailhost=(app.config['MAIL_SERVER'], app.config['MAIL_PORT']),
+        fromaddr=app.config['MAIL_DEFAULT_SENDER'],
+        toaddrs=toaddrs,
+        subject='LVFS Failure',
+        credentials=(app.config['MAIL_USERNAME'], app.config['MAIL_PASSWORD']),
+        secure=() if app.config['MAIL_USE_TLS'] else None)
+    mail_handler.setLevel(logging.ERROR)
+    app.logger.addHandler(mail_handler)
 
 @app.cli.command('initdb')
 def initdb_command():
