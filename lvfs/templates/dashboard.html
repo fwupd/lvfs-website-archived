@@ -24,7 +24,7 @@
 </div>
 {% endif %}
 
-{% if download_cnt > 0 %}
+{% if not g.user.vendor.do_not_track and download_cnt > 0 %}
 <div class="card">
   <div class="card-body rounded-soft bg-gradient">
     <h5 class="text-white">Downloads over the last 30 days</h5>
@@ -88,7 +88,19 @@ new Chart(ctx, {
 {% endif %}
 
 <div class="card-deck mt-3">
-{% if g.user.vendor.fws|length %}
+{% if g.user.vendor.do_not_track %}
+  <div class="card overflow-hidden" style="min-width: 12rem">
+    <div class="bg-holder bg-card" style="background-image:url(/img/corner-1.png);"></div>
+    <div class="card-body position-relative">
+      <div class="card-title">Do Not Track in use</div>
+      <p class="card-text">
+        No download counts, telemetry or user reports are available for any
+        firmware.
+        Please consult your manager for more information.
+      </p>
+    </div>
+  </div>
+{% elif not g.user.vendor.do_not_track and g.user.vendor.fws|length %}
   <div class="card overflow-hidden" style="min-width: 12rem">
     <div class="bg-holder bg-card" style="background-image:url(/img/corner-1.png);"></div>
     <div class="card-body position-relative">

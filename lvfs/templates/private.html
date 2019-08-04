@@ -90,7 +90,7 @@
             </li>
           </ul>
         </li>
-{% if g.user.check_acl('@view-analytics') %}
+{% if not g.user.vendor.do_not_track and g.user.check_acl('@view-analytics') %}
         <li class="nav-item">
           <a class="nav-link dropdown-indicator" href="#telemetry" data-toggle="collapse" role="button" aria-expanded="false" aria-controls="telemetry">
             <div class="d-flex align-items-center">

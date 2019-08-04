@@ -167,6 +167,11 @@ def firmware_report():
             msgs.append('%s did not match any known firmware archive' % report['Checksum'])
             continue
 
+        # cannot report this failure
+        if fw.do_not_track:
+            msgs.append('%s will not accept reports' % report['Checksum'])
+            continue
+
         # update the device checksums if there is only one component
         if crt and crt.user.is_qa and 'ChecksumDevice' in data and len(fw.mds) == 1:
             md = fw.md_prio

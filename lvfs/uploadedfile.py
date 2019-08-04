@@ -449,6 +449,10 @@ class UploadedFile:
         if component.xpath('custom/value[@key="LVFS::InhibitDownload"]'):
             md.inhibit_download = True
 
+        # allows OEM to disable ignore all kinds of statistics on this firmware
+        if component.xpath('custom/value[@key="LVFS::DoNotTrack"]'):
+            md.fw.do_not_track = True
+
         # allows OEM to change the triplet (AA.BB.CCDD) to quad (AA.BB.CC.DD)
         try:
             md.version_format = _node_validate_text(component.xpath('custom/value[@key="LVFS::VersionFormat"]')[0])

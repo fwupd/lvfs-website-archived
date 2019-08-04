@@ -359,6 +359,7 @@ def vendor_modify_by_admin(vendor_id):
         if key in request.form:
             setattr(vendor, key, request.form[key])
     for key in ['is_embargo_default',
+                'do_not_track',
                 'visible',
                 'visible_on_landing',
                 'visible_for_search']:

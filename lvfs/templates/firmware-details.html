@@ -86,11 +86,14 @@ new Chart(ctx, {
           <img class="img-thumbnail float-right" src="/uploads/{{fw.vendor.icon}}" width="64"/>
         </div>
         <p class="card-text">
-          <a href="{{fw.filename_absolute}}">
-          {{fw.md_prio.name}} {{fw.version_display}}
-          </a>
+{% if fw.do_not_track %}
+          No download statistics are available for this firmware as
+          <code>LVFS::DoNotTrack</code> is being used.
+{% else %}
+          <a href="{{fw.filename_absolute}}">{{fw.md_prio.name}} {{fw.version_display}}</a>
           has been downloaded {{fw.download_cnt}} times.
         </p>
+{% endif %}
 {% if fw.signed_timestamp %}
 <!-- Signed: {{fw.signed_timestamp}} -->
 {% endif %}

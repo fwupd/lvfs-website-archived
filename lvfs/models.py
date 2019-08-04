@@ -383,6 +383,7 @@ class Vendor(db.Model):
     version_format = Column(String(10), default=None) # usually 'triplet' or 'quad'
     url = Column(Text, default=None)
     banned_country_codes = Column(Text, default=None) # ISO 3166, delimiter ','
+    do_not_track = Column(Boolean, default=False)
 
     # magically get the users in this vendor group
     users = relationship("User",
@@ -1571,6 +1572,7 @@ class Firmware(db.Model):
     report_issue_cnt = Column(Integer, default=0)       # updated by cron.py
     failure_minimum = Column(Integer, default=0)
     failure_percentage = Column(Integer, default=0)
+    _do_not_track = Column('do_not_track', Boolean, default=False)
 
     # include all Component objects
     mds = relationship("Component",
@@ -1607,6 +1609,10 @@ class Firmware(db.Model):
         if not self.events:
             return 0
         return datetime.datetime.utcnow() - self.events[-1].timestamp
+
+    @property
+    def do_not_track(self):
+        return self._do_not_track or self.vendor.do_not_track
 
     @property
     def is_deleted(self):

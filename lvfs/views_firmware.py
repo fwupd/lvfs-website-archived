@@ -519,7 +519,7 @@ def firmware_show(firmware_id):
     # get data for the last month or year
     graph_data = []
     graph_labels = None
-    if fw.check_acl('@view-analytics'):
+    if fw.check_acl('@view-analytics') and not fw.do_not_track:
         if fw.timestamp > datetime.datetime.today() - datetime.timedelta(days=30):
             datestr = _get_datestr_from_datetime(datetime.date.today() - datetime.timedelta(days=31))
             data = db.session.query(AnalyticFirmware.cnt).\

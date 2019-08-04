@@ -31,6 +31,13 @@
     <p class="card-text">
       Uploading firmware is covered by <a href="{{url_for('.agreement_show')}}">our legal agreement</a>.
     </p>
+{% if g.user.vendor.do_not_track %}
+    <div class="alert alert-info mb-3" role="alert">
+      Your vendor manager has globally enabled &lsquo;Do Not Track&rsquo; for all firmware.
+      No download statistics or user reports will be available for any files
+      uploaded by your user account.
+    </div>
+{% endif %}
     <form action="{{url_for('.upload_firmware')}}" method="post" enctype="multipart/form-data" class="form">
       <input type="hidden" name="csrf_token" value="{{csrf_token()}}"/>
 {% if affiliations|length %}

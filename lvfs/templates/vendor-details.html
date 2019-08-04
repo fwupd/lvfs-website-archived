@@ -105,6 +105,13 @@
     </select>
   </div>
   <div class="form-group">
+    <label for="email">Enable &lsquo;Do Not Track&rsquo;</label>
+    <select class="form-control" name="do_not_track">
+      <option value="0" {{ 'selected' if v.do_not_track == 0 }}>No</option>
+      <option value="1" {{ 'selected' if v.do_not_track == 1 }}>Yes</option>
+    </select>
+  </div>
+  <div class="form-group">
     <label for="email">Comments:</label>
     <textarea class="form-control" name="comments" cols="64" rows="5">{{v.comments}}</textarea>
   </div>

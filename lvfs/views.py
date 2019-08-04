@@ -121,13 +121,15 @@ def serveStaticResource(resource):
                     return resp
 
         # this is cached for easy access on the firmware details page
-        fw.download_cnt += 1
+        if not fw.do_not_track:
+            fw.download_cnt += 1
 
         # log the client request
-        db.session.add(Client(addr=_addr_hash(_get_client_address()),
-                              firmware_id=fw.firmware_id,
-                              user_agent=user_agent))
-        db.session.commit()
+        if not fw.do_not_track:
+            db.session.add(Client(addr=_addr_hash(_get_client_address()),
+                                  firmware_id=fw.firmware_id,
+                                  user_agent=user_agent))
+            db.session.commit()
 
     # firmware blobs
     if resource.startswith('downloads/'):
