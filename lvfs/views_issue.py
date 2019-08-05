@@ -11,7 +11,7 @@ from flask_login import login_required
 from lvfs import app, db
 
 from .models import Issue, Condition, Report, Firmware
-from .util import _error_internal, _error_permission_denied
+from .util import _error_internal
 
 @app.route('/lvfs/issue/all')
 @login_required
@@ -19,7 +19,8 @@ def issue_all():
 
     # security check
     if not g.user.check_acl('@view-issues'):
-        return _error_permission_denied('Unable to view issues')
+        flash('Permission denied: Unable to view issues', 'danger')
+        return redirect(url_for('.issue_all'))
 
     # only show issues with the correct group_id
     issues = []
@@ -36,7 +37,8 @@ def issue_add():
 
     # security check
     if not Issue().check_acl('@create'):
-        return _error_permission_denied('Unable to add report')
+        flash('Permission denied: Unable to add issue', 'danger')
+        return redirect(url_for('.issue_all'))
 
     # ensure has enough data
     for key in ['url']:
@@ -72,7 +74,8 @@ def issue_condition_add(issue_id):
         flash('No issue found', 'info')
         return redirect(url_for('.issue_conditions', issue_id=issue_id))
     if not issue.check_acl('@modify'):
-        return _error_permission_denied('Unable to add condition to report')
+        flash('Permission denied: Unable to add condition to issue', 'danger')
+        return redirect(url_for('.issue_all'))
 
     # already exists
     if db.session.query(Condition).\
@@ -103,7 +106,8 @@ def issue_condition_delete(issue_id, condition_id):
 
     # security check
     if not issue.check_acl('@modify'):
-        return _error_permission_denied('Unable to delete condition from report')
+        flash('Permission denied: Unable to delete condition from issue', 'danger')
+        return redirect(url_for('.issue_all'))
 
     # get issue
     condition = db.session.query(Condition).\
@@ -133,7 +137,8 @@ def issue_delete(issue_id):
 
     # security check
     if not issue.check_acl('@modify'):
-        return _error_permission_denied('Unable to delete report')
+        flash('Permission denied: Unable to delete report', 'danger')
+        return redirect(url_for('.issue_all'))
 
     # delete
     for condition in issue.conditions:
@@ -188,7 +193,8 @@ def issue_modify(issue_id):
 
     # security check
     if not issue.check_acl('@modify'):
-        return _error_permission_denied('Unable to modify report')
+        flash('Permission denied: Unable to modify issue', 'danger')
+        return redirect(url_for('.issue_all'))
 
     # issue cannot be enabled if it has no conditions
     if 'enabled' in request.form and not issue.conditions:
@@ -227,7 +233,8 @@ def issue_details(issue_id):
 
     # security check
     if not issue.check_acl('@view'):
-        return _error_permission_denied('Unable to view issue details')
+        flash('Permission denied: Unable to view issue details', 'danger')
+        return redirect(url_for('.issue_all'))
 
     # show details
     return render_template('issue-details.html',
@@ -247,7 +254,8 @@ def issue_priority(issue_id, op):
 
     # security check
     if not issue.check_acl('@modify'):
-        return _error_permission_denied('Unable to change issue priority')
+        flash('Permission denied: Unable to change issue priority', 'danger')
+        return redirect(url_for('.issue_all'))
 
     # change integer priority
     if op == 'up':
@@ -274,7 +282,8 @@ def issue_reports(issue_id):
 
     # security check
     if not issue.check_acl('@view'):
-        return _error_permission_denied('Unable to view issue reports')
+        flash('Permission denied: Unable to view issue reports', 'danger')
+        return redirect(url_for('.issue_all'))
 
     # check firmware details are available to this user, and check if it matches
     reports = []
@@ -316,7 +325,8 @@ def issue_conditions(issue_id):
 
     # security check
     if not issue.check_acl('@view'):
-        return _error_permission_denied('Unable to view issue conditions')
+        flash('Permission denied: Unable to view issue conditions', 'danger')
+        return redirect(url_for('.issue_all'))
 
     # show details
     return render_template('issue-conditions.html',

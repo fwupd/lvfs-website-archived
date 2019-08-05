@@ -17,7 +17,7 @@ from lvfs import app, db
 
 from .emails import send_email
 from .util import admin_login_required
-from .util import _error_internal, _error_permission_denied, _email_check, _generate_password
+from .util import _error_internal, _email_check, _generate_password
 from .util import _pkcs7_certificate_info
 from .models import User, Vendor, Remote, Firmware, Event, FirmwareEvent, Certificate
 
@@ -49,11 +49,14 @@ def user_modify(user_id):
 
     # security check
     if g.user.user_id != user_id:
-        return _error_permission_denied('Unable to modify a different user')
+        flash('Unable to modify a different user', 'danger')
+        return redirect(url_for('.dashboard'))
     if g.user.auth_type == 'local+locked':
-        return _error_permission_denied('Unable to change user as account locked')
+        flash('Unable to change user as account locked', 'danger')
+        return redirect(url_for('.dashboard'))
     if g.user.auth_type == 'oauth':
-        return _error_permission_denied('Unable to change OAuth-only user')
+        flash('Unable to change OAuth-only user', 'danger')
+        return redirect(url_for('.dashboard'))
     user = db.session.query(User).filter(User.user_id == user_id).first()
 
     # verify name
@@ -91,9 +94,11 @@ def user_deactivate(user_id):
 
     # security check
     if g.user.user_id != user_id:
-        return _error_permission_denied('Unable to modify a different user')
+        flash('Unable to modify a different user', 'danger')
+        return redirect(url_for('.dashboard'))
     if not g.user.check_acl('@manage-password'):
-        return _error_permission_denied('Unable to deactivate')
+        flash('Permission denied: Unable to deactivate', 'danger')
+        return redirect(url_for('.dashboard'))
     user = db.session.query(User).filter(User.user_id == user_id).one()
     user.auth_type = 'disabled'
     user.mtime = datetime.datetime.utcnow()
@@ -111,15 +116,19 @@ def user_password(user_id):
 
     # security check
     if g.user.user_id != user_id:
-        return _error_permission_denied('Unable to modify a different user')
+        flash('Unable to modify a different user', 'danger')
+        return redirect(url_for('.dashboard'))
     if not g.user.check_acl('@manage-password'):
-        return _error_permission_denied('Unable to modify password')
+        flash('Permission denied: Unable to modify password', 'danger')
+        return redirect(url_for('.dashboard'))
 
     # check we got enough data
     if not 'password_old' in request.form:
-        return _error_permission_denied('Unable to change user as no data')
+        flash('Unable to change user as no data', 'danger')
+        return redirect(url_for('.dashboard'))
     if not 'password_new' in request.form:
-        return _error_permission_denied('Unable to change user as no data')
+        flash('Unable to change user as no data', 'danger')
+        return redirect(url_for('.dashboard'))
     user = db.session.query(User).filter(User.user_id == user_id).one()
     if not user.verify_password(request.form['password_old']):
         flash('Failed to modify profile: Incorrect existing password', 'danger')
@@ -165,9 +174,11 @@ def user_auth(user_id):
 
     # security check
     if g.user.user_id != user_id:
-        return _error_permission_denied('Unable to modify a different user')
+        flash('Permission denied: Unable to modify a different user', 'danger')
+        return redirect(url_for('.dashboard'))
     if not g.user.check_acl('@manage-password'):
-        return _error_permission_denied('Unable to modify password')
+        flash('Permission denied: Unable to modify password', 'danger')
+        return redirect(url_for('.dashboard'))
 
     # unchecked checkbuttons are not included in the form data
     user = db.session.query(User).filter(User.user_id == user_id).one()
@@ -191,7 +202,8 @@ def user_qrcode():
 
     # security check
     if not g.user.check_acl('@view-profile'):
-        return _error_permission_denied('Unable to view profile as account locked')
+        flash('Permission denied: Unable to view profile as account locked', 'danger')
+        return redirect(url_for('.dashboard'))
 
     # render qrcode for FreeTOTP
     url = pyqrcode.create(g.user.get_totp_uri())
@@ -209,7 +221,8 @@ def user_otp_test():
 
     # security check
     if not g.user.check_acl('@view-profile'):
-        return _error_permission_denied('Unable to view profile as account locked')
+        flash('Permission denied: Unable to view profile as account locked', 'danger')
+        return redirect(url_for('.dashboard'))
 
     # check was sent
     if not 'otp' in request.form or not request.form['otp']:
@@ -240,7 +253,8 @@ def user_reset_by_admin(user_id):
 
     # security check
     if not user.vendor.check_acl('@manage-users'):
-        return _error_permission_denied('Unable to modify user as non-admin')
+        flash('Permission denied: Unable to modify user as non-admin', 'danger')
+        return redirect(url_for('.dashboard'))
 
     # password is stored hashed
     password = _generate_password()
@@ -271,29 +285,37 @@ def user_modify_by_admin(user_id):
 
     # security check
     if not user.vendor.check_acl('@manage-users'):
-        return _error_permission_denied('Unable to modify user as non-admin')
+        flash('Permission denied: Unable to modify user as non-admin', 'danger')
+        return redirect(url_for('.dashboard'))
     if not g.user.check_acl('@admin') and 'vendor_id' in request.form:
-        return _error_permission_denied('Unable to modify group for user as non-admin')
+        flash('Permission denied: Unable to modify group for user as non-admin', 'danger')
+        return redirect(url_for('.dashboard'))
 
     # user is being promoted, so check the manager already has this attribute
     if not user.is_vendor_manager and 'is_vendor_manager' in request.form:
         if not g.user.check_acl('@add-attribute-manager'):
-            return _error_permission_denied('Unable to promote user to manager')
+            flash('Permission denied: Unable to promote user to manager', 'danger')
+            return redirect(url_for('.dashboard'))
     if not user.is_analyst and 'is_analyst' in request.form:
         if not g.user.check_acl('@add-attribute-analyst'):
-            return _error_permission_denied('Unable to promote user to analyst')
+            flash('Permission denied: Unable to promote user to analyst', 'danger')
+            return redirect(url_for('.dashboard'))
     if not user.is_qa and 'is_qa' in request.form:
         if not g.user.check_acl('@add-attribute-qa'):
-            return _error_permission_denied('Unable to promote user to QA')
+            flash('Permission denied: Unable to promote user to QA', 'danger')
+            return redirect(url_for('.dashboard'))
     if not user.is_approved_public and 'is_approved_public' in request.form:
         if not g.user.check_acl('@add-attribute-qa'):
-            return _error_permission_denied('Unable to promote user to QA')
+            flash('Permission denied: Unable to promote user to QA', 'danger')
+            return redirect(url_for('.dashboard'))
     if not user.is_robot and 'is_robot' in request.form:
         if not g.user.check_acl('@add-attribute-robot'):
-            return _error_permission_denied('Unable to mark user as robot')
+            flash('Permission denied: Unable to mark user as robot', 'danger')
+            return redirect(url_for('.dashboard'))
     if not user.is_admin and 'is_admin' in request.form:
         if not g.user.check_acl('@add-attribute-admin'):
-            return _error_permission_denied('Unable to mark user as admin')
+            flash('Permission denied: Unable to mark user as admin', 'danger')
+            return redirect(url_for('.dashboard'))
 
     # set each optional thing in turn
     old_vendor = user.vendor
@@ -432,7 +454,8 @@ def user_recover():
     if request.method != 'POST':
         return render_template('user-recover.html')
     if not 'username' in request.form:
-        return _error_permission_denied('Unable to recover user as no username')
+        flash('Unable to recover user as no username', 'danger')
+        return redirect(url_for('.dashboard'))
 
     # check exists
     username = request.form['username']
@@ -468,7 +491,8 @@ def user_certificate_remove(certificate_id):
 
     # security check
     if not crt.check_acl('@delete'):
-        return _error_permission_denied('Unable to delete certificate')
+        flash('Permission denied: Unable to delete certificate', 'danger')
+        return redirect(url_for('.profile'))
 
     # delete
     db.session.delete(crt)
@@ -486,7 +510,8 @@ def user_certificate_add():
 
     # security check
     if not g.user.check_acl('@view-profile'):
-        return _error_permission_denied('Unable to add certificate as account locked')
+        flash('Permission denied: Unable to add certificate as account locked', 'danger')
+        return redirect(url_for('.dashboard'))
 
     # check was sent
     if not 'file' in request.files:
@@ -540,13 +565,17 @@ def user_add():
         return redirect(url_for('.profile'))
 
     if not 'username' in request.form:
-        return _error_permission_denied('Unable to add user as no username')
+        flash('Unable to add user as no username', 'danger')
+        return redirect(url_for('.dashboard'))
     if not 'password_new' in request.form:
-        return _error_permission_denied('Unable to add user as no password_new')
+        flash('Unable to add user as no password_new', 'danger')
+        return redirect(url_for('.dashboard'))
     if not 'group_id' in request.form:
-        return _error_permission_denied('Unable to add user as no group_id')
+        flash('Unable to add user as no group_id', 'danger')
+        return redirect(url_for('.dashboard'))
     if not 'display_name' in request.form:
-        return _error_permission_denied('Unable to add user as no display_name')
+        flash('Unable to add user as no display_name', 'danger')
+        return redirect(url_for('.dashboard'))
     user = db.session.query(User).filter(User.username == request.form['username']).first()
     if user:
         flash('Already a user with that username!', 'danger')
@@ -636,7 +665,8 @@ def user_admin(user_id, page='admin'):
 
     # security check
     if not user.vendor.check_acl('@manage-users'):
-        return _error_permission_denied('Unable to modify user for non-admin user')
+        flash('Permission denied: Unable to modify user for non-admin user', 'danger')
+        return redirect(url_for('.dashboard'))
 
     # get all the vendors with LVFS accounts
     vendors = []

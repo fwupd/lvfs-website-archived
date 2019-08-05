@@ -20,7 +20,7 @@ from .models import Firmware, Report, Client, FirmwareEvent, FirmwareLimit
 from .models import Remote, Vendor, AnalyticFirmware, Component
 from .models import ComponentShard, ComponentShardInfo, ComponentShardChecksum
 from .models import _get_datestr_from_datetime
-from .util import _error_internal, _error_permission_denied, _event_log
+from .util import _error_internal, _event_log
 from .util import _get_chart_labels_months, _get_chart_labels_days, _get_shard_path
 
 @app.route('/lvfs/firmware')
@@ -84,7 +84,8 @@ def firmware_undelete(firmware_id):
 
     # security check
     if not fw.check_acl('@undelete'):
-        return _error_permission_denied('Insufficient permissions to undelete firmware')
+        flash('Permission denied: Insufficient permissions to undelete firmware', 'danger')
+        return redirect(url_for('.firmware_show', firmware_id=firmware_id))
 
     # find private remote
     remote = db.session.query(Remote).filter(Remote.name == 'private').first()
@@ -139,7 +140,8 @@ def firmware_delete(firmware_id):
 
     # security check
     if not fw.check_acl('@delete'):
-        return _error_permission_denied('Insufficient permissions to delete firmware')
+        flash('Permission denied: Insufficient permissions to delete firmware', 'danger')
+        return redirect(url_for('.firmware_show', firmware_id=firmware_id))
 
     # delete firmware
     _firmware_delete(fw)
@@ -161,11 +163,13 @@ def firmware_nuke(firmware_id):
 
     # firmware is not deleted yet
     if not fw.is_deleted:
-        return _error_permission_denied('Cannot nuke file not yet deleted')
+        flash('Cannot nuke file not yet deleted', 'danger')
+        return redirect(url_for('.firmware_show', firmware_id=firmware_id))
 
     # security check
     if not fw.check_acl('@nuke'):
-        return _error_permission_denied('Insufficient permissions to nuke firmware')
+        flash('Permission denied: Insufficient permissions to nuke firmware', 'danger')
+        return redirect(url_for('.firmware_show', firmware_id=firmware_id))
 
     # really delete firmware
     path = os.path.join(app.config['RESTORE_DIR'], fw.filename)
@@ -211,7 +215,8 @@ def firmware_promote(firmware_id, target):
 
     # security check
     if not fw.check_acl('@promote-' + target):
-        return _error_permission_denied("No QA access to %s" % fw.firmware_id)
+        flash('Permission denied: No QA access to {}'.format(firmware_id), 'danger')
+        return redirect(url_for('.firmware_show', firmware_id=firmware_id))
 
     # vendor has to fix the problems first
     if target in ['stable', 'testing'] and fw.problems:
@@ -267,7 +272,8 @@ def firmware_components(firmware_id):
 
     # security check
     if not fw.check_acl('@view'):
-        return _error_permission_denied('Insufficient permissions to view components')
+        flash('Permission denied: Insufficient permissions to view components', 'danger')
+        return redirect(url_for('.firmware_show', firmware_id=firmware_id))
 
     return render_template('firmware-components.html',
                            category='firmware',
@@ -286,7 +292,8 @@ def firmware_limits(firmware_id):
 
     # security check
     if not fw.check_acl('@view'):
-        return _error_permission_denied('Insufficient permissions to view limits')
+        flash('Permission denied: Insufficient permissions to view limits', 'danger')
+        return redirect(url_for('.firmware_show', firmware_id=firmware_id))
 
     return render_template('firmware-limits.html',
                            category='firmware',
@@ -305,7 +312,8 @@ def firmware_limit_delete(firmware_limit_id):
 
     # security check
     if not fl.fw.check_acl('delete-limit'):
-        return _error_permission_denied('Insufficient permissions to delete limits')
+        flash('Permission denied: Insufficient permissions to delete limits', 'danger')
+        return redirect(url_for('.firmware'))
 
     firmware_id = fl.firmware_id
     fl.fw.mark_dirty()
@@ -326,7 +334,8 @@ def firmware_modify(firmware_id):
 
     # security check
     if not fw.check_acl('@modify'):
-        return _error_permission_denied('Insufficient permissions to modify firmware')
+        flash('Permission denied: Insufficient permissions to modify firmware', 'danger')
+        return redirect(url_for('.firmware_show', firmware_id=firmware_id))
 
     # set new metadata values
     if 'failure_minimum' in request.form:
@@ -353,7 +362,8 @@ def firmware_limit_add():
 
     # security check
     if not fw.check_acl('@add-limit'):
-        return _error_permission_denied('Unable to add restriction')
+        flash('Permission denied: Unable to add restriction', 'danger')
+        return redirect(url_for('.firmware_show', firmware_id=fw.firmware_id))
 
     # ensure has enough data
     for key in ['value', 'firmware_id']:
@@ -385,7 +395,8 @@ def firmware_affiliation(firmware_id):
 
     # security check
     if not fw.check_acl('@modify-affiliation'):
-        return _error_permission_denied('Insufficient permissions to modify affiliations')
+        flash('Permission denied: Insufficient permissions to modify affiliations', 'danger')
+        return redirect(url_for('.firmware_show', firmware_id=firmware_id))
 
     # add other vendors
     if g.user.check_acl('@admin'):
@@ -420,14 +431,16 @@ def firmware_affiliation_change(firmware_id):
 
     # security check
     if not fw.check_acl('@modify-affiliation'):
-        return _error_permission_denied('Insufficient permissions to change affiliation')
+        flash('Permission denied: Insufficient permissions to change affiliation', 'danger')
+        return redirect(url_for('.firmware_show', firmware_id=firmware_id))
 
     vendor_id = int(request.form['vendor_id'])
     if vendor_id == fw.vendor_id:
         flash('No affiliation change required', 'info')
         return redirect(url_for('.firmware_affiliation', firmware_id=fw.firmware_id))
     if not g.user.is_admin and not g.user.vendor.is_affiliate_for(vendor_id):
-        return _error_permission_denied('Insufficient permissions to change affiliation to %u' % vendor_id)
+        flash('Insufficient permissions to change affiliation to {}'.format(vendor_id), 'danger')
+        return redirect(url_for('.firmware_show', firmware_id=firmware_id))
     old_vendor = fw.vendor
     fw.vendor_id = vendor_id
     db.session.commit()
@@ -458,7 +471,8 @@ def firmware_problems(firmware_id):
 
     # security check
     if not fw.check_acl('@view'):
-        return _error_permission_denied('Insufficient permissions to view components')
+        flash('Permission denied: Insufficient permissions to view components', 'danger')
+        return redirect(url_for('.firmware'))
 
     return render_template('firmware-problems.html',
                            category='firmware',
@@ -477,7 +491,8 @@ def firmware_target(firmware_id):
 
     # security check
     if not fw.check_acl('@view'):
-        return _error_permission_denied('Insufficient permissions to view firmware')
+        flash('Permission denied: Insufficient permissions to view firmware', 'danger')
+        return redirect(url_for('.firmware'))
 
     return render_template('firmware-target.html',
                            category='firmware',
@@ -498,7 +513,8 @@ def firmware_show(firmware_id):
 
     # security check
     if not fw.check_acl('@view'):
-        return _error_permission_denied('Insufficient permissions to view firmware')
+        flash('Permission denied: Insufficient permissions to view firmware', 'danger')
+        return redirect(url_for('.firmware'))
 
     # get data for the last month or year
     graph_data = []
@@ -549,7 +565,8 @@ def firmware_analytics_clients(firmware_id):
 
     # security check
     if not fw.check_acl('@view-analytics'):
-        return _error_permission_denied('Insufficient permissions to view analytics')
+        flash('Permission denied: Insufficient permissions to view analytics', 'danger')
+        return redirect(url_for('.firmware_show', firmware_id=firmware_id))
     clients = db.session.query(Client).filter(Client.firmware_id == fw.firmware_id).\
                 order_by(Client.id.desc()).limit(10).all()
     return render_template('firmware-analytics-clients.html',
@@ -572,7 +589,8 @@ def firmware_analytics_reports(firmware_id, state=None, limit=100):
 
     # security check
     if not fw.check_acl('@view-analytics'):
-        return _error_permission_denied('Insufficient permissions to view analytics')
+        flash('Permission denied: Insufficient permissions to view analytics', 'danger')
+        return redirect(url_for('.firmware_show', firmware_id=firmware_id))
     if state:
         reports = db.session.query(Report).\
                     filter(Report.firmware_id == firmware_id).\
@@ -601,7 +619,8 @@ def firmware_tests(firmware_id):
 
     # security check
     if not fw.check_acl('@view'):
-        return _error_permission_denied('Insufficient permissions to view firmwares')
+        flash('Permission denied: Insufficient permissions to view firmware', 'danger')
+        return redirect(url_for('.firmware'))
 
     return render_template('firmware-tests.html',
                            category='firmware',

@@ -671,7 +671,7 @@ class LvfsTestCase(unittest.TestCase):
         assert '/downloads/' + self.checksum_upload in rv.data.decode('utf-8'), rv.data
         rv = self.app.get('/lvfs/firmware')
         assert b'/lvfs/firmware/1' in rv.data, rv.data
-        rv = self.app.get('/lvfs/firmware/1/analytics/clients')
+        rv = self.app.get('/lvfs/firmware/1/analytics/clients', follow_redirects=True)
         assert b'Insufficient permissions to view analytics' in rv.data, rv.data
         self.logout()
 
@@ -679,11 +679,11 @@ class LvfsTestCase(unittest.TestCase):
         self.login('bob@fwupd.org')
         rv = self._upload('contrib/hughski-colorhug2-2.0.3.cab', 'embargo')
         assert b'Another user has already uploaded this firmware' in rv.data, rv.data
-        rv = self.app.get('/lvfs/firmware/1')
+        rv = self.app.get('/lvfs/firmware/1', follow_redirects=True)
         assert b'Insufficient permissions to view firmware' in rv.data, rv.data
         rv = self.app.get('/lvfs/firmware')
         assert b'No firmware has been uploaded' in rv.data, rv.data
-        rv = self.app.get('/lvfs/firmware/1/analytics/clients')
+        rv = self.app.get('/lvfs/firmware/1/analytics/clients', follow_redirects=True)
         assert b'Insufficient permissions to view analytics' in rv.data, rv.data
         self.logout()
 
@@ -722,7 +722,7 @@ class LvfsTestCase(unittest.TestCase):
         # alice cannot see her own event
         self.login('alice@fwupd.org')
         self.upload()
-        rv = self.app.get('/lvfs/eventlog')
+        rv = self.app.get('/lvfs/eventlog', follow_redirects=True)
         assert b'Unable to show event log for non-QA user' in rv.data, rv.data
         assert b'Uploaded file' not in rv.data, rv.data
         assert b'Logged in' not in rv.data, rv.data
@@ -929,7 +929,7 @@ class LvfsTestCase(unittest.TestCase):
         assert b'Something Funky' in rv.data, rv.data
 
         # try to self-delete
-        rv = self.app.get('/lvfs/user/3/delete')
+        rv = self.app.get('/lvfs/user/3/delete', follow_redirects=True)
         assert b'Only the admin team can access this resource' in rv.data, rv.data
 
         # delete the user as the admin
@@ -1402,7 +1402,7 @@ ma+I7fM5pmgsEL4tkCZAg0+CPTyhHkMV/cWuOZUjqTsYbDq1pZI=
         self.upload(target='embargo')
 
         # change the ownership to 'oem' (no affiliation set up)
-        rv = self.app.get('/lvfs/firmware/1/affiliation')
+        rv = self.app.get('/lvfs/firmware/1/affiliation', follow_redirects=True)
         assert b'Insufficient permissions to modify affiliations' in rv.data, rv.data
 
         # change the ownership to admin
@@ -1426,7 +1426,7 @@ ma+I7fM5pmgsEL4tkCZAg0+CPTyhHkMV/cWuOZUjqTsYbDq1pZI=
             vendor_id='2',
         ), follow_redirects=True)
         assert b'Changed firmware vendor' in rv.data, rv.data
-        rv = self.app.get('/lvfs/firmware/1/affiliation')
+        rv = self.app.get('/lvfs/firmware/1/affiliation', follow_redirects=True)
         assert b'Insufficient permissions to modify affiliations' in rv.data, rv.data
 
         # verify remote was changed
@@ -1482,7 +1482,7 @@ ma+I7fM5pmgsEL4tkCZAg0+CPTyhHkMV/cWuOZUjqTsYbDq1pZI=
 
         # test uploading as the ODM to a vendor_id without an affiliation
         rv = self._upload(vendor_id=4)
-        assert b'Failed to upload file for vendor: Permission denied' in rv.data, rv.data
+        assert b'Permission denied: Failed to upload file for vendor' in rv.data, rv.data
 
         # test uploading to a OEM account we have an affiliation with
         self.upload(vendor_id=2)
@@ -1757,9 +1757,9 @@ ma+I7fM5pmgsEL4tkCZAg0+CPTyhHkMV/cWuOZUjqTsYbDq1pZI=
         # all these are an error when not logged in
         uris = ['/lvfs/firmware']
         for uri in uris:
-            rv = self.app.get(uri)
+            rv = self.app.get(uri, follow_redirects=True)
             assert b'favicon.ico' in rv.data, rv.data
-            assert b'LVFS: Error' in rv.data, rv.data
+            assert b'Permission denied: Tried to request' in rv.data, rv.data
 
     def test_horrible_hackers(self):
 
@@ -1940,7 +1940,7 @@ ma+I7fM5pmgsEL4tkCZAg0+CPTyhHkMV/cWuOZUjqTsYbDq1pZI=
 
         # we can only view the admin issue
         rv = self.app.get('/lvfs/issue/1/condition/1/delete', follow_redirects=True)
-        assert b'Unable to delete condition from report' in rv.data, rv.data
+        assert b'Unable to delete condition from issue' in rv.data, rv.data
         rv = self.app.get('/lvfs/issue/1/delete', follow_redirects=True)
         assert b'Unable to delete report' in rv.data, rv.data
         rv = self.app.get('/lvfs/issue/1/details')
@@ -1948,10 +1948,10 @@ ma+I7fM5pmgsEL4tkCZAg0+CPTyhHkMV/cWuOZUjqTsYbDq1pZI=
 
         # we can't do anything to the secret issue
         rv = self.app.get('/lvfs/issue/2/condition/1/delete', follow_redirects=True)
-        assert b'Unable to delete condition from report' in rv.data, rv.data
+        assert b'Unable to delete condition from issue' in rv.data, rv.data
         rv = self.app.get('/lvfs/issue/2/delete', follow_redirects=True)
         assert b'Unable to delete report' in rv.data, rv.data
-        rv = self.app.get('/lvfs/issue/2/details')
+        rv = self.app.get('/lvfs/issue/2/details', follow_redirects=True)
         assert b'Unable to view issue details' in rv.data, rv.data
         rv = self.app.get('/lvfs/issue/2/priority/up', follow_redirects=True)
         assert b'Unable to change issue priority' in rv.data, rv.data

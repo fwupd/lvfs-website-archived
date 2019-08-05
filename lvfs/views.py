@@ -31,7 +31,7 @@ from .models import User, Client, Event, AnalyticVendor
 from .models import _get_datestr_from_datetime
 from .hash import _addr_hash
 from .util import _get_client_address, _get_settings, _xml_from_markdown, _get_chart_labels_days
-from .util import _error_permission_denied, _event_log, _error_internal
+from .util import _event_log, _error_internal
 
 def _user_agent_safe_for_requirement(user_agent):
 
@@ -217,12 +217,12 @@ def unauthorized():
         msg += 'Tried to request %s' % request.url
     if request.user_agent:
         msg += ' from %s' % request.user_agent
-    return _error_permission_denied(msg)
+    flash('Permission denied: {}'.format(msg), 'danger')
+    return redirect(url_for('.index'))
 
 @app.errorhandler(401)
 def errorhandler_401(msg=None):
-    print("generic error handler")
-    return _error_permission_denied(msg)
+    return render_template('error-401.html', msg=msg), 401
 
 @app.route('/developers') # deprecated
 @app.route('/lvfs/docs/developers')
@@ -441,13 +441,13 @@ def login_oauth(plugin_id):
     # find the plugin that can authenticate us
     p = ploader.get_by_id(plugin_id)
     if not p:
-        return _error_permission_denied('no plugin %s' % plugin_id)
+        return _error_internal('no plugin {}'.format(plugin_id))
     if not p.oauth_authorize:
-        return _error_permission_denied('no oauth support in plugin %s' % plugin_id)
+        return _error_internal('no oauth support in plugin {}'.format(plugin_id))
     try:
         return p.oauth_authorize(url_for('login_oauth_authorized', plugin_id=plugin_id, _external=True))
     except PluginError as e:
-        return _error_permission_denied(str(e))
+        return _error_internal(str(e))
 
 @app.route('/lvfs/login/authorized/<plugin_id>')
 def login_oauth_authorized(plugin_id):
@@ -455,15 +455,15 @@ def login_oauth_authorized(plugin_id):
     # find the plugin that can authenticate us
     p = ploader.get_by_id(plugin_id)
     if not p:
-        return _error_permission_denied('no plugin %s' % plugin_id)
+        _error_internal('no plugin {}'.format(plugin_id))
     if not hasattr(p, 'oauth_get_data'):
-        return _error_permission_denied('no oauth support in plugin %s' % plugin_id)
+        return _error_internal('no oauth support in plugin {}'.format(plugin_id))
     try:
         data = p.oauth_get_data()
         if 'userPrincipalName' not in data:
             return _error_internal('No userPrincipalName in profile')
     except PluginError as e:
-        return _error_permission_denied(str(e))
+        return _error_internal(str(e))
 
     # auth check
     created_account = False
@@ -523,7 +523,8 @@ def eventlog(start=0, length=20):
     """
     # security check
     if not g.user.check_acl('@view-eventlog'):
-        return _error_permission_denied('Unable to show event log for non-QA user')
+        flash('Permission denied: Unable to show event log for non-QA user', 'danger')
+        return redirect(url_for('.dashboard'))
 
     # get the page selection correct
     if g.user.check_acl('@admin'):
@@ -561,7 +562,8 @@ def profile():
 
     # security check
     if not g.user.check_acl('@view-profile'):
-        return _error_permission_denied('Unable to view profile as account locked')
+        flash('Permission denied: Unable to view profile as account locked', 'danger')
+        return redirect(url_for('.dashboard'))
     return render_template('profile.html', u=g.user)
 
 # old names used on the static site

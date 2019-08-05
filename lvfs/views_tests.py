@@ -15,7 +15,6 @@ from lvfs import app, db, ploader
 
 from .models import Test
 from .util import admin_login_required
-from .util import _error_permission_denied
 
 @app.route('/lvfs/test')
 @app.route('/lvfs/test/overview')
@@ -140,7 +139,8 @@ def test_retry(test_id):
 
     # security check
     if not test.check_acl('@retry'):
-        return _error_permission_denied('Unable to retry test')
+        flash('Permission denied: Unable to retry test', 'danger')
+        return redirect(url_for('.test_overview'))
 
     # remove child
     test.retry()
@@ -162,7 +162,8 @@ def test_waive(test_id):
 
     # security check
     if not test.waivable or not test.check_acl('@waive'):
-        return _error_permission_denied('Unable to waive test')
+        flash('Permission denied: Unable to waive test', 'danger')
+        return redirect(url_for('.test_overview'))
 
     # remove chid
     test.waive()

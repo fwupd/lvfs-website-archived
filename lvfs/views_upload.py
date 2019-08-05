@@ -19,7 +19,7 @@ from lvfs import app, db, ploader, csrf
 from .models import Firmware, FirmwareEvent, Vendor, Remote, Agreement, Affiliation, Protocol, Category
 from .uploadedfile import UploadedFile, FileTooLarge, FileTooSmall, FileNotSupported, MetadataInvalid
 from .util import _get_client_address, _get_settings, _fix_component_name
-from .util import _error_internal, _error_permission_denied
+from .util import _error_internal
 from .util import _json_success, _json_error
 from .views_firmware import _firmware_delete
 
@@ -65,7 +65,8 @@ def _upload_firmware():
 
     # verify the user can upload
     if not _user_can_upload(g.user):
-        return _error_permission_denied('User has not signed legal agreement')
+        flash('User has not signed legal agreement', 'danger')
+        return redirect(url_for('.dashboard'))
 
     # used a custom vendor_id
     if 'vendor_id' in request.form:
@@ -83,7 +84,7 @@ def _upload_firmware():
 
     # security check
     if not vendor.check_acl('@upload'):
-        flash('Failed to upload file for vendor: Permission denied: '
+        flash('Permission denied: Failed to upload file for vendor: '
               'User with vendor %s cannot upload to vendor %s' %
               (g.user.vendor.group_id, vendor.group_id), 'warning')
         return redirect(url_for('.upload_firmware'))
@@ -149,10 +150,12 @@ def _upload_firmware():
         if g.user.is_robot and 'auto-delete' in request.form:
             for fw in fws_already_exist:
                 if fw.remote.is_public:
-                    return _error_permission_denied('Firmware %i cannot be autodeleted as is in remote %s' %
-                                                    (fw.firmware_id, fw.remote.name))
+                    flash('Firmware {} cannot be autodeleted as is in remote {}'.format(
+                        fw.firmware_id, fw.remote.name), 'danger')
+                    return redirect(url_for('.upload_firmware'))
                 if fw.user.user_id != g.user.user_id:
-                    return _error_permission_denied('Firmware was not uploaded by this user')
+                    flash('Firmware was not uploaded by this user', 'danger')
+                    return redirect(url_for('.upload_firmware'))
             for fw in fws_already_exist:
                 flash('Firmware %i was auto-deleted due to robot upload' % fw.firmware_id)
                 _firmware_delete(fw)

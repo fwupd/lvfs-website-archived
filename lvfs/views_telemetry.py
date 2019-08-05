@@ -7,13 +7,12 @@
 
 import datetime
 
-from flask import render_template, g
+from flask import render_template, g, flash, redirect, url_for
 from flask_login import login_required
 
 from lvfs import app, db
 
 from .models import Firmware
-from .util import _error_permission_denied
 
 def _get_split_names_for_firmware(fw):
     names = []
@@ -41,7 +40,8 @@ def telemetry(age=0, sort_key='success', sort_direction='down'):
 
     # only Analyst users can view this data
     if not g.user.check_acl('@view-analytics'):
-        return _error_permission_denied('Unable to view telemetry as not Analyst')
+        flash('Permission denied: Unable to view telemetry as not Analyst', 'danger')
+        return redirect(url_for('.dashboard'))
 
     # get data
     fws = []

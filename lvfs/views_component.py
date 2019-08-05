@@ -14,7 +14,7 @@ from lvfs import app, db, ploader
 
 from .models import Requirement, Component, Keyword, Checksum, Category
 from .models import Protocol, Report, ReportAttribute
-from .util import _error_internal, _error_permission_denied, _validate_guid
+from .util import _error_internal, _validate_guid
 from .hash import _is_sha1, _is_sha256
 
 def _sanitize_markdown_text(txt):
@@ -61,7 +61,8 @@ def component_shards(component_id):
         flash('No component matched!', 'danger')
         return redirect(url_for('.firmware'))
     if not fw.check_acl('@view'):
-        return _error_permission_denied('Unable to view component')
+        flash('Permission denied: Unable to view component', 'danger')
+        return redirect(url_for('.component_show', component_id=component_id))
 
     return render_template('component-shards.html',
                            category='firmware',
@@ -86,7 +87,8 @@ def component_certificates(component_id):
         flash('No firmware matched!', 'danger')
         return redirect(url_for('.firmware'))
     if not fw.check_acl('@view'):
-        return _error_permission_denied('Unable to view component')
+        flash('Permission denied: Unable to view component', 'danger')
+        return redirect(url_for('.component_show', component_id=component_id))
 
     return render_template('component-certificates.html',
                            category='firmware',
@@ -105,7 +107,8 @@ def component_modify(component_id):
 
     # security check
     if not md.check_acl('@modify-updateinfo'):
-        return _error_permission_denied('Insufficient permissions to modify firmware')
+        flash('Permission denied: Insufficient permissions to modify firmware', 'danger')
+        return redirect(url_for('.component_show', component_id=component_id))
 
     # set new metadata values
     page = 'overview'
@@ -178,7 +181,8 @@ def component_checksums(component_id):
         flash('No firmware matched!', 'danger')
         return redirect(url_for('.firmware'))
     if not fw.check_acl('@view'):
-        return _error_permission_denied('Unable to view component')
+        flash('Permission denied: Unable to view component', 'danger')
+        return redirect(url_for('.component_show', component_id=component_id))
 
     # find reports witch device checksums that match this firmware
     checksum_counts = db.session.query(func.count(ReportAttribute.value),
@@ -213,7 +217,8 @@ def component_show(component_id, page='overview'):
         flash('No firmware matched!', 'danger')
         return redirect(url_for('.firmware'))
     if not fw.check_acl('@view'):
-        return _error_permission_denied('Unable to view other vendor firmware')
+        flash('Permission denied: Unable to view other vendor firmware', 'danger')
+        return redirect(url_for('.component_show', component_id=component_id))
 
     # firmware requirements are too complicated to show on the simplified fiew
     if page == 'requires' and md.has_complex_requirements:
@@ -247,7 +252,8 @@ def component_requirement_delete(component_id, requirement_id):
 
     # security check
     if not md.check_acl('@modify-requirements'):
-        return _error_permission_denied('Unable to modify other vendor firmware')
+        flash('Permission denied: Unable to modify other vendor firmware', 'danger')
+        return redirect(url_for('.component_show', component_id=component_id))
 
     # remove chid
     db.session.delete(rq)
@@ -281,7 +287,8 @@ def component_requirement_add(component_id):
 
     # security check
     if not md.check_acl('@modify-requirements'):
-        return _error_permission_denied('Unable to modify other vendor firmware')
+        flash('Permission denied: Unable to modify other vendor firmware', 'danger')
+        return redirect(url_for('.component_show', component_id=component_id))
 
     # validate CHID is a valid GUID
     if request.form['kind'] == 'hardware' and not _validate_guid(request.form['value']):
@@ -332,7 +339,8 @@ def component_requirement_modify(component_id):
 
     # security check
     if not md.check_acl('@modify-requirements'):
-        return _error_permission_denied('Unable to modify other vendor firmware')
+        flash('Permission denied: Unable to modify other vendor firmware', 'danger')
+        return redirect(url_for('.component_show', component_id=component_id))
 
     # validate CHID is a valid GUID
     if request.form['kind'] == 'hardware' and not _validate_guid(request.form['value']):
@@ -403,7 +411,8 @@ def component_keyword_delete(component_id, keyword_id):
 
     # security check
     if not md.check_acl('@modify-keywords'):
-        return _error_permission_denied('Unable to modify other vendor firmware')
+        flash('Permission denied: Unable to modify other vendor firmware', 'danger')
+        return redirect(url_for('.component_show', component_id=component_id))
 
     # remove chid
     db.session.delete(kw)
@@ -435,7 +444,8 @@ def component_keyword_add(component_id):
 
     # security check
     if not md.check_acl('@modify-keywords'):
-        return _error_permission_denied('Unable to modify other vendor firmware')
+        flash('Permission denied: Unable to modify other vendor firmware', 'danger')
+        return redirect(url_for('.component_show', component_id=component_id))
 
     # add keyword
     md.add_keywords_from_string(request.form['value'])
@@ -465,7 +475,8 @@ def component_checksum_delete(component_id, checksum_id):
 
     # security check
     if not md.check_acl('@modify-checksums'):
-        return _error_permission_denied('Unable to modify other vendor firmware')
+        flash('Permission denied: Unable to modify other vendor firmware', 'danger')
+        return redirect(url_for('.component_show', component_id=component_id))
 
     # remove chid
     md.fw.mark_dirty()
@@ -497,7 +508,8 @@ def component_checksum_add(component_id):
 
     # security check
     if not md.check_acl('@modify-checksums'):
-        return _error_permission_denied('Unable to modify other vendor firmware')
+        flash('Permission denied: Unable to modify other vendor firmware', 'danger')
+        return redirect(url_for('.component_show', component_id=component_id))
 
     # validate is a valid hash
     hash_value = request.form['value']

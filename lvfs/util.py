@@ -19,7 +19,7 @@ import tempfile
 from functools import wraps
 
 from lxml import etree as ET
-from flask import request, flash, render_template, g, Response
+from flask import request, flash, render_template, g, Response, redirect, url_for
 
 def _fix_component_name(name, developer_name=None):
     if not name:
@@ -262,11 +262,6 @@ def _error_internal(msg=None, errcode=402):
     flash("Internal error: %s" % msg, 'danger')
     return render_template('error.html'), errcode
 
-def _error_permission_denied(msg=None):
-    """ Error handler: Permission Denied """
-    flash("Permission denied: %s" % msg, 'danger')
-    return render_template('error.html'), 401
-
 def _json_success(msg=None, uri=None, errcode=200):
     """ Success handler: JSON output """
     item = {}
@@ -436,6 +431,7 @@ def admin_login_required(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
         if not g.user.check_acl('@admin'):
-            return _error_permission_denied('Only the admin team can access this resource')
+            flash('Only the admin team can access this resource', 'danger')
+            return redirect(url_for('.dashboard'))
         return f(*args, **kwargs)
     return decorated_function

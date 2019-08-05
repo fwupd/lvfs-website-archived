@@ -19,7 +19,7 @@ from lvfs import app, db
 
 from .emails import send_email
 from .util import admin_login_required
-from .util import _error_permission_denied, _error_internal, _email_check
+from .util import _error_internal, _email_check
 from .models import Vendor, Restriction, User, Remote, Affiliation
 from .util import _generate_password
 
@@ -178,7 +178,7 @@ def vendor_add():
         return redirect(url_for('.vendor_list'))
 
     if not 'group_id' in request.form:
-        return _error_permission_denied('Unable to add vendor as no data')
+        return _error_internal('Unable to add vendor as no data')
     if db.session.query(Vendor).filter(Vendor.group_id == request.form['group_id']).first():
         flash('Failed to add vendor: Group ID already exists', 'warning')
         return redirect(url_for('.vendor_list'), 302)
@@ -246,7 +246,8 @@ def vendor_event(vendor_id):
         flash('Failed to get vendor details: No a vendor with that group ID', 'warning')
         return redirect(url_for('.vendor_list'), 302)
     if not vendor.check_acl('@manage-users'):
-        return _error_permission_denied('Unable to view event log')
+        flash('Permission denied: Unable to view event log', 'danger')
+        return redirect(url_for('.vendor_details', vendor_id=vendor_id))
     return render_template('vendor-event.html',
                            category='vendors',
                            v=vendor, page='event')
@@ -264,7 +265,8 @@ def vendor_users(vendor_id):
 
     # security check
     if not vendor.check_acl('@manage-users'):
-        return _error_permission_denied('Unable to edit vendor as non-admin')
+        flash('Permission denied: Unable to edit vendor as non-admin', 'danger')
+        return redirect(url_for('.vendor_details', vendor_id=vendor_id))
     return render_template('vendor-users.html',
                            category='vendors',
                            v=vendor)
@@ -282,7 +284,8 @@ def vendor_oauth(vendor_id):
 
     # security check
     if not vendor.check_acl('@modify-oauth'):
-        return _error_permission_denied('Unable to edit vendor as non-admin')
+        flash('Permission denied: Unable to edit vendor as non-admin', 'danger')
+        return redirect(url_for('.vendor_details', vendor_id=vendor_id))
     return render_template('vendor-oauth.html',
                            category='vendors',
                            v=vendor)
@@ -411,12 +414,15 @@ def vendor_user_add(vendor_id):
 
     # security check
     if not vendor.check_acl('@manage-users'):
-        return _error_permission_denied('Unable to modify vendor as non-admin')
+        flash('Permission denied: Unable to modify vendor as non-admin', 'danger')
+        return redirect(url_for('.vendor_details', vendor_id=vendor_id))
 
     if not 'username' in request.form or not request.form['username']:
-        return _error_permission_denied('Unable to add user as no username')
+        flash('Unable to add user as no username', 'danger')
+        return redirect(url_for('.vendor_details', vendor_id=vendor_id))
     if not 'display_name' in request.form:
-        return _error_permission_denied('Unable to add user as no display_name')
+        flash('Unable to add user as no display_name', 'danger')
+        return redirect(url_for('.vendor_details', vendor_id=vendor_id))
     user = db.session.query(User).filter(User.username == request.form['username']).first()
     if user:
         flash('Failed to add user: Username already exists', 'warning')
@@ -482,7 +488,8 @@ def vendor_affiliations(vendor_id):
 
     # security check
     if not vendor.check_acl('@view-affiliations'):
-        return _error_permission_denied('Unable to view affiliations')
+        flash('Permission denied: Unable to view affiliations', 'danger')
+        return redirect(url_for('.vendor_details', vendor_id=vendor_id))
 
     # add other vendors
     vendors = []
@@ -514,7 +521,8 @@ def vendor_affiliation_add(vendor_id):
 
     # security check
     if not vendor.check_acl('@modify-affiliations'):
-        return _error_permission_denied('Unable to add vendor affiliation')
+        flash('Permission denied: Unable to add vendor affiliation', 'danger')
+        return redirect(url_for('.vendor_details', vendor_id=vendor_id))
 
     # check if it already exists
     vendor_id_odm = int(request.form['vendor_id_odm'])
@@ -542,7 +550,8 @@ def vendor_affiliation_delete(vendor_id, affiliation_id):
 
     # security check
     if not vendor.check_acl('@modify-affiliations'):
-        return _error_permission_denied('Unable to delete vendor affiliations')
+        flash('Permission denied: Unable to delete vendor affiliations', 'danger')
+        return redirect(url_for('.vendor_details', vendor_id=vendor_id))
 
     for res in vendor.affiliations:
         if res.affiliation_id == affiliation_id:
@@ -564,7 +573,8 @@ def vendor_exports(vendor_id):
 
     # security check
     if not vendor.check_acl('@view-exports'):
-        return _error_permission_denied('Unable to view exports')
+        flash('Permission denied: Unable to view exports', 'danger')
+        return redirect(url_for('.vendor_details', vendor_id=vendor_id))
 
     # add other vendors
     vendors = []
@@ -600,7 +610,8 @@ def vendor_export_add(vendor_id):
 
     # security check
     if not vendor.check_acl('@modify-exports'):
-        return _error_permission_denied('Unable to add vendor country')
+        flash('Permission denied: Unable to add vendor country', 'danger')
+        return redirect(url_for('.vendor_details', vendor_id=vendor_id))
 
     # check if it already exists
     export_id = request.form['export_id']
@@ -628,7 +639,8 @@ def vendor_export_delete(vendor_id, export_id):
 
     # security check
     if not vendor.check_acl('@modify-exports'):
-        return _error_permission_denied('Unable to delete vendor exports')
+        flash('Permission denied: Unable to delete vendor exports', 'danger')
+        return redirect(url_for('.vendor_details', vendor_id=vendor_id))
 
     export_ids = _convert_export_ids(vendor)
     if export_id not in export_ids:

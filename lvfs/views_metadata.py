@@ -14,7 +14,6 @@ from lvfs import app, db
 
 from .models import Vendor, Remote
 from .util import admin_login_required
-from .util import _error_permission_denied
 
 @app.route('/lvfs/metadata/<group_id>')
 @login_required
@@ -31,7 +30,8 @@ def metadata_remote(group_id):
 
     # security check
     if not vendor.check_acl('@view-metadata'):
-        return _error_permission_denied('Unable to view metadata')
+        flash('Permission denied: Unable to view metadata', 'danger')
+        return redirect(url_for('.metadata_view'))
 
     # generate file
     remote = []

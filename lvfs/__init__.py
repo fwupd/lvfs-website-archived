@@ -109,7 +109,7 @@ def error_page_not_found(unused_msg=None):
     if request.path in ['/wp-login.php',
                         '/a2billing/common/javascript/misc.js']:
         return Response(response='bad karma', status=404, mimetype="text/plain")
-    return render_template('error.html'), 404
+    return render_template('error-404.html'), 404
 
 @app.errorhandler(CSRFError)
 def error_csrf(e):

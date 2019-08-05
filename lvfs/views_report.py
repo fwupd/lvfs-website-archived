@@ -13,7 +13,7 @@ from flask_login import login_required
 from lvfs import app, db, csrf
 
 from .models import Firmware, Report, ReportAttribute, Issue, Certificate, Checksum
-from .util import _error_permission_denied, _event_log
+from .util import _event_log
 from .util import _json_success, _json_error, _pkcs7_signature_info, _pkcs7_signature_verify
 from .hash import _is_sha1, _is_sha256
 
@@ -22,10 +22,10 @@ from .hash import _is_sha1, _is_sha256
 def report_view(report_id):
     report = db.session.query(Report).filter(Report.report_id == report_id).first()
     if not report:
-        return _error_permission_denied('Report does not exist')
+        return _json_error('Report does not exist')
     # security check
     if not report.check_acl('@view'):
-        return _error_permission_denied('Unable to view report')
+        return _json_error('Permission denied: Unable to view report')
     return Response(response=str(report.to_kvs()),
                     status=400, \
                     mimetype="application/json")
@@ -35,10 +35,12 @@ def report_view(report_id):
 def report_details(report_id):
     report = db.session.query(Report).filter(Report.report_id == report_id).first()
     if not report:
-        return _error_permission_denied('Report does not exist')
+        flash('Report does not exist', 'danger')
+        return redirect(url_for('.dashboard'))
     # security check
     if not report.check_acl('@view'):
-        return _error_permission_denied('Unable to view report')
+        flash('Permission denied: Unable to view report', 'danger')
+        return redirect(url_for('.dashboard'))
     return render_template('report-details.html', rpt=report)
 
 @app.route('/lvfs/report/<report_id>/delete')
@@ -50,7 +52,8 @@ def report_delete(report_id):
         return redirect(url_for('.analytics_reports'))
     # security check
     if not report.check_acl('@delete'):
-        return _error_permission_denied('Unable to delete report')
+        flash('Permission denied: Unable to delete report', 'danger')
+        return redirect(url_for('.report_details', report_id=report_id))
     for e in report.attributes:
         db.session.delete(e)
     db.session.delete(report)

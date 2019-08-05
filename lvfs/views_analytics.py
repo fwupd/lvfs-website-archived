@@ -9,7 +9,7 @@ import datetime
 
 from sqlalchemy import and_
 
-from flask import render_template
+from flask import render_template, flash, redirect, url_for
 from flask_login import login_required
 
 from lvfs import app, db
@@ -17,7 +17,6 @@ from lvfs import app, db
 from .models import Analytic, Client, Report, Useragent, UseragentKind, SearchEvent, AnalyticVendor
 from .models import _get_datestr_from_datetime, _split_search_string
 from .util import admin_login_required
-from .util import _error_permission_denied
 from .util import _get_chart_labels_months, _get_chart_labels_days
 
 @app.route('/lvfs/analytics')
@@ -103,7 +102,8 @@ def analytics_user_agents(kind='APP', timespan_days=30):
     try:
         kind_enum = UseragentKind[kind]
     except KeyError as e:
-        return _error_permission_denied('Unable to view analytic type: %s' % str(e))
+        flash('Unable to view analytic type: {}'.format(str(e)), 'danger')
+        return redirect(url_for('.analytics_user_agents'))
 
     # get data for this time period
     cnt_total = {}
