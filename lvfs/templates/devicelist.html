@@ -19,26 +19,24 @@
 
 <!-- news -->
 {% if devices|length > 0 %}
-<div class="card-columns mt-3">
+<div class="card mt-3">
+  <div class="card-body">
+    <div class="card-title">Latest firmware on the LVFS</div>
+    <ul class="list-group">
 {% for fw in devices %}
-  <div class="card">
-    <div class="card-body">
-      <p class="card-text">
-      <img class="float-right" src="/uploads/{{fw.vendor.icon}}" width="64"/>
-        Support for the <a href="{{url_for('.device_show', appstream_id=fw.md_prio.appstream_id)}}">{{fw.md_prio.name}}</a>
-        was added by {{fw.md_prio.developer_name_display}}.
-      </p>
-    </div>
-    <div class="card-footer">
-      {{format_humanize_naturaltime(fw.timestamp)}}
-    </div>
-  </div>
+      <li class="list-group-item">
+        <a href="{{url_for('.device_show', appstream_id=fw.md_prio.appstream_id)}}">{{fw.md_prio.name}}</a>
+        was added by {{fw.md_prio.developer_name_display}} {{format_humanize_naturaltime(fw.timestamp)}}.
+        <img class="float-right" src="/uploads/{{fw.vendor.icon}}" width="32"/>
+      </li>
 {% endfor %}
+    </ul>
+  </div>
 </div>
 {% endif %}
 
 {% if vendors|length > 0 %}
-<div class="card mt-0">
+<div class="card mt-3">
   <div class="card-body">
     <div class="card-title">Devices supported by the LVFS</div>
     <p class="card-text">
