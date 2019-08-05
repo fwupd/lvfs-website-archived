@@ -17,8 +17,13 @@
 <section class="py-0 overflow-hidden" id="banner">
   <div class="bg-holder overlay" style="background-image:url(/bg-2.jpg);background-position: center bottom;">
   </div>
-  <div class="container">
-    <div class="row justify-content-center align-items-center pt-6 pt-lg-8 pb-lg-9 pb-xl-0">
+  <div class="container pt-6 pt-lg-8">
+{% for category, msg in get_flashed_messages(with_categories=true) %}
+    <div class="alert alert-{{ category }}" role="alert">
+      {{ msg }}
+    </div>
+{% endfor %}
+    <div class="row justify-content-center align-items-center pb-lg-9 pb-xl-0">
       <div class="col-md-11 col-lg-8 col-xl-4 pb-7 pb-xl-9 text-center text-xl-left">
         <h1 class="text-white font-weight-light">Linux Vendor Firmware Service</h1>
         <p class="lead text-400">

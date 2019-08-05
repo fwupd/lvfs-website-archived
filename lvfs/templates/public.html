@@ -102,10 +102,6 @@
   </div>
 </nav>
 
-{% for msg in get_flashed_messages() %}
-<!-- for the self tests: {{msg}} -->
-{% endfor %}
-
 {% block content2 %}
 <div class="container mt-3">
 {% for category, msg in get_flashed_messages(with_categories=true) %}
