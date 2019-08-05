@@ -14,7 +14,7 @@ import hashlib
 from flask import request, flash, url_for, redirect, render_template, g
 from flask_login import login_required
 
-from lvfs import app, db, ploader
+from lvfs import app, db, ploader, csrf
 
 from .models import Firmware, FirmwareEvent, Vendor, Remote, Agreement, Affiliation, Protocol, Category
 from .uploadedfile import UploadedFile, FileTooLarge, FileTooSmall, FileNotSupported, MetadataInvalid
@@ -61,28 +61,7 @@ def _filter_fw_by_id_guid_version(fws, component_id, provides_value, release_ver
                     return fw
     return None
 
-@app.route('/lvfs/upload', methods=['GET', 'POST'])
-@login_required
-def upload():
-    """ Upload a .cab file to the LVFS service """
-
-    # only accept form data
-    if request.method != 'POST':
-        if not hasattr(g, 'user'):
-            return redirect(url_for('.index'))
-        if not _user_can_upload(g.user):
-            return redirect(url_for('.agreement_show'))
-        vendor_ids = []
-        vendor = db.session.query(Vendor).filter(Vendor.vendor_id == g.user.vendor_id).first()
-        if vendor:
-            for res in vendor.restrictions:
-                vendor_ids.append(res.value)
-        affiliations = db.session.query(Affiliation).\
-                        filter(Affiliation.vendor_id_odm == g.user.vendor_id).all()
-        return render_template('upload.html',
-                               category='firmware',
-                               vendor_ids=vendor_ids,
-                               affiliations=affiliations)
+def _upload_firmware():
 
     # verify the user can upload
     if not _user_can_upload(g.user):
@@ -94,11 +73,11 @@ def upload():
             vendor_id = int(request.form['vendor_id'])
         except ValueError as e:
             flash('Failed to upload file: Specified vendor ID %s invalid' % request.form['vendor_id'], 'warning')
-            return redirect('/lvfs/upload')
+            return redirect(url_for('.upload_firmware'))
         vendor = db.session.query(Vendor).filter(Vendor.vendor_id == vendor_id).first()
         if not vendor:
             flash('Failed to upload file: Specified vendor ID not found', 'warning')
-            return redirect('/lvfs/upload')
+            return redirect(url_for('.upload_firmware'))
     else:
         vendor = g.user.vendor
 
@@ -107,7 +86,7 @@ def upload():
         flash('Failed to upload file for vendor: Permission denied: '
               'User with vendor %s cannot upload to vendor %s' %
               (g.user.vendor.group_id, vendor.group_id), 'warning')
-        return redirect('/lvfs/upload')
+        return redirect(url_for('.upload_firmware'))
 
     # not correct parameters
     if not 'target' in request.form:
@@ -151,7 +130,7 @@ def upload():
             flash('Failed to upload file: A file with hash %s already exists' % fw.checksum_upload, 'warning')
             return redirect('/lvfs/firmware/%s' % fw.firmware_id)
         flash('Failed to upload file: Another user has already uploaded this firmware', 'warning')
-        return redirect('/lvfs/upload')
+        return redirect(url_for('.upload_firmware'))
 
     # check the guid and version does not already exist
     fws = db.session.query(Firmware).all()
@@ -269,6 +248,50 @@ def upload():
         db.session.commit()
 
     return redirect(url_for('.firmware_show', firmware_id=fw.firmware_id))
+
+@app.route('/lvfs/upload', methods=['GET', 'POST'])
+@login_required
+@csrf.exempt
+def upload_robot():
+    """ Upload a .cab file to the LVFS service from a robot user """
+
+    # old URL being used
+    if request.method != 'POST':
+        return redirect(url_for('.upload_firmware'))
+
+    # check is robot
+    if not g.user.is_robot:
+        flash('Not a robot user, please try again')
+        return redirect(url_for('.upload_firmware'))
+
+    # continue with form data
+    return _upload_firmware()
+
+@app.route('/lvfs/upload_firmware', methods=['GET', 'POST'])
+@login_required
+def upload_firmware():
+    """ Upload a .cab file to the LVFS service """
+
+    # only accept form data
+    if request.method != 'POST':
+        if not hasattr(g, 'user'):
+            return redirect(url_for('.index'))
+        if not _user_can_upload(g.user):
+            return redirect(url_for('.agreement_show'))
+        vendor_ids = []
+        vendor = db.session.query(Vendor).filter(Vendor.vendor_id == g.user.vendor_id).first()
+        if vendor:
+            for res in vendor.restrictions:
+                vendor_ids.append(res.value)
+        affiliations = db.session.query(Affiliation).\
+                        filter(Affiliation.vendor_id_odm == g.user.vendor_id).all()
+        return render_template('upload.html',
+                               category='firmware',
+                               vendor_ids=vendor_ids,
+                               affiliations=affiliations)
+
+    # continue with form data
+    return _upload_firmware()
 
 @app.route('/lvfs/upload_hwinfo', methods=['POST'])
 def upload_hwinfo():

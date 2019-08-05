@@ -112,7 +112,7 @@ class LvfsTestCase(unittest.TestCase):
 
     def login(self, username='sign-test@fwupd.org', password='Pa$$w0rd', accept_agreement=True):
         rv = self._login(username, password)
-        assert b'/lvfs/upload' in rv.data, rv.data
+        assert b'/lvfs/upload_firmware' in rv.data, rv.data
         assert b'Incorrect username' not in rv.data, rv.data
         if accept_agreement and username != 'sign-test@fwupd.org':
             rv = self.app.get('/lvfs/agreement/1/accept', follow_redirects=True)
@@ -121,7 +121,7 @@ class LvfsTestCase(unittest.TestCase):
     def logout(self):
         rv = self._logout()
         assert b'Logged out' in rv.data, rv.data
-        assert b'/lvfs/upload' not in rv.data, rv.data
+        assert b'/lvfs/upload_firmware' not in rv.data, rv.data
 
     def delete_firmware(self, firmware_id=1):
         rv = self.app.get('/lvfs/firmware/%i/delete' % firmware_id,
@@ -169,7 +169,7 @@ class LvfsTestCase(unittest.TestCase):
             }
             if vendor_id:
                 data['vendor_id'] = vendor_id
-            return self.app.post('/lvfs/upload', data=data, follow_redirects=True)
+            return self.app.post('/lvfs/upload_firmware', data=data, follow_redirects=True)
 
     def _ensure_checksums_from_upload(self):
         # peek into the database to get the checksums
@@ -191,12 +191,12 @@ class LvfsTestCase(unittest.TestCase):
 
         # test logging in and out
         rv = self._login('sign-test@fwupd.org', 'Pa$$w0rd')
-        assert b'/lvfs/upload' in rv.data, rv.data
+        assert b'/lvfs/upload_firmware' in rv.data, rv.data
         rv = self._logout()
         rv = self._login('sign-test@fwupd.org', 'Pa$$w0rd')
-        assert b'/lvfs/upload' in rv.data, rv.data
+        assert b'/lvfs/upload_firmware' in rv.data, rv.data
         rv = self._logout()
-        assert b'/lvfs/upload' not in rv.data, rv.data
+        assert b'/lvfs/upload_firmware' not in rv.data, rv.data
         rv = self._login('sign-test@fwupd.orgx', 'default')
         assert b'Incorrect username' in rv.data, rv.data
         rv = self._login('sign-test@fwupd.org', 'defaultx')
@@ -903,7 +903,7 @@ class LvfsTestCase(unittest.TestCase):
         # ensure the user can log in
         self.logout()
         rv = self._login('testuser@fwupd.org')
-        assert b'/lvfs/upload' in rv.data, rv.data
+        assert b'/lvfs/upload_firmware' in rv.data, rv.data
         assert b'Caveat Emptor' in rv.data, rv.data
 
         # ensure the user can change their own display name

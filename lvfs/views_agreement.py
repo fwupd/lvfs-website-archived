@@ -73,7 +73,7 @@ def agreement_confirm(agreement_id):
     g.user.agreement_id = agreement.agreement_id
     db.session.commit()
     flash('Recorded acceptance of the agreement')
-    return redirect(url_for('.upload'))
+    return redirect(url_for('.upload_firmware'))
 
 @app.route('/lvfs/agreement/decline')
 @app.route('/lvfs/agreement/<int:agreement_id>/decline')

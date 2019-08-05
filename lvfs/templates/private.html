@@ -60,7 +60,7 @@
           </a>
           <ul class="nav collapse {{'show' if category == 'firmware'}}" id="firmware" data-parent="#navbarVerticalCollapse">
             <li class="nav-item {{'active' if request.url_rule.endpoint == 'upload'}}">
-              <a class="nav-link" href="{{url_for('.upload')}}">Upload new</a>
+              <a class="nav-link" href="{{url_for('.upload_firmware')}}">Upload new</a>
             </li>
             <li class="nav-item {{'active' if request.url_rule.endpoint == 'firmware' and state == 'private'}}">
               <a class="nav-link" href="{{url_for('.firmware', state='private')}}">In Private</a>
