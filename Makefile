@@ -16,7 +16,7 @@ clean:
 	rm -rf ./htmlcov
 
 run:
-	FLASK_APP=lvfs/__init__.py $(VENV)/bin/flask run
+	FLASK_DEBUG=1 FLASK_APP=lvfs/__init__.py $(VENV)/bin/flask run
 
 dbup:
 	FLASK_APP=lvfs/__init__.py $(FLASK) db upgrade
