@@ -343,6 +343,7 @@ def vendor_modify_by_admin(vendor_id):
         flash('Failed to modify vendor: No a vendor with that group ID', 'warning')
         return redirect(url_for('.vendor_list'), 302)
     for key in ['display_name',
+                'internal_team',
                 'plugins',
                 'quote_text',
                 'quote_author',

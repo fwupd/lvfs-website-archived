@@ -363,6 +363,7 @@ class Vendor(db.Model):
     vendor_id = Column(Integer, primary_key=True, unique=True)
     group_id = Column(String(80), nullable=False, index=True)
     display_name = Column(Text, default=None)
+    internal_team = Column(Text, default=None)
     plugins = Column(Text, default=None)
     description = Column(Text, default=None)
     quote_text = Column(Text, default=None)
@@ -445,6 +446,12 @@ class Vendor(db.Model):
     @property
     def is_account_holder(self):
         return self.users
+
+    @property
+    def display_name_with_team(self):
+        if self.internal_team:
+            return '{} ({})'.format(self.display_name, self.internal_team)
+        return self.display_name
 
     @property
     def ctime(self):

@@ -25,12 +25,12 @@
     <td class="col col-sm-3">
 {% if v.visible %}
 {% if v.url %}
-      <a href="{{v.url}}">{{v.display_name}}</a>
+      <a href="{{v.url}}">{{v.display_name_with_team}}</a>
 {% else %}
       {{v.display_name}}
 {% endif %}
 {% else %}
-      <em>{{v.display_name}} [private]</em>
+      <em>{{v.display_name_with_team}} [private]</em>
 {% endif %}
 {% if v.icon %}
       <img class="img-thumbnail float-right" src="/uploads/{{v.icon}}" width="96"/>
