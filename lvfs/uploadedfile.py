@@ -462,6 +462,11 @@ class UploadedFile:
         except IndexError as _:
             pass
 
+        # enforce the VersionFormat if the version is an integer
+        if self.is_strict and md.version:
+            if md.version.isdigit() and not md.version_format:
+                raise MetadataInvalid('LVFS::VersionFormat is required for integer version')
+
         # allows OEM to specify protocol
         try:
             text = _node_validate_text(component.xpath('custom/value[@key="LVFS::UpdateProtocol"]')[0])
