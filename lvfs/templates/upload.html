@@ -40,13 +40,22 @@
 {% endif %}
     <form action="{{url_for('.upload_firmware')}}" method="post" enctype="multipart/form-data" class="form">
       <input type="hidden" name="csrf_token" value="{{csrf_token()}}"/>
-{% if affiliations|length %}
+{% if vendor.affiliations_for|length %}
       <div class="form-group card-text">
-        <label for="vendor_id">Upload for vendor</label>
-        <select class="form-control pt-0 pb-0 pl-0 pr-0" name="vendor_id" size="{{affiliations|length+1}}" required>
-          <option class="pt-2 pb-2 pl-2" value="{{g.user.vendor.vendor_id}}">{{g.user.vendor.display_name_with_team}}</option>
-{% for r in affiliations %}
-          <option class="pt-2 pb-2 pl-2" value="{{r.vendor.vendor_id}}">{{r.vendor.display_name}}</option>
+        <label for="vendor_id">Upload owned by vendor</label>
+        <select class="form-control pt-0 pb-0 pl-0 pr-0" name="vendor_id" size="{{vendor.affiliations_for|length+1}}" required>
+          <option class="pt-2 pb-2 pl-2" value="{{g.user.vendor.vendor_id}}">{{g.user.vendor.display_name}}</option>
+{% for r in vendor.affiliations_for %}
+          <option class="pt-2 pb-2 pl-2" value="{{r.vendor.vendor_id}}">{{r.vendor.display_name_with_team}}</option>
+{% endfor %}
+        </select>
+      </div>
+      <div class="form-group card-text">
+        <label for="vendor_id">OEM used for end-user display <strong>only</strong></label>
+        <select class="form-control pt-0 pb-0 pl-0 pr-0" name="vendor_id_oem" size="{{vendor.affiliations_for|length+1}}" required>
+          <option class="pt-2 pb-2 pl-2" value="{{g.user.vendor.vendor_id}}">{{g.user.vendor.display_name}}</option>
+{% for r in vendor.affiliations_for %}
+          <option class="pt-2 pb-2 pl-2" value="{{r.vendor.vendor_id}}">{{r.vendor.display_name_with_team}}</option>
 {% endfor %}
         </select>
       </div>

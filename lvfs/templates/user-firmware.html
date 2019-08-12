@@ -17,7 +17,7 @@
   </tr>
 {% for fw in u.fws %}
   <tr class="row">
-    <td class="col col-sm-4">{{fw.md_prio.developer_name}} {{fw.md_prio.name}}</td>
+    <td class="col col-sm-4">{{fw.vendor_oem.display_name}} {{fw.md_prio.name}}</td>
     <td class="col col-sm-2">{{fw.version_display}}</td>
     <td class="col col-sm-2">{{fw.vendor.group_id}}</td>
     <td class="col col-sm-2"><code>{{fw.remote.name}}</code></td>

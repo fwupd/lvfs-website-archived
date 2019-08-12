@@ -6,6 +6,28 @@
 {% endblock %}
 
 {% block content %}
+<div class="card mb-3">
+  <div class="card-body">
+    <div class="card-title">Vendor Display</div>
+    <p class="card-text">
+      Care must be taken to correctly identify the OEM so that the correct
+      company logo is used next to the firmware.
+    </p>
+    <form action="{{url_for('.firmware_affiliation_change', firmware_id=fw.firmware_id)}}" method="post">
+      <input type="hidden" name="csrf_token" value="{{csrf_token()}}"/>
+      <div class="form-group">
+        <label for="vendor_id">OEM used for end-user display</label>
+        <select class="form-control" name="vendor_id_oem" required>
+{% for v in vendors %}
+          <option value="{{v.vendor_id}}" {{ 'selected' if v.vendor_id == fw.vendor_id_oem }}>{{v.display_name}}</option>
+{% endfor %}
+        </select>
+      </div>
+      <input type="submit" class="btn btn-warning card-link" value="Change"/>
+    </form>
+  </div>
+</div>
+
 <div class="card">
   <div class="card-body">
     <div class="card-title">Vendor Affiliation</div>

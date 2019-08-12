@@ -419,10 +419,6 @@ def firmware_affiliation(firmware_id):
 def firmware_affiliation_change(firmware_id):
     """ Changes the assigned vendor ID for the firmware """
 
-    # change the vendor
-    if 'vendor_id' not in request.form:
-        return _error_internal('No vendor ID specified')
-
     # find firmware
     fw = db.session.query(Firmware).filter(Firmware.firmware_id == firmware_id).first()
     if not fw:
@@ -434,16 +430,29 @@ def firmware_affiliation_change(firmware_id):
         flash('Permission denied: Insufficient permissions to change affiliation', 'danger')
         return redirect(url_for('.firmware_show', firmware_id=firmware_id))
 
-    vendor_id = int(request.form['vendor_id'])
-    if vendor_id == fw.vendor_id:
-        flash('No affiliation change required', 'info')
-        return redirect(url_for('.firmware_affiliation', firmware_id=fw.firmware_id))
-    if not g.user.is_admin and not g.user.vendor.is_affiliate_for(vendor_id):
-        flash('Insufficient permissions to change affiliation to {}'.format(vendor_id), 'danger')
-        return redirect(url_for('.firmware_show', firmware_id=firmware_id))
-    old_vendor = fw.vendor
-    fw.vendor_id = vendor_id
-    db.session.commit()
+    if 'vendor_id' in request.form:
+        vendor_id = int(request.form['vendor_id'])
+        if vendor_id == fw.vendor_id:
+            flash('No affiliation change required', 'info')
+            return redirect(url_for('.firmware_affiliation', firmware_id=fw.firmware_id))
+        if not g.user.is_admin and not g.user.vendor.is_affiliate_for(vendor_id):
+            flash('Insufficient permissions to change affiliation to {}'.format(vendor_id), 'danger')
+            return redirect(url_for('.firmware_show', firmware_id=firmware_id))
+        old_vendor = fw.vendor
+        fw.vendor_id = vendor_id
+        fw.vendor_id_oem = vendor_id
+        db.session.commit()
+    elif 'vendor_id_oem' in request.form:
+        vendor_id_oem = int(request.form['vendor_id_oem'])
+        if vendor_id_oem == fw.vendor_id_oem:
+            flash('No OEM change required', 'info')
+            return redirect(url_for('.firmware_affiliation', firmware_id=fw.firmware_id))
+        if not g.user.is_admin and not g.user.vendor.is_affiliate_for(vendor_id_oem):
+            flash('Insufficient permissions to change affiliation to {}'.format(vendor_id_oem), 'danger')
+            return redirect(url_for('.firmware_show', firmware_id=firmware_id))
+        old_vendor = fw.vendor
+        fw.vendor_id_oem = vendor_id_oem
+        db.session.commit()
 
     # do we need to regenerate remotes?
     if fw.remote.name.startswith('embargo'):

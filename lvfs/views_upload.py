@@ -16,7 +16,7 @@ from flask_login import login_required
 
 from lvfs import app, db, ploader, csrf
 
-from .models import Firmware, FirmwareEvent, Vendor, Remote, Agreement, Affiliation, Protocol, Category
+from .models import Firmware, FirmwareEvent, Vendor, Remote, Agreement, Protocol, Category
 from .uploadedfile import UploadedFile, FileTooLarge, FileTooSmall, FileNotSupported, MetadataInvalid
 from .util import _get_client_address, _get_settings, _fix_component_name
 from .util import _error_internal
@@ -85,6 +85,27 @@ def _upload_firmware():
     # security check
     if not vendor.check_acl('@upload'):
         flash('Permission denied: Failed to upload file for vendor: '
+              'User with vendor %s cannot upload to vendor %s' %
+              (g.user.vendor.group_id, vendor.group_id), 'warning')
+        return redirect(url_for('.upload_firmware'))
+
+    # used a custom vendor_id_oem
+    if 'vendor_id_oem' in request.form:
+        try:
+            vendor_id_oem = int(request.form['vendor_id_oem'])
+        except ValueError as e:
+            flash('Failed to upload file: Specified vendor ID %s invalid' % request.form['vendor_id_oem'], 'warning')
+            return redirect(url_for('.upload_firmware'))
+        vendor_oem = db.session.query(Vendor).filter(Vendor.vendor_id == vendor_id_oem).first()
+        if not vendor_oem:
+            flash('Failed to upload file: Specified vendor ID not found', 'warning')
+            return redirect(url_for('.upload_firmware'))
+    else:
+        vendor_oem = g.user.vendor
+
+    # security check
+    if not vendor_oem.check_acl('@upload'):
+        flash('Permission denied: Failed to upload file for OEM: '
               'User with vendor %s cannot upload to vendor %s' %
               (g.user.vendor.group_id, vendor.group_id), 'warning')
         return redirect(url_for('.upload_firmware'))
@@ -213,6 +234,7 @@ def _upload_firmware():
     target = request.form['target']
     fw = ufile.fw
     fw.vendor_id = vendor.vendor_id
+    fw.vendor_id_oem = vendor_oem.vendor_id
     fw.user_id = g.user.user_id
     fw.addr = _get_client_address()
     fw.remote_id = remote.remote_id
@@ -286,12 +308,10 @@ def upload_firmware():
         if vendor:
             for res in vendor.restrictions:
                 vendor_ids.append(res.value)
-        affiliations = db.session.query(Affiliation).\
-                        filter(Affiliation.vendor_id_odm == g.user.vendor_id).all()
         return render_template('upload.html',
                                category='firmware',
                                vendor_ids=vendor_ids,
-                               affiliations=affiliations)
+                               vendor=vendor)
 
     # continue with form data
     return _upload_firmware()

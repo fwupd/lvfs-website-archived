@@ -18,7 +18,7 @@
 {% for r in reports %}
 <div class="card mb-3">
   <div class="card-header card-title list-group-item-{{r.color}}">
-    {{r.fw.md_prio.developer_name_display}} {{r.fw.names|join(' & ')}}
+    {{r.fw.vendor_oem.display_name}} {{r.fw.names|join(' & ')}}
     <code class="float-right">{{r.timestamp}}</code>
   </div>
   <div class="card-body">

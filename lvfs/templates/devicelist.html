@@ -26,8 +26,8 @@
 {% for fw in devices %}
       <li class="list-group-item">
         <a href="{{url_for('.device_show', appstream_id=fw.md_prio.appstream_id)}}">{{fw.md_prio.name}}</a>
-        was added by {{fw.md_prio.developer_name_display}} {{format_humanize_naturaltime(fw.timestamp)}}.
-        <img class="float-right" src="/uploads/{{fw.vendor.icon}}" width="32"/>
+        was added by {{fw.vendor_oem.display_name}} {{format_humanize_naturaltime(fw.timestamp)}}.
+        <img class="float-right" src="/uploads/{{fw.vendor_oem.icon}}" width="32"/>
       </li>
 {% endfor %}
     </ul>

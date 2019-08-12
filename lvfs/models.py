@@ -401,7 +401,11 @@ class Vendor(db.Model):
                                     foreign_keys=[Affiliation.vendor_id_odm],
                                     back_populates="vendor")
     fws = relationship("Firmware",
+                       foreign_keys='[Firmware.vendor_id]',
                        cascade='all,delete-orphan')
+    fws_oem = relationship("Firmware",
+                           foreign_keys='[Firmware.vendor_id_oem]',
+                           cascade='all,delete-orphan')
     events = relationship("Event",
                           order_by="desc(Event.timestamp)",
                           lazy='dynamic',
@@ -1561,6 +1565,7 @@ class Firmware(db.Model):
 
     firmware_id = Column(Integer, primary_key=True, unique=True, nullable=False, index=True)
     vendor_id = Column(Integer, ForeignKey('vendors.vendor_id'), nullable=False)
+    vendor_id_oem = Column(Integer, ForeignKey('vendors.vendor_id'), nullable=False)
     addr = Column(String(40), nullable=False)
     timestamp = Column(DateTime, nullable=False, default=datetime.datetime.utcnow)
     filename = Column(Text, nullable=False)
@@ -1607,7 +1612,8 @@ class Firmware(db.Model):
                              cascade='all,delete-orphan')
 
     # link using foreign keys
-    vendor = relationship('Vendor', foreign_keys=[vendor_id])
+    vendor = relationship('Vendor', foreign_keys=[vendor_id], back_populates='fws')
+    vendor_oem = relationship('Vendor', foreign_keys=[vendor_id_oem])
     user = relationship('User', foreign_keys=[user_id])
     remote = relationship('Remote', foreign_keys=[remote_id], lazy='joined')
 

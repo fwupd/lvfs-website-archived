@@ -182,7 +182,7 @@ def device_list():
     vendors = []
     mds_by_vendor = {}
     for fw in fws:
-        vendor = fw.md_prio.developer_name
+        vendor = fw.vendor_oem.display_name
         if vendor not in vendors:
             vendors.append(vendor)
         if not vendor in mds_by_vendor:

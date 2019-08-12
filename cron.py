@@ -249,7 +249,7 @@ def _generate_stats_for_vendor(v, datestr):
         return
 
     # get all the firmware for a specific vendor
-    fw_ids = [fw.firmware_id for fw in v.fws]
+    fw_ids = [fw.firmware_id for fw in v.fws_oem]
     if not fw_ids:
         return
 

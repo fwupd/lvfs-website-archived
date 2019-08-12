@@ -72,7 +72,7 @@
     </td>
     <td class="col col-sm-11">
       <a href="{{url_for('.device_show', appstream_id=md.appstream_id)}}">{{md.name_with_category}}</a><br/>
-      Vendor: {{md.developer_name}}<br/>
+      Vendor: {{md.fw.vendor_oem.display_name}}<br/>
       Latest Version: {{md.version_display}}
     </td>
   </tr>

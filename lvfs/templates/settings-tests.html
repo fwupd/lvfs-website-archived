@@ -18,7 +18,7 @@
 {% for test in tests %}
 <div class="card mb-3">
   <div class="card-header card-title list-group-item-{{test.color}}">
-    {{test.fw.md_prio.developer_name}} {{test.fw.md_prio.name}} v{{test.fw.md_prio.version_display}}
+    {{test.fw.vendor_oem.display_name}} {{test.fw.md_prio.name}} v{{test.fw.md_prio.version_display}}
     <span class="float-right">{{test.timestamp}}</span>
   </div>
   <div class="card-body">
