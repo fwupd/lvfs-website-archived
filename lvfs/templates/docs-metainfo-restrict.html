@@ -103,4 +103,32 @@
   </div>
 </div>
 
+<div class="card mt-3">
+  <div class="card-body">
+    <div class="card-title"><a id="custom-enable-inf-parsing"></a>Controlling <code>.inf</code> parsing</div>
+    <p class="card-text">
+      In some cases the .inf file is unparsable, or contains details that are
+      deliberately different from the values shown when using Windows Update.
+      To disable the <code>.inf</code> parsing and verification on the LVFS
+      please use:
+    </p>
+<pre>
+  &lt;!-- most OEMs do not need to do this... --&gt;
+  &lt;requires&gt;
+    &lt;id compare="ge" version="0.7.3"&gt;org.freedesktop.fwupd&lt;/id&gt;
+  &lt;/requires&gt;
+  &lt;custom&gt;
+    &lt;value key="LVFS::EnableInfParsing"&gt;false&lt;/value&gt;
+  &lt;/custom&gt;
+</pre>
+    <p>
+      The default action is to verify the provided <code>.inf</code> files, but
+      firmware should use <code>&lt;value key="LVFS::EnableInfParsing"&gt;true&lt;/value&gt;</code>
+      if relying on the <code>DisplayVersion</code> in case this default changes in the future.
+      Additionally, no <code>LVFS::EnableInfParsing</code> value is required if the cabinet archive
+      does not contain an <code>.inf</code> file.
+    </p>
+  </div>
+</div>
+
 {% endblock %}

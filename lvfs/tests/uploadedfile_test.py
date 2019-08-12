@@ -5,7 +5,7 @@
 #
 # SPDX-License-Identifier: GPL-2.0+
 #
-# pylint: disable=no-self-use,protected-access,wrong-import-position
+# pylint: disable=no-self-use,protected-access,wrong-import-position,too-many-public-methods
 
 import os
 import sys
@@ -25,7 +25,7 @@ def _get_valid_firmware():
     return CabFile('fubar'.ljust(1024).encode('utf-8'))
 
 def _get_valid_metainfo(release_description='This stable release fixes bugs',
-                        version_format='quad'):
+                        version_format='quad', enable_inf_parsing=True):
     txt = """<?xml version="1.0" encoding="UTF-8"?>
 <!-- Copyright 2015 Richard Hughes <richard@hughsie.com> -->
 <component type="firmware">
@@ -49,9 +49,10 @@ def _get_valid_metainfo(release_description='This stable release fixes bugs',
     <value key="foo">bar</value>
     <value key="LVFS::InhibitDownload"/>
     <value key="LVFS::VersionFormat">%s</value>
+    <value key="LVFS::EnableInfParsing">%s</value>
   </custom>
 </component>
-""" % (release_description, version_format)
+""" % (release_description, version_format, str(enable_inf_parsing).lower())
     return CabFile(txt.encode('utf-8'))
 
 def _get_alternate_metainfo():
@@ -254,6 +255,19 @@ class TestStringMethods(unittest.TestCase):
         cabarchive['firmware.bin'] = _get_valid_firmware()
         cabarchive['firmware.metainfo.xml'] = _get_valid_metainfo()
         cabarchive['firmware.inf'] = _get_valid_inf()
+        ufile = UploadedFile()
+        ufile.parse('foo.cab', cabarchive.save())
+        cabarchive2 = ufile.cabarchive_repacked
+        self.assertIsNotNone(cabarchive2['firmware.bin'])
+        self.assertIsNotNone(cabarchive2['firmware.metainfo.xml'])
+        self.assertIsNotNone(cabarchive2['firmware.inf'])
+
+    # valid firmware with ignored inf file
+    def test_valid_with_ignored_inf(self):
+        cabarchive = CabArchive()
+        cabarchive['firmware.bin'] = _get_valid_firmware()
+        cabarchive['firmware.metainfo.xml'] = _get_valid_metainfo(enable_inf_parsing=False)
+        cabarchive['firmware.inf'] = CabFile(b'fubar')
         ufile = UploadedFile()
         ufile.parse('foo.cab', cabarchive.save())
         cabarchive2 = ufile.cabarchive_repacked

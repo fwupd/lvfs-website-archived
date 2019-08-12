@@ -5,7 +5,7 @@
 #
 # SPDX-License-Identifier: GPL-2.0+
 #
-# pylint: disable=fixme,too-many-instance-attributes,too-few-public-methods
+# pylint: disable=fixme,too-many-instance-attributes,too-few-public-methods,too-many-statements
 
 import os
 import hashlib
@@ -139,6 +139,7 @@ class UploadedFile:
 
         self.fw = Firmware()
         self.is_strict = is_strict
+        self.enable_inf_parsing = True
         self.fwupd_min_version = '0.8.0'    # a guess, but everyone should have this
         self.version_formats = ['plain', 'pair', 'triplet', 'quad', 'intel-me', 'intel-me2']
         self.category_map = {'X-Device' : 1}
@@ -478,6 +479,19 @@ class UploadedFile:
         except IndexError as _:
             pass
 
+        # should we parse the .inf file?
+        try:
+            text = _node_validate_text(component.xpath('custom/value[@key="LVFS::EnableInfParsing"]')[0],
+                                       minlen=2, maxlen=10, nourl=True)
+            if text == 'true':
+                self.enable_inf_parsing = True
+            elif text == 'false':
+                self.enable_inf_parsing = False
+            else:
+                raise MetadataInvalid('LVFS::EnableInfParsing only allowed true or false, got {}'.format(text))
+        except IndexError as _:
+            pass
+
         # allows OEM to specify category
         for category in component.xpath('categories/category'):
             text = _node_validate_text(category, minlen=8, maxlen=50, nourl=True)
@@ -591,5 +605,6 @@ class UploadedFile:
             self.cabarchive_repacked[cabfile.filename] = cabfile
 
             # parse
-            encoding = detect_encoding_from_bom(cabfile.buf)
-            self._parse_inf(cabfile.buf.decode(encoding))
+            if self.enable_inf_parsing:
+                encoding = detect_encoding_from_bom(cabfile.buf)
+                self._parse_inf(cabfile.buf.decode(encoding))
