@@ -586,5 +586,10 @@ class UploadedFile:
         inffiles = [cabfile for cabfile in self.cabarchive_upload.values()
                     if fnmatch.fnmatch(cabfile.filename, '*.inf')]
         for cabfile in inffiles:
+
+            # add to the archive
+            self.cabarchive_repacked[cabfile.filename] = cabfile
+
+            # parse
             encoding = detect_encoding_from_bom(cabfile.buf)
             self._parse_inf(cabfile.buf.decode(encoding))

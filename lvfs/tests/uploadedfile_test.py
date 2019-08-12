@@ -136,6 +136,28 @@ def _get_generated_metainfo():
 """
     return CabFile(txt.encode('utf-8'))
 
+def _get_valid_inf():
+    txt = """[Version]
+Class=Firmware
+ClassGuid={f2e7dd72-6468-4e36-b6f1-6488f42c1b52}
+DriverVer=04/18/2015,2.0.3
+
+[Firmware_CopyFiles]
+firmware.bin
+
+[Firmware_AddReg]
+HKR,,FirmwareId,,{2082b5e0-7a64-478a-b1b2-e3404fab6dad}
+HKR,,FirmwareVersion,%REG_DWORD%,0x0000000
+HKR,,FirmwareFilename,,firmware.bin
+
+[Strings]
+Provider     = "Hughski"
+MfgName      = "Hughski Limited"
+FirmwareDesc = "ColorHug2 Firmware"
+DiskName     = "Firmware for the ColorHug2 Colorimeter"
+"""
+    return CabFile(txt.encode('utf-8'))
+
 class InMemoryZip:
     def __init__(self):
         self.in_memory_zip = io.BytesIO()
@@ -225,6 +247,19 @@ class TestStringMethods(unittest.TestCase):
         cabarchive2 = ufile.cabarchive_repacked
         self.assertIsNotNone(cabarchive2['firmware.bin'])
         self.assertIsNotNone(cabarchive2['firmware.metainfo.xml'])
+
+    # valid firmware with inf file
+    def test_valid_with_inf(self):
+        cabarchive = CabArchive()
+        cabarchive['firmware.bin'] = _get_valid_firmware()
+        cabarchive['firmware.metainfo.xml'] = _get_valid_metainfo()
+        cabarchive['firmware.inf'] = _get_valid_inf()
+        ufile = UploadedFile()
+        ufile.parse('foo.cab', cabarchive.save())
+        cabarchive2 = ufile.cabarchive_repacked
+        self.assertIsNotNone(cabarchive2['firmware.bin'])
+        self.assertIsNotNone(cabarchive2['firmware.metainfo.xml'])
+        self.assertIsNotNone(cabarchive2['firmware.inf'])
 
     # invalid version-format
     def test_invalid_version_format(self):
