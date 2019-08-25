@@ -35,7 +35,7 @@
       </code>
     </td>
     <td class="col col-sm-2">
-{% if u.auth_type and u.user_id != g.user.user_id %}
+{% if u.user_id != g.user.user_id %}
       <a class="btn btn-block btn-info"
          href="{{url_for('.user_admin', user_id=u.user_id)}}">Details</a>
 {% endif %}
