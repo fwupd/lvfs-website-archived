@@ -62,7 +62,7 @@ def report_delete(report_id):
     return redirect(url_for('.analytics_reports'))
 
 def _find_issue_for_report_data(data, fw):
-    for issue in db.session.query(Issue).order_by(Issue.priority.desc()).all():
+    for issue in db.session.query(Issue).order_by(Issue.priority.desc()):
         if not issue.enabled:
             continue
         if issue.vendor_id != 1 and issue.vendor_id != fw.vendor_id:

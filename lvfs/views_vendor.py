@@ -495,7 +495,7 @@ def vendor_affiliations(vendor_id):
 
     # add other vendors
     vendors = []
-    for v in db.session.query(Vendor).order_by(Vendor.display_name).all():
+    for v in db.session.query(Vendor).order_by(Vendor.display_name):
         if v.vendor_id == vendor_id:
             continue
         if not v.is_account_holder:
@@ -580,7 +580,7 @@ def vendor_exports(vendor_id):
 
     # add other vendors
     vendors = []
-    for v in db.session.query(Vendor).order_by(Vendor.display_name).all():
+    for v in db.session.query(Vendor).order_by(Vendor.display_name):
         if v.vendor_id == vendor_id:
             continue
         if not v.is_account_holder:

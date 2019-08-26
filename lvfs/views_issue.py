@@ -24,7 +24,7 @@ def issue_all():
 
     # only show issues with the correct group_id
     issues = []
-    for issue in db.session.query(Issue).order_by(Issue.priority.desc()).all():
+    for issue in db.session.query(Issue).order_by(Issue.priority.desc()):
         if issue.check_acl('@view'):
             issues.append(issue)
     return render_template('issue-list.html',
@@ -152,7 +152,7 @@ def _issue_fix_report_failures(issue):
 
     # process each report
     change_cnt = 0
-    for report in db.session.query(Report).all():
+    for report in db.session.query(Report):
 
         # already has a report
         if report.issue_id != 0:
@@ -289,7 +289,7 @@ def issue_reports(issue_id):
     reports = []
     reports_hidden = []
     reports_cnt = 0
-    for report in db.session.query(Report).all():
+    for report in db.session.query(Report):
         data = report.to_flat_dict()
         if not issue.matches(data):
             continue

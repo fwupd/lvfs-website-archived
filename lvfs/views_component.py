@@ -30,7 +30,7 @@ def component_problems():
     """
     mds = []
     for md in db.session.query(Component).\
-                order_by(Component.release_timestamp.desc()).all():
+                order_by(Component.release_timestamp.desc()):
         if not md.problems:
             continue
         if not md.check_acl('@modify-updateinfo'):

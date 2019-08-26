@@ -115,9 +115,9 @@ def _upload_firmware():
         return _error_internal('No file object')
     try:
         ufile = UploadedFile(is_strict=is_strict)
-        for cat in db.session.query(Category).all():
+        for cat in db.session.query(Category):
             ufile.category_map[cat.value] = cat.category_id
-        for pro in db.session.query(Protocol).all():
+        for pro in db.session.query(Protocol):
             ufile.protocol_map[pro.value] = pro.protocol_id
         ufile.parse(os.path.basename(fileitem.filename), fileitem.read())
     except (FileTooLarge, FileTooSmall, FileNotSupported, MetadataInvalid) as e:

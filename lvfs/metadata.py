@@ -302,7 +302,7 @@ def _metadata_update_pulp():
                 manifest.write('%s,%s,%i\n' % (basename, checksum_pulp, os.path.getsize(fn)))
 
         # add firmware in stable
-        for fw in db.session.query(Firmware).join(Remote).filter(Remote.is_public).all():
+        for fw in db.session.query(Firmware).join(Remote).filter(Remote.is_public):
             manifest.write('{},{},{}\n'.format(fw.filename,
                                                fw.checksum_pulp,
                                                fw.mds[0].release_download_size))

@@ -28,7 +28,7 @@ def device():
     # get all the appstream_ids we can target
     devices = []
     seen_appstream_id = {}
-    for fw in db.session.query(Firmware).all():
+    for fw in db.session.query(Firmware):
         for md in fw.mds:
             if md.appstream_id in seen_appstream_id:
                 continue

@@ -114,7 +114,7 @@ def analytics_user_agents(kind='APP', timespan_days=30):
     for ug in db.session.query(Useragent).\
                     filter(Useragent.kind == kind_enum.value).\
                     filter(and_(Useragent.datestr > datestr_start,
-                                Useragent.datestr <= datestr_end)).all():
+                                Useragent.datestr <= datestr_end)):
         user_agent_safe = _user_agent_wildcard(ug.value)
         key = str(ug.datestr) + user_agent_safe
         if key not in cached_cnt:
@@ -180,7 +180,7 @@ def analytics_vendor(timespan_days=30):
     datestr_end = _get_datestr_from_datetime(yesterday)
     for ug in db.session.query(AnalyticVendor).\
                     filter(and_(AnalyticVendor.datestr > datestr_start,
-                                AnalyticVendor.datestr <= datestr_end)).all():
+                                AnalyticVendor.datestr <= datestr_end)):
         display_name = ug.vendor.display_name
         key = str(ug.datestr) + display_name
         if key not in cached_cnt:

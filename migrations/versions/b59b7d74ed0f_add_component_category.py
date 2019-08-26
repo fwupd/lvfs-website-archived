@@ -45,9 +45,9 @@ def upgrade():
 
     # convert the existing components
     apxs = {}
-    for cat in db.session.query(Category).all():
+    for cat in db.session.query(Category):
         apxs[cat.value] = cat
-    for md in db.session.query(Component).all():
+    for md in db.session.query(Component):
 
         # already set
         if md.category_id:

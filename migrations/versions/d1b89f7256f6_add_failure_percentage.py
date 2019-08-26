@@ -22,7 +22,7 @@ def upgrade():
     op.add_column('users', sa.Column('notify_demote_failures', sa.Boolean(), nullable=True))
 
     # repair old firmware
-    for fw in db.session.query(Firmware).all():
+    for fw in db.session.query(Firmware):
         fw.failure_minimum = 5
         fw.failure_percentage = 70
     db.session.commit()

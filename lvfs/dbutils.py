@@ -98,7 +98,7 @@ def anonymize_db(db):
     idx_generic_words = 0
     idx_user_names = 0
     idx_vendor_names = 0
-    for v in db.session.query(Vendor).all():
+    for v in db.session.query(Vendor):
         if not _should_anonymize(v):
             continue
         v.display_name = vendor_names[idx_vendor_names]
@@ -133,7 +133,7 @@ def anonymize_db(db):
     # anonymize firmware
     idx_device_names = 0
     device_names_existing = {}
-    for fw in db.session.query(Firmware).all():
+    for fw in db.session.query(Firmware):
         if not _should_anonymize(fw.vendor):
             continue
         for md in fw.mds:
@@ -177,7 +177,7 @@ def anonymize_db(db):
 
     # anonymize clients -- only do this on beefy hardware...
     if 'FLASK_RANDOMIZE_CLIENTS' in os.environ:
-        for cl in db.session.query(Client).all():
+        for cl in db.session.query(Client):
             cl.addr = hashlib.sha1(os.urandom(32)).hexdigest()
 
     # phew!

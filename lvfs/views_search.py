@@ -34,7 +34,7 @@ def search_delete(search_event_id):
 def _add_search_event(ev):
     if db.session.query(SearchEvent).\
                         filter(SearchEvent.value == ev.value).\
-                        filter(SearchEvent.addr == ev.addr).all():
+                        filter(SearchEvent.addr == ev.addr).first():
         return
     db.session.add(ev)
     db.session.commit()
@@ -115,7 +115,7 @@ def search(max_results=150):
     for md in db.session.query(Component).join(ids).\
                     join(Firmware).join(Remote).filter(Remote.is_public).\
                     order_by(Component.version.desc()).\
-                    limit(max_results*4).all():
+                    limit(max_results*4):
         if md.appstream_id in appstream_ids:
             continue
         mds.append(md)
@@ -134,7 +134,7 @@ def search(max_results=150):
         keywords_good = []
         keywords_bad = []
         for vendor in db.session.query(Vendor).\
-                            filter(Vendor.visible_for_search).all():
+                            filter(Vendor.visible_for_search):
             for kw in keywords:
                 if vendor.keywords:
                     if kw in vendor.keywords:

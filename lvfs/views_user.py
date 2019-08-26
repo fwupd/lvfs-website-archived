@@ -365,19 +365,19 @@ def user_modify_by_admin(user_id):
     reparent = bool('reparent' in request.form)
     if old_vendor.vendor_id != user.vendor_id and reparent:
         for fw in db.session.query(Firmware).\
-                    filter(Firmware.user_id == user.user_id).all():
+                    filter(Firmware.user_id == user.user_id):
             fw.vendor_id = user.vendor_id
             if fw.remote.name.startswith('embargo'):
                 is_dirty = True
             fw.remote_id = user.vendor.remote.remote_id
         for ev in db.session.query(FirmwareEvent).\
-                    filter(FirmwareEvent.user_id == user.user_id).all():
+                    filter(FirmwareEvent.user_id == user.user_id):
             ev.remote_id = user.vendor.remote.remote_id
 
     # fix event log
     if old_vendor.vendor_id != user.vendor_id:
         for ev in db.session.query(Event).\
-                    filter(Event.user_id == user.user_id).all():
+                    filter(Event.user_id == user.user_id):
             ev.vendor_id = user.vendor_id
 
     # mark both remotes as dirty
@@ -671,7 +671,7 @@ def user_admin(user_id, page='admin'):
     # get all the vendors with LVFS accounts
     vendors = []
     if g.user.check_acl('@admin'):
-        for v in db.session.query(Vendor).order_by(Vendor.display_name).all():
+        for v in db.session.query(Vendor).order_by(Vendor.display_name):
             if v.is_account_holder:
                 vendors.append(v)
     return render_template('user-%s.html' % page, page=page, u=user, possible_vendors=vendors)

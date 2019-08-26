@@ -31,7 +31,7 @@ if __name__ == '__main__':
 
         # run chipsec on each firmware file
         plugin = ploader.get_by_id('chipsec')
-        for fw in db.session.query(Firmware).order_by(Firmware.firmware_id.asc()).all():
+        for fw in db.session.query(Firmware).order_by(Firmware.firmware_id.asc()):
             test = Test(None)
             if fw.is_deleted:
                 continue

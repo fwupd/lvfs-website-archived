@@ -214,7 +214,7 @@ def _get_settings(prefix=None):
     stmt = db.session.query(Setting)
     if prefix:
         stmt = stmt.filter(Setting.key.startswith(prefix))
-    for setting in stmt.all():
+    for setting in stmt:
         settings[setting.key] = setting.value
     return settings
 

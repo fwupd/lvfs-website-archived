@@ -48,7 +48,7 @@ def telemetry(age=0, sort_key='success', sort_direction='down'):
     stmt = db.session.query(Firmware)
     if age:
         stmt = stmt.filter(Firmware.timestamp > datetime.date.today() - datetime.timedelta(days=age))
-    for fw in stmt.all():
+    for fw in stmt:
 
         # not allowed to view
         if not g.user.check_acl('@admin') and fw.vendor.group_id != g.user.vendor.group_id:

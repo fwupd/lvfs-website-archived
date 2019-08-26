@@ -334,7 +334,7 @@ def dashboard():
     for cnt in db.session.query(AnalyticVendor.cnt).\
                     filter(AnalyticVendor.vendor_id == g.user.vendor.vendor_id).\
                     filter(AnalyticVendor.datestr > datestr).\
-                    order_by(AnalyticVendor.datestr).all():
+                    order_by(AnalyticVendor.datestr):
         data.append(int(cnt[0]))
 
     return render_template('dashboard.html',
@@ -356,7 +356,7 @@ def _create_user_for_oauth_username(username):
     """ If any oauth wildcard match, create a *un-committed* User object """
 
     # does this username match any globs specified by the vendor
-    for v in db.session.query(Vendor).filter(Vendor.oauth_domain_glob != None).all(): # pylint: disable=singleton-comparison
+    for v in db.session.query(Vendor).filter(Vendor.oauth_domain_glob != None): # pylint: disable=singleton-comparison
         for glob in v.oauth_domain_glob.split(','):
             if not fnmatch.fnmatch(username.lower(), glob):
                 continue

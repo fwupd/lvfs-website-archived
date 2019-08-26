@@ -31,7 +31,7 @@ def _regenerate_and_sign_metadata():
 
     # get list of dirty remotes
     remotes = []
-    for r in db.session.query(Remote).all():
+    for r in db.session.query(Remote):
         if not r.is_signed:
             continue
         # fix up any remotes that are not dirty, but have firmware that is dirty
@@ -114,14 +114,14 @@ def _sign_fw(fw):
 def _repair():
 
     # fix any timestamps that are incorrect
-    for md in db.session.query(Component).filter(Component.release_timestamp < 1980).all():
+    for md in db.session.query(Component).filter(Component.release_timestamp < 1980):
         fn = _get_absolute_path(md.fw)
         print(fn, md.release_timestamp)
         try:
             ufile = UploadedFile(is_strict=False)
-            for cat in db.session.query(Category).all():
+            for cat in db.session.query(Category):
                 ufile.category_map[cat.value] = cat.category_id
-            for pro in db.session.query(Protocol).all():
+            for pro in db.session.query(Protocol):
                 ufile.protocol_map[pro.value] = pro.protocol_id
             with open(fn, 'rb') as f:
                 ufile.parse(os.path.basename(fn), f.read())
@@ -136,7 +136,7 @@ def _repair():
                 md.fw.mark_dirty()
 
     # fix all the checksums and file sizes
-    for fw in db.session.query(Firmware).all():
+    for fw in db.session.query(Firmware):
         try:
             with open(fw.filename_absolute, 'rb') as f:
                 checksum_pulp = hashlib.sha256(f.read()).hexdigest()
@@ -184,7 +184,7 @@ def _purge_old_deleted_firmware():
 
     # find all unsigned firmware
     for fw in db.session.query(Firmware).\
-                    join(Remote).filter(Remote.name == 'deleted').all():
+                    join(Remote).filter(Remote.name == 'deleted'):
         if fw.target_duration > datetime.timedelta(days=30*6):
             print('Deleting %s as age %s' % (fw.filename, fw.target_duration))
             path = os.path.join(app.config['RESTORE_DIR'], fw.filename)
@@ -303,7 +303,7 @@ def _generate_stats_firmware_reports(fw):
     reports_failure = 0
     reports_issue = 0
     for r in db.session.query(Report).\
-                    filter(Report.firmware_id == fw.firmware_id).all():
+                    filter(Report.firmware_id == fw.firmware_id):
         if r.state == 2:
             reports_success += 1
         if r.state == 3:
@@ -352,13 +352,13 @@ def _generate_stats(kinds=None):
 
     # update ComponentShardInfo.cnt
     if 'ShardCount' in kinds:
-        for info in db.session.query(ComponentShardInfo).all():
+        for info in db.session.query(ComponentShardInfo):
             _generate_stats_shard_info(info)
         db.session.commit()
 
     # update FirmwareReport counts
     if 'FirmwareReport' in kinds:
-        for fw in db.session.query(Firmware).all():
+        for fw in db.session.query(Firmware):
             _generate_stats_firmware_reports(fw)
         db.session.commit()
 
@@ -374,25 +374,25 @@ def _generate_stats_for_datestr(datestr, kinds=None):
 
     # update AnalyticVendor
     if 'AnalyticVendor' in kinds:
-        for analytic in db.session.query(AnalyticVendor).filter(AnalyticVendor.datestr == datestr).all():
+        for analytic in db.session.query(AnalyticVendor).filter(AnalyticVendor.datestr == datestr):
             db.session.delete(analytic)
         db.session.commit()
-        for v in db.session.query(Vendor).all():
+        for v in db.session.query(Vendor):
             _generate_stats_for_vendor(v, datestr)
         db.session.commit()
 
     # update AnalyticFirmware
     if 'AnalyticFirmware' in kinds:
-        for analytic in db.session.query(AnalyticFirmware).filter(AnalyticFirmware.datestr == datestr).all():
+        for analytic in db.session.query(AnalyticFirmware).filter(AnalyticFirmware.datestr == datestr):
             db.session.delete(analytic)
         db.session.commit()
-        for fw in db.session.query(Firmware).all():
+        for fw in db.session.query(Firmware):
             _generate_stats_for_firmware(fw, datestr)
         db.session.commit()
 
     # update Useragent
     if 'Useragent' in kinds:
-        for agnt in db.session.query(Useragent).filter(Useragent.datestr == datestr).all():
+        for agnt in db.session.query(Useragent).filter(Useragent.datestr == datestr):
             db.session.delete(agnt)
         db.session.commit()
         ua_apps = {}

@@ -19,7 +19,7 @@ from lvfs.models import Test
 
 def upgrade():
     op.add_column('tests', sa.Column('scheduled_ts', sa.DateTime(), nullable=False))
-    for test in db.session.query(Test).all():
+    for test in db.session.query(Test):
         test.scheduled_ts = test.started_ts
     db.session.commit()
 

@@ -37,7 +37,7 @@ def upgrade():
 
     # get all the vendor firmwares
     vendor_fws = {}
-    for v in db.session.query(Vendor).all():
+    for v in db.session.query(Vendor):
         fw_ids = []
         for fw in v.fws:
             fw_ids.append(fw.firmware_id)

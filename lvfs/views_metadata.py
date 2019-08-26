@@ -57,11 +57,11 @@ def metadata_view():
 
     # show all embargo metadata URLs when admin user
     vendors = []
-    for vendor in db.session.query(Vendor).all():
+    for vendor in db.session.query(Vendor):
         if vendor.is_account_holder and vendor.check_acl('@view-metadata'):
             vendors.append(vendor)
     remotes = {}
-    for r in db.session.query(Remote).all():
+    for r in db.session.query(Remote):
         remotes[r.name] = r
     return render_template('metadata.html',
                            category='firmware',
@@ -78,11 +78,11 @@ def metadata_rebuild():
 
     # update metadata
     scheduled_signing = None
-    for r in db.session.query(Remote).filter(Remote.is_public).all():
+    for r in db.session.query(Remote).filter(Remote.is_public):
         r.is_dirty = True
         if not scheduled_signing:
             scheduled_signing = r.scheduled_signing
-    for vendor in db.session.query(Vendor).all():
+    for vendor in db.session.query(Vendor):
         if vendor.is_account_holder:
             vendor.remote.is_dirty = True
     if scheduled_signing:

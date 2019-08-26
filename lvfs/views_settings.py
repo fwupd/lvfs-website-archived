@@ -20,7 +20,7 @@ def _convert_tests_for_plugin(plugin):
     tests_by_type = defaultdict(list)
     for test in db.session.query(Test).join(Firmware).\
                          filter(Test.plugin_id == plugin.id). \
-                         order_by(Test.scheduled_ts.desc()).all():
+                         order_by(Test.scheduled_ts.desc()):
         if len(tests_by_type['recent']) < 20:
             tests_by_type['recent'].append(test)
         if test.is_pending:
