@@ -27,7 +27,7 @@ from .dbutils import _execute_count_star
 from .pluginloader import PluginError
 
 from .models import Firmware, Requirement, Component, Vendor, Protocol, Category, Agreement
-from .models import User, Client, Event, AnalyticVendor
+from .models import User, Client, Event, AnalyticVendor, Remote
 from .models import _get_datestr_from_datetime
 from .hash import _addr_hash
 from .util import _get_client_address, _get_settings, _xml_from_markdown, _get_chart_labels_days
@@ -317,6 +317,7 @@ def dashboard():
     # get the 10 most recent firmwares
     fws = db.session.query(Firmware).\
                 filter(Firmware.user_id == g.user.user_id).\
+                join(Remote).filter(Remote.name != 'deleted').\
                 order_by(Firmware.timestamp.desc()).limit(10).all()
 
     download_cnt = 0
