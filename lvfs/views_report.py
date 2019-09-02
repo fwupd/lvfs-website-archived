@@ -102,7 +102,7 @@ def firmware_report():
         except IOError as e:
             return _json_error('Signature invalid: %s' % str(e))
         if 'serial' not in info:
-            return _json_error('Signature invalid, no signature: %s' % str(e))
+            return _json_error('Signature invalid, no signature')
         crt = db.session.query(Certificate).filter(Certificate.serial == info['serial']).first()
         if crt:
             try:
