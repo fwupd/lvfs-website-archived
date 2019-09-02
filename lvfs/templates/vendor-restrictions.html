@@ -33,10 +33,10 @@
         role="button">Delete</a>
     </td>
   </tr>
+{% endfor %}
 </table>
   </div>
 </div>
-{% endfor %}
 {% endif %}
 
 <form method="post" action="{{url_for('.vendor_restriction_add', vendor_id=v.vendor_id)}}">
