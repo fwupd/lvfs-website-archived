@@ -368,6 +368,8 @@ class UploadedFile:
                     raise MetadataInvalid('Invalid <metadata_license> tag of {}'.format(md.metadata_license))
             except AttributeError as _:
                 raise MetadataInvalid('<metadata_license> tag')
+            except IndexError as _:
+                raise MetadataInvalid('<metadata_license> tag missing')
 
         # get <project_license>
         try:
