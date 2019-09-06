@@ -16,7 +16,8 @@ from flask_login import login_required
 
 from lvfs import app, db, ploader, csrf
 
-from .models import Firmware, FirmwareEvent, Vendor, Remote, Agreement, Affiliation, Protocol, Category
+from .models import Firmware, FirmwareEvent, Vendor, Remote, Agreement
+from .models import Affiliation, Protocol, Category, Component
 from .uploadedfile import UploadedFile, FileTooLarge, FileTooSmall, FileNotSupported, MetadataInvalid
 from .util import _get_client_address, _get_settings, _fix_component_name
 from .util import _error_internal
@@ -170,26 +171,23 @@ def _upload_firmware():
             return redirect('/lvfs/firmware/%s' % fw.firmware_id)
 
     # check if the file dropped a GUID previously supported
-    dropped_guids = []
     for umd in ufile.fw.mds:
         new_guids = [guid.value for guid in umd.guids]
-        for fw in fws:
-            if fw.is_deleted:
+        for md in db.session.query(Component).\
+                        filter(Component.appstream_id == umd.appstream_id):
+            if md.fw.is_deleted:
                 continue
-            for md in fw.mds:
-                if md.appstream_id != umd.appstream_id:
+            for old_guid in [guid.value for guid in md.guids]:
+                if old_guid in new_guids:
                     continue
-                for old_guid in md.guids:
-                    if not old_guid.value in new_guids and not old_guid.value in dropped_guids:
-                        dropped_guids.append(old_guid.value)
-    if dropped_guids:
-        if g.user.is_qa or g.user.is_robot:
-            flash('Firmware drops a GUID previously supported: ' +
-                  ','.join(dropped_guids), 'warning')
-        else:
-            flash('Firmware would drop a GUID previously supported: ' +
-                  ','.join(dropped_guids), 'danger')
-            return redirect(request.url)
+                fw_str = str(md.fw.firmware_id)
+                if g.user.is_qa or g.user.is_robot:
+                    flash('Firmware drops GUID {} previously supported '
+                          'in firmware {}'.format(old_guid, fw_str), 'warning')
+                else:
+                    flash('Firmware would drop GUID {} previously supported '
+                          'in firmware {}'.format(old_guid, fw_str), 'danger')
+                    return redirect(request.url)
 
     # allow plugins to copy any extra files from the source archive
     for cffile in ufile.cabarchive_upload.values():
