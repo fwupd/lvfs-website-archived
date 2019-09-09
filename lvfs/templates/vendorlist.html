@@ -3,26 +3,12 @@
 {% block title %}Vendor Status{% endblock %}
 
 {% block content %}
-<div class="card">
-  <div class="card-body">
-  <div class="card-title">Vendors contacted by the LVFS team</div>
-<table class="table">
-  <tr class="row table-borderless">
-    <th class="col col-sm-3">Vendor</th>
-    <th class="col col-sm-1">fwupd</th>
-    <th class="col col-sm-1">Account</th>
-    <th class="col col-sm-1">Uploads</th>
-{% if g.user is defined and g.user.check_acl('@admin') %}
-    <th class="col col-sm-5">Comments</th>
-    <th class="col col-sm-1">&nbsp;</th>
-{% else %}
-    <th class="col col-sm-6">Comments</th>
-{% endif %}
-  </tr>
+
 {% for v in vendors %}
 {% if v.visible or (g.user is defined and g.user.check_acl('@admin')) %}
-  <tr class="row" id="{{v.group_id}}">
-    <td class="col col-sm-3">
+<div class="card mb-3" id="{{v.group_id}}">
+  <div class="card-body">
+    <div class="card-title">
 {% if v.visible %}
 {% if v.url %}
       <a href="{{v.url}}">{{v.display_name_with_team}}</a>
@@ -37,51 +23,58 @@
 {% else %}
       <img class="img-thumbnail float-right" src="/uploads/vendor-unknown.png" width="96"/>
 {% endif %}
-    </td>
-{% if v.is_fwupd_supported == 'no' %}
-    <td class="col col-sm-1">
-      <span class="fas fa-times-circle fs-5 text-danger"></span>
-    </td>
-{% elif v.is_fwupd_supported == 'yes' %}
-    <td class="col col-sm-1">
-      <span class="fas fa-check-circle fs-5 text-success"></span>
-    </td>
+    </div>
+    <p class="card-text">{{v.description}}</p>
+    <ul class="list-group card-text">
+{% if v.fws_stable|length %}
+    <li class="list-group-item">
+      <span class="fas fa-check-circle fs-2 text-success"></span>
+      Responsible for {{v.fws_stable|length}} firmware files,
+{% if v.fws_stable_recent|length %}
+      {{v.fws_stable_recent|length}} uploaded recently
 {% else %}
-    <td class="col col-sm-1"></td>
+      none uploaded recently
 {% endif %}
-{% if not v.is_account_holder %}
-    <td class="col col-sm-1">
-      <span class="fas fa-times-circle fs-5 text-danger"></span>
-    </td>
+    </li>
+{% elif v.is_odm %}
+    <li class="list-group-item">
+      <span class="fas fa-check-circle fs-2 text-success"></span>
+      Is uploading firmware on behalf of other vendors
+    </li>
+{% elif v.is_account_holder %}
+    <li class="list-group-item">
+      <span class="fas fa-check-circle fs-2 text-success"></span>
+      Has test account on the LVFS
+    </li>
 {% else %}
-    <td class="col col-sm-1">
-      <span class="fas fa-check-circle fs-5 text-success"></span>
-    </td>
+    <li class="list-group-item">
+      <span class="fas fa-times-circle fs-2 text-danger"></span>
+      Is not uploading firmware to the LVFS
+    </li>
 {% endif %}
-{% if v.is_uploading == 'no' %}
-    <td class="col col-sm-1">
-      <span class="fas fa-times-circle fs-5 text-danger"></span>
-    </td>
-{% elif v.is_uploading == 'yes' %}
-    <td class="col col-sm-1">
-      <span class="fas fa-check-circle fs-5 text-success"></span>
-    </td>
+{% if v.protocols|length > 0 %}
+    <li class="list-group-item">
+      <span class="fas fa-check-circle fs-2 text-success"></span>
+{% if v.protocols|length == 1 %}
+      Firmware update protocol used: {{v.protocols[0].name}}
 {% else %}
-    <td class="col col-sm-1"></td>
-{% endif %}
-{% if g.user is defined and g.user.check_acl('@admin') %}
-    <td class="col col-sm-5">{{v.description}}</td>
-    <td class="col col-sm-1"><a class="btn btn-secondary btn-block" href="{{url_for('.vendor_details', vendor_id=v.vendor_id)}}">Edit</a></td>
-{% else %}
-    <td class="col col-sm-6">{{v.description}}</td>
-{% endif %}
-  </tr>
-{% endif %}
+      Firmware update protocols used:
+      <ul>
+{% for protocol in v.protocols %}
+        <li>{{protocol.name}}</li>
 {% endfor %}
-  </tr>
-</table>
+      </ul>
+    </li>
+{% endif %}
+{% endif %}
+    </ul>
+{% if g.user is defined and g.user.check_acl('@admin') %}
+    <a class="card-link btn btn-secondary mt-3" href="{{url_for('.vendor_details', vendor_id=v.vendor_id)}}">Edit</a>
+{% endif %}
   </div>
 </div>
+{% endif %}
+{% endfor %}
 
 {% if g.user is defined and g.user.check_acl('@admin') %}
 <div class="card mt-3">

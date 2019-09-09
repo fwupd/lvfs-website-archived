@@ -429,8 +429,6 @@ def vendor_modify_by_admin(vendor_id):
                 'quote_text',
                 'quote_author',
                 'description',
-                'is_fwupd_supported',
-                'is_uploading',
                 'oauth_unknown_user',
                 'oauth_domain_glob',
                 'comments',

@@ -56,7 +56,7 @@
     <td class="col col-sm-11">
       <a href="{{url_for('.vendor_list')}}#{{vendor.group_id}}">Hardware Vendor: {{vendor.display_name}}</a><br/>
       Uses the LVFS: {{ 'Yes' if vendor.is_account_holder else 'No' }}<br/>
-      Uploading Firmware: {{ 'Yes' if vendor.is_uploading == 'yes' else 'No' }}<br/>
+      Uploading Firmware: {{ 'Yes' if vendor.fw_stable else 'No' }}<br/>
       Official Statement: {{vendor.description}}
     </td>
   </tr>

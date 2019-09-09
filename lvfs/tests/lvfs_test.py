@@ -838,8 +838,6 @@ class LvfsTestCase(unittest.TestCase):
             plugins='dfu 1.2.3',
             description='Everything supported',
             visible=True,
-            is_fwupd_supported='1',
-            is_uploading='1',
             keywords='keyword',
             comments='Emailed Dave on 2018-01-14 to follow up.',
         ), follow_redirects=True)

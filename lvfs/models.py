@@ -11,11 +11,13 @@
 import os
 import datetime
 import fnmatch
+import functools
 import zlib
 import re
 import math
 import hashlib
 import collections
+
 from enum import Enum
 
 import onetimepass
@@ -431,8 +433,6 @@ class Vendor(db.Model):
     visible_for_search = Column(Boolean, default=False)
     visible_on_landing = Column(Boolean, default=False)
     is_embargo_default = Column(Boolean, default=False)
-    is_fwupd_supported = Column(String(16), nullable=False, default='no')
-    is_uploading = Column(String(16), nullable=False, default='no')
     comments = Column(Text, default=None)
     icon = Column(Text, default=None)
     keywords = Column(Text, default=None)
@@ -482,8 +482,6 @@ class Vendor(db.Model):
         self.plugins = None
         self.description = None
         self.visible = False
-        self.is_fwupd_supported = None
-        self.is_uploading = None
         self.comments = None
         self.icon = None
         self.keywords = None
@@ -493,19 +491,51 @@ class Vendor(db.Model):
 
     def get_sort_key(self):
         val = 0
-        if self.is_fwupd_supported == 'yes':
-            val += 0x200
-        if self.is_fwupd_supported == 'na':
+        if self.fws_stable_recent:
             val += 0x100
-        if self.is_account_holder:
+        if self.fws_stable:
             val += 0x20
-        if self.is_uploading == 'yes':
-            val += 0x2
-        if self.is_uploading == 'na':
+        if self.is_account_holder:
+            val += 0x10
+        if self.protocols:
             val += 0x1
         return val
 
     @property
+    @functools.lru_cache()
+    def fws_stable_recent(self):
+        now = datetime.datetime.utcnow() - datetime.timedelta(weeks=25)
+        return db.session.query(Firmware).\
+                    join(Firmware.remote).\
+                    filter(Remote.name == 'stable',
+                           Firmware.vendor_id == self.vendor_id,
+                           Firmware.timestamp > now).all()
+
+    @property
+    @functools.lru_cache()
+    def fws_stable(self):
+        return db.session.query(Firmware).\
+                    join(Firmware.remote).\
+                    filter(Firmware.vendor_id == self.vendor_id,
+                           Remote.name == 'stable').all()
+
+    @property
+    @functools.lru_cache()
+    def is_odm(self):
+        return db.session.query(Affiliation.affiliation_id).\
+                    filter(Affiliation.vendor_id_odm == self.vendor_id).\
+                    first() is not None
+
+    @property
+    @functools.lru_cache()
+    def protocols(self):
+        return db.session.query(Protocol).join(Component).\
+                    join(Firmware).filter(Firmware.vendor_id == self.vendor_id).\
+                    join(Remote).filter(Remote.name == 'stable').\
+                    all()
+
+    @property
+    @functools.lru_cache()
     def is_account_holder(self):
         return self.users
 

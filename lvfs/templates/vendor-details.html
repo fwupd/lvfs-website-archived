@@ -93,22 +93,6 @@
     </select>
   </div>
   <div class="form-group">
-    <label for="email">Supported in fwupd:</label>
-    <select class="form-control" name="is_fwupd_supported">
-      <option value="no" {{ 'selected' if v.is_fwupd_supported == 'no' }}>No</option>
-      <option value="yes" {{ 'selected' if v.is_fwupd_supported == 'yes' }}>Yes</option>
-      <option value="na" {{ 'selected' if v.is_fwupd_supported == 'na' }}>n/a</option>
-    </select>
-  </div>
-  <div class="form-group">
-    <label for="email">Is uploading firmware:</label>
-    <select class="form-control" name="is_uploading">
-      <option value="no" {{ 'selected' if v.is_uploading == 'no' }}>No</option>
-      <option value="yes" {{ 'selected' if v.is_uploading == 'yes' }}>Yes</option>
-      <option value="na" {{ 'selected' if v.is_uploading == 'na' }}>n/a</option>
-    </select>
-  </div>
-  <div class="form-group">
     <label for="email">Enable &lsquo;Do Not Track&rsquo;</label>
     <select class="form-control" name="do_not_track">
       <option value="0" {{ 'selected' if v.do_not_track == 0 }}>No</option>
