@@ -14,6 +14,8 @@
 {% if g.user.check_acl('@admin') %}
       <a class="btn btn-falcon-{{'primary' if request.url_rule.endpoint == 'vendor_restrictions' else 'default'}}"
         href="{{url_for('.vendor_restrictions', vendor_id=v.vendor_id)}}">Restrictions</a>
+      <a class="btn btn-falcon-{{'primary' if request.url_rule.endpoint == 'vendor_namespaces' else 'default'}}"
+        href="{{url_for('.vendor_namespaces', vendor_id=v.vendor_id)}}">Namespaces</a>
 {% endif %}
 {% if v.check_acl('@view-affiliations') %}
       <a class="btn btn-falcon-{{'primary' if request.url_rule.endpoint == 'vendor_affiliations' else 'default'}}"

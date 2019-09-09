@@ -9,6 +9,7 @@
 
 import os
 
+from collections import defaultdict
 from glob import fnmatch
 
 from flask import request, flash, url_for, redirect, render_template, g
@@ -20,7 +21,7 @@ from lvfs import app, db
 from .emails import send_email
 from .util import admin_login_required
 from .util import _error_internal, _email_check
-from .models import Vendor, Restriction, User, Remote, Affiliation
+from .models import Vendor, Restriction, Namespace, User, Remote, Affiliation
 from .util import _generate_password
 
 # sort by awesomeness
@@ -235,6 +236,42 @@ def vendor_restrictions(vendor_id):
                            category='vendors',
                            v=vendor)
 
+@app.route('/lvfs/vendor/<int:vendor_id>/namespaces')
+@login_required
+@admin_login_required
+def vendor_namespaces(vendor_id):
+    """ Allows changing a vendor [ADMIN ONLY] """
+    vendor = db.session.query(Vendor).filter(Vendor.vendor_id == vendor_id).first()
+    if not vendor:
+        flash('Failed to get vendor details: No a vendor with that group ID', 'warning')
+        return redirect(url_for('.vendor_list'), 302)
+
+    # get prefixes from existing firmware
+    appstream_ids = defaultdict(int)
+    for fw in vendor.fws:
+        if fw.is_deleted:
+            continue
+        for md in fw.mds:
+            prefix = md.appstream_id_prefix
+            if prefix in [ns.value for ns in vendor.namespaces]:
+                continue
+            appstream_ids[prefix] += 1
+
+    # try to construct something plausible from the vendor homepage
+    if not appstream_ids and vendor.url:
+        parts = vendor.url.split('/', maxsplit=3)
+        if len(parts) >= 3:
+            dotted = parts[2].rsplit('.', maxsplit=3)
+            if len(dotted) >= 2:
+                prefix = '{}.{}'.format(dotted[-1], dotted[-2])
+                if prefix not in [ns.value for ns in vendor.namespaces]:
+                    appstream_ids[prefix] = 0
+
+    return render_template('vendor-namespaces.html',
+                           appstream_ids=appstream_ids,
+                           category='vendors',
+                           v=vendor)
+
 @app.route('/lvfs/vendor/<int:vendor_id>/event')
 @login_required
 def vendor_event(vendor_id):
@@ -326,6 +363,50 @@ def vendor_restriction_delete(vendor_id, restriction_id):
             break
     flash('Deleted restriction', 'info')
     return redirect(url_for('.vendor_restrictions', vendor_id=vendor_id), 302)
+
+@app.route('/lvfs/vendor/<int:vendor_id>/namespace/add', methods=['POST', 'GET'])
+@login_required
+@admin_login_required
+def vendor_namespace_add(vendor_id):
+    """ Allows changing a vendor [ADMIN ONLY] """
+
+    # check exists
+    vendor = db.session.query(Vendor).filter(Vendor.vendor_id == vendor_id).first()
+    if not vendor:
+        flash('Failed to get vendor details: No a vendor with that group ID', 'warning')
+        return redirect(url_for('.vendor_list'), 302)
+    if 'value' in request.form:
+        ns = Namespace(value=request.form['value'], user=g.user)
+    elif 'value' in request.args:
+        ns = Namespace(value=request.args['value'], user=g.user)
+    else:
+        return _error_internal('No value')
+    if not ns.is_valid:
+        flash('Failed to add namespace: Invalid value, expecting something like com.dell', 'warning')
+        return redirect(url_for('.vendor_namespaces', vendor_id=vendor_id))
+    vendor.namespaces.append(ns)
+    db.session.commit()
+    flash('Added namespace', 'info')
+    return redirect(url_for('.vendor_namespaces', vendor_id=vendor_id), 302)
+
+@app.route('/lvfs/vendor/<int:vendor_id>/namespace/<int:namespace_id>/delete')
+@login_required
+@admin_login_required
+def vendor_namespace_delete(vendor_id, namespace_id):
+    """ Allows changing a vendor [ADMIN ONLY] """
+
+    # check exists
+    vendor = db.session.query(Vendor).filter(Vendor.vendor_id == vendor_id).first()
+    if not vendor:
+        flash('Failed to get vendor details: No a vendor with that group ID', 'warning')
+        return redirect(url_for('.vendor_list'), 302)
+    for res in vendor.namespaces:
+        if res.namespace_id == namespace_id:
+            db.session.delete(res)
+            db.session.commit()
+            break
+    flash('Deleted namespace', 'info')
+    return redirect(url_for('.vendor_namespaces', vendor_id=vendor_id), 302)
 
 @app.route('/lvfs/vendor/<int:vendor_id>/modify_by_admin', methods=['GET', 'POST'])
 @login_required

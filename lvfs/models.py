@@ -332,6 +332,33 @@ class Restriction(db.Model):
     def __repr__(self):
         return "Restriction object %s" % self.restriction_id
 
+class Namespace(db.Model):
+
+    # sqlalchemy metadata
+    __tablename__ = 'namespaces'
+    __table_args__ = {'mysql_character_set': 'utf8mb4'}
+
+    namespace_id = Column(Integer, primary_key=True, unique=True, nullable=False)
+    vendor_id = Column(Integer, ForeignKey('vendors.vendor_id'), nullable=False)
+    value = Column(Text, nullable=False)
+    ctime = Column(DateTime, nullable=False, default=datetime.datetime.utcnow)
+    user_id = Column(Integer, ForeignKey('users.user_id'), nullable=False)
+
+    # link back to parent
+    vendor = relationship("Vendor", back_populates="namespaces")
+    user = relationship('User', foreign_keys=[user_id])
+
+    @property
+    def is_valid(self):
+        if self.value.endswith('.'):
+            return False
+        if self.value.find('.') == -1:
+            return False
+        return True
+
+    def __repr__(self):
+        return '<Namespace {}>'.format(self.value)
+
 class Affiliation(db.Model):
 
     # database
@@ -393,6 +420,9 @@ class Vendor(db.Model):
     restrictions = relationship("Restriction",
                                 back_populates="vendor",
                                 cascade='all,delete-orphan')
+    namespaces = relationship("Namespace",
+                              back_populates="vendor",
+                              cascade='all,delete-orphan')
     affiliations = relationship("Affiliation",
                                 foreign_keys=[Affiliation.vendor_id],
                                 back_populates="vendor",
@@ -1226,6 +1256,11 @@ class Component(db.Model):
         if not self.name:
             return None
         return self.name.split('/')
+
+    @property
+    def appstream_id_prefix(self):
+        sections = self.appstream_id.split('.', maxsplit=4)
+        return '.'.join(sections[:2])
 
     @property
     def certificates(self):

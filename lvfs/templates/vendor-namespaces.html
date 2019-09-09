@@ -1,0 +1,95 @@
+{% extends "default.html" %}
+{% block title %}Vendor Details{% endblock %}
+
+{% block nav %}{% include 'vendor-nav.html' %}{% endblock %}
+
+{% block content %}
+<div class="alert alert-warning mt-1" role="alert">
+  The AppStream ID prefix is required when uploading affiliate firmware.
+  Only the OEM should be assigned the namespaced prefix, and <strong>never</strong> the ODM.
+</div>
+<div class="card mt-3">
+  <div class="card-body">
+    <div class="card-title">Current namespaces</div>
+{% if v.namespaces|length == 0 %}
+  <tr class="row table-borderless">
+    <td class="col col-sm-12">
+      <p class="text-muted">
+        No namespaces exist.
+      </p>
+    </td>
+  </tr>
+  </div>
+</div>
+
+{% else %}
+<table class="table">
+  <tr class="row table-borderless">
+    <th class="col">AppStream ID Prefix</th>
+    <th class="col">Added on</th>
+    <td class="col">Added by</td>
+    <th class="col col-sm-2">&nbsp;</th>
+  </tr>
+{% for ns in v.namespaces %}
+  <tr class="row">
+    <td class="col"><code>{{ns.value}}</code></td>
+    <td class="col">{{ns.ctime}}</td>
+    <td class="col"><code>{{ns.user.username}}</code></td>
+    <td class="col col-sm-2">
+      <a class="btn btn-block btn-danger"
+        href="{{url_for('.vendor_namespace_delete', vendor_id=v.vendor_id, namespace_id=ns.namespace_id)}}"
+        role="button">Delete</a>
+    </td>
+  </tr>
+{% endfor %}
+</table>
+  </div>
+</div>
+{% endif %}
+
+<form method="post" action="{{url_for('.vendor_namespace_add', vendor_id=v.vendor_id)}}">
+<input type="hidden" name="csrf_token" value="{{csrf_token()}}"/>
+<div class="card mt-3">
+  <div class="card-body">
+    <div class="card-title">Add a new AppStream ID namespace</div>
+    <table class="table">
+{% if appstream_ids %}
+      <tr class="row">
+        <th class="col">Prefix</th>
+        <th class="col">Firmware Count</th>
+        <th class="col-2">&nbsp;</th>
+      </tr>
+{% for appstream_id in appstream_ids %}
+      <tr class="row">
+        <td class="col">
+            <code>{{appstream_id}}</code>
+        </td>
+        <td class="col">
+{% if appstream_ids[appstream_id] %}
+          <a class="" href="{{url_for('.search_fw', value=appstream_id)}}">
+            {{appstream_ids[appstream_id]}}
+          </a>
+{% else %}
+          &mdash;
+{% endif %}
+        </td>
+        <td class="col-2">
+          <a class="btn btn-primary btn-block" href="{{url_for('.vendor_namespace_add', vendor_id=v.vendor_id, value=appstream_id)}}">Add</a>
+        </td>
+      </tr>
+{% endfor %}
+{% endif %}
+      <tr class="row">
+        <td class="col">
+          <input type="text" class="form-control" name="value" value="" placeholder="org.foo.bar..." required>
+        </td>
+        <td class="col-2">
+          <input type="submit" class="btn btn-primary btn-block" value="Add">
+        </td>
+      </tr>
+    </table>
+  </div>
+</div>
+</form>
+
+{% endblock %}

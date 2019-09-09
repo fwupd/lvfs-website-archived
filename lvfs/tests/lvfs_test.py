@@ -803,6 +803,25 @@ class LvfsTestCase(unittest.TestCase):
         assert b'Deleted restriction' in rv.data, rv.data
         assert b'USB:0x1234' not in rv.data, rv.data
 
+        # create a namespace
+        rv = self.app.post('/lvfs/vendor/2/namespace/add', data=dict(value='com.dell'),
+                           follow_redirects=True)
+        assert b'Added namespace' in rv.data, rv.data
+
+        # create a namespace
+        rv = self.app.post('/lvfs/vendor/2/namespace/add', data=dict(value='lenovo'),
+                           follow_redirects=True)
+        assert b'Failed to add namespace' in rv.data, rv.data
+
+        # show the namespaces page
+        rv = self.app.get('/lvfs/vendor/2/namespaces')
+        assert b'com.dell' in rv.data, rv.data
+
+        # delete a namespace
+        rv = self.app.get('/lvfs/vendor/2/namespace/1/delete', follow_redirects=True)
+        assert b'Deleted namespace' in rv.data, rv.data
+        assert b'com.dell' not in rv.data, rv.data
+
         # change some properties
         rv = self.app.post('/lvfs/vendor/2/modify_by_admin', data=dict(
             display_name='VendorName',

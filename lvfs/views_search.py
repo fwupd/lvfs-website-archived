@@ -79,6 +79,14 @@ def search_fw(max_results=100):
                                distinct().order_by(Firmware.timestamp.desc()).\
                                limit(max_results).all()
 
+    # try appstream ID
+    if not fws:
+        fws = db.session.query(Firmware).join(Component).\
+                               filter(Component.appstream_id.startswith(keywords[0])).\
+                               group_by(Component.component_id).\
+                               distinct().order_by(Firmware.timestamp.desc()).\
+                               limit(max_results).all()
+
     # filter by ACL
     fws_safe = []
     for fw in fws:
