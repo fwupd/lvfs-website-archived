@@ -210,10 +210,10 @@ def _upload_firmware():
     settings = _get_settings()
     target = request.form['target']
     fw = ufile.fw
-    fw.vendor_id = vendor.vendor_id
-    fw.user_id = g.user.user_id
+    fw.vendor = vendor
+    fw.user = g.user
     fw.addr = _get_client_address()
-    fw.remote_id = remote.remote_id
+    fw.remote = remote
     fw.checksum_signed = hashlib.sha1(cab_data).hexdigest()
     fw.checksum_pulp = hashlib.sha256(cab_data).hexdigest()
     fw.is_dirty = True
