@@ -10,7 +10,7 @@ from flask_login import login_required
 
 from lvfs import app, db
 
-from .models import Issue, Condition, Report, Firmware
+from .models import Issue, Condition, Report, ReportAttribute, Firmware
 from .util import _error_internal
 
 @app.route('/lvfs/issue/all')
@@ -150,9 +150,17 @@ def issue_delete(issue_id):
 
 def _issue_fix_report_failures(issue):
 
+    # prefilter with the first 'eq' report attribute
+    stmt = db.session.query(Report).join(ReportAttribute)
+    for cond in issue.conditions:
+        if cond.compare == 'eq':
+            stmt = stmt.filter(ReportAttribute.key == cond.key,
+                               ReportAttribute.value == cond.value)
+            break
+
     # process each report
     change_cnt = 0
-    for report in db.session.query(Report):
+    for report in stmt:
 
         # already has a report
         if report.issue_id != 0:
@@ -285,11 +293,19 @@ def issue_reports(issue_id):
         flash('Permission denied: Unable to view issue reports', 'danger')
         return redirect(url_for('.issue_all'))
 
+    # prefilter with the first 'eq' report attribute
+    stmt = db.session.query(Report).join(ReportAttribute)
+    for cond in issue.conditions:
+        if cond.compare == 'eq':
+            stmt = stmt.filter(ReportAttribute.key == cond.key,
+                               ReportAttribute.value == cond.value)
+            break
+
     # check firmware details are available to this user, and check if it matches
     reports = []
     reports_hidden = []
     reports_cnt = 0
-    for report in db.session.query(Report):
+    for report in stmt:
         data = report.to_flat_dict()
         if not issue.matches(data):
             continue
