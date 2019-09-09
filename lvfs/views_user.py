@@ -79,6 +79,8 @@ def user_modify(user_id):
 
     # unchecked checkbuttons are not included in the form data
     for key in ['notify_demote_failures',
+                'notify_upload_vendor',
+                'notify_upload_affiliate',
                 'notify_server_error']:
         setattr(user, key, bool(key in request.form))
 

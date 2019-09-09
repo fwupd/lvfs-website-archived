@@ -147,6 +147,9 @@ class User(db.Model):
     human_user_id = Column(Integer, ForeignKey('users.user_id'), nullable=True)
     notify_demote_failures = Column(Boolean, default=False)
     notify_server_error = Column(Boolean, default=False)
+    notify_upload_vendor = Column(Boolean, default=False)
+    notify_upload_affiliate = Column(Boolean, default=False)
+    notify_promote = Column(Boolean, default=False)
 
     # link using foreign keys
     vendor = relationship('Vendor', foreign_keys=[vendor_id])
@@ -1715,6 +1718,22 @@ class Firmware(db.Model):
         if self._banned_country_codes:
             return self._banned_country_codes
         return self.vendor.banned_country_codes
+
+    @property
+    def get_possible_users_to_email(self):
+        users = []
+
+        # vendor that owns the firmware
+        for u in self.vendor.users:
+            if u.is_qa or u.is_vendor_manager:
+                users.append(u)
+
+        # odm that uploaded the firmware
+        if self.vendor != self.vendor_odm:
+            for u in self.vendor_odm.users:
+                if u.is_qa or u.is_vendor_manager:
+                    users.append(u)
+        return users
 
     @property
     def success(self):

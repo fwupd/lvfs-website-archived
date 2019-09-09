@@ -16,6 +16,7 @@ from sqlalchemy.orm import joinedload
 
 from lvfs import app, db
 
+from .emails import send_email
 from .models import Firmware, Report, Client, FirmwareEvent, FirmwareLimit
 from .models import Remote, Vendor, AnalyticFirmware, Component
 from .models import ComponentShard, ComponentShardInfo, ComponentShardChecksum
@@ -256,6 +257,17 @@ def firmware_promote(firmware_id, target):
     fw.remote_id = remote.remote_id
     fw.events.append(FirmwareEvent(fw.remote_id, g.user.user_id))
     db.session.commit()
+
+    # send email
+    for u in fw.get_possible_users_to_email:
+        if u == g.user:
+            continue
+        if u.notify_promote:
+            send_email("[LVFS] Firmware has been promoted",
+                       u.email_address,
+                       render_template('email-firmware-promoted.txt',
+                                       user=g.user, fw=fw))
+
     flash('Moved firmware', 'info')
 
     return redirect(url_for('.firmware_target', firmware_id=firmware_id))

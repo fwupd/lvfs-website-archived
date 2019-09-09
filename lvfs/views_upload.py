@@ -16,6 +16,7 @@ from flask_login import login_required
 
 from lvfs import app, db, ploader, csrf
 
+from .emails import send_email
 from .models import Firmware, FirmwareEvent, Vendor, Remote, Agreement
 from .models import Affiliation, Protocol, Category, Component
 from .uploadedfile import UploadedFile, FileTooLarge, FileTooSmall, FileNotSupported, MetadataInvalid
@@ -239,6 +240,21 @@ def _upload_firmware():
 
     # ensure the test has been added for the firmware type
     ploader.ensure_test_for_fw(fw)
+
+    # send out emails to anyone interested
+    for u in fw.get_possible_users_to_email:
+        if u == g.user:
+            continue
+        if u.notify_upload_vendor and u.vendor == fw.vendor:
+            send_email("[LVFS] Firmware has been uploaded",
+                       u.email_address,
+                       render_template('email-firmware-uploaded.txt',
+                                       user=u, user_upload=g.user, fw=fw))
+        elif u.notify_upload_affiliate:
+            send_email("[LVFS] Firmware has been uploaded by affiliate",
+                       u.email_address,
+                       render_template('email-firmware-uploaded.txt',
+                                       user=u, user_upload=g.user, fw=fw))
 
     flash('Uploaded file %s to %s' % (ufile.fw.filename, target), 'info')
 

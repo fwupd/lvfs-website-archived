@@ -1,0 +1,14 @@
+Dear {{ user.display_name }},
+
+A firmware you uploaded to the Linux Vendor Firmware Service has been promoted to {{fw.remote.name}} by {{user.username}} ({{user.vendor.group_id}}):
+{% for md in fw.mds %}
+ * {{md.name_with_category}} version {{md.version_display}}
+{% endfor %}
+
+You can log into the LVFS and view the firmware: {{url_for('.firmware_show', firmware_id=fw.firmware_id, _external=True)}}
+
+If you believe this action should not have been allowed please contact the LVFS administrator by forwarding the email to info@fwupd.org with details.
+
+Regards,
+
+The LVFS admins

@@ -70,6 +70,42 @@
           </div>
         </div>
 {% endif %}
+{% if g.user.is_qa %}
+        <div class="row">
+          <div class="col">
+            <div class="custom-control custom-switch">
+              <input class="custom-control-input" type="checkbox" id="notify_upload_vendor"
+                name="notify_upload_vendor" value="1" {{'checked' if u.notify_upload_vendor}}/>
+              <label class="custom-control-label" for="notify_upload_vendor">
+                When firmware is uploaded by anyone in the {{u.vendor.group_id}} group.
+              </label>
+            </div>
+          </div>
+        </div>
+        <div class="row">
+          <div class="col">
+            <div class="custom-control custom-switch">
+              <input class="custom-control-input" type="checkbox" id="notify_upload_affiliate"
+                name="notify_upload_affiliate" value="1" {{'checked' if u.notify_upload_affiliate}}/>
+              <label class="custom-control-label" for="notify_upload_affiliate">
+                When firmware is uploaded by an affiliate vendor on
+                behalf of the {{u.vendor.group_id}} group.
+              </label>
+            </div>
+          </div>
+        </div>
+        <div class="row">
+          <div class="col">
+            <div class="custom-control custom-switch">
+              <input class="custom-control-input" type="checkbox" id="notify_promote"
+                name="notify_promote" value="1" {{'checked' if u.notify_promote}}/>
+              <label class="custom-control-label" for="notify_promote">
+                When firmware is promted to testing or stable.
+              </label>
+            </div>
+          </div>
+        </div>
+{% endif %}
         <button class="btn btn-primary mt-3" type="submit">Update</button>
       </div>
     </div>
