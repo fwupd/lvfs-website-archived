@@ -327,6 +327,9 @@ class LvfsTestCase(unittest.TestCase):
         assert b'ColorHug' not in rv.data, rv.data
         self.login()
 
+        # add namespace to allow promotion
+        self.add_namespace()
+
         # promote the firmware to testing then stable
         self.run_cron_firmware()
         self.run_cron_fwchecks()
@@ -367,6 +370,7 @@ class LvfsTestCase(unittest.TestCase):
 
         # upload firmware and move to stable
         self.login()
+        self.add_namespace()
         self.upload(target='embargo')
         self.run_cron_firmware()
         self.run_cron_fwchecks()
@@ -438,6 +442,7 @@ class LvfsTestCase(unittest.TestCase):
 
         # upload firmware
         self.login()
+        self.add_namespace()
         self.upload()
 
         # enable emails
@@ -458,7 +463,7 @@ class LvfsTestCase(unittest.TestCase):
         self.run_cron_firmware()
         rv = self.app.get('/lvfs/firmware/1/promote/stable',
                           follow_redirects=True)
-        assert b'>stable<' in rv.data, rv.data
+        assert b'>stable<' in rv.data, rv.data.decode()
 
         # upload a failed report
         rv = self._report(signed=True, updatestate=3)
@@ -478,6 +483,7 @@ class LvfsTestCase(unittest.TestCase):
 
         # upload firmware
         self.login()
+        self.add_namespace()
         self.upload()
         self.logout()
 
@@ -496,6 +502,7 @@ class LvfsTestCase(unittest.TestCase):
 
         # upload firmware and download once
         self.login()
+        self.add_namespace()
         self.upload()
         self._download_firmware()
         self._report(signed=True)
@@ -521,6 +528,7 @@ class LvfsTestCase(unittest.TestCase):
 
         # upload firmware
         self.login()
+        self.add_namespace()
         self.upload()
 
         # check no limits set
@@ -639,6 +647,7 @@ class LvfsTestCase(unittest.TestCase):
 
         # upload file, which will be unsigned
         self.login()
+        self.add_namespace()
         self.upload('embargo')
         rv = self.app.get('/lvfs/firmware/1')
         assert b'Signed:' not in rv.data, rv.data
@@ -662,6 +671,7 @@ class LvfsTestCase(unittest.TestCase):
         self.add_user('bob@fwupd.org')
         self.add_user('clara@fwupd.org', is_analyst=True)
         self.add_user('mario@fwupd.org', is_qa=True, is_approved_public=True)
+        self.add_namespace(vendor_id=2)
         self.logout()
 
         # let alice upload a file to embargo
@@ -1041,6 +1051,7 @@ class LvfsTestCase(unittest.TestCase):
 
         # login as user, upload file, then promote FIXME: do as QA user, not admin
         self.login()
+        self.add_namespace()
         self.upload()
         rv = self.app.get('/lvfs/firmware/1/promote/embargo',
                           follow_redirects=True)
@@ -1274,6 +1285,7 @@ ma+I7fM5pmgsEL4tkCZAg0+CPTyhHkMV/cWuOZUjqTsYbDq1pZI=
 
         # get the default update info from the firmware archive
         self.login()
+        self.add_namespace()
         self.upload()
         rv = self.app.get('/lvfs/component/1/update')
         assert b'Work around the MCDC04 errata' in rv.data, rv.data
@@ -1295,6 +1307,7 @@ ma+I7fM5pmgsEL4tkCZAg0+CPTyhHkMV/cWuOZUjqTsYbDq1pZI=
 
         # check existing requires were added
         self.login()
+        self.add_namespace()
         self.upload()
 
         # check requirements were copied out from the .metainfo.xml file
@@ -1356,6 +1369,8 @@ ma+I7fM5pmgsEL4tkCZAg0+CPTyhHkMV/cWuOZUjqTsYbDq1pZI=
         self.add_user('bob@odm.com', 'odm')
         rv = self.app.post('/lvfs/vendor/3/modify_by_admin', data={}, follow_redirects=True)
         assert b'Updated vendor' in rv.data, rv.data
+        self.add_namespace(vendor_id=2)
+        self.add_namespace(vendor_id=3)
         self.logout()
 
         # bob uploads to the ODM vendor
@@ -1383,7 +1398,9 @@ ma+I7fM5pmgsEL4tkCZAg0+CPTyhHkMV/cWuOZUjqTsYbDq1pZI=
         self.login()
         self.add_vendor('odm')  # 2
         self.add_vendor('oem')  # 3
-        self.add_affiliation(3, 2)
+        self.add_affiliation(3, 2, actions=['@modify-affiliation'])
+        self.add_namespace(vendor_id=2)
+        self.add_namespace(vendor_id=3)
 
         # add odm uploader and QA user
         self.add_user('alice@odm.com', 'odm')
@@ -1392,72 +1409,49 @@ ma+I7fM5pmgsEL4tkCZAg0+CPTyhHkMV/cWuOZUjqTsYbDq1pZI=
 
         # upload as alice
         self.login('alice@odm.com')
-        self.upload(target='embargo')
+        self.upload(target='embargo', vendor_id=3)
         self.logout()
 
         # move to oem as bob
         self.login('bob@odm.com')
         rv = self.app.post('/lvfs/firmware/1/affiliation/change', data=dict(
-            vendor_id='3',
-        ), follow_redirects=True)
-        assert b'Changed firmware vendor' in rv.data, rv.data
-
-    def test_affiliation_change_as_user(self):
-
-        # add oem and odm
-        self.login()
-        self.add_vendor('oem')  # 2
-        self.add_user('alice@oem.com', 'oem')
-        rv = self.app.post('/lvfs/vendor/2/modify_by_admin', data={}, follow_redirects=True)
-        assert b'Updated vendor' in rv.data, rv.data
-        self.add_vendor('odm')  # 3
-        self.add_user('bob@odm.com', 'odm')
-        rv = self.app.post('/lvfs/vendor/3/modify_by_admin', data={}, follow_redirects=True)
-        assert b'Updated vendor' in rv.data, rv.data
-        self.logout()
-
-        # bob uploads to the ODM vendor
-        self.login('bob@odm.com')
-        self.upload(target='embargo')
-
-        # change the ownership to 'oem' (no affiliation set up)
-        rv = self.app.get('/lvfs/firmware/1/affiliation', follow_redirects=True)
-        assert b'Insufficient permissions to modify affiliations' in rv.data, rv.data
-
-        # change the ownership to admin
-        rv = self.app.post('/lvfs/firmware/1/affiliation/change', data=dict(
-            vendor_id='1',
-        ), follow_redirects=True)
-        assert b'Insufficient permissions to change affiliation' in rv.data, rv.data
-
-        # set up affiliation
-        self.logout()
-        self.login()
-        self.add_affiliation(2, 3)
-        self.logout()
-        self.login('bob@odm.com', accept_agreement=False)
-
-        # change the ownership to 'oem' (affiliation present)
-        rv = self.app.get('/lvfs/firmware/1/affiliation')
-        assert b'<option value="3" selected' in rv.data, rv.data
-        assert b'<option value="2"' in rv.data, rv.data
-        rv = self.app.post('/lvfs/firmware/1/affiliation/change', data=dict(
             vendor_id='2',
         ), follow_redirects=True)
-        assert b'Changed firmware vendor' in rv.data, rv.data
-        rv = self.app.get('/lvfs/firmware/1/affiliation', follow_redirects=True)
-        assert b'Insufficient permissions to modify affiliations' in rv.data, rv.data
+        assert b'Changed firmware vendor' in rv.data, rv.data.decode()
 
-        # verify remote was changed
-        rv = self.app.get('/lvfs/firmware/1')
-        assert b'>embargo-oem<' in rv.data, rv.data
-        assert b'>embargo-odm<' not in rv.data, rv.data
-
-    def add_affiliation(self, vendor_id_oem, vendor_id_odm):
+    def add_affiliation(self, vendor_id_oem, vendor_id_odm, default_actions=True, actions=None):
         rv = self.app.post('/lvfs/vendor/%u/affiliation/add' % vendor_id_oem, data=dict(
             vendor_id_odm=vendor_id_odm,
         ), follow_redirects=True)
         assert b'Added affiliation' in rv.data, rv.data
+
+        # get the affilation ID
+        text = rv.data.decode()
+        idx = text.find('Added affiliation')
+        aff_id = text[idx + 18:idx + 19]
+        assert int(aff_id) > 0
+        assert int(aff_id) < 9
+
+        # default set
+        if not actions:
+            actions = []
+        if default_actions:
+            actions.extend(['@modify-limit',
+                            '@delete',
+                            '@modify',
+                            '@undelete',
+                            '@modify-updateinfo',
+                            '@view'])
+        for act in actions:
+            rv = self.app.get('/lvfs/vendor/{}/affiliation/{}/action/add/{}'.format(vendor_id_oem, aff_id, act),
+                              follow_redirects=True)
+            assert b'Added action' in rv.data, rv.data
+
+    def add_namespace(self, vendor_id=1, value='com.hughski'):
+        rv = self.app.post('/lvfs/vendor/{}/namespace/add'.format(vendor_id),
+                           data=dict(value=value),
+                           follow_redirects=True)
+        assert b'Added namespace' in rv.data, rv.data
 
     def test_affiliations(self):
 
@@ -1465,7 +1459,7 @@ ma+I7fM5pmgsEL4tkCZAg0+CPTyhHkMV/cWuOZUjqTsYbDq1pZI=
         self.add_vendor('oem')  # 2
         self.add_user('alice@oem.com', 'oem')
         self.add_vendor('odm')  # 3
-        self.add_user('bob@odm.com', 'odm')
+        self.add_user('bob@odm.com', 'odm', is_qa=True)
         self.add_vendor('another-unrelated-oem')  # 4
 
         rv = self.app.post('/lvfs/vendor/2/modify_by_admin', data=dict(
@@ -1485,13 +1479,31 @@ ma+I7fM5pmgsEL4tkCZAg0+CPTyhHkMV/cWuOZUjqTsYbDq1pZI=
         # add affiliation (as admin)
         self.add_affiliation(2, 3)
         rv = self.app.get('/lvfs/vendor/2/affiliations')
-        assert b'<div class="card-title">\n        BobOEM' in rv.data, rv.data
+        assert b'<div class="card-title">\n      BobOEM' in rv.data, rv.data.decode()
 
         # add duplicate (as admin)
         rv = self.app.post('/lvfs/vendor/2/affiliation/add', data=dict(
             vendor_id_odm='3',
         ), follow_redirects=True)
         assert b'Already a affiliation with that ODM' in rv.data, rv.data
+
+        # add namespace
+        self.add_namespace(vendor_id=2, value='com.hughski')
+
+        # add and remove actions
+        rv = self.app.get('/lvfs/vendor/2/affiliation/1/action/add/DAVE',
+                          follow_redirects=True)
+        assert b'Failed to add action: Expected' in rv.data, rv.data.decode()
+        rv = self.app.get('/lvfs/vendor/2/affiliation/1/action/add/@test',
+                          follow_redirects=True)
+        assert b'Added action' in rv.data, rv.data.decode()
+        rv = self.app.get('/lvfs/vendor/2/affiliation/1/action/remove/@notgoingtoexist',
+                          follow_redirects=True)
+        assert b'Failed to remove action: Not present' in rv.data, rv.data.decode()
+        rv = self.app.get('/lvfs/vendor/2/affiliation/1/action/remove/@test',
+                          follow_redirects=True)
+        assert b'Removed action' in rv.data, rv.data.decode()
+
         self.logout()
 
         # test uploading as the ODM to a vendor_id that does not exist
@@ -1510,14 +1522,14 @@ ma+I7fM5pmgsEL4tkCZAg0+CPTyhHkMV/cWuOZUjqTsYbDq1pZI=
         rv = self.app.get('/lvfs/firmware/1')
         assert '/downloads/' + self.checksum_upload in rv.data.decode('utf-8'), rv.data
         rv = self.app.get('/lvfs/firmware')
-        assert b'ColorHug2' in rv.data, rv.data
+        assert b'ColorHug2' in rv.data, rv.data.decode()
 
         # check bob can change the update description and severity
         rv = self.app.post('/lvfs/component/1/modify', data=dict(
             urgency='critical',
             description='Not enough cats!',
         ), follow_redirects=True)
-        assert b'Component updated' in rv.data, rv.data
+        assert b'Component updated' in rv.data, rv.data.decode()
 
         # check bob can move the firmware to the embargo remote for the *OEM*
         rv = self.app.get('/lvfs/firmware/1/target')
@@ -1551,6 +1563,9 @@ ma+I7fM5pmgsEL4tkCZAg0+CPTyhHkMV/cWuOZUjqTsYbDq1pZI=
         self.add_affiliation(2, 4)
         self.add_affiliation(3, 4)
 
+        # add namespace
+        self.add_namespace(vendor_id=2, value='com.hughski')
+
         # add alice@odm.com to vendor odm as a QA user and bob as a normal user
         self.add_user('alice@odm.com', 'odm', is_qa=True)
         self.add_user('bob@odm.com', 'odm')
@@ -1574,6 +1589,7 @@ ma+I7fM5pmgsEL4tkCZAg0+CPTyhHkMV/cWuOZUjqTsYbDq1pZI=
 
         self.login()
         self.add_vendor('oem')  # 2
+        self.add_namespace(vendor_id=2, value='com.hughski')
         self.add_user('alice@oem.com', 'oem')
         self.add_vendor('odm')  # 3
         self.add_user('bob@odm.com', 'odm')
@@ -1618,6 +1634,7 @@ ma+I7fM5pmgsEL4tkCZAg0+CPTyhHkMV/cWuOZUjqTsYbDq1pZI=
 
         # upload file with keywords
         self.login()
+        self.add_namespace()
         self.upload()
 
         # check keywords were copied out from the .metainfo.xml file
@@ -1643,6 +1660,7 @@ ma+I7fM5pmgsEL4tkCZAg0+CPTyhHkMV/cWuOZUjqTsYbDq1pZI=
 
         # upload file with keywords
         self.login()
+        self.add_namespace()
         self.upload()
 
         # add invalid checksums
@@ -1685,6 +1703,7 @@ ma+I7fM5pmgsEL4tkCZAg0+CPTyhHkMV/cWuOZUjqTsYbDq1pZI=
 
         # upload file with keywords
         self.login()
+        self.add_namespace()
         self.upload(target='testing')
         self.logout()
 
@@ -1708,6 +1727,7 @@ ma+I7fM5pmgsEL4tkCZAg0+CPTyhHkMV/cWuOZUjqTsYbDq1pZI=
 
         # upload file with keywords
         self.login()
+        self.add_namespace()
         self.upload(target='embargo')
         self.logout()
 
@@ -1720,6 +1740,7 @@ ma+I7fM5pmgsEL4tkCZAg0+CPTyhHkMV/cWuOZUjqTsYbDq1pZI=
         # create ODM user as admin
         self.login()
         self.add_user('testuser@fwupd.org')
+        self.add_namespace()
         self.logout()
 
         # login and upload firmware to embargo
@@ -1979,6 +2000,7 @@ ma+I7fM5pmgsEL4tkCZAg0+CPTyhHkMV/cWuOZUjqTsYbDq1pZI=
 
         # upload a file
         self.login()
+        self.add_namespace()
         self.upload()
 
         # download a few times
@@ -1989,6 +2011,7 @@ ma+I7fM5pmgsEL4tkCZAg0+CPTyhHkMV/cWuOZUjqTsYbDq1pZI=
 
         # upload a file
         self.login()
+        self.add_namespace()
         self.upload()
 
         # download with a new version of fwupd

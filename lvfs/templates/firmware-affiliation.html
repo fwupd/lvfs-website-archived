@@ -25,7 +25,7 @@
         <label for="vendor_id">Controlling vendor</label>
         <select class="form-control" name="vendor_id" required>
 {% for v in vendors %}
-          <option value="{{v.vendor_id}}" {{ 'selected' if v.vendor_id == fw.vendor_id }}>{{v.display_name}}</option>
+          <option value="{{v.vendor_id}}" {{ 'selected' if v.vendor_id == fw.vendor_id }}>{{v.display_name_with_team}}</option>
 {% endfor %}
         </select>
       </div>

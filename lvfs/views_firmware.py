@@ -33,7 +33,8 @@ def firmware(state=None):
     # pre-filter by user ID or vendor
     if g.user.is_analyst or g.user.is_qa:
         stmt = db.session.query(Firmware).\
-                    filter(Firmware.vendor_id == g.user.vendor.vendor_id)
+                    filter((Firmware.vendor_id == g.user.vendor.vendor_id) | \
+                           (Firmware.user_id == g.user.user_id))
     else:
         stmt = db.session.query(Firmware).\
                     filter(Firmware.user_id == g.user.user_id)
@@ -361,7 +362,7 @@ def firmware_limit_add():
         return redirect(url_for('.firmware'))
 
     # security check
-    if not fw.check_acl('@add-limit'):
+    if not fw.check_acl('@modify-limit'):
         flash('Permission denied: Unable to add restriction', 'danger')
         return redirect(url_for('.firmware_show', firmware_id=fw.firmware_id))
 
@@ -438,7 +439,7 @@ def firmware_affiliation_change(firmware_id):
     if vendor_id == fw.vendor_id:
         flash('No affiliation change required', 'info')
         return redirect(url_for('.firmware_affiliation', firmware_id=fw.firmware_id))
-    if not g.user.is_admin and not g.user.vendor.is_affiliate_for(vendor_id):
+    if not g.user.is_admin and not g.user.vendor.is_affiliate_for(vendor_id) and vendor_id != g.user.vendor_id:
         flash('Insufficient permissions to change affiliation to {}'.format(vendor_id), 'danger')
         return redirect(url_for('.firmware_show', firmware_id=firmware_id))
     old_vendor = fw.vendor

@@ -21,7 +21,7 @@ from lvfs import app, db
 from .emails import send_email
 from .util import admin_login_required
 from .util import _error_internal, _email_check
-from .models import Vendor, Restriction, Namespace, User, Remote, Affiliation
+from .models import Vendor, Restriction, Namespace, User, Remote, Affiliation, AffiliationAction
 from .util import _generate_password
 
 # sort by awesomeness
@@ -574,6 +574,24 @@ def vendor_affiliations(vendor_id):
         flash('Permission denied: Unable to view affiliations', 'danger')
         return redirect(url_for('.vendor_details', vendor_id=vendor_id))
 
+    # ACLs possible for the OEM to grant to the ODM
+    possible_actions = {
+        '@delete': 'Delete firmware',
+        '@promote-stable': 'Promote firmware to stable',
+        '@promote-testing': 'Promote firmware to testing',
+        '@modify': 'Modify firmware update details',
+        '@modify-affiliation': 'Modify firmware affiliation',
+        '@nuke': 'Delete firmware permanently',
+        '@modify-limit': 'Change download limits for firmware',
+        '@undelete': 'Undelete firmware',
+        '@view': 'View firmware',
+        '@view-analytics': 'View analytics about firmware',
+        '@modify-updateinfo': 'Modify the update release notes',
+        '@modify-keywords': 'Add and remove firmware keywords',
+        '@modify-requirements': 'Modify firmware requirements, e.g. fwupd version',
+        '@modify-checksums': 'Add and remove device checksums, e.g. PCR0',
+    }
+
     # add other vendors
     vendors = []
     for v in db.session.query(Vendor).order_by(Vendor.display_name):
@@ -587,7 +605,71 @@ def vendor_affiliations(vendor_id):
     return render_template('vendor-affiliations.html',
                            category='vendors',
                            v=vendor,
+                           possible_actions=possible_actions,
                            other_vendors=vendors)
+
+@app.route('/lvfs/vendor/<int:vendor_id>/affiliation/<int:affiliation_id>/action/add/<action>')
+@login_required
+def vendor_affiliation_action_add(vendor_id, affiliation_id, action):
+    """ add an ACL action to an existing affiliation """
+
+    # security check
+    vendor = db.session.query(Vendor).filter(Vendor.vendor_id == vendor_id).first()
+    if not vendor:
+        flash('Failed to get vendor details: No a vendor with that ID', 'warning')
+        return redirect(url_for('.dashboard'))
+    if not vendor.check_acl('@modify-affiliation-actions'):
+        flash('Permission denied: Unable to modify vendor affiliation', 'danger')
+        return redirect(url_for('.vendor_affiliations', vendor_id=vendor_id))
+
+    # already exists?
+    aff = db.session.query(Affiliation).filter(Affiliation.affiliation_id == affiliation_id).first()
+    if not aff:
+        flash('Failed to add action: No affiliation with that ID', 'warning')
+        return redirect(url_for('.vendor_affiliations', vendor_id=vendor_id))
+    if not action.startswith('@'):
+        flash('Failed to add action: Expected "@" prefix', 'warning')
+        return redirect(url_for('.vendor_affiliations', vendor_id=vendor_id))
+    if aff.get_action(action):
+        flash('Failed to add action: Already present', 'warning')
+        return redirect(url_for('.vendor_affiliations', vendor_id=vendor_id))
+
+    # add
+    aff.actions.append(AffiliationAction(action=action, user=g.user))
+    db.session.commit()
+    flash('Added action', 'info')
+    return redirect(url_for('.vendor_affiliations', vendor_id=vendor_id))
+
+@app.route('/lvfs/vendor/<int:vendor_id>/affiliation/<int:affiliation_id>/action/remove/<action>')
+@login_required
+def vendor_affiliation_action_remove(vendor_id, affiliation_id, action):
+    """ remove an ACL action to an existing affiliation """
+
+    # security check
+    vendor = db.session.query(Vendor).filter(Vendor.vendor_id == vendor_id).first()
+    if not vendor:
+        flash('Failed to get vendor details: No a vendor with that ID', 'warning')
+        return redirect(url_for('.dashboard'))
+    if not vendor.check_acl('@modify-affiliation-actions'):
+        flash('Permission denied: Unable to modify vendor affiliation', 'danger')
+        return redirect(url_for('.vendor_affiliations', vendor_id=vendor_id))
+
+    # already exists?
+    aff = db.session.query(Affiliation).filter(Affiliation.affiliation_id == affiliation_id).first()
+    if not aff:
+        flash('Failed to remove action: No affiliation with that ID', 'warning')
+        return redirect(url_for('.vendor_affiliations', vendor_id=vendor_id))
+    if not aff.get_action(action):
+        flash('Failed to remove action: Not present', 'warning')
+        return redirect(url_for('.vendor_affiliations', vendor_id=vendor_id))
+
+    # remove
+    for act in aff.actions:
+        if act.action == action:
+            aff.actions.remove(act)
+    db.session.commit()
+    flash('Removed action', 'info')
+    return redirect(url_for('.vendor_affiliations', vendor_id=vendor_id))
 
 @app.route('/lvfs/vendor/<int:vendor_id>/affiliation/add', methods=['POST'])
 @login_required
@@ -615,9 +697,10 @@ def vendor_affiliation_add(vendor_id):
             return redirect(url_for('.vendor_affiliations', vendor_id=vendor_id), 302)
 
     # add a new ODM -> OEM affiliation
-    vendor.affiliations.append(Affiliation(vendor_id, vendor_id_odm))
+    aff = Affiliation(vendor_id, vendor_id_odm)
+    vendor.affiliations.append(aff)
     db.session.commit()
-    flash('Added affiliation', 'info')
+    flash('Added affiliation {}'.format(aff.affiliation_id), 'info')
     return redirect(url_for('.vendor_affiliations', vendor_id=vendor_id), 302)
 
 @app.route('/lvfs/vendor/<int:vendor_id>/affiliation/<int:affiliation_id>/delete')

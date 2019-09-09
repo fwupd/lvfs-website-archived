@@ -21,7 +21,7 @@
       <a class="btn btn-falcon-{{'primary' if request.url_rule.endpoint == 'firmware_problems' else 'default'}}"
         href="{{url_for('.firmware_problems', firmware_id=fw.firmware_id)}}">Problems</a>
 {% endif %}
-{% if not fw.do_not_track and (fw.check_acl('@add-limit') or fw.check_acl('@remove-limit')) %}
+{% if not fw.do_not_track and fw.check_acl('@modify-limit') %}
       <a class="btn btn-falcon-{{'primary' if request.url_rule.endpoint == 'firmware_limits' else 'default'}}"
         href="{{url_for('.firmware_limits', firmware_id=fw.firmware_id)}}">Limits</a>
 {% endif %}

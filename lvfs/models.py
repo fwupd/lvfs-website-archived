@@ -87,6 +87,10 @@ class Problem:
             return 'Firmware tests are pending'
         if self.kind == 'no-source':
             return 'No source code link'
+        if self.kind == 'no-vendor-namespace':
+            return 'No vendor namespaces set'
+        if self.kind == 'invalid-vendor-namespace':
+            return 'Invalid vendor namespace'
         return 'Unknown problem %s' % self.kind
 
     @property
@@ -359,6 +363,24 @@ class Namespace(db.Model):
     def __repr__(self):
         return '<Namespace {}>'.format(self.value)
 
+class AffiliationAction(db.Model):
+
+    # database
+    __tablename__ = 'affiliation_actions'
+    __table_args__ = {'mysql_character_set': 'utf8mb4'}
+
+    affiliation_action_id = Column(Integer, primary_key=True, unique=True, nullable=False)
+    affiliation_id = Column(Integer, ForeignKey('affiliations.affiliation_id'), nullable=False)
+    ctime = Column(DateTime, nullable=False, default=datetime.datetime.utcnow)
+    user_id = Column(Integer, ForeignKey('users.user_id'), nullable=False)
+    action = Column(Text, default=None)
+
+    user = relationship('User', foreign_keys=[user_id])
+    affiliation = relationship('Affiliation', foreign_keys=[affiliation_id])
+
+    def __repr__(self):
+        return "<AffiliationAction {}>".format(self.action)
+
 class Affiliation(db.Model):
 
     # database
@@ -373,10 +395,17 @@ class Affiliation(db.Model):
     # link using foreign keys
     vendor = relationship("Vendor", foreign_keys=[vendor_id], back_populates="affiliations")
     vendor_odm = relationship("Vendor", foreign_keys=[vendor_id_odm])
+    actions = relationship("AffiliationAction", cascade='all,delete-orphan')
 
     def __init__(self, vendor_id, vendor_id_odm):
         self.vendor_id = vendor_id
         self.vendor_id_odm = vendor_id_odm
+
+    def get_action(self, action):
+        for act in self.actions:
+            if action == act.action:
+                return act
+        return None
 
     def __repr__(self):
         return "Affiliation object %s" % self.affiliation_id
@@ -555,9 +584,11 @@ class Vendor(db.Model):
         if action == '@modify-oauth':
             return False
         if action == '@view-affiliations':
-            return user.is_qa
+            return user.is_vendor_manager
         if action == '@modify-affiliations':
             return False
+        if action == '@modify-affiliation-actions':
+            return user.is_vendor_manager
         if action == '@view-exports':
             return user.is_qa or user.is_vendor_manager
         if action == '@modify-exports':
@@ -1404,6 +1435,23 @@ class Component(db.Model):
                                   page='update')
             problems.append(problem)
 
+        # the OEM doesn't manage this namespace
+        values = [ns.value for ns in self.fw.vendor_odm.namespaces]
+        if not values:
+            problem = Problem('no-vendor-namespace',
+                              'No AppStream namespace values for '
+                              'vendor {}'.format(self.fw.vendor_odm.group_id))
+            problems.append(problem)
+        elif self.appstream_id_prefix not in values:
+            problem = Problem('invalid-vendor-namespace',
+                              'Component ID {} not allowed '
+                              'for vendor {}: {}'.format(self.appstream_id_prefix,
+                                                         self.fw.vendor_odm.group_id,
+                                                         ','.join(values)))
+            problem.url = url_for('.firmware_affiliation',
+                                  firmware_id=self.fw.firmware_id)
+            problems.append(problem)
+
         # set the URL for the component
         for problem in problems:
             if problem.url:
@@ -1456,15 +1504,11 @@ class Component(db.Model):
         # depends on the action requested
         if action == '@modify-updateinfo':
             if not self.fw.remote.is_public:
-                if user.is_qa and self.fw._is_vendor(user):
-                    return True
-                if self.fw._is_owner(user):
+                if user.is_qa and self.fw._is_permitted_action(action, user):
                     return True
             return False
         if action in ('@modify-keywords', '@modify-requirements', '@modify-checksums'):
-            if user.is_qa and self.fw._is_vendor(user):
-                return True
-            if self.fw._is_owner(user) and not self.fw.remote.is_public:
+            if user.is_qa and self.fw._is_permitted_action(action, user):
                 return True
             return False
         raise NotImplementedError('unknown security check action: %s:%s' % (self, action))
@@ -1647,6 +1691,12 @@ class Firmware(db.Model):
     remote = relationship('Remote', foreign_keys=[remote_id], lazy='joined')
 
     @property
+    def vendor_odm(self):
+        if not self.user:
+            return None
+        return self.user.vendor
+
+    @property
     def target_duration(self):
         if not self.events:
             return 0
@@ -1826,9 +1876,31 @@ class Firmware(db.Model):
     def _is_vendor(self, user):
         return self.vendor_id == user.vendor_id
 
+    def _is_odm(self, user):
+        return self.vendor_odm.vendor_id == user.vendor_id
+
     def mark_dirty(self):
         self.is_dirty = True
         self.remote.is_dirty = True
+
+    def _is_permitted_action(self, action, user):
+
+        # is vendor
+        if self._is_vendor(user):
+            return True
+
+        # the user is not a member of the ODM vendor
+        if self.vendor_odm.vendor_id != user.vendor.vendor_id:
+            return False
+
+        # check ODM permissions
+        aff = db.session.query(Affiliation).\
+                               filter(Affiliation.vendor_id == self.vendor_id).\
+                               filter(Affiliation.vendor_id_odm == user.vendor_id).\
+                               first()
+        if not aff:
+            return False
+        return aff.get_action(action)
 
     def check_acl(self, action, user=None):
 
@@ -1842,9 +1914,7 @@ class Firmware(db.Model):
         if action == '@delete':
             if self.is_deleted:
                 return False
-            if user.is_qa and self._is_vendor(user):
-                return True
-            if self._is_owner(user) and not self.remote.is_public:
+            if user.is_qa and self._is_permitted_action(action, user):
                 return True
             return False
         if action == '@nuke':
@@ -1852,9 +1922,9 @@ class Firmware(db.Model):
                 return False
             return False
         if action == '@view':
-            if user.is_qa and self._is_vendor(user):
+            if user.is_qa and self._is_permitted_action(action, user):
                 return True
-            if user.is_analyst and self._is_vendor(user):
+            if user.is_analyst and self._is_permitted_action(action, user):
                 return True
             if self._is_owner(user):
                 return True
@@ -1866,20 +1936,20 @@ class Firmware(db.Model):
                 return True
             return False
         if action == '@undelete':
-            if user.is_qa and self._is_vendor(user):
+            if user.is_qa and self._is_permitted_action(action, user):
                 return True
             if self._is_owner(user):
                 return True
             return False
         if action in ('@promote-stable', '@promote-testing'):
-            if user.is_approved_public and self._is_vendor(user):
+            if user.is_approved_public and self._is_permitted_action(action, user):
                 return True
             return False
         if action.startswith('@promote-'):
             if user.is_qa and self._is_vendor(user):
                 return True
-            # is original file uploader can move private<->embargo
-            if self._is_owner(user):
+            # ODM vendor can always move private<->embargo
+            if self._is_odm(user):
                 old = self.remote.name
                 if old.startswith('embargo-'):
                     old = 'embargo'
@@ -1890,29 +1960,20 @@ class Firmware(db.Model):
                     return True
             return False
         if action == '@modify':
-            if user.is_qa and self._is_vendor(user):
+            if user.is_qa and self._is_permitted_action(action, user):
                 return True
             if self._is_owner(user):
                 return True
             return False
-        if action == '@add-limit':
-            if user.is_qa and self._is_vendor(user):
-                return True
-            if self._is_owner(user):
-                return True
-            return False
-        if action == '@remove-limit':
-            if user.is_qa and self._is_vendor(user):
+        if action == '@modify-limit':
+            if user.is_qa and self._is_permitted_action(action, user):
                 return True
             return False
         if action == '@modify-affiliation':
-            if not self.vendor.affiliations_for:
+            if not self.vendor.affiliations:
                 return False
-            # is original file uploader and uploaded to ODM group
-            if self._is_owner(user) and self._is_vendor(user):
-                return True
             # is QA user for the current assigned vendor
-            if user.is_qa and self._is_vendor(user):
+            if user.is_qa and self._is_permitted_action(action, user):
                 return True
             return False
         raise NotImplementedError('unknown security check action: %s:%s' % (self, action))

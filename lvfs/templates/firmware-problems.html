@@ -132,6 +132,26 @@
         to the source code used to build the firmware.
       </p>
     </td>
+{% elif problem.kind == 'no-vendor-namespace' %}
+    <td class="col col-sm-7">
+      <p class="card-text">
+        The <code>{{problem.md.fw.vendor.group_id}}</code> vendor
+        does not have permission to own the <code>{{problem.md.appstream_id_prefix}}</code>
+        AppStream ID component prefix and no namespaces have been set up.
+        Please either change the firmware vendor or contact the LVFS
+        administrator to fix this.
+      </p>
+    </td>
+{% elif problem.kind == 'invalid-vendor-namespace' %}
+    <td class="col col-sm-7">
+      <p class="card-text">
+        The <code>{{problem.md.fw.vendor.group_id}}</code> vendor
+        does not have permission to own the <code>{{problem.md.appstream_id_prefix}}</code>
+        AppStream ID component prefix.
+        Please either <a href="{{url_for('.firmware_affiliation', firmware_id=problem.md.fw.firmware_id)}}">change the vendor</a>
+        to the correct OEM or contact the LVFS administrator to fix this.
+      </p>
+    </td>
 {% else %}
     <td class="col col-sm-7">
       <p class="card-text">
