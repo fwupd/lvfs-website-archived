@@ -92,10 +92,12 @@ class Plugin(PluginBase):
 
         # run chipsec
         cmd = self.get_setting('chipsec_binary', required=True)
-        argv = [cmd, '--no_driver', 'uefi', 'decode', src.name]
-        ps = subprocess.Popen(argv, stdout=subprocess.PIPE, stderr=subprocess.PIPE, cwd=cwd.name)
-        if ps.wait() != 0:
-            raise PluginError('Failed to decode file: %s' % ps.stderr.read())
+        try:
+            subprocess.check_output([cmd, '--no_driver', 'uefi', 'decode', src.name],
+                                    stderr=subprocess.PIPE,
+                                    cwd=cwd.name)
+        except subprocess.CalledProcessError as e:
+            raise PluginError('Failed to decode file: {}'.format(e.output))
 
         # look for shards
         outdir = src.name + '.dir'
