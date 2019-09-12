@@ -1434,16 +1434,11 @@ ma+I7fM5pmgsEL4tkCZAg0+CPTyhHkMV/cWuOZUjqTsYbDq1pZI=
         if not actions:
             actions = []
         if default_actions:
-            actions.extend(['@modify-limit',
-                            '@delete',
-                            '@modify',
-                            '@undelete',
-                            '@modify-updateinfo',
-                            '@view'])
+            actions.append('@modify-limit')
         for act in actions:
             rv = self.app.get('/lvfs/vendor/{}/affiliation/{}/action/add/{}'.format(vendor_id_oem, aff_id, act),
                               follow_redirects=True)
-            assert b'Added action' in rv.data, rv.data
+            assert b'Added action' in rv.data, rv.data.decode()
 
     def add_namespace(self, vendor_id=1, value='com.hughski'):
         rv = self.app.post('/lvfs/vendor/{}/namespace/add'.format(vendor_id),

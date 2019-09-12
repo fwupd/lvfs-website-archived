@@ -699,6 +699,14 @@ def vendor_affiliation_add(vendor_id):
 
     # add a new ODM -> OEM affiliation
     aff = Affiliation(vendor_id, vendor_id_odm)
+    for action in ['@delete',
+                   '@modify',
+                   '@undelete',
+                   '@modify-updateinfo',
+                   '@view',
+                   '@retry',
+                   '@waive']:
+        aff.actions.append(AffiliationAction(action=action, user=g.user))
     vendor.affiliations.append(aff)
     db.session.commit()
     flash('Added affiliation {}'.format(aff.affiliation_id), 'info')
