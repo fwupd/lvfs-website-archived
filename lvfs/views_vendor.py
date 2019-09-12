@@ -589,6 +589,8 @@ def vendor_affiliations(vendor_id):
         '@modify-keywords': 'Add and remove firmware keywords',
         '@modify-requirements': 'Modify firmware requirements, e.g. fwupd version',
         '@modify-checksums': 'Add and remove device checksums, e.g. PCR0',
+        '@retry': 'Retry a failed test',
+        '@waive': 'Waive a failing test',
     }
 
     # add other vendors

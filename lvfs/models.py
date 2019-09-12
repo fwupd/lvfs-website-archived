@@ -915,13 +915,13 @@ class Test(db.Model):
 
         # depends on the action requested
         if action == '@retry':
-            if user.is_qa and self.fw._is_vendor(user):
+            if user.is_qa and self.fw._is_permitted_action(action, user):
                 return True
             if self.fw._is_owner(user):
                 return True
             return False
         if action == '@waive':
-            if user.is_qa and self.fw._is_vendor(user):
+            if user.is_qa and self.fw._is_permitted_action(action, user):
                 return True
             return False
         raise NotImplementedError('unknown security check action: %s:%s' % (self, action))
