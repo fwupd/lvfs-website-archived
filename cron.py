@@ -27,7 +27,7 @@ from lvfs.metadata import _metadata_update_targets, _metadata_update_pulp
 from lvfs.util import _event_log, _get_shard_path, _get_absolute_path
 from lvfs.uploadedfile import UploadedFile, MetadataInvalid
 
-def _regenerate_and_sign_metadata():
+def _regenerate_and_sign_metadata(only_embargo=False):
 
     # get list of dirty remotes
     remotes = []
@@ -43,6 +43,8 @@ def _regenerate_and_sign_metadata():
                 print('Marking remote %s as dirty due to %u' % (r.name, fw.firmware_id))
                 r.is_dirty = True
         if r.is_dirty:
+            if r.is_public and only_embargo:
+                continue
             remotes.append(r)
 
     # nothing to do
@@ -477,9 +479,14 @@ if __name__ == '__main__':
             print(str(e))
             sys.exit(1)
     if 'metadata' in sys.argv:
+        _only_embargo = False
+        if len(sys.argv) > 2:
+            for kind in sys.argv[2:]:
+                if kind == 'embargo':
+                    _only_embargo = True
         try:
             with app.test_request_context():
-                _regenerate_and_sign_metadata()
+                _regenerate_and_sign_metadata(only_embargo=_only_embargo)
         except NotImplementedError as e:
             print(str(e))
             sys.exit(1)
