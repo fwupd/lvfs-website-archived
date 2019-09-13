@@ -15,6 +15,8 @@
 {% endif %}
       <a class="btn btn-falcon-{{'primary' if request.url_rule.endpoint == 'component_show' and page == 'update' else 'default'}}"
         href="{{url_for('.component_show', component_id=md.component_id, page='update')}}">Update</a>
+      <a class="btn btn-falcon-{{'primary' if request.url_rule.endpoint == 'component_show' and page == 'issues' else 'default'}}"
+        href="{{url_for('.component_show', component_id=md.component_id, page='issues')}}">Issues</a>
       <a class="btn btn-falcon-{{'primary' if request.url_rule.endpoint == 'component_show' and page in ['requires', 'requires-advanced'] else 'default'}}"
         href="{{url_for('.component_show', component_id=md.component_id, page='requires')}}">Requirements</a>
       <a class="btn btn-falcon-{{'primary' if request.url_rule.endpoint == 'component_show' and page == 'keywords' else 'default'}}"

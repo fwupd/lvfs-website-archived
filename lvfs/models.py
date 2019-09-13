@@ -26,6 +26,7 @@ from flask import g, url_for
 from werkzeug.security import generate_password_hash, check_password_hash
 
 from sqlalchemy import Column, Integer, Float, String, Text, Boolean, DateTime, ForeignKey, Index
+from sqlalchemy.ext.associationproxy import association_proxy
 from sqlalchemy.orm import relationship
 
 from lvfs import db
@@ -1212,6 +1213,40 @@ class ComponentShard(db.Model):
     def __repr__(self):
         return "ComponentShard object %s" % self.component_shard_id
 
+class ComponentIssue(db.Model):
+
+    # sqlalchemy metadata
+    __tablename__ = 'component_issues'
+    __table_args__ = {'mysql_character_set': 'utf8mb4'}
+
+    component_issue_id = Column(Integer, primary_key=True, unique=True, nullable=False, index=True)
+    component_id = Column(Integer, ForeignKey('components.component_id'), nullable=False)
+    kind = Column(Text, nullable=False)
+    value = Column(Text, nullable=False)
+
+    # link back to parent
+    md = relationship("Component", back_populates="issues")
+
+    @property
+    def url(self):
+        return 'https://nvd.nist.gov/vuln/detail/{}'.format(self.value)
+
+    @property
+    def problem(self):
+        parts = self.value.split('-')
+        if len(parts) != 3 or parts[0] != 'CVE':
+            return Problem('invalid-issue', 'Format expected to be CVE-XXXX-XXXXX')
+        if not parts[1].isnumeric:
+            return Problem('invalid-issue', 'Expected year in CVE value')
+        if int(parts[1]) < 1995:
+            return Problem('invalid-issue', 'Invalid year in CVE value')
+        if not parts[2].isnumeric:
+            return Problem('invalid-issue', 'Expected integer in CVE token')
+        return None
+
+    def __repr__(self):
+        return '<ComponentIssue {}>'.format(self.value)
+
 class Component(db.Model):
 
     # sqlalchemy metadata
@@ -1254,6 +1289,10 @@ class Component(db.Model):
     requirements = relationship("Requirement",
                                 back_populates="md",
                                 cascade='all,delete-orphan')
+    issues = relationship('ComponentIssue',
+                          back_populates='md',
+                          cascade='all,delete-orphan')
+    issue_values = association_proxy('issues', 'value')
     device_checksums = relationship("Checksum",
                                     back_populates="md",
                                     cascade='all,delete-orphan')
@@ -1483,6 +1522,11 @@ class Component(db.Model):
             problem.url = url_for('.firmware_affiliation',
                                   firmware_id=self.fw.firmware_id)
             problems.append(problem)
+
+        # add all CVE problems
+        for issue in self.issues:
+            if issue.problem:
+                problems.append(issue.problem)
 
         # set the URL for the component
         for problem in problems:

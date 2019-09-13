@@ -15,6 +15,10 @@
   <developer_name>Hughski Limited</developer_name>
   <releases>
     <release version="1.2.3" date="2018-02-10" urgency="low">
+      <issues>
+        <issue type="cve">CVE-2016-00000</issue>
+        <issue type="cve">CVE-2017-00000</issue>
+      </issues>
       <checksum filename="intelme.cap" target="content"/>
     </release>
   </releases>

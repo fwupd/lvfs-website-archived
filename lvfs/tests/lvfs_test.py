@@ -181,7 +181,7 @@ class LvfsTestCase(unittest.TestCase):
 
     def upload(self, target='private', vendor_id=None, filename='contrib/hughski-colorhug2-2.0.3.cab', fwchecks=True):
         rv = self._upload(filename, target, vendor_id)
-        assert b'Uploaded file' in rv.data, rv.data
+        assert b'Uploaded file' in rv.data, rv.data.decode()
         self._ensure_checksums_from_upload()
         assert self.checksum_upload.encode('utf-8') in rv.data, rv.data
         if fwchecks:
@@ -1648,6 +1648,54 @@ ma+I7fM5pmgsEL4tkCZAg0+CPTyhHkMV/cWuOZUjqTsYbDq1pZI=
         assert b'Removed keyword' in rv.data, rv.data
         assert b'>alice<' in rv.data, rv.data
         assert b'>colorimeter<' not in rv.data, rv.data
+
+    def test_issues(self):
+
+        # upload file with issues
+        self.login()
+        self.add_namespace()
+        self.upload(filename='contrib/intelme.cab', target='private')
+
+        # check CVEs were copied out from the .metainfo.xml file
+        rv = self.app.get('/lvfs/component/1/issues')
+        assert b'CVE-2016' in rv.data, rv.data.decode()
+        assert b'CVE-2017' in rv.data, rv.data.decode()
+
+        # add another set of CVEs
+        rv = self.app.post('/lvfs/component/1/issue/add', data=dict(
+            value='CVE-2018-00000,CVE-2019-00000',
+        ), follow_redirects=True)
+        assert b'Added CVE-' in rv.data, rv.data.decode()
+        assert b'CVE-2016' in rv.data, rv.data.decode()
+        assert b'CVE-2017' in rv.data, rv.data.decode()
+        assert b'CVE-2018' in rv.data, rv.data.decode()
+        assert b'CVE-2019' in rv.data, rv.data.decode()
+
+        # delete one of the added CVEs
+        rv = self.app.get('/lvfs/component/1/issue/3/delete', follow_redirects=True)
+        assert b'Removed CVE-2018' in rv.data, rv.data.decode()
+        assert b'CVE-2017' in rv.data, rv.data.decode()
+
+        # update the description to include CVEs
+        rv = self.app.post('/lvfs/component/1/modify', data=dict(
+            urgency='critical',
+            description='- Address security advisories INTEL-SA-00233(CVE-2018-12126, CVE-2018-12127)\n'
+                        '- Firmware updates to address security advisory INTEL-SA-00213',
+        ), follow_redirects=True)
+        assert b'Component updated' in rv.data, rv.data
+
+        # check there is a problem
+        rv = self.app.get('/lvfs/firmware/1/problems')
+        assert b'CVE information should be entered in the issues section' in rv.data, rv.data.decode()
+
+        # autoimport the CVEs
+        rv = self.app.get('/lvfs/component/1/issue/autoimport', follow_redirects=True)
+        assert b'Added 2 issues' in rv.data, rv.data.decode()
+        rv = self.app.get('/lvfs/firmware/1/problems')
+        assert b'CVE information should be entered in the issues section' not in rv.data, rv.data.decode()
+        rv = self.app.get('/lvfs/component/1/update')
+        assert b'- Address security advisories INTEL-SA-00233(, )\n' +\
+               b'- Firmware updates to address security advisory INTEL-SA-00213' in rv.data, rv.data.decode()
 
     def test_device_checksums(self):
 

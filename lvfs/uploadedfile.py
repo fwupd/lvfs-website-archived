@@ -21,7 +21,7 @@ from lxml import etree as ET
 from cabarchive import CabArchive, CabFile
 from infparser import InfParser
 
-from .models import Firmware, Component, Guid, Requirement, Checksum
+from .models import Firmware, Component, ComponentIssue, Guid, Requirement, Checksum
 from .util import _validate_guid, _markdown_from_root
 
 class FileTooLarge(Exception):
@@ -225,6 +225,16 @@ class UploadedFile:
                 raise MetadataInvalid('<release> has invalid timestamp attribute: {}'.format(str(e)))
         else:
             raise MetadataInvalid('<release> had no date or timestamp attributes')
+
+        # get list of CVEs
+        for issue in release.xpath('issues/issue'):
+            kind = issue.get('type')
+            if not kind:
+                raise MetadataInvalid('<issue> had no type attribute')
+            if kind != 'cve':
+                raise MetadataInvalid('<issue> type can only be \'cve\'')
+            value = _node_validate_text(issue, minlen=3, maxlen=1000, nourl=True)
+            md.issues.append(ComponentIssue(kind=kind, value=value))
 
         # get <url type="details">
         try:

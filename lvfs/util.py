@@ -144,6 +144,8 @@ def _check_both(problems, txt):
         _add_problem(problems, 'Uppercase only sentences are not allowed', txt)
     if txt.find('http://') != -1 or txt.find('https://') != -1:
         _add_problem(problems, 'Links cannot be included in update descriptions', txt)
+    if txt.find('CVE-') != -1:
+        _add_problem(problems, 'CVE information should be entered in the issues section', txt)
 
 def _check_is_fake_li(txt):
     for line in txt.split('\n'):

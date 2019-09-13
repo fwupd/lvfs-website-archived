@@ -12,7 +12,7 @@ from sqlalchemy import func
 
 from lvfs import app, db, ploader
 
-from .models import Requirement, Component, Keyword, Checksum, Category
+from .models import Requirement, Component, ComponentIssue, Keyword, Checksum, Category
 from .models import Protocol, Report, ReportAttribute
 from .util import _error_internal, _validate_guid
 from .hash import _is_sha1, _is_sha256
@@ -455,6 +455,141 @@ def component_keyword_add(component_id):
     return redirect(url_for('.component_show',
                             component_id=md.component_id,
                             page='keywords'))
+
+@app.route('/lvfs/component/<int:component_id>/issue/<component_issue_id>/delete')
+@login_required
+def component_issue_delete(component_id, component_issue_id):
+
+    # get firmware component
+    issue = db.session.query(ComponentIssue).\
+            filter(Component.component_id == component_id,
+                   ComponentIssue.component_issue_id == component_issue_id).first()
+    if not issue:
+        flash('No CVE matched!', 'danger')
+        return redirect(url_for('.component_show', component_id=component_id))
+
+    # permission check
+    md = issue.md
+    if not md.check_acl('@modify-updateinfo'):
+        flash('Permission denied: Unable to modify firmware', 'danger')
+        return redirect(url_for('.component_show', component_id=component_id))
+
+    # remove CVE
+    db.session.delete(issue)
+    md.fw.mark_dirty()
+    db.session.commit()
+
+    # log
+    flash('Removed {}'.format(issue.value), 'info')
+    return redirect(url_for('.component_show',
+                            component_id=md.component_id,
+                            page='issues'))
+
+@app.route('/lvfs/component/<int:component_id>/issue/autoimport')
+@login_required
+def component_issue_autoimport(component_id):
+
+    # get firmware component
+    md = db.session.query(Component).\
+            filter(Component.component_id == component_id).first()
+    if not md:
+        flash('No component matched!', 'danger')
+        return redirect(url_for('.firmware'))
+
+    # permission check
+    if not md.check_acl('@modify-updateinfo'):
+        flash('Permission denied: Unable to modify firmware', 'danger')
+        return redirect(url_for('.component_show', component_id=component_id))
+
+    # find any valid CVE numbers in the existing description
+    start = 0
+    tmp = md.release_description
+    description_new = ''
+    issues = []
+    while True:
+
+        # look for a CVE token
+        idx = tmp.find('CVE-', start)
+        if idx == -1:
+            description_new += tmp[start:]
+            break
+
+        # yay, so save what we've got so far
+        description_new += tmp[start:idx]
+
+        # find the end of the CVE value
+        issue_len = 0
+        for char in tmp[idx+4:]:
+            if char != '-' and not char.isnumeric():
+                break
+            issue_len += 1
+
+        # extract the CVE value, and add to the component if required
+        value = tmp[idx:idx + 4 + issue_len]
+        if value not in md.issue_values:
+            issue = ComponentIssue(kind="cve", value=value)
+            if issue.problem:
+                description_new += value
+            else:
+                issues.append(issue)
+
+        # advance string to end of CVE number
+        start = idx + 4 + issue_len
+
+    # success
+    if not issues:
+        flash('No issues could be detected', 'info')
+    else:
+        md.release_description = description_new
+        md.issues.extend(issues)
+        md.fw.mark_dirty()
+        db.session.commit()
+        flash('Added {} issues — now review the update description for sanity'.format(len(issues)), 'info')
+    return redirect(url_for('.component_show',
+                            component_id=md.component_id,
+                            page='update'))
+
+@app.route('/lvfs/component/<int:component_id>/issue/add', methods=['POST'])
+@login_required
+def component_issue_add(component_id):
+    """ Adds one or more CVEs to the existing component """
+
+    # check we have data
+    for key in ['value']:
+        if key not in request.form or not request.form[key]:
+            return _error_internal('No %s specified!' % key)
+
+    # get firmware component
+    md = db.session.query(Component).\
+            filter(Component.component_id == component_id).first()
+    if not md:
+        flash('No component matched!', 'danger')
+        return redirect(url_for('.firmware'))
+
+    # security check
+    if not md.check_acl('@modify-updateinfo'):
+        flash('Permission denied: Unable to modify firmware', 'danger')
+        return redirect(url_for('.component_show', component_id=component_id))
+
+    # add CVE
+    for value in request.form['value'].split(','):
+        if value in md.issue_values:
+            flash('Already exists: {}'.format(value), 'info')
+            continue
+        issue = ComponentIssue(kind="cve", value=value)
+        if issue.problem:
+            flash('CVE invalid: {}'.format(issue.problem.description), 'danger')
+            return redirect(url_for('.component_show',
+                                    component_id=component_id,
+                                    page='issues'))
+        flash('Added {}'.format(value), 'info')
+        md.issues.append(issue)
+    md.fw.mark_dirty()
+    db.session.commit()
+    return redirect(url_for('.component_show',
+                            component_id=md.component_id,
+                            page='issues'))
+
 @app.route('/lvfs/component/<int:component_id>/checksum/delete/<checksum_id>')
 @login_required
 def component_checksum_delete(component_id, checksum_id):

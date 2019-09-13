@@ -174,7 +174,13 @@ def _generate_metadata_kind(filename, fws, firmware_baseuri='', local=False):
 
             # add long description
             if md.release_description:
-                rel.append(_xml_from_markdown(md.release_description))
+                markdown = md.release_description
+                if md.issues:
+                    markdown += '\n'
+                    markdown += 'Security issues fixed:\n'
+                    for issue in md.issues:
+                        markdown += ' * {}\n'.format(issue.value)
+                rel.append(_xml_from_markdown(markdown))
 
             # add details URL if set
             if md.details_url:
