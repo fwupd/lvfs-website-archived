@@ -303,7 +303,8 @@ def _generate_stats_firmware_reports(fw):
     reports_failure = 0
     reports_issue = 0
     for r in db.session.query(Report).\
-                    filter(Report.firmware_id == fw.firmware_id):
+                    filter(Report.firmware_id == fw.firmware_id,
+                           Report.timestamp > datetime.date.today() - datetime.timedelta(weeks=26)):
         if r.state == 2:
             reports_success += 1
         if r.state == 3:
