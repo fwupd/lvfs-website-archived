@@ -65,9 +65,9 @@
     <select class="form-control" id="urgency" name="urgency" required>
       <option value="unknown" {{ 'selected' if md.release_urgency == 'unknown' }}>Unknown</option>
       <option value="low" {{ 'selected' if md.release_urgency == 'low' }}>Low</option>
-      <option value="medium" {{ 'selected' if md.release_urgency == 'medium' }}>Medium</option>
-      <option value="high" {{ 'selected' if md.release_urgency == 'high' }}>High</option>
-      <option value="critical" {{ 'selected' if md.release_urgency == 'critical' }}>Critical</option>
+      <option value="medium" {{ 'selected' if md.release_urgency == 'medium' }}>Medium (Optional)</option>
+      <option value="high" {{ 'selected' if md.release_urgency == 'high' }}>High (Recommended)</option>
+      <option value="critical" {{ 'selected' if md.release_urgency == 'critical' }}>Critical (Urgent)</option>
     </select>
   </div>
   <div class="form-group">
