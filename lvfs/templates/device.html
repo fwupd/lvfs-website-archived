@@ -81,6 +81,18 @@
 {% endif %}
     </div>
   </div>
+{% if fw.md_prio.issues %}
+  <div class="row">
+    <div class="col col-sm-2 font-weight-bold">Fixed issues:</div>
+    <div class="col col-sm-10">
+      <ul class="list-group">
+{% for issue in fw.md_prio.issues %}
+        <li class="list-group-item"><a class="btn" href="{{issue.url}}">{{issue.value}}</a></li>
+{% endfor %}
+      </ul>
+    </div>
+  </div>
+{% endif %}
   <div class="row">
     <div class="col col-sm-2 font-weight-bold">Security</div>
     <div class="col col-sm-10">
