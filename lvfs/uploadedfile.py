@@ -411,6 +411,11 @@ class UploadedFile:
             text = _node_validate_text(prov, minlen=5, maxlen=1000)
             if not _validate_guid(text):
                 raise MetadataInvalid('The GUID {} was invalid.'.format(text))
+            if text in ['230c8b18-8d9b-53ec-838b-6cfc0383493a',     # main-system-firmware
+                        'f15aa55c-9cd5-5942-85ae-a6bf8740b96c',     # MST-panamera
+                        'd6072785-6fc0-5f83-9d49-11376e7f48b1',     # MST-leaf
+                        '49ec4eb4-c02b-58fc-8935-b1ee182405c7']:    # MST-tesla
+                raise MetadataInvalid('The GUID {} is too generic'.format(text))
             md.guids.append(Guid(md.component_id, text))
         if not md.guids:
             raise MetadataInvalid('The metadata file did not provide any GUID.')
