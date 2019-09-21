@@ -361,6 +361,13 @@ class UploadedFile:
         except IndexError as _:
             raise MetadataInvalid('<summary> tag missing')
 
+        # get optional <name_variant_suffix>
+        try:
+            md.name_variant_suffix = _node_validate_text(component.xpath('name_variant_suffix')[0],
+                                                         minlen=2, maxlen=500)
+        except IndexError as _:
+            pass
+
         # get optional <description}
         try:
             md.description = _node_validate_text(component.xpath('description')[0],

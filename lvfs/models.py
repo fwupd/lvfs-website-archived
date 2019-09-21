@@ -1269,6 +1269,7 @@ class Component(db.Model):
     checksum_contents = Column(String(40), nullable=False)
     appstream_id = Column(Text, nullable=False)
     name = Column(Text, default=None)
+    name_variant_suffix = Column(Text, default=None)
     summary = Column(Text, default=None)
     description = Column(Text, default=None)            # markdown format
     release_description = Column(Text, default=None)    # markdown format
@@ -1382,11 +1383,15 @@ class Component(db.Model):
 
     @property
     def name_with_category(self):
-        if not self.category:
-            return self.name
-        if not self.category.name:
-            return self.name + ' ' + self.category.value
-        return self.name + ' ' + self.category.name
+        name = self.name
+        if self.name_variant_suffix:
+            name += ' (' + self.name_variant_suffix + ')'
+        if self.category:
+            if self.category.name:
+                name += ' ' + self.category.name
+            else:
+                name += ' ' + self.category.value
+        return name
 
     @property
     def developer_name_display(self):
@@ -1547,6 +1552,18 @@ class Component(db.Model):
             problem.url = url_for('.firmware_affiliation',
                                   firmware_id=self.fw.firmware_id)
             problems.append(problem)
+
+        # name_variant_suffix contains a word in the name
+        if self.name_variant_suffix:
+            nvs_words = self.name_variant_suffix.split(' ')
+            nvs_kws = [_sanitize_keyword(word) for word in nvs_words]
+            for word in self.name.split(' '):
+                if _sanitize_keyword(word) in nvs_kws:
+                    problem = Problem('invalid-name-variant-suffix',
+                                      '{} is already part of the <name>'.format(word))
+                    problem.url = url_for('.component_show',
+                                          component_id=self.component_id)
+                    problems.append(problem)
 
         # add all CVE problems
         for issue in self.issues:

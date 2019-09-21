@@ -41,6 +41,22 @@
 {% endif %}
   </tr>
   <tr class="row">
+    <th class="col-3">Name Variant Suffix (optional)</th>
+{% if g.user.check_acl('@modify-keywords') %}
+    <form class="form-inline" action="{{url_for('.component_modify', component_id=md.component_id)}}" method="POST">
+    <input type="hidden" name="csrf_token" value="{{csrf_token()}}"/>
+    <td class="col-7">
+      <textarea class="form-control fixed-width" name="name_variant_suffix" cols="100" rows="1">{{md.name_variant_suffix if md.name_variant_suffix}}</textarea>
+    </td>
+    <td class="col">
+      <input type="submit" class="btn btn-warning btn-block" value="Set"/>
+    </td>
+    </form>
+{% else %}
+    <td class="col"><code>{{md.name_variant_suffix}}</code></td>
+{% endif %}
+  </tr>
+  <tr class="row">
     <th class="col-3">Summary</th>
     <td class="col"><code>{{md.summary}}</code></td>
   </tr>

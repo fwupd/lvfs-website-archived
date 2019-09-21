@@ -164,6 +164,8 @@ def component_modify(component_id):
         md.appstream_id = request.form['appstream_id']
     if 'name' in request.form:
         md.name = request.form['name']
+    if 'name_variant_suffix' in request.form:
+        md.name_variant_suffix = request.form['name_variant_suffix']
 
     # the firmware changed protocol
     if retry_all_tests:

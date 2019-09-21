@@ -1301,6 +1301,33 @@ ma+I7fM5pmgsEL4tkCZAg0+CPTyhHkMV/cWuOZUjqTsYbDq1pZI=
         assert b'Not enough cats' in rv.data, rv.data
         assert b'value="critical" selected' in rv.data, rv.data
 
+    def test_name_variant_suffix(self):
+
+        # get the default update info from the firmware archive
+        self.login()
+        self.add_namespace()
+        self.upload()
+
+        # edit the name_variant_suffix to something contained in the <name>
+        rv = self.app.post('/lvfs/component/1/modify', data=dict(
+            name_variant_suffix='Pre-Release ColorHug2',
+        ), follow_redirects=True)
+        assert b'Component updated' in rv.data, rv.data
+
+        # verify the new problems
+        rv = self.app.get('/lvfs/firmware/1/problems')
+        assert b'ColorHug2 is already part' in rv.data, rv.data.decode()
+
+        # edit the name_variant_suffix
+        rv = self.app.post('/lvfs/component/1/modify', data=dict(
+            name_variant_suffix='Pre-Release',
+        ), follow_redirects=True)
+        assert b'Component updated' in rv.data, rv.data
+
+        # verify the new problems
+        rv = self.app.get('/lvfs/firmware/1/problems')
+        assert b'ColorHug2 is already part' not in rv.data, rv.data.decode()
+
     def test_requires(self):
 
         # check existing requires were added

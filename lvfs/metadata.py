@@ -40,8 +40,9 @@ def _generate_metadata_kind(filename, fws, firmware_baseuri='', local=False):
         component = ET.SubElement(root, 'component')
         component.set('type', 'firmware')
         ET.SubElement(component, 'id').text = md.appstream_id
-        # until all front ends support <category> append the suffix */
+        # until all front ends support <category> and <name_variant_suffix> append both */
         ET.SubElement(component, 'name').text = md.name_with_category
+        #ET.SubElement(component, 'name_variant_suffix').text = md.name_variant_suffix
         ET.SubElement(component, 'summary').text = md.summary
         ET.SubElement(component, 'developer_name').text = md.developer_name
         if md.description:
