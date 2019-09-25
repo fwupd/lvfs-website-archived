@@ -95,6 +95,10 @@ class Problem:
             return 'No vendor namespaces set'
         if self.kind == 'invalid-vendor-namespace':
             return 'Invalid vendor namespace'
+        if self.kind == 'invalid-details-url':
+            return 'Invalid details URL'
+        if self.kind == 'invalid-source-url':
+            return 'Invalid source URL'
         return 'Unknown problem %s' % self.kind
 
     @property
@@ -1247,6 +1251,11 @@ class ComponentIssue(db.Model):
     def __repr__(self):
         return '<ComponentIssue {}>'.format(self.value)
 
+def _is_valid_url(url):
+    if not url.startswith('https://') and not url.startswith('http://'):
+        return False
+    return True
+
 class Component(db.Model):
 
     # sqlalchemy metadata
@@ -1504,6 +1513,22 @@ class Component(db.Model):
             problem.url = url_for('.component_show',
                                   component_id=self.component_id,
                                   page='update')
+            problems.append(problem)
+
+        # the URL has to be valid if provided
+        if self.details_url and not _is_valid_url(self.details_url):
+            problem = Problem('invalid-details-url',
+                              'The update details URL was provided but not valid')
+            problem.url = url_for('.component_show',
+                                  page='update',
+                                  component_id=self.component_id)
+            problems.append(problem)
+        if self.source_url and not _is_valid_url(self.source_url):
+            problem = Problem('invalid-source-url',
+                              'The release source URL was provided but not valid')
+            problem.url = url_for('.component_show',
+                                  page='update',
+                                  component_id=self.component_id)
             problems.append(problem)
 
         # the OEM doesn't manage this namespace
