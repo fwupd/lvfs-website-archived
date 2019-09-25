@@ -9,12 +9,12 @@
 
 import os
 import sys
+import argparse
 
 from lvfs.metadata import _generate_metadata_kind
 from lvfs.uploadedfile import UploadedFile
 
 def parse_args():
-    import argparse
     parser = argparse.ArgumentParser(description="Generate local metadata to use with fwupd")
     parser.add_argument("--archive-directory", default=".",
                         help="Local directory of CAB archives to scan")

@@ -6,7 +6,7 @@
 # SPDX-License-Identifier: GPL-2.0+
 #
 # pylint: disable=fixme,too-many-public-methods,line-too-long,too-many-lines
-# pylint: disable=too-many-instance-attributes,wrong-import-position
+# pylint: disable=too-many-instance-attributes,wrong-import-position,import-outside-toplevel
 
 import os
 import sys

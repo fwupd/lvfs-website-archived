@@ -93,6 +93,7 @@ class Plugin(PluginBase):
         # run chipsec
         cmd = self.get_setting('chipsec_binary', required=True)
         try:
+            # pylint: disable=unexpected-keyword-arg
             subprocess.check_output([cmd, '--no_driver', 'uefi', 'decode', src.name],
                                     stderr=subprocess.PIPE,
                                     cwd=cwd.name)
