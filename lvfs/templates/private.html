@@ -277,6 +277,9 @@
             <li class="nav-item {{'active' if request.url_rule.endpoint == 'docs_agreement'}}">
               <a class="nav-link" href="{{url_for('.docs_agreement')}}">Vendor Agreement</a>
             </li>
+            <li class="nav-item {{'active' if request.url_rule.endpoint == 'docs_archive'}}">
+              <a class="nav-link" href="{{url_for('.docs_archive')}}">Archive Formats</a>
+            </li>
             <li class="nav-item {{'active' if request.url_rule.endpoint == 'docs_metainfo' and page=='intro'}}">
               <a class="nav-link" href="{{url_for('.docs_metainfo')}}">MetaInfo Files</a>
             </li>

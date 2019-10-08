@@ -269,6 +269,10 @@ def docs_metainfo(page='intro'):
 def docs_composite():
     return render_template('docs-composite.html', category='documentation')
 
+@app.route('/lvfs/docs/archive')
+def docs_archive():
+    return render_template('docs-archive.html', category='documentation')
+
 @app.route('/lvfs/docs/telemetry')
 def docs_telemetry():
     return render_template('docs-telemetry.html', category='documentation')
