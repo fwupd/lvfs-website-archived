@@ -8,6 +8,8 @@
 # pylint: disable=no-self-use,no-member,too-few-public-methods
 
 import os
+import glob
+import yara
 
 from lvfs import db
 from lvfs.pluginloader import PluginBase, PluginError
@@ -15,34 +17,26 @@ from lvfs.pluginloader import PluginSettingBool, PluginSettingTextList
 from lvfs.models import Test
 
 def _run_on_blob(self, test, title, blob):
-
-    # find in a few different encodings
-    values = self.get_setting('blocklist_values', required=True).split(',')
-    for value in values:
-        try:
-            match, desc = value.rsplit('::', 2)
-        except ValueError:
-            desc = None
-            match = value
-        for encoding in ['utf8', 'utf_16_le', 'utf_16_be']:
-            offset = blob.find(match.encode(encoding))
-            if offset != -1:
-                if desc:
-                    test.add_fail(title, 'Found: {}: {}'.format(match, desc))
-                else:
-                    test.add_fail(title, 'Found: {}'.format(match))
-
-    return len(values)
+    matches = self.rules.match(data=blob)
+    for match in matches:
+        msg = '{} YARA test failed'.format(match.rule)
+        for string in match.strings:
+            if len(string) == 3:
+                msg += ': found {}'.format(string[2].decode())
+        if 'description' in match.meta:
+            msg += ': {}'.format(match.meta['description'])
+        test.add_fail(title, msg)
 
 class Plugin(PluginBase):
     def __init__(self, plugin_id=None):
         PluginBase.__init__(self, plugin_id)
+        self.rules = None
 
     def name(self):
         return 'Blocklist'
 
     def summary(self):
-        return 'Use a simple blocklist to check firmware for problems'
+        return 'Use YARA to check firmware for problems'
 
     def order_after(self):
         return ['chipsec', 'intelme']
@@ -50,9 +44,8 @@ class Plugin(PluginBase):
     def settings(self):
         s = []
         s.append(PluginSettingBool('blocklist_enabled', 'Enabled', True))
-        s.append(PluginSettingTextList('blocklist_values', 'Values',
-                                       ['DO NOT TRUST::IBV example certificate being used',
-                                        'DO NOT SHIP::IBV example certificate being used']))
+        s.append(PluginSettingTextList('blocklist_dirs', 'Rule Directories',
+                                       ['plugins/blocklist/rules']))
         return s
 
     def ensure_test_for_fw(self, fw):
@@ -65,19 +58,32 @@ class Plugin(PluginBase):
 
     def run_test_on_fw(self, test, fw):
 
+        # compile the list of rules
+        if not self.rules:
+            fns = []
+            for value in self.get_setting('blocklist_dirs', required=True).split(','):
+                fns.extend(glob.glob(os.path.join(value, '*.yar')))
+            if not fns:
+                test.add_pass('No YARA rules to use')
+                return
+            filepaths = {}
+            for fn in fns:
+                filepaths[os.path.basename(fn)] = fn
+            try:
+                self.rules = yara.compile(filepaths=filepaths)
+            except yara.SyntaxError as e:
+                test.add_fail('YARA', 'Failed to compile rules: {}'.format(str(e)))
+                return
+
         # run analysis on the component and any shards
-        cnt = 0
         for md in fw.mds:
             if md.blob:
-                cnt += _run_on_blob(self, test, md.filename_contents, md.blob)
+                _run_on_blob(self, test, md.filename_contents, md.blob)
             for shard in md.shards:
                 if shard.blob:
-                    cnt += _run_on_blob(self, test, shard.info.name, shard.blob)
-        if not cnt:
-            test.add_pass('No blobs to scan')
-            return
+                    _run_on_blob(self, test, shard.info.name, shard.blob)
 
-# run with PYTHONPATH=. ./.env3/bin/python3 plugins/blocklist/__init__.py
+# run with PYTHONPATH=. ./env/bin/python3 plugins/blocklist/__init__.py
 if __name__ == '__main__':
     import sys
     from lvfs.models import Firmware, Component

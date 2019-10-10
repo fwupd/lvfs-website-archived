@@ -210,7 +210,8 @@ class LvfsTestCase(unittest.TestCase):
         assert 'CRC: 0x85f035a8' in rv.data.decode('utf-8'), rv.data
         assert 'DFU Length: 0x10' in rv.data.decode('utf-8'), rv.data
         assert 'DFU Version: 0x0100' in rv.data.decode('utf-8'), rv.data
-        assert 'Found: DO NOT SHIP' in rv.data.decode('utf-8'), rv.data
+        assert 'IbvExampleCertificate' in rv.data.decode('utf-8'), rv.data.decode()
+        assert 'DO NOT SHIP' in rv.data.decode('utf-8'), rv.data.decode()
 
     def test_plugin_chipsec(self):
 
@@ -228,7 +229,7 @@ class LvfsTestCase(unittest.TestCase):
 
         # CHIPSEC -> Blocklist
         assert 'Found PFS in Zlib compressed blob' in rv.data.decode('utf-8'), rv.data
-        assert 'Found: DO NOT TRUST' in rv.data.decode('utf-8'), rv.data
+        assert 'IbvExampleCertificate' in rv.data.decode('utf-8'), rv.data.decode()
 
         # edit a shard description
         rv = self.app.get('/lvfs/shard/all')
@@ -255,8 +256,9 @@ class LvfsTestCase(unittest.TestCase):
         # UEFI Capsule
         assert 'CapsuleImageSize: 0x78' in rv.data.decode('utf-8'), rv.data
         assert 'GUID: cc4cbfa9-bf9d-540b-b92b-172ce31013c1' in rv.data.decode('utf-8'), rv.data
-        assert 'Found: DO NOT SHIP' in rv.data.decode('utf-8'), rv.data
-        assert 'Found $MN2' in rv.data.decode('utf-8'), rv.data
+        assert 'IbvExampleCertificate' in rv.data.decode('utf-8')
+        assert 'DO NOT SHIP' in rv.data.decode('utf-8'), rv.data.decode()
+        assert 'Found $MN2' in rv.data.decode('utf-8'), rv.data.decode()
 
     def test_upload_invalid(self):
 
