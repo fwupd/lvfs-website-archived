@@ -141,7 +141,7 @@ class UploadedFile:
         self.is_strict = is_strict
         self.enable_inf_parsing = True
         self.fwupd_min_version = '0.8.0'    # a guess, but everyone should have this
-        self.version_formats = ['plain', 'pair', 'triplet', 'quad', 'intel-me', 'intel-me2']
+        self.version_formats = ['plain', 'pair', 'triplet', 'quad', 'intel-me', 'intel-me2', 'bcd']
         self.category_map = {'X-Device' : 1}
         self.protocol_map = {}
 

@@ -1457,6 +1457,8 @@ class Component(db.Model):
                                         (v & 0x0f000000) >> 24,
                                         (v & 0x00ff0000) >> 16,
                                         v &  0x0000ffff)
+            if version_format == 'bcd':
+                return '%i.%i' % ((v & 0xf0) >> 4, v & 0x0f)
         return self.version
 
     @property
