@@ -11,6 +11,7 @@ import os
 import sys
 import hashlib
 import datetime
+import yara
 
 from flask import render_template
 
@@ -19,7 +20,7 @@ from cabarchive import CabArchive
 from lvfs import app, db, ploader
 from lvfs.dbutils import _execute_count_star
 from lvfs.emails import send_email
-from lvfs.models import Remote, Firmware, Vendor, Client, AnalyticVendor, User
+from lvfs.models import Remote, Firmware, Vendor, Client, AnalyticVendor, User, YaraQuery, YaraQueryResult
 from lvfs.models import AnalyticFirmware, Useragent, UseragentKind, Analytic, Report
 from lvfs.models import ComponentShardInfo, Test, Component, Category, Protocol, FirmwareEvent
 from lvfs.models import _get_datestr_from_datetime
@@ -205,6 +206,48 @@ def _purge_old_deleted_firmware():
 def _test_priority_sort_func(test):
     plugin = ploader.get_by_id(test.plugin_id)
     return plugin.priority
+
+def _yara_query_shard(query, shard):
+    if not shard.blob:
+        return
+    matches = query.rules.match(data=shard.blob)
+    for match in matches:
+        msg = '{} failed'.format(match.rule)
+        for string in match.strings:
+            if len(string) == 3:
+                msg += ': found {}'.format(string[2].decode())
+        query.results.append(YaraQueryResult(shard=shard, result=msg))
+
+def _yara_query_all():
+
+    # get all pending queries
+    pending = db.session.query(YaraQuery).\
+                    filter(YaraQuery.started_ts == None).\
+                    filter(YaraQuery.error == None)
+    if not pending:
+        return
+
+    # get all stable firmware
+    firmware = db.session.query(Firmware).\
+                    join(Remote).filter(Remote.name == 'stable').all()
+    for query in pending:
+        print('processing query {}: {}...'.format(query.yara_query_id, query.title))
+        try:
+            query.rules = yara.compile(source=query.value)
+        except yara.SyntaxError as e:
+            query.error = 'Failed to compile rules: {}'.format(str(e))
+            db.session.commit()
+            continue
+        query.started_ts = datetime.datetime.utcnow()
+        db.session.commit()
+        for fw in firmware:
+            for md in fw.mds:
+                for shard in md.shards:
+                    _yara_query_shard(query, shard)
+                query.total += len(md.shards)
+        query.found = len(query.results)
+        query.ended_ts = datetime.datetime.utcnow()
+        db.session.commit()
 
 def _check_firmware():
 
@@ -502,6 +545,7 @@ if __name__ == '__main__':
         try:
             with app.test_request_context():
                 _check_firmware()
+                _yara_query_all()
         except NotImplementedError as e:
             print(str(e))
             sys.exit(1)

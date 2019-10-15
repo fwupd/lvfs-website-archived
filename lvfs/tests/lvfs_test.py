@@ -138,7 +138,8 @@ class LvfsTestCase(unittest.TestCase):
 
     def add_user(self, username='testuser@fwupd.org', group_id='testgroup',
                  password='Pa$$w0rd', is_qa=False, is_analyst=False,
-                 is_vendor_manager=False, is_approved_public=False, is_robot=False):
+                 is_vendor_manager=False, is_approved_public=False, is_robot=False,
+                 is_researcher=False):
         rv = self._add_user(username, group_id, password)
         assert b'Added user' in rv.data, rv.data
         user_id_idx = rv.data.decode('utf-8').find('Added user ')
@@ -153,6 +154,8 @@ class LvfsTestCase(unittest.TestCase):
                 data['is_analyst'] = '1'
             if is_vendor_manager:
                 data['is_vendor_manager'] = '1'
+            if is_researcher:
+                data['is_researcher'] = '1'
             if is_approved_public:
                 data['is_approved_public'] = '1'
             if is_robot:
@@ -621,10 +624,11 @@ class LvfsTestCase(unittest.TestCase):
     def run_cron_fwchecks():
 
         from lvfs import app
-        from cron import _check_firmware
+        from cron import _check_firmware, _yara_query_all
         with app.test_request_context():
             with io.StringIO() as buf, redirect_stdout(buf):
                 _check_firmware()
+                _yara_query_all()
 
     def test_cron_metadata(self):
 
@@ -2197,6 +2201,53 @@ ma+I7fM5pmgsEL4tkCZAg0+CPTyhHkMV/cWuOZUjqTsYbDq1pZI=
 
         # try to log in with the new password
         self.login('testuser@fwupd.org', password=password)
+
+    def test_yara_query(self):
+
+        yara_rule = """
+rule AMITestKey
+{
+    condition:
+        true
+}
+"""
+
+        # upload a file
+        self.login()
+        self.add_namespace()
+        self.upload()
+
+        # create a new query
+        self.login()
+        rv = self.app.post('/lvfs/query/add', data=dict(value=yara_rule),
+                           follow_redirects=True)
+        assert b'added and will be run soon' in rv.data, rv.data.decode()
+
+        # add duplicate
+        rv = self.app.post('/lvfs/query/add', data=dict(value=yara_rule),
+                           follow_redirects=True)
+        assert b'Already a query' in rv.data, rv.data.decode()
+
+        rv = self.app.get('/lvfs/query/list', follow_redirects=True)
+        assert b'AMITestKey' in rv.data, rv.data.decode()
+
+        rv = self.app.get('/lvfs/query/1', follow_redirects=True)
+        assert b'AMITestKey' in rv.data, rv.data.decode()
+
+        self.run_cron_fwchecks()
+
+        rv = self.app.get('/lvfs/query/list', follow_redirects=True)
+        assert b'0 out of 0' in rv.data, rv.data.decode()
+        assert b'Retry' in rv.data, rv.data.decode()
+
+        rv = self.app.get('/lvfs/query/1/retry', follow_redirects=True)
+        assert b'will be rerun soon' in rv.data, rv.data.decode()
+
+        rv = self.app.get('/lvfs/query/1/delete', follow_redirects=True)
+        assert b'Deleted YARA query' in rv.data, rv.data.decode()
+
+        rv = self.app.get('/lvfs/query/1', follow_redirects=True)
+        assert b'No YARA query found' in rv.data, rv.data.decode()
 
 if __name__ == '__main__':
     unittest.main()

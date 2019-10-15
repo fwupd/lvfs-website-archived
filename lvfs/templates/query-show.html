@@ -1,0 +1,43 @@
+{% extends "default.html" %}
+{% block title %}User YARA Queries{% endblock %}
+
+{% block nav %}{% include 'query-nav.html' %}{% endblock %}
+
+{% block content %}
+
+<div class="card">
+  <div class="card-body">
+    <pre class="mb-3">{{query.value}}</pre>
+    <a class="card-link btn btn-info"
+       href="{{url_for('.query_retry', yara_query_id=query.yara_query_id)}}"
+       role="button">Retry</a>
+  </div>
+</div>
+
+{% if query.results|length == 0 %}
+<div class="card mt-3">
+  <div class="card-body">
+  <p class="card-text">
+    No matching shards.
+  </p>
+  </div>
+</div>
+{% endif %}
+
+{% for result in query.results %}
+<div class="card mt-3">
+  <div class="card-header card-title list-group-item-{{query.color}}">
+    {{result.shard.md.name_with_category}}: {{result.result}}
+  </div>
+  <div class="card-body">
+    <p>Name: {{result.shard.info.name}}</p>
+    <p>GUID: {{result.shard.info.guid}}</p>
+{% if result.shard.checksum %}
+    <a class="card-link btn btn-info" href="{{url_for('.firmware_shard_search', kind='checksum', value=result.shard.checksum)}}">Show all</a>
+{% endif %}
+  </div>
+</div>
+{% endfor %}
+
+{% endblock %}
+

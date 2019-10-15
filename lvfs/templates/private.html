@@ -85,6 +85,11 @@
               <a class="nav-link" href="{{url_for('.issue_all')}}">Known Issues</a>
             </li>
 {% endif %}
+{% if g.user.check_acl('@yara-query') %}
+            <li class="nav-item {{'active' if request.url_rule.endpoint.startswith('query_')}}">
+              <a class="nav-link" href="{{url_for('.query_new')}}">YARA Queries</a>
+            </li>
+{% endif %}
             <li class="nav-item {{'active' if request.url_rule.endpoint == 'metadata_view'}}">
               <a class="nav-link" href="{{url_for('.metadata_view')}}">Metadata</a>
             </li>

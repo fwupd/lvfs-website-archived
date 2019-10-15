@@ -22,6 +22,9 @@
 {% if u.is_vendor_manager %}
   <input type="hidden" name="is_vendor_manager" value="1">
 {% endif %}
+{% if u.is_researcher %}
+  <input type="hidden" name="is_researcher" value="1">
+{% endif %}
 {% if u.is_approved_public %}
   <input type="hidden" name="is_approved_public" value="1">
 {% endif %}

@@ -15,6 +15,8 @@ You can now:
  * Add, remove and modify users in the {{user.vendor.group_id}} group
 {% endif %}{% if user.is_approved_public %}
  * Move firmware to the public testing and stable remotes
+{% endif %}{% if user.is_researcher %}
+ * Create YARA rules to run on public firmware
 {% endif %}
 {% if user.auth_type == 'oauth' %}You can access the LVFS by clicking the 'Login' button then using the 'Log in with Azure AD' option.{% endif %}
 You may need to log out and back in before these changes will be applied:

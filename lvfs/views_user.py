@@ -1,7 +1,7 @@
 #!/usr/bin/python3
 # -*- coding: utf-8 -*-
 #
-# Copyright (C) 2017 Richard Hughes <richard@hughsie.com>
+# Copyright (C) 2017-2019 Richard Hughes <richard@hughsie.com>
 #
 # SPDX-License-Identifier: GPL-2.0+
 
@@ -299,6 +299,10 @@ def user_modify_by_admin(user_id):
         if not g.user.check_acl('@add-attribute-manager'):
             flash('Permission denied: Unable to promote user to manager', 'danger')
             return redirect(url_for('.dashboard'))
+    if not user.is_researcher and 'is_researcher' in request.form:
+        if not g.user.check_acl('@add-attribute-researcher'):
+            flash('Permission denied: Unable to promote user to researcher', 'danger')
+            return redirect(url_for('.dashboard'))
     if not user.is_analyst and 'is_analyst' in request.form:
         if not g.user.check_acl('@add-attribute-analyst'):
             flash('Permission denied: Unable to promote user to analyst', 'danger')
@@ -343,7 +347,7 @@ def user_modify_by_admin(user_id):
             user.human_user_id = None
 
     # unchecked checkbuttons are not included in the form data
-    for key in ['is_qa', 'is_analyst', 'is_vendor_manager',
+    for key in ['is_qa', 'is_analyst', 'is_vendor_manager', 'is_researcher',
                 'is_approved_public', 'is_robot', 'is_admin',
                 'is_otp_enabled', 'notify_demote_failures',
                 'notify_server_error']:
@@ -678,3 +682,23 @@ def user_admin(user_id, page='admin'):
             if v.is_account_holder:
                 vendors.append(v)
     return render_template('user-%s.html' % page, page=page, u=user, possible_vendors=vendors)
+
+@app.route('/lvfs/user/<int:user_id>/queries')
+@login_required
+def user_queries(user_id=None):
+
+    if not user_id:
+        user_id = g.user.user_id
+
+    # check exists
+    user = db.session.query(User).filter(User.user_id == user_id).first()
+    if not user:
+        flash('No user found', 'danger')
+        return redirect(url_for('.user_list'), 422)
+
+    # security check
+    if not user.vendor.check_acl('@admin'):
+        flash('Permission denied: Unable to run queries', 'danger')
+        return redirect(url_for('.dashboard'))
+
+    return render_template('user-queries.html', page='queries', u=user)

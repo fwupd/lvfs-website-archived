@@ -117,6 +117,14 @@
           </label>
         </span>
 {% endif %}
+{% if g.user.check_acl('@add-attribute-manager') %}
+        <span class="switch mt-3 mb-3">
+          <input class="switch mt-3" type="checkbox" name="is_researcher" id="is_researcher" value="1" {{'checked' if u.is_researcher}}>
+          <label for="is_researcher">
+            Allowed to create YARA rules that can be run on <strong>public</strong> firmware
+          </label>
+        </span>
+{% endif %}
 {% if g.user.check_acl('@add-attribute-approved') %}
         <span class="switch mt-3">
           <input class="switch" type="checkbox" name="is_approved_public" id="is_approved_public" value="1" {{'checked' if u.is_approved_public}}>

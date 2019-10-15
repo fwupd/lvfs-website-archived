@@ -145,6 +145,7 @@ class User(db.Model):
     is_vendor_manager = Column(Boolean, default=False)
     is_approved_public = Column(Boolean, default=False)
     is_admin = Column(Boolean, default=False)
+    is_researcher = Column(Boolean, default=False)
     is_otp_enabled = Column(Boolean, default=False)
     is_otp_working = Column(Boolean, default=False)
     agreement_id = Column(Integer, ForeignKey('agreements.agreement_id'))
@@ -171,6 +172,9 @@ class User(db.Model):
                           order_by="desc(Event.timestamp)",
                           lazy='dynamic',
                           cascade='all,delete-orphan')
+    queries = relationship("YaraQuery",
+                           order_by="desc(YaraQuery.ctime)",
+                           cascade='all,delete-orphan')
     certificates = relationship("Certificate",
                                 order_by="desc(Certificate.ctime)",
                                 cascade='all,delete-orphan')
@@ -264,6 +268,12 @@ class User(db.Model):
             if self.auth_type == 'local':
                 return True
             return False
+        if action == '@yara-query':
+            return self.is_researcher
+        if action == '@add-attribute-researcher':
+            if not self.vendor.check_acl('@manage-users'):
+                return False
+            return self.is_researcher
         if action == '@add-attribute-manager':
             if not self.vendor.check_acl('@manage-users'):
                 return False
@@ -326,6 +336,87 @@ class User(db.Model):
 
     def __repr__(self):
         return "User object %s" % self.username
+
+class YaraQueryResult(db.Model):
+
+    # database
+    __tablename__ = 'yara_query_result'
+    __table_args__ = {'mysql_character_set': 'utf8mb4'}
+
+    yara_query_result_id = Column(Integer, primary_key=True, unique=True, nullable=False)
+    yara_query_id = Column(Integer, ForeignKey('yara_query.yara_query_id'), nullable=False)
+    component_shard_id = Column(Integer, ForeignKey('component_shards.component_shard_id'), nullable=False)
+    result = Column(Text, default=None)
+
+    query = relationship('YaraQuery', foreign_keys=[yara_query_id])
+    shard = relationship('ComponentShard', foreign_keys=[component_shard_id])
+
+    def __repr__(self):
+        return "<YaraQueryResult {}>".format(self.yara_query_result_id)
+
+class YaraQuery(db.Model):
+
+    # sqlalchemy metadata
+    __tablename__ = 'yara_query'
+    __table_args__ = {'mysql_character_set': 'utf8mb4'}
+
+    yara_query_id = Column(Integer, primary_key=True, nullable=False, unique=True)
+    user_id = Column(Integer, ForeignKey('users.user_id'), nullable=False)
+    value = Column(Text, default=None)
+    error = Column(Text, default=None)
+    found = Column(Integer, default=0)
+    total = Column(Integer, default=0)
+    ctime = Column(DateTime, nullable=False, default=datetime.datetime.utcnow)
+    started_ts = Column(DateTime, default=None)
+    ended_ts = Column(DateTime, default=None)
+
+    user = relationship('User', foreign_keys=[user_id])
+    results = relationship("YaraQueryResult", cascade='all,delete-orphan')
+
+    @property
+    def color(self):
+        if self.found and self.total:
+            return 'warning'
+        if self.total:
+            return 'success'
+        return 'info'
+
+    @property
+    def title(self):
+        for line in self.value.split('\n'):
+            if line.startswith('rule '):
+                return line[5:]
+        return None
+
+    def check_acl(self, action, user=None):
+
+        # fall back
+        if not user:
+            user = g.user
+        if user.is_admin:
+            return True
+
+        # depends on the action requested
+        if action == '@modify':
+            if user.user_id == self.user_id:
+                return True
+            return False
+        if action == '@delete':
+            if user.user_id == self.user_id:
+                return True
+            return False
+        if action == '@retry':
+            if user.user_id == self.user_id:
+                return True
+            return False
+        if action == '@show':
+            if user.user_id == self.user_id:
+                return True
+            return False
+        raise NotImplementedError('unknown security check action: %s:%s' % (self, action))
+
+    def __repr__(self):
+        return "<YaraQuery {}>".format(self.yara_query_id)
 
 class Restriction(db.Model):
 
