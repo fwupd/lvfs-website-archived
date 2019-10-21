@@ -92,7 +92,9 @@
     <td class="col-7">
       <select class="form-control" name="protocol_id">
 {% for pr in protocols %}
+{% if pr.is_public %}
         <option value="{{pr.protocol_id}}" {{ 'selected' if md.protocol and md.protocol.value == pr.value }}>{{ pr.name if pr.name else pr.value}}</option>
+{% endif %}
 {% endfor %}
       </select>
     </td>

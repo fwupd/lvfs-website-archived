@@ -627,6 +627,7 @@ class Vendor(db.Model):
         return db.session.query(Protocol).join(Component).\
                     join(Firmware).filter(Firmware.vendor_id == self.vendor_id).\
                     join(Remote).filter(Remote.name == 'stable').\
+                    order_by(Protocol.name.asc()).\
                     all()
 
     @property

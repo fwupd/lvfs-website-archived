@@ -243,8 +243,8 @@ def component_show(component_id, page='overview'):
     if page == 'requires' and md.has_complex_requirements:
         page = 'requires-advanced'
 
-    protocols = db.session.query(Protocol).order_by(Protocol.protocol_id.asc()).all()
-    categories = db.session.query(Category).order_by(Category.category_id.asc()).all()
+    protocols = db.session.query(Protocol).order_by(Protocol.name.asc()).all()
+    categories = db.session.query(Category).order_by(Category.name.asc()).all()
     return render_template('component-' + page + '.html',
                            category='firmware',
                            protocols=protocols,

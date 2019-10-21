@@ -20,7 +20,7 @@ from .util import admin_login_required
 def protocol_all():
 
     # only show protocols with the correct group_id
-    protocols = db.session.query(Protocol).order_by(Protocol.protocol_id.asc()).all()
+    protocols = db.session.query(Protocol).order_by(Protocol.name.asc()).all()
     return render_template('protocol-list.html',
                            category='admin',
                            protocols=protocols)
