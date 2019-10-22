@@ -1,11 +1,8 @@
-/*
- * Copyright (C) 2019 Richard Hughes <richard@hughsie.com>
- *
- * SPDX-License-Identifier: GPL-2.0+
- */
 rule IbvExampleCertificate
 {
     meta:
+        author = "Richard Hughes <richard@hughsie.com>"
+        license = "GPL-2.0+"
         description = "IBV example certificate being used"
         waivable = false
 
@@ -14,5 +11,5 @@ rule IbvExampleCertificate
         $str2 = "DO NOT SHIP" nocase wide ascii
 
     condition:
-       $str1 or $str2
+       any of them
 }

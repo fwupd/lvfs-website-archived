@@ -1,11 +1,8 @@
-/*
- * Copyright (C) 2019 Richard Hughes <richard@hughsie.com>
- *
- * SPDX-License-Identifier: GPL-2.0+
- */
 rule IbvExampleDmi
 {
     meta:
+        author = "Richard Hughes <richard@hughsie.com>"
+        license = "GPL-2.0+"
         description = "IBV example DMI being used"
         waivable = true
 
@@ -13,5 +10,5 @@ rule IbvExampleDmi
         $str1 = "To Be Defined By O.E.M" nocase wide ascii
 
     condition:
-       $str1
+       any of them
 }
