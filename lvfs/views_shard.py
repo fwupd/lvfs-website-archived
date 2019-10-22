@@ -5,12 +5,12 @@
 #
 # SPDX-License-Identifier: GPL-2.0+
 
-from flask import request, url_for, redirect, flash, render_template
+from flask import request, url_for, redirect, flash, render_template, make_response
 from flask_login import login_required
 
 from lvfs import app, db
 
-from .models import ComponentShardInfo
+from .models import ComponentShard, ComponentShardInfo
 from .util import admin_login_required
 
 @app.route('/lvfs/shard/all')
@@ -62,3 +62,25 @@ def shard_details(component_shard_info_id):
     return render_template('shard-details.html',
                            category='admin',
                            shard=shard)
+
+@app.route('/lvfs/shard/<int:component_shard_id>/download')
+@login_required
+@admin_login_required
+def shard_download(component_shard_id):
+
+    # find shard
+    shard = db.session.query(ComponentShard).\
+            filter(ComponentShard.component_shard_id == component_shard_id).first()
+    if not shard:
+        flash('No shard found', 'info')
+        return redirect(url_for('.shard_all'))
+    if not shard.md.fw.check_acl('@view'):
+        flash('Permission denied: Unable to download shard', 'danger')
+        return redirect(url_for('.dashboard'))
+    if not shard.blob:
+        flash('Permission denied: Shard has no data', 'warning')
+        return redirect(url_for('.dashboard'))
+    response = make_response(shard.blob)
+    response.headers.set('Content-Type', 'application/octet-stream')
+    response.headers.set('Content-Disposition', 'attachment', filename=shard.info.guid)
+    return response

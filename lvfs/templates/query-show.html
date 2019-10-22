@@ -30,9 +30,42 @@
     {{result.shard.md.name_with_category}}: {{result.result}}
   </div>
   <div class="card-body">
-    <p>Name: {{result.shard.info.name}}</p>
-    <p>GUID: {{result.shard.info.guid}}</p>
-{% if result.shard.checksum %}
+
+{% set shard = result.shard %}
+      <table class="table table-borderless">
+{% if shard.info %}
+        <tr class="row">
+          <th class="col-2">Name</th>
+          <td class="col">{{shard.info.name}}</td>
+        </tr>
+{% endif %}
+{% if shard.size %}
+        <tr class="row">
+          <th class="col-2">Size</th>
+          <td class="col">{{format_size(shard.size)}}</td>
+        </tr>
+{% endif %}
+{% if shard.entropy %}
+        <tr class="row">
+          <th class="col-2">Entropy</th>
+          <td class="col">{{shard.entropy|round(2)}}</td>
+        </tr>
+{% endif %}
+        <tr class="row">
+          <th class="col-2">GUID</th>
+          <td class="col"><code>{{shard.info.guid}}</code></td>
+        </tr>
+{% for csum in shard.checksums %}
+        <tr class="row">
+          <th class="col-2">{{csum.kind}}</th>
+          <td class="col text-truncate"><code>{{csum.value}}</code></td>
+        </tr>
+{% endfor %}
+      </table>
+{% if shard.blob %}
+    <a class="card-link btn btn-info" href="{{url_for('.shard_download', component_shard_id=shard.component_shard_id)}}">Download File</a>
+{% endif %}
+{% if shard.checksum %}
     <a class="card-link btn btn-info" href="{{url_for('.firmware_shard_search', kind='checksum', value=result.shard.checksum)}}">Show all</a>
 {% endif %}
   </div>
