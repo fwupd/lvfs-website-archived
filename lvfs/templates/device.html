@@ -99,10 +99,14 @@
       <ul class="list-group">
 {% for attr in fw.security_claim.attrs|sort() %}
         <li class="list-group-item">
-{% if not attr.startswith('no') %}
-          <span class="fas fa-check-circle fs-2 text-success"></span>
-{% else %}
+{% if attr.startswith('danger-') %}
           <span class="fas fa-times-circle fs-2 text-danger"></span>
+{% elif attr.startswith('warning-') %}
+          <span class="fas fa-times-circle fs-2 text-warning"></span>
+{% elif attr.startswith('info-') %}
+          <span class="fas fa-info-circle fs-2 text-info"></span>
+{% else %}
+          <span class="fas fa-check-circle fs-2 text-success"></span>
 {% endif %}
           {{fw.security_claim.attrs[attr]}}
         </li>

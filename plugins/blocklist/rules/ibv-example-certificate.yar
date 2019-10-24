@@ -4,7 +4,7 @@ rule IbvExampleCertificate
         author = "Richard Hughes <richard@hughsie.com>"
         license = "GPL-2.0+"
         description = "IBV example certificate being used"
-        waivable = false
+        fail = true
 
     strings:
         $str1 = "DO NOT TRUST" nocase wide ascii

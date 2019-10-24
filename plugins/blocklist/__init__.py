@@ -16,19 +16,23 @@ from lvfs.pluginloader import PluginBase, PluginError
 from lvfs.pluginloader import PluginSettingBool, PluginSettingTextList
 from lvfs.models import Test
 
-def _run_on_blob(self, test, title, blob):
+def _run_on_blob(self, test, md, title, blob):
     matches = self.rules.match(data=blob)
     for match in matches:
-        msg = '{} YARA test failed'.format(match.rule)
-        for string in match.strings:
-            if len(string) == 3:
-                try:
-                    msg += ': found {}'.format(string[2].decode())
-                except UnicodeDecodeError as _:
-                    pass
-        if 'description' in match.meta:
-            msg += ': {}'.format(match.meta['description'])
-        test.add_fail(title, msg)
+
+        if 'fail' not in match.meta or match.meta['fail']:
+            msg = '{} YARA test failed'.format(match.rule)
+            for string in match.strings:
+                if len(string) == 3:
+                    try:
+                        msg += ': found {}'.format(string[2].decode())
+                    except UnicodeDecodeError as _:
+                        pass
+            if 'description' in match.meta:
+                msg += ': {}'.format(match.meta['description'])
+            test.add_fail(title, msg)
+        elif 'claim' in match.meta and 'description' in match.meta:
+            md.add_claim(match.meta['claim'], match.meta['description'])
 
 class Plugin(PluginBase):
     def __init__(self, plugin_id=None):
@@ -81,10 +85,10 @@ class Plugin(PluginBase):
         # run analysis on the component and any shards
         for md in fw.mds:
             if md.blob:
-                _run_on_blob(self, test, md.filename_contents, md.blob)
+                _run_on_blob(self, test, md, md.filename_contents, md.blob)
             for shard in md.shards:
                 if shard.blob:
-                    _run_on_blob(self, test, shard.info.name, shard.blob)
+                    _run_on_blob(self, test, md, shard.info.name, shard.blob)
 
 # run with PYTHONPATH=. ./env/bin/python3 plugins/blocklist/__init__.py
 if __name__ == '__main__':

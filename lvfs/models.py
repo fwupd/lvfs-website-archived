@@ -51,9 +51,9 @@ class SecurityClaim:
 
     @property
     def rating(self):
-        if 'signed-firmware' in self.attrs and 'device-checksum' in self.attrs:
+        if 'success-signed-firmware' in self.attrs and 'success-device-checksum' in self.attrs:
             return 2
-        if 'signed-firmware' in self.attrs:
+        if 'success-signed-firmware' in self.attrs:
             return 1
         return 0
 
@@ -1352,6 +1352,23 @@ def _is_valid_url(url):
         return False
     return True
 
+class ComponentClaim(db.Model):
+
+    # sqlalchemy metadata
+    __tablename__ = 'component_claims'
+    __table_args__ = {'mysql_character_set': 'utf8mb4'}
+
+    component_claim_id = Column(Integer, primary_key=True, unique=True, nullable=False, index=True)
+    component_id = Column(Integer, ForeignKey('components.component_id'), nullable=False)
+    kind = Column(Text, nullable=False)
+    value = Column(Text, nullable=False)
+
+    # link back to parent
+    md = relationship("Component", back_populates="claims")
+
+    def __repr__(self):
+        return '<ComponentClaim {}>'.format(self.value)
+
 class Component(db.Model):
 
     # sqlalchemy metadata
@@ -1396,6 +1413,9 @@ class Component(db.Model):
                                 back_populates="md",
                                 cascade='all,delete-orphan')
     issues = relationship('ComponentIssue',
+                          back_populates='md',
+                          cascade='all,delete-orphan')
+    claims = relationship('ComponentClaim',
                           back_populates='md',
                           cascade='all,delete-orphan')
     issue_values = association_proxy('issues', 'value')
@@ -1506,15 +1526,17 @@ class Component(db.Model):
             sc = self.protocol.security_claim
             if self.protocol.can_verify and self.category and self.category.expect_device_checksum:
                 if self.device_checksums:
-                    sc.add_attr('device-checksum', 'Firmware has attestation checksums')
+                    sc.add_attr('success-device-checksum', 'Firmware has attestation checksums')
                 else:
-                    sc.add_attr('no-device-checksum', 'Firmware has no attestation checksums')
+                    sc.add_attr('warning-device-checksum', 'Firmware has no attestation checksums')
         if not sc:
             sc = SecurityClaim()
+        for claim in self.claims:
+            sc.add_attr(claim.kind, claim.value)
         if self.checksum_contents:
-            sc.add_attr('contents-checksum', 'Added to the LVFS by %s' % self.fw.vendor.display_name)
+            sc.add_attr('success-contents-checksum', 'Added to the LVFS by %s' % self.fw.vendor.display_name)
         if self.source_url:
-            sc.add_attr('source-url', 'Source code available')
+            sc.add_attr('success-source-url', 'Source code available')
         return sc
 
     @property
@@ -1708,6 +1730,12 @@ class Component(db.Model):
                 continue
             return rq
         return None
+
+    def add_claim(self, kind, value):
+        for claim in self.claims:
+            if claim.kind == kind:
+                return
+        self.claims.append(ComponentClaim(kind=kind, value=value))
 
     def check_acl(self, action, user=None):
 
@@ -2024,9 +2052,9 @@ class Firmware(db.Model):
         test = self.find_test_by_plugin_id('clamav')
         if test and test.ended_ts:
             if test.success:
-                sc_lowest.add_attr('virus-safe', 'Virus checked using ClamAV')
+                sc_lowest.add_attr('success-virus-safe', 'Virus checked using ClamAV')
             else:
-                sc_lowest.add_attr('no-virus-safe', 'Virus check using ClamAV failed')
+                sc_lowest.add_attr('danger-virus-safe', 'Virus check using ClamAV failed')
 
         return sc_lowest
 
@@ -2611,13 +2639,13 @@ class Protocol(db.Model):
     def security_claim(self):
         sc = SecurityClaim()
         if self.is_signed:
-            sc.add_attr('signed-firmware', 'Update is cryptographically signed')
+            sc.add_attr('success-signed-firmware', 'Update is cryptographically signed')
         else:
-            sc.add_attr('no-signed-firmware', 'Update is not cryptographically signed')
+            sc.add_attr('warning-signed-firmware', 'Update is not cryptographically signed')
         if self.can_verify:
-            sc.add_attr('verify-firmware', 'Firmware can be verified after flashing')
+            sc.add_attr('success-verify-firmware', 'Firmware can be verified after flashing')
         else:
-            sc.add_attr('no-verify-firmware', 'Firmware cannot be verified after flashing')
+            sc.add_attr('warning-verify-firmware', 'Firmware cannot be verified after flashing')
         return sc
 
     def __init__(self, value, name=None, is_signed=False, can_verify=False, is_public=True, has_header=False):
