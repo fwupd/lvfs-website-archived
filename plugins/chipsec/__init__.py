@@ -5,7 +5,7 @@
 #
 # SPDX-License-Identifier: GPL-2.0+
 #
-# pylint: disable=no-self-use
+# pylint: disable=no-self-use,too-few-public-methods
 
 import tempfile
 import glob
@@ -13,10 +13,99 @@ import os
 import re
 import subprocess
 import zlib
+import uuid
+import struct
+from collections import namedtuple
 
 from lvfs import db
 from lvfs.pluginloader import PluginBase, PluginError, PluginSettingBool, PluginSettingText, PluginSettingInteger
 from lvfs.models import Test, ComponentShard
+
+class PfsFile:
+
+    PFS_HEADER = '<8sII'
+    PFS_FOOTER = '<II8s'
+    PFS_SECTION = '<16sI4s8sQIIII16x'
+    PFS_INFO = '<I16sHHHH4sH'
+
+    def __init__(self, blob=None):
+        self.shards = []
+        self._names = {}
+        if blob:
+            self.parse(blob)
+
+    def _parse_model(self, blob):
+        pass
+
+    def _parse_info(self, blob):
+        off = 0
+        while off < len(blob):
+            nt = namedtuple('PfsInfoSection',
+                            ['hdr_ver', 'guid', 'ver1', 'ver2', 'ver3', 'ver4', 'ver_type', 'charcnt'])
+            try:
+                pfs_info = nt._make(struct.unpack_from(PfsFile.PFS_INFO, blob, off))
+            except struct.error as e:
+                raise RuntimeError(str(e))
+            if pfs_info.hdr_ver != 1:
+                raise RuntimeError('PFS info version %i unsupported' % pfs_info.hdr_ver)
+            guid = str(uuid.UUID(bytes_le=pfs_info.guid))
+            off += struct.calcsize(PfsFile.PFS_INFO)
+            self._names[guid] = blob[off:off+pfs_info.charcnt*2].decode("utf-16-le")
+            off += pfs_info.charcnt*2 + 2
+
+    def parse(self, blob):
+
+        # sanity check
+        nt = namedtuple('PfsHeaderTuple', ['tag', 'hdr_ver', 'payload_size'])
+        try:
+            pfs_hdr = nt._make(struct.unpack_from(PfsFile.PFS_HEADER, blob, 0x0))
+        except struct.error as e:
+            raise RuntimeError(str(e))
+        if pfs_hdr.tag != b'PFS.HDR.':
+            raise RuntimeError('Not a PFS header')
+        if pfs_hdr.hdr_ver != 1:
+            raise RuntimeError('PFS header version %i unsupported' % pfs_hdr.hdr_ver)
+
+        # parse sections
+        offset = struct.calcsize(PfsFile.PFS_HEADER)
+        while offset < len(blob) - struct.calcsize(PfsFile.PFS_FOOTER):
+
+            # parse the section
+            nt = namedtuple('PfsHeaderSection',
+                            ['guid', 'hdr_ver', 'ver_type',
+                             'version', 'reserved', 'data_sz', 'data_sig_sz',
+                             'metadata_sz', 'metadata_sig_sz'])
+            try:
+                pfs_sect = nt._make(struct.unpack_from(PfsFile.PFS_SECTION, blob, offset))
+            except struct.error as e:
+                raise RuntimeError(str(e))
+            if pfs_sect.hdr_ver != 1:
+                raise RuntimeError('PFS section version %i unsupported' % pfs_hdr.hdr_ver)
+            offset += struct.calcsize(PfsFile.PFS_SECTION)
+
+            # parse the data and ignore the rest
+            shard = ComponentShard()
+            shard.set_blob(blob[offset:offset+pfs_sect.data_sz])
+            shard.guid = str(uuid.UUID(bytes_le=pfs_sect.guid))
+            if shard.guid == 'fd041960-0dc8-4b9f-8225-bba9e37c71e0':
+                self._parse_info(shard.blob)
+            elif shard.guid == '233ae3fb-da68-4fd4-92cb-a6229a611d6f':
+                self._parse_model(shard.blob)
+            else:
+                self.shards.append(shard)
+
+            # advance to the next section
+            offset += pfs_sect.data_sz
+            offset += pfs_sect.data_sig_sz
+            offset += pfs_sect.metadata_sz
+            offset += pfs_sect.metadata_sig_sz
+
+        # the INFO structure is typically last, so fix up added shards
+        for shard in self.shards:
+            if shard.guid in self._names:
+                shard.name = 'com.dell.' + self._names[shard.guid].replace(' ', '')
+            else:
+                shard.name = 'com.dell.' + shard.guid
 
 class Plugin(PluginBase):
     def __init__(self, plugin_id=None):
@@ -34,7 +123,7 @@ class Plugin(PluginBase):
         s.append(PluginSettingBool('chipsec_write_shards', 'Write shards to disk', True))
         s.append(PluginSettingText('chipsec_binary', 'CHIPSEC executable', 'chipsec_util'))
         s.append(PluginSettingInteger('chipsec_size_min', 'Minimum size of shards', 0x80000))   # 512kb
-        s.append(PluginSettingInteger('chipsec_size_max', 'Maximum size of shards', 0x2000000)) # 32Mb
+        s.append(PluginSettingInteger('chipsec_size_max', 'Maximum size of shards', 0x4000000)) # 64Mb
         return s
 
     def _convert_files_to_shards(self, files):
@@ -105,32 +194,29 @@ class Plugin(PluginBase):
         files.extend(glob.glob(outdir + '/FV/**/*.pe32', recursive=True))
         return self._convert_files_to_shards(files)
 
-    def _find_dell_pfs(self, blob):
+    def _find_zlib_sections(self, blob):
         offset = 0
-
+        sections = []
         while 1:
             # find Zlib header for default compression
-            offset_next = blob.find(b'\x78\x9C')
-            if offset_next == -1:
+            offset = blob.find(b'\x78\x9C', offset)
+            if offset == -1:
                 break
 
             # decompress the buffer, which also checks if it's really Zlib or just
             # two random bytes that happen to match for no good reason
             try:
-                blob_decompressed = zlib.decompress(blob[offset_next:])
+                obj = zlib.decompressobj()
+                blob_decompressed = obj.decompress(blob[offset:])
+                offset = len(blob) - len(obj.unused_data)
             except zlib.error as _:
-                offset_next += 2
+                offset += 2
             else:
                 # only include blobs of a sane size
                 if len(blob_decompressed) > self.get_setting_int('chipsec_size_min') and \
                    len(blob_decompressed) < self.get_setting_int('chipsec_size_max'):
-                    return blob_decompressed
-                offset_next += 2 + len(blob_decompressed)
-
-            blob = blob[offset_next:]
-            offset += offset_next
-
-        return None
+                    sections.append(blob_decompressed)
+        return sections
 
     def _run_chipsec_on_md(self, test, md):
 
@@ -146,28 +232,28 @@ class Plugin(PluginBase):
         # then look for a Zlib section (with an optional PFS-prefixed) blob
         shards = self._get_shards_for_blob(md.blob)
         if not shards:
-            blob = self._find_dell_pfs(md.blob)
-            if blob:
-                shard_zlib = ComponentShard(plugin_id=self.id)
-                shard_zlib.set_blob(blob)
-                if blob.startswith(b'PFS.HDR.'):
-                    shard_zlib.name = 'com.dell.PFS'
-                    shard_zlib.guid = 'b26f8b5c-2209-5a60-b301-39f837883a14'
+            for blob in self._find_zlib_sections(md.blob):
+                try:
+                    pfs = PfsFile(blob)
+                    for shard in pfs.shards:
+                        shards.append(shard)
+                        shards.extend(self._get_shards_for_blob(shard.blob))
                     test.add_pass('Found PFS in Zlib compressed blob')
-                    # don't parse the PFS as chipsec just does blob.find('_FVH')
-                    # anyway: https://github.com/LongSoft/PFSExtractor
-                else:
-                    shard_zlib.name = 'Zlib'
-                    shard_zlib.guid = '68b8cc0e-4664-5c7a-9ce3-8ed9b4ffbffb'
+                except RuntimeError as _:
+                    shard = ComponentShard(plugin_id=self.id)
+                    shard.set_blob(blob)
+                    shard.name = 'Zlib'
+                    shard.guid = '68b8cc0e-4664-5c7a-9ce3-8ed9b4ffbffb'
+                    shards.append(shard)
+                    shards.extend(self._get_shards_for_blob(shard.blob))
                     test.add_pass('Found Zlib compressed blob')
-                shards = self._get_shards_for_blob(blob)
-                shards.append(shard_zlib)
         if not shards:
             test.add_pass('No firmware volumes found in {}'.format(md.filename_contents))
             return
 
         # add shard to component
         for shard in shards:
+            shard.plugin_id = self.id
             shard.component_id = md.component_id
             if self.get_setting_bool('chipsec_write_shards'):
                 shard.save()
