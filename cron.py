@@ -343,7 +343,7 @@ def _generate_stats_for_firmware(fw, datestr):
     analytic = AnalyticFirmware(fw.firmware_id, datestr, cnt)
     db.session.add(analytic)
 
-def _demote_back_to_embargo(fw):
+def _demote_back_to_testing(fw):
 
     # from the server admin
     user = db.session.query(User).filter(User.username == 'anon@fwupd.org').first()
@@ -358,7 +358,7 @@ def _demote_back_to_embargo(fw):
                                    user=fw.user, fw=fw))
 
     fw.mark_dirty()
-    remote = fw.vendor.remote
+    remote = db.session.query(Remote).filter(Remote.name == 'testing').first()
     remote.is_dirty = True
     fw.remote_id = remote.remote_id
     fw.events.append(FirmwareEvent(fw.remote_id, user_id=user.user_id))
@@ -388,8 +388,8 @@ def _generate_stats_firmware_reports(fw):
     fw.report_issue_cnt = reports_issue
 
     # check the limits and demote back to embargo if required
-    if fw.remote.is_public and fw.is_failure:
-        _demote_back_to_embargo(fw)
+    if fw.remote.name == 'stable' and fw.is_failure:
+        _demote_back_to_testing(fw)
 
 def _get_app_from_ua(ua):
     # always exists

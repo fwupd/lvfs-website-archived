@@ -483,7 +483,7 @@ class LvfsTestCase(unittest.TestCase):
         assert b'Demoted firmware' in rv.data, rv.data
         assert b'Not sending email' in rv.data, rv.data
         rv = self.app.get('/lvfs/firmware/1')
-        assert b'>embargo-admin<' in rv.data, rv.data
+        assert b'>testing<' in rv.data, rv.data
 
     def test_anonymize_db(self):
 
