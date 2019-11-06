@@ -426,6 +426,7 @@ def vendor_modify_by_admin(vendor_id):
         return redirect(url_for('.vendor_list'), 302)
     for key in ['display_name',
                 'internal_team',
+                'group_id',
                 'plugins',
                 'quote_text',
                 'quote_author',
@@ -439,6 +440,9 @@ def vendor_modify_by_admin(vendor_id):
                 'keywords']:
         if key in request.form:
             setattr(vendor, key, request.form[key])
+            # special case so that the embargo name matches
+            if key == 'group_id':
+                vendor.remote.name = 'embargo-{}'.format(vendor.group_id)
     for key in ['is_embargo_default',
                 'do_not_track',
                 'visible',
