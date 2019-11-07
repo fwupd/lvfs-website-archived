@@ -21,48 +21,14 @@
     <th class="col col-sm-6">Description</th>
     <th class="col col-sm-2">fwupd supported</th>
   </tr>
+{% for verfmt in verfmts %}
   <tr class="row">
-    <td class="col col-sm-2"><code>plain</code></td>
-    <td class="col col-sm-2"><code>12345678</code></td>
-    <td class="col col-sm-6">Plain integer</td>
-    <td class="col col-sm-2"><code>&gt;=1.2.0</code></td>
+    <td class="col col-sm-2"><code>{{verfmt.value}}</code></td>
+    <td class="col col-sm-2"><code>{{verfmt.example}}</code></td>
+    <td class="col col-sm-6">{{verfmt.name}}</td>
+    <td class="col col-sm-2"><code>&gt;= {{verfmt.fwupd_version}}</code></td>
   </tr>
-  <tr class="row">
-    <td class="col col-sm-2"><code>pair</code></td>
-    <td class="col col-sm-2"><code>1234.5678</code></td>
-    <td class="col col-sm-6">Two large numbers</td>
-    <td class="col col-sm-2"><code>&gt;=1.2.0</code></td>
-  </tr>
-  <tr class="row">
-    <td class="col col-sm-2"><code>triplet</code></td>
-    <td class="col col-sm-2"><code>12.34.5678</code></td>
-    <td class="col col-sm-6">Microsoft-style</td>
-    <td class="col col-sm-2"><code>&gt;=1.1.0</code></td>
-  </tr>
-  <tr class="row">
-    <td class="col col-sm-2"><code>quad</code></td>
-    <td class="col col-sm-2"><code>12.34.56.78</code></td>
-    <td class="col col-sm-6">Dell-style</td>
-    <td class="col col-sm-2"><code>&gt;=1.1.0</code></td>
-  </tr>
-  <tr class="row">
-    <td class="col col-sm-2"><code>intel-me</code></td>
-    <td class="col col-sm-2"><code>12.2.34.5678</code></td>
-    <td class="col col-sm-6">Intel ME-style, with bitshift</td>
-    <td class="col col-sm-2"><code>&gt;=1.2.0</code></td>
-  </tr>
-  <tr class="row">
-    <td class="col col-sm-2"><code>intel-me2</code></td>
-    <td class="col col-sm-2"><code>1.2.34.5678</code></td>
-    <td class="col col-sm-6">Intel ME-style</td>
-    <td class="col col-sm-2"><code>&gt;=1.2.0</code></td>
-  </tr>
-  <tr class="row">
-    <td class="col col-sm-2"><code>bcd</code></td>
-    <td class="col col-sm-2"><code>1.2</code></td>
-    <td class="col col-sm-6">Binary coded decimal</td>
-    <td class="col col-sm-2"><code>&gt;=1.1.0</code></td>
-  </tr>
+{% endfor %}
 </table>
 <p class="card-text">
   To override the default of <code>triplet</code> vendors can ship extra metadata

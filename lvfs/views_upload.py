@@ -18,7 +18,7 @@ from lvfs import app, db, ploader, csrf
 
 from .emails import send_email
 from .models import Firmware, FirmwareEvent, Vendor, Remote, Agreement
-from .models import Affiliation, Protocol, Category, Component
+from .models import Affiliation, Protocol, Category, Component, Verfmt
 from .uploadedfile import UploadedFile, FileTooLarge, FileTooSmall, FileNotSupported, MetadataInvalid
 from .util import _get_client_address, _get_settings, _fix_component_name
 from .util import _error_internal
@@ -121,6 +121,8 @@ def _upload_firmware():
             ufile.category_map[cat.value] = cat.category_id
         for pro in db.session.query(Protocol):
             ufile.protocol_map[pro.value] = pro.protocol_id
+        for verfmt in db.session.query(Verfmt):
+            ufile.version_formats[verfmt.value] = verfmt
         ufile.parse(os.path.basename(fileitem.filename), fileitem.read())
     except (FileTooLarge, FileTooSmall, FileNotSupported, MetadataInvalid) as e:
         flash('Failed to upload file: ' + str(e), 'danger')
@@ -228,10 +230,11 @@ def _upload_firmware():
             flash('Fixed component name from "%s" to "%s"' % (md.name, name_fixed), 'warning')
             md.name = name_fixed
 
-    # fall back to a version format when unspecified and not semver
+    # verify each component has a version format
     for md in fw.mds:
-        if not md.version_format and vendor.version_format and md.version.find('.') == -1:
-            md.version_format = vendor.version_format
+        if not md.verfmt_with_fallback:
+            flash('Component {} does not have required LVFS::VersionFormat'.\
+                  format(md.appstream_id), 'warning')
 
     # add to database
     fw.events.append(FirmwareEvent(remote.remote_id, g.user.user_id))

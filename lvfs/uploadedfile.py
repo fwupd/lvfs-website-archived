@@ -141,7 +141,7 @@ class UploadedFile:
         self.is_strict = is_strict
         self.enable_inf_parsing = True
         self.fwupd_min_version = '0.8.0'    # a guess, but everyone should have this
-        self.version_formats = ['plain', 'pair', 'triplet', 'quad', 'intel-me', 'intel-me2', 'bcd']
+        self.version_formats = {}
         self.category_map = {'X-Device' : 1}
         self.protocol_map = {}
 
@@ -480,9 +480,13 @@ class UploadedFile:
 
         # allows OEM to change the triplet (AA.BB.CCDD) to quad (AA.BB.CC.DD)
         try:
-            md.version_format = _node_validate_text(component.xpath('custom/value[@key="LVFS::VersionFormat"]')[0])
-            if md.version_format not in self.version_formats:
-                raise MetadataInvalid('LVFS::VersionFormat can only be %s' % self.version_formats)
+            version_format = _node_validate_text(component.xpath('custom/value[@key="LVFS::VersionFormat"]')[0])
+            if not self.version_formats:
+                raise MetadataInvalid('Valid version formats have not been added')
+            if version_format not in self.version_formats:
+                raise MetadataInvalid('LVFS::VersionFormat can only be {}'.\
+                                      format(','.join(self.version_formats.keys())))
+            md.verfmt = self.version_formats[version_format]
         except IndexError as _:
             pass
 

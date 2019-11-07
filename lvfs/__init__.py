@@ -136,3 +136,4 @@ from lvfs import views_category
 from lvfs import views_tests
 from lvfs import views_shard
 from lvfs import views_query
+from lvfs import views_verfmt

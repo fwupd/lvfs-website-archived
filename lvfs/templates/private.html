@@ -141,6 +141,9 @@
             <li class="nav-item {{'active' if request.url_rule.endpoint == 'category_all'}}">
               <a class="nav-link" href="{{url_for('.category_all')}}">Update Categories</a>
             </li>
+            <li class="nav-item {{'active' if request.url_rule.endpoint == 'verfmt_all'}}">
+              <a class="nav-link" href="{{url_for('.verfmt_all')}}">Version Formats</a>
+            </li>
             <li class="nav-item {{'active' if request.url_rule.endpoint == 'shard_all'}}">
               <a class="nav-link" href="{{url_for('.shard_all')}}">Component Shards</a>
             </li>

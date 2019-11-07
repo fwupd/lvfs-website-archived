@@ -21,7 +21,7 @@ from lvfs import app, db
 from .emails import send_email
 from .util import admin_login_required
 from .util import _error_internal, _email_check
-from .models import Vendor, Restriction, Namespace, User, Remote, Affiliation, AffiliationAction
+from .models import Vendor, Restriction, Namespace, User, Remote, Affiliation, AffiliationAction, Verfmt
 from .util import _generate_password
 
 # sort by awesomeness
@@ -220,8 +220,10 @@ def vendor_details(vendor_id):
     if not vendor:
         flash('Failed to get vendor details: No a vendor with that group ID', 'warning')
         return redirect(url_for('.vendor_list'), 302)
+    verfmts = db.session.query(Verfmt).all()
     return render_template('vendor-details.html',
                            category='vendors',
+                           verfmts=verfmts,
                            v=vendor)
 
 @app.route('/lvfs/vendor/<int:vendor_id>/restrictions')
@@ -435,7 +437,7 @@ def vendor_modify_by_admin(vendor_id):
                 'oauth_domain_glob',
                 'comments',
                 'username_glob',
-                'version_format',
+                'verfmt_id',
                 'url',
                 'keywords']:
         if key in request.form:

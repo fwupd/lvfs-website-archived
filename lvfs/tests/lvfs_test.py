@@ -88,6 +88,11 @@ class LvfsTestCase(unittest.TestCase):
                 value=value,
             ), follow_redirects=True)
             assert b'Added category' in rv.data, rv.data
+        for value in ['quad', 'triplet']:
+            rv = self.app.post('/lvfs/verfmt/add', data=dict(
+                value=value,
+            ), follow_redirects=True)
+            assert b'Added version format' in rv.data, rv.data
         rv = self.app.post('/lvfs/settings/modify', data=dict(
             clamav_enable='disabled',
             chipsec_size_min='0',

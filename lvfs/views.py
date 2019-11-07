@@ -27,7 +27,7 @@ from .dbutils import _execute_count_star
 from .pluginloader import PluginError
 
 from .models import Firmware, Requirement, Component, Vendor, Protocol, Category, Agreement
-from .models import User, Client, Event, AnalyticVendor, Remote
+from .models import User, Client, Event, AnalyticVendor, Remote, Verfmt
 from .models import _get_datestr_from_datetime
 from .hash import _addr_hash
 from .util import _get_client_address, _get_settings, _xml_from_markdown, _get_chart_labels_days
@@ -259,10 +259,12 @@ def docs_metainfo(page='intro'):
         return redirect(url_for('.docs_metainfo'))
     protocols = db.session.query(Protocol).order_by(Protocol.protocol_id.asc()).all()
     categories = db.session.query(Category).order_by(Category.category_id.asc()).all()
+    verfmts = db.session.query(Verfmt).order_by(Verfmt.verfmt_id.asc()).all()
     return render_template('docs-metainfo-%s.html' % page,
                            category='documentation',
                            protocols=protocols,
                            categories=categories,
+                           verfmts=verfmts,
                            page=page)
 
 @app.route('/lvfs/docs/composite')

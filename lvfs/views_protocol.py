@@ -10,7 +10,7 @@ from flask_login import login_required
 
 from lvfs import app, db
 
-from .models import Protocol
+from .models import Protocol, Verfmt
 from .util import _error_internal
 from .util import admin_login_required
 
@@ -85,7 +85,7 @@ def protocol_modify(protocol_id):
     protocol.is_public = bool('is_public' in request.form)
     protocol.can_verify = bool('can_verify' in request.form)
     protocol.has_header = bool('has_header' in request.form)
-    for key in ['name']:
+    for key in ['name', 'verfmt_id']:
         if key in request.form:
             setattr(protocol, key, request.form[key])
     db.session.commit()
@@ -107,4 +107,7 @@ def protocol_details(protocol_id):
         return redirect(url_for('.protocol_all'))
 
     # show details
-    return render_template('protocol-details.html', protocol=protocol)
+    verfmts = db.session.query(Verfmt).order_by(Verfmt.verfmt_id.asc()).all()
+    return render_template('protocol-details.html',
+                           protocol=protocol,
+                           verfmts=verfmts)

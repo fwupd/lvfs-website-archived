@@ -18,6 +18,7 @@ sys.path.append(os.path.realpath('.'))
 
 from lvfs.uploadedfile import UploadedFile, FileTooSmall, FileNotSupported, MetadataInvalid
 from lvfs.util import _validate_guid
+from lvfs.models import Verfmt
 
 from cabarchive import CabArchive, CabFile
 
@@ -160,6 +161,11 @@ DiskName     = "Firmware for the ColorHug2 Colorimeter"
 """
     return CabFile(txt.encode('utf-8'))
 
+def _add_version_formats(ufile):
+    for verfmt in [Verfmt(value='triplet'),
+                   Verfmt(value='quad')]:
+        ufile.version_formats[verfmt.value] = verfmt
+
 class InMemoryZip:
     def __init__(self):
         self.in_memory_zip = io.BytesIO()
@@ -192,6 +198,7 @@ class TestStringMethods(unittest.TestCase):
     def test_src_empty(self):
         with self.assertRaises(FileTooSmall):
             ufile = UploadedFile()
+            _add_version_formats(ufile)
             ufile.parse('foo.cab', '')
         self.assertEqual(ufile.fwupd_min_version, '0.8.0')
 
@@ -201,6 +208,7 @@ class TestStringMethods(unittest.TestCase):
         cabarchive['firmware.bin'] = _get_valid_firmware()
         with self.assertRaises(MetadataInvalid):
             ufile = UploadedFile()
+            _add_version_formats(ufile)
             ufile.parse('foo.cab', cabarchive.save())
 
     # trying to upload the wrong type
@@ -209,6 +217,7 @@ class TestStringMethods(unittest.TestCase):
         cabarchive['firmware.bin'] = _get_valid_firmware()
         with self.assertRaises(FileNotSupported):
             ufile = UploadedFile()
+            _add_version_formats(ufile)
             ufile.parse('foo.doc', cabarchive.save())
 
     # invalid metainfo
@@ -218,6 +227,7 @@ class TestStringMethods(unittest.TestCase):
         cabarchive['firmware.metainfo.xml'] = CabFile(b'<compoXXXXnent/>')
         with self.assertRaises(MetadataInvalid):
             ufile = UploadedFile()
+            _add_version_formats(ufile)
             ufile.parse('foo.cab', cabarchive.save())
 
     # invalid .inf file
@@ -228,6 +238,7 @@ class TestStringMethods(unittest.TestCase):
         cabarchive['firmware.inf'] = CabFile(b'fubar')
         with self.assertRaises(MetadataInvalid):
             ufile = UploadedFile()
+            _add_version_formats(ufile)
             ufile.parse('foo.cab', cabarchive.save())
 
     # archive .cab with firmware.bin of the wrong name
@@ -237,6 +248,7 @@ class TestStringMethods(unittest.TestCase):
         cabarchive['firmware.metainfo.xml'] = _get_valid_metainfo()
         with self.assertRaises(MetadataInvalid):
             ufile = UploadedFile()
+            _add_version_formats(ufile)
             ufile.parse('foo.cab', cabarchive.save())
 
     # valid firmware
@@ -245,6 +257,7 @@ class TestStringMethods(unittest.TestCase):
         cabarchive['firmware.bin'] = _get_valid_firmware()
         cabarchive['firmware.metainfo.xml'] = _get_valid_metainfo()
         ufile = UploadedFile()
+        _add_version_formats(ufile)
         ufile.parse('foo.cab', cabarchive.save())
         cabarchive2 = ufile.cabarchive_repacked
         self.assertIsNotNone(cabarchive2['firmware.bin'])
@@ -257,6 +270,7 @@ class TestStringMethods(unittest.TestCase):
         cabarchive['firmware.metainfo.xml'] = _get_valid_metainfo()
         cabarchive['firmware.inf'] = _get_valid_inf()
         ufile = UploadedFile()
+        _add_version_formats(ufile)
         ufile.parse('foo.cab', cabarchive.save())
         cabarchive2 = ufile.cabarchive_repacked
         self.assertIsNotNone(cabarchive2['firmware.bin'])
@@ -270,6 +284,7 @@ class TestStringMethods(unittest.TestCase):
         cabarchive['firmware.metainfo.xml'] = _get_valid_metainfo(enable_inf_parsing=False)
         cabarchive['firmware.inf'] = CabFile(b'fubar')
         ufile = UploadedFile()
+        _add_version_formats(ufile)
         ufile.parse('foo.cab', cabarchive.save())
         cabarchive2 = ufile.cabarchive_repacked
         self.assertIsNotNone(cabarchive2['firmware.bin'])
@@ -283,6 +298,7 @@ class TestStringMethods(unittest.TestCase):
         cabarchive['firmware.metainfo.xml'] = _get_valid_metainfo(version_format='foo')
         with self.assertRaises(MetadataInvalid):
             ufile = UploadedFile()
+            _add_version_formats(ufile)
             ufile.parse('foo.cab', cabarchive.save())
 
     # invalid XML header
@@ -294,6 +310,7 @@ class TestStringMethods(unittest.TestCase):
                                                       b'<component type="firmware"/>\n')
         with self.assertRaises(MetadataInvalid):
             ufile = UploadedFile()
+            _add_version_formats(ufile)
             ufile.parse('foo.cab', cabarchive.save())
 
     # invalid BOM header
@@ -304,6 +321,7 @@ class TestStringMethods(unittest.TestCase):
                                                       b'<component type="firmware"/>\n')
         with self.assertRaises(MetadataInvalid):
             ufile = UploadedFile()
+            _add_version_formats(ufile)
             ufile.parse('foo.cab', cabarchive.save())
 
     # valid metadata
@@ -312,9 +330,10 @@ class TestStringMethods(unittest.TestCase):
         cabarchive['firmware.bin'] = _get_valid_firmware()
         cabarchive['firmware.metainfo.xml'] = _get_valid_metainfo()
         ufile = UploadedFile()
+        _add_version_formats(ufile)
         ufile.parse('foo.cab', cabarchive.save())
         self.assertTrue(ufile.fw.mds[0].inhibit_download)
-        self.assertTrue(ufile.fw.mds[0].version_format == 'quad')
+        self.assertTrue(ufile.fw.mds[0].verfmt.value == 'quad')
 
     # valid metadata
     def test_release_date(self):
@@ -322,6 +341,7 @@ class TestStringMethods(unittest.TestCase):
         cabarchive['firmware.bin'] = _get_valid_firmware()
         cabarchive['firmware.metainfo.xml'] = _get_alternate_metainfo()
         ufile = UploadedFile()
+        _add_version_formats(ufile)
         ufile.parse('foo.cab', cabarchive.save())
         self.assertEqual(ufile.fw.mds[0].release_timestamp, 1562025600)
 
@@ -334,6 +354,7 @@ class TestStringMethods(unittest.TestCase):
             _get_valid_metainfo(release_description='See README.txt for details.')
         with self.assertRaises(MetadataInvalid):
             ufile = UploadedFile()
+            _add_version_formats(ufile)
             ufile.parse('foo.cab', cabarchive.save())
 
     # archive .cab with path with forward-slashes
@@ -342,6 +363,7 @@ class TestStringMethods(unittest.TestCase):
         cabarchive['DriverPackage/firmware.bin'] = _get_valid_firmware()
         cabarchive['DriverPackage/firmware.metainfo.xml'] = _get_valid_metainfo()
         ufile = UploadedFile()
+        _add_version_formats(ufile)
         ufile.parse('foo.cab', cabarchive.save())
         cabarchive2 = ufile.cabarchive_repacked
         self.assertIsNotNone(cabarchive2['firmware.bin'])
@@ -353,6 +375,7 @@ class TestStringMethods(unittest.TestCase):
         cabarchive['DriverPackage\\firmware.bin'] = _get_valid_firmware()
         cabarchive['DriverPackage\\firmware.metainfo.xml'] = _get_valid_metainfo()
         ufile = UploadedFile()
+        _add_version_formats(ufile)
         ufile.parse('foo.cab', cabarchive.save())
         cabarchive2 = ufile.cabarchive_repacked
         self.assertIsNotNone(cabarchive2['firmware.bin'])
@@ -365,6 +388,7 @@ class TestStringMethods(unittest.TestCase):
         cabarchive['firmware.metainfo.xml'] = _get_valid_metainfo()
         cabarchive['README.txt'] = CabFile(b'fubar')
         ufile = UploadedFile()
+        _add_version_formats(ufile)
         ufile.parse('foo.cab', cabarchive.save())
         cabarchive2 = ufile.cabarchive_repacked
         self.assertIsNotNone(cabarchive2['firmware.bin'])
@@ -380,6 +404,7 @@ class TestStringMethods(unittest.TestCase):
         cabarchive['firmware2.metainfo.xml'] = _get_valid_metainfo()
 
         ufile = UploadedFile()
+        _add_version_formats(ufile)
         ufile.parse('foo.cab', cabarchive.save())
         cabarchive2 = ufile.cabarchive_repacked
         self.assertIsNotNone(cabarchive2['firmware.bin'])
@@ -392,6 +417,7 @@ class TestStringMethods(unittest.TestCase):
         cabarchive['0x0962_nonsecure.bin'] = _get_valid_firmware()
         cabarchive['NVM0.metainfo.xml'] = _get_generated_metainfo()
         ufile = UploadedFile()
+        _add_version_formats(ufile)
         ufile.parse('foo.cab', cabarchive.save())
 
     # windows .zip with path with backslashes
@@ -400,6 +426,7 @@ class TestStringMethods(unittest.TestCase):
         imz.append('DriverPackage\\firmware.bin', _get_valid_firmware().buf)
         imz.append('DriverPackage\\firmware.metainfo.xml', _get_valid_metainfo().buf)
         ufile = UploadedFile()
+        _add_version_formats(ufile)
         ufile.parse('foo.zip', imz.read())
         cabarchive2 = ufile.cabarchive_repacked
         self.assertIsNotNone(cabarchive2['firmware.bin'])

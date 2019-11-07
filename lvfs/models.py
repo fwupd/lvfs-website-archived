@@ -99,7 +99,9 @@ class Problem:
             return 'Invalid details URL'
         if self.kind == 'invalid-source-url':
             return 'Invalid source URL'
-        return 'Unknown problem %s' % self.kind
+        if self.kind == 'invalid-version-for-format':
+            return 'Invalid version format for defined protocol'
+        return 'Problem %s' % self.kind
 
     @property
     def icon_name(self):
@@ -549,7 +551,8 @@ class Vendor(db.Model):
     oauth_domain_glob = Column(Text, default=None)
     remote_id = Column(Integer, ForeignKey('remotes.remote_id'), nullable=False)
     username_glob = Column(Text, default=None)
-    version_format = Column(String(10), default=None) # usually 'triplet' or 'quad'
+    unused_version_format = Column('version_format', String(10), default=None) # usually 'triplet' or 'quad'
+    verfmt_id = Column(Integer, ForeignKey('verfmts.verfmt_id'))
     url = Column(Text, default=None)
     banned_country_codes = Column(Text, default=None) # ISO 3166, delimiter ','
     do_not_track = Column(Boolean, default=False)
@@ -579,6 +582,7 @@ class Vendor(db.Model):
                           cascade='all,delete-orphan')
 
     # link using foreign keys
+    verfmt = relationship('Verfmt', foreign_keys=[verfmt_id])
     remote = relationship('Remote',
                           foreign_keys=[remote_id],
                           single_parent=True,
@@ -1085,6 +1089,63 @@ class Test(db.Model):
     def __repr__(self):
         return "Test object %s(%s)" % (self.plugin_id, self.success)
 
+class Verfmt(db.Model):
+
+    # sqlalchemy metadata
+    __tablename__ = 'verfmts'
+    __table_args__ = {'mysql_character_set': 'utf8mb4'}
+
+    verfmt_id = Column(Integer, primary_key=True, nullable=False, unique=True)
+    value = Column(Text, nullable=False)        # 'quad'
+    name = Column(Text, default=None)           # 'Dell Style'
+    example = Column(Text, default=None)        # '12.34.56.78'
+    fwupd_version = Column(Text, default=None)  # '1.3.3'
+
+    @property
+    def sections(self):
+        if not self.example:
+            return 0
+        return len(self.example.split('.'))
+
+    def uint32_to_str(self, v):
+        if self.value == 'plain':
+            return str(v)
+        if self.value == 'quad':
+            return '%02i.%02i.%02i.%02i' % ((v & 0xff000000) >> 24,
+                                            (v & 0x00ff0000) >> 16,
+                                            (v & 0x0000ff00) >> 8,
+                                            v & 0x000000ff)
+        if self.value == 'triplet':
+            return '%02i.%02i.%04i' % ((v & 0xff000000) >> 24,
+                                       (v & 0x00ff0000) >> 16,
+                                       v & 0x0000ffff)
+        if self.value == 'pair':
+            return '%02i.%02i' % ((v & 0xffff0000) >> 16, v & 0x0000ffff)
+        if self.value == 'intel-me':
+            return '%i.%i.%i.%i' % (((v & 0xe0000000) >> 29) + 0x0b,
+                                    (v & 0x1f000000) >> 24,
+                                    (v & 0x00ff0000) >> 16,
+                                    v &  0x0000ffff)
+        if self.value == 'intel-me2':
+            return '%i.%i.%i.%i' % ((v & 0xf0000000) >> 28,
+                                    (v & 0x0f000000) >> 24,
+                                    (v & 0x00ff0000) >> 16,
+                                    v &  0x0000ffff)
+        if self.value == 'surface-legacy':
+            return '%i.%i.%i' % ((v >> 22) & 0x3ff,
+                                 (v >> 10) & 0xfff,
+                                 v & 0x3ff)
+        if self.value == 'surface':
+            return '%i.%i.%i' % ((v >> 24) & 0xff,
+                                 (v >> 8) & 0xffff,
+                                 v & 0xff)
+        if self.value == 'bcd':
+            return '%i.%i' % ((v & 0xf0) >> 4, v & 0x0f)
+        return None
+
+    def __repr__(self):
+        return "Verfmt object %s:%s" % (self.category_id, self.value)
+
 class Category(db.Model):
 
     # sqlalchemy metadata
@@ -1389,7 +1450,8 @@ class Component(db.Model):
     screenshot_url = Column(Text, default=None)
     screenshot_caption = Column(Text, default=None)
     inhibit_download = Column(Boolean, default=False)
-    version_format = Column(String(10), default=None) # usually 'triplet' or 'quad'
+    unused_version_format = Column('version_format', String(10), default=None) # usually 'triplet' or 'quad'
+    verfmt_id = Column(Integer, ForeignKey('verfmts.verfmt_id'))
     priority = Column(Integer, default=0)
     install_duration = Column(Integer, default=0)
 
@@ -1423,6 +1485,7 @@ class Component(db.Model):
                             cascade='all,delete-orphan')
     protocol = relationship('Protocol', foreign_keys=[protocol_id])
     category = relationship('Category', foreign_keys=[category_id])
+    verfmt = relationship('Verfmt', foreign_keys=[verfmt_id])
 
     def __init__(self):
         """ Constructor for object """
@@ -1498,6 +1561,16 @@ class Component(db.Model):
         return name
 
     @property
+    def verfmt_with_fallback(self):
+        if self.verfmt:
+            return self.verfmt
+        if self.protocol and self.protocol.verfmt:
+            return self.protocol.verfmt
+        if self.fw.vendor.verfmt:
+            return self.fw.vendor.verfmt
+        return None
+
+    @property
     def developer_name_display(self):
         if not self.developer_name:
             return None
@@ -1536,36 +1609,16 @@ class Component(db.Model):
     @property
     def version_display(self):
         if self.version.isdigit():
-            version_format = self.version_format
-            if not version_format:
-                version_format = self.fw.vendor.version_format
-            if not version_format:
-                return self.version
-            v = int(self.version)
-            if version_format == 'quad':
-                return '%02i.%02i.%02i.%02i' % ((v & 0xff000000) >> 24,
-                                                (v & 0x00ff0000) >> 16,
-                                                (v & 0x0000ff00) >> 8,
-                                                v & 0x000000ff)
-            if version_format == 'triplet':
-                return '%02i.%02i.%04i' % ((v & 0xff000000) >> 24,
-                                           (v & 0x00ff0000) >> 16,
-                                           v & 0x0000ffff)
-            if version_format == 'pair':
-                return '%02i.%02i' % ((v & 0xffff0000) >> 16, v & 0x0000ffff)
-            if version_format == 'intel-me':
-                return '%i.%i.%i.%i' % (((v & 0xe0000000) >> 29) + 0x0b,
-                                        (v & 0x1f000000) >> 24,
-                                        (v & 0x00ff0000) >> 16,
-                                        v &  0x0000ffff)
-            if version_format == 'intel-me2':
-                return '%i.%i.%i.%i' % ((v & 0xf0000000) >> 28,
-                                        (v & 0x0f000000) >> 24,
-                                        (v & 0x00ff0000) >> 16,
-                                        v &  0x0000ffff)
-            if version_format == 'bcd':
-                return '%i.%i' % ((v & 0xf0) >> 4, v & 0x0f)
+            verfmt = self.verfmt_with_fallback
+            if verfmt:
+                return verfmt.uint32_to_str(int(self.version))
         return self.version
+
+    @property
+    def version_sections(self):
+        if not self.version_display:
+            return 0
+        return len(self.version_display.split('.'))
 
     @property
     def problems(self):
@@ -1602,6 +1655,17 @@ class Component(db.Model):
             problem.url = url_for('.component_show',
                                   component_id=self.component_id)
             problems.append(problem)
+
+        # check the version matches the expected section count
+        if self.verfmt_with_fallback and self.verfmt_with_fallback.sections:
+            if self.version_sections != self.verfmt_with_fallback.sections:
+                problem = Problem('invalid-version-for-format',
+                                  'Version number {} incompatible with {}'.\
+                                  format(self.version_display,
+                                         self.verfmt_with_fallback.value))
+                problem.url = url_for('.component_show',
+                                      component_id=self.component_id)
+                problems.append(problem)
 
         # we are going to be uing this in the UI soon
         if not self.category or self.category.value == 'unknown':
@@ -2058,6 +2122,8 @@ class Firmware(db.Model):
             return self._version_display
         md_versions = []
         for md in self.mds:
+            if not md.version_display:
+                continue
             if md.version_display not in md_versions:
                 md_versions.append(md.version_display)
         return ', '.join(md_versions)
@@ -2622,6 +2688,9 @@ class Protocol(db.Model):
     is_public = Column(Boolean, default=False)
     can_verify = Column(Boolean, default=False)
     has_header = Column(Boolean, default=False)
+    verfmt_id = Column(Integer, ForeignKey('verfmts.verfmt_id'))
+
+    verfmt = relationship('Verfmt', foreign_keys=[verfmt_id])
 
     @property
     def security_claim(self):

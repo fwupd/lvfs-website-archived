@@ -64,6 +64,14 @@
     <th class="col-3">Version</th>
     <td class="col"><code>{{md.version_display}}</code></td>
   </tr>
+{% if md.verfmt_with_fallback %}
+  <tr class="row">
+    <th class="col-3">Version Format</th>
+    <td class="col">
+      <code>{{md.verfmt_with_fallback.value}}</code>
+    </td>
+  </tr>
+{% endif %}
 {% for guid in md.guids %}
   <tr class="row">
     <th class="col-3">Device GUID</th>
