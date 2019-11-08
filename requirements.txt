@@ -19,3 +19,4 @@ pyasn1_modules
 pylint
 pytest-cov
 yara-python
+psptool
