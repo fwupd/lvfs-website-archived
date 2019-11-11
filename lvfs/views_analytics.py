@@ -23,7 +23,7 @@ from .util import _get_chart_labels_months, _get_chart_labels_days
 @app.route('/lvfs/analytics/month')
 @login_required
 @admin_login_required
-def analytics_month():
+def route_analytics_month():
     """ A analytics screen to show information about users """
 
     # this is somewhat klunky
@@ -51,7 +51,7 @@ def analytics_month():
 @app.route('/lvfs/analytics/year/<int:ts>')
 @login_required
 @admin_login_required
-def analytics_year(ts=3):
+def route_analytics_year(ts=3):
     """ A analytics screen to show information about users """
 
     # this is somewhat klunky
@@ -95,7 +95,7 @@ def _user_agent_wildcard(user_agent):
 @app.route('/lvfs/analytics/user_agent/<kind>/<int:timespan_days>')
 @login_required
 @admin_login_required
-def analytics_user_agents(kind='APP', timespan_days=30):
+def route_analytics_user_agents(kind='APP', timespan_days=30):
     """ A analytics screen to show information about users """
 
     # map back to UseragentKind
@@ -103,7 +103,7 @@ def analytics_user_agents(kind='APP', timespan_days=30):
         kind_enum = UseragentKind[kind]
     except KeyError as e:
         flash('Unable to view analytic type: {}'.format(str(e)), 'danger')
-        return redirect(url_for('.analytics_user_agents'))
+        return redirect(url_for('.route_analytics_user_agents'))
 
     # get data for this time period
     cnt_total = {}
@@ -169,7 +169,7 @@ def analytics_user_agents(kind='APP', timespan_days=30):
 @app.route('/lvfs/analytics/vendor/<int:timespan_days>')
 @login_required
 @admin_login_required
-def analytics_vendor(timespan_days=30):
+def route_analytics_vendor(timespan_days=30):
     """ A analytics screen to show information about users """
 
     # get data for this time period
@@ -231,7 +231,7 @@ def analytics_vendor(timespan_days=30):
 @app.route('/lvfs/analytics/clients')
 @login_required
 @admin_login_required
-def analytics_clients():
+def route_analytics_clients():
     """ A analytics screen to show information about users """
 
     clients = db.session.query(Client).\
@@ -244,7 +244,7 @@ def analytics_clients():
 @app.route('/lvfs/analytics/reports')
 @login_required
 @admin_login_required
-def analytics_reports():
+def route_analytics_reports():
     """ A analytics screen to show information about users """
     reports = db.session.query(Report).\
                     order_by(Report.timestamp.desc()).\
@@ -256,7 +256,7 @@ def analytics_reports():
 @app.route('/lvfs/analytics/search_history')
 @login_required
 @admin_login_required
-def analytics_search_history():
+def route_analytics_search_history():
     search_events = db.session.query(SearchEvent).\
                         order_by(SearchEvent.timestamp.desc()).\
                         limit(1000).all()
@@ -268,7 +268,7 @@ def analytics_search_history():
 @app.route('/lvfs/analytics/search_stats/<int:limit>')
 @login_required
 @admin_login_required
-def analytics_search_stats(limit=20):
+def route_analytics_search_stats(limit=20):
     search_events = db.session.query(SearchEvent).\
                         order_by(SearchEvent.timestamp.desc()).\
                         limit(99999).all()

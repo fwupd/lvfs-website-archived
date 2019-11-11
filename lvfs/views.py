@@ -220,7 +220,7 @@ def unauthorized():
     if request.user_agent:
         msg += ' from %s' % request.user_agent
     flash('Permission denied: {}'.format(msg), 'danger')
-    return redirect(url_for('.index'))
+    return redirect(url_for('.route_index'))
 
 @app.errorhandler(401)
 def errorhandler_401(msg=None):
@@ -228,35 +228,35 @@ def errorhandler_401(msg=None):
 
 @app.route('/developers') # deprecated
 @app.route('/lvfs/docs/developers')
-def docs_developers():
+def route_docs_developers():
     return render_template('docs-developers.html')
 
 @app.route('/privacy') # deprecated
 @app.route('/lvfs/docs/privacy')
-def docs_privacy():
+def route_docs_privacy():
     return render_template('docs-privacy.html')
 
 @app.route('/users') # deprecated
 @app.route('/lvfs/docs/users')
-def docs_users():
+def route_docs_users():
     return render_template('docs-users.html')
 
 @app.route('/lvfs/news')
-def docs_news():
+def route_docs_news():
     return render_template('docs-news.html', category='home')
 
 @app.route('/vendors')
 @app.route('/lvfs/docs/vendors')
-def docs_vendors():
+def route_docs_vendors():
     return render_template('docs-vendors.html')
 
 @app.route('/metainfo') # deprecated
 @app.route('/lvfs/docs/metainfo')
 @app.route('/lvfs/docs/metainfo/<page>')
-def docs_metainfo(page='intro'):
+def route_docs_metainfo(page='intro'):
     if page not in ['intro', 'style', 'restrict', 'protocol', 'version', 'urls', 'category']:
         flash('No metainfo page name {}'.format(page), 'danger')
-        return redirect(url_for('.docs_metainfo'))
+        return redirect(url_for('.route_docs_metainfo'))
     protocols = db.session.query(Protocol).order_by(Protocol.protocol_id.asc()).all()
     categories = db.session.query(Category).order_by(Category.category_id.asc()).all()
     verfmts = db.session.query(Verfmt).order_by(Verfmt.verfmt_id.asc()).all()
@@ -268,19 +268,19 @@ def docs_metainfo(page='intro'):
                            page=page)
 
 @app.route('/lvfs/docs/composite')
-def docs_composite():
+def route_docs_composite():
     return render_template('docs-composite.html', category='documentation')
 
 @app.route('/lvfs/docs/archive')
-def docs_archive():
+def route_docs_archive():
     return render_template('docs-archive.html', category='documentation')
 
 @app.route('/lvfs/docs/telemetry')
-def docs_telemetry():
+def route_docs_telemetry():
     return render_template('docs-telemetry.html', category='documentation')
 
 @app.route('/lvfs/docs/agreement')
-def docs_agreement():
+def route_docs_agreement():
     agreement = db.session.query(Agreement).\
                     order_by(Agreement.version.desc()).first()
     return render_template('docs-agreement.html',
@@ -288,18 +288,18 @@ def docs_agreement():
                            agreement=agreement)
 
 @app.route('/lvfs/docs/introduction')
-def docs_introduction():
+def route_docs_introduction():
     return render_template('docs-introduction.html',
                            firmware_cnt=db.session.query(Firmware).count(),
                            devices_cnt=db.session.query(Component.appstream_id).distinct().count())
 
 @app.route('/lvfs/docs/affiliates')
-def docs_affiliates():
+def route_docs_affiliates():
     return render_template('docs-affiliates.html', category='documentation')
 
 @app.route('/')
 @app.route('/lvfs/')
-def index():
+def route_index():
     vendors_logo = db.session.query(Vendor).\
                             filter(Vendor.visible_on_landing).\
                             order_by(Vendor.display_name).limit(10).all()
@@ -313,7 +313,7 @@ def index():
 
 @app.route('/lvfs/dashboard')
 @login_required
-def dashboard():
+def route_dashboard():
     user = db.session.query(User).filter(User.username == 'sign-test@fwupd.org').first()
     settings = _get_settings()
     default_admin_password = False
@@ -355,7 +355,7 @@ def dashboard():
                            default_admin_password=default_admin_password)
 
 @app.route('/lvfs/newaccount')
-def new_account():
+def route_new_account():
     """ New account page for prospective vendors """
     return render_template('new-account.html')
 
@@ -375,42 +375,42 @@ def _create_user_for_oauth_username(username):
 
 # unauthenticed
 @app.route('/lvfs/login1')
-def login1():
+def route_login1():
     if hasattr(g, 'user') and g.user:
         flash('You are already logged in', 'warning')
-        return redirect(url_for('.dashboard'))
+        return redirect(url_for('.route_dashboard'))
     return render_template('login1.html')
 
 # unauthenticed
 @app.route('/lvfs/login1', methods=['POST'])
-def login1_response():
+def route_login1_response():
     if 'username' not in request.form:
         flash('Username not specified', 'warning')
-        return redirect(url_for('.login1'))
+        return redirect(url_for('.route_login1'))
     user = db.session.query(User).filter(User.username == request.form['username']).first()
     if not user:
         flash('Failed to log in: Incorrect username %s' % request.form['username'], 'danger')
-        return redirect(url_for('.login1'))
+        return redirect(url_for('.route_login1'))
     return render_template('login2.html', u=user)
 
 @app.route('/lvfs/login', methods=['POST'])
-def login():
+def route_login():
     """ A login screen to allow access to the LVFS main page """
     # auth check
     user = db.session.query(User).filter(User.username == request.form['username']).first()
     if user:
         if user.auth_type == 'oauth':
             flash('Failed to log in as %s: Only OAuth can be used for this user' % user.username, 'danger')
-            return redirect(url_for('.index'))
+            return redirect(url_for('.route_index'))
         if not user.verify_password(request.form['password']):
             flash('Failed to log in: Incorrect password for %s' % request.form['username'], 'danger')
-            return redirect(url_for('.login1'))
+            return redirect(url_for('.route_login1'))
     else:
         # check OAuth, user is NOT added to the database
         user = _create_user_for_oauth_username(request.form['username'])
         if not user:
             flash('Failed to log in: Incorrect username %s' % request.form['username'], 'danger')
-            return redirect(url_for('.index'))
+            return redirect(url_for('.route_index'))
 
     # check auth type
     if not user.auth_type or user.auth_type == 'disabled':
@@ -419,16 +419,16 @@ def login():
                   (request.form['username'], user.dtime.strftime('%Y-%m-%d')), 'danger')
         else:
             flash('Failed to log in as %s: User account is disabled' % request.form['username'], 'danger')
-        return redirect(url_for('.index'))
+        return redirect(url_for('.route_index'))
 
     # check OTP
     if user.is_otp_enabled:
         if 'otp' not in request.form or not request.form['otp']:
             flash('Failed to log in: 2FA OTP required', 'danger')
-            return redirect(url_for('.login1'))
+            return redirect(url_for('.route_login1'))
         if not user.verify_totp(request.form['otp']):
             flash('Failed to log in: Incorrect 2FA OTP', 'danger')
-            return redirect(url_for('.login1'))
+            return redirect(url_for('.route_login1'))
 
     # success
     login_user(user, remember=False)
@@ -442,10 +442,10 @@ def login():
     user.atime = datetime.datetime.utcnow()
     db.session.commit()
 
-    return redirect(url_for('.dashboard'))
+    return redirect(url_for('.route_dashboard'))
 
 @app.route('/lvfs/login/<plugin_id>')
-def login_oauth(plugin_id):
+def route_login_oauth(plugin_id):
 
     # find the plugin that can authenticate us
     p = ploader.get_by_id(plugin_id)
@@ -454,12 +454,12 @@ def login_oauth(plugin_id):
     if not p.oauth_authorize:
         return _error_internal('no oauth support in plugin {}'.format(plugin_id))
     try:
-        return p.oauth_authorize(url_for('login_oauth_authorized', plugin_id=plugin_id, _external=True))
+        return p.oauth_authorize(url_for('.route_login_oauth_authorized', plugin_id=plugin_id, _external=True))
     except PluginError as e:
         return _error_internal(str(e))
 
 @app.route('/lvfs/login/authorized/<plugin_id>')
-def login_oauth_authorized(plugin_id):
+def route_login_oauth_authorized(plugin_id):
 
     # find the plugin that can authenticate us
     p = ploader.get_by_id(plugin_id)
@@ -486,13 +486,13 @@ def login_oauth_authorized(plugin_id):
             created_account = True
     if not user:
         flash('Failed to log in: no user for %s' % data['userPrincipalName'], 'danger')
-        return redirect(url_for('.index'))
+        return redirect(url_for('.route_index'))
     if not user.auth_type:
         flash('Failed to log in: User account %s is disabled' % user.username, 'danger')
-        return redirect(url_for('.index'))
+        return redirect(url_for('.route_index'))
     if user.auth_type != 'oauth':
         flash('Failed to log in: Only some accounts can log in using OAuth', 'danger')
-        return redirect(url_for('.index'))
+        return redirect(url_for('.route_index'))
 
     # sync the display name
     if 'displayName' in data:
@@ -512,28 +512,28 @@ def login_oauth_authorized(plugin_id):
     user.atime = datetime.datetime.utcnow()
     db.session.commit()
 
-    return redirect(url_for('.dashboard'))
+    return redirect(url_for('.route_dashboard'))
 
 @app.route('/lvfs/logout')
 @login_required
-def logout():
+def route_logout():
     flash('Logged out from %s' % g.user.username, 'info')
     ploader.oauth_logout()
     logout_user()
-    return redirect(url_for('.index'))
+    return redirect(url_for('.route_index'))
 
 @app.route('/lvfs/eventlog')
 @app.route('/lvfs/eventlog/<int:start>')
 @app.route('/lvfs/eventlog/<int:start>/<int:length>')
 @login_required
-def eventlog(start=0, length=20):
+def route_eventlog(start=0, length=20):
     """
     Show an event log of user actions.
     """
     # security check
     if not g.user.check_acl('@view-eventlog'):
         flash('Permission denied: Unable to show event log for non-QA user', 'danger')
-        return redirect(url_for('.dashboard'))
+        return redirect(url_for('.route_dashboard'))
 
     # get the page selection correct
     if g.user.check_acl('@admin'):
@@ -564,7 +564,7 @@ def eventlog(start=0, length=20):
 
 @app.route('/lvfs/profile')
 @login_required
-def profile():
+def route_profile():
     """
     Allows the normal user to change details about the account,
     """
@@ -572,19 +572,19 @@ def profile():
     # security check
     if not g.user.check_acl('@view-profile'):
         flash('Permission denied: Unable to view profile as account locked', 'danger')
-        return redirect(url_for('.dashboard'))
+        return redirect(url_for('.route_dashboard'))
     return render_template('profile.html', u=g.user)
 
 # old names used on the static site
 @app.route('/users.html')
-def users_html():
-    return redirect(url_for('.docs_users'), code=302)
+def route_users_html():
+    return redirect(url_for('.route_docs_users'), code=302)
 @app.route('/vendors.html')
-def vendors_html():
-    return redirect(url_for('.docs_vendors'), code=302)
+def route_vendors_html():
+    return redirect(url_for('.route_docs_vendors'), code=302)
 @app.route('/developers.html')
-def developers_html():
-    return redirect(url_for('.docs_developers'), code=302)
+def route_developers_html():
+    return redirect(url_for('.route_docs_developers'), code=302)
 @app.route('/index.html')
-def index_html():
-    return redirect(url_for('.index'), code=302)
+def route_index_html():
+    return redirect(url_for('.route_index'), code=302)

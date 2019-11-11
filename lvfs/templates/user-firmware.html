@@ -22,7 +22,7 @@
     <td class="col col-sm-2">{{fw.vendor.group_id}}</td>
     <td class="col col-sm-2"><code>{{fw.remote.name}}</code></td>
     <td class="col col-sm-2">
-      <a class="btn btn-info btn-block" href="{{url_for('.firmware_show', firmware_id=fw.firmware_id)}}">Details</a>
+      <a class="btn btn-info btn-block" href="{{url_for('.route_firmware_show', firmware_id=fw.firmware_id)}}">Details</a>
     </td>
   </tr>
 {% endfor %}

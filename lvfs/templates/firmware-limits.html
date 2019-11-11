@@ -7,7 +7,7 @@
 
 {% block content %}
 
-<form method="post" action="{{url_for('.firmware_modify', firmware_id=fw.firmware_id)}}" class="form">
+<form method="post" action="{{url_for('.route_firmware_modify', firmware_id=fw.firmware_id)}}" class="form">
 <input type="hidden" name="csrf_token" value="{{csrf_token()}}"/>
 <div class="card mb-3">
   <div class="card-body">
@@ -82,11 +82,11 @@
     </td>
     <td class="col col-2">
       <a class="btn btn-danger btn-block"
-        href="{{url_for('.firmware_limit_delete', firmware_limit_id=fl.firmware_limit_id)}}">Delete</a>
+        href="{{url_for('.route_firmware_limit_delete', firmware_limit_id=fl.firmware_limit_id)}}">Delete</a>
     </td>
   </tr>
 {% endfor %}
-  <form method="post" action="{{url_for('.firmware_limit_add')}}" class="form">
+  <form method="post" action="{{url_for('.route_firmware_limit_add')}}" class="form">
   <input type="hidden" name="csrf_token" value="{{csrf_token()}}"/>
   <input type="hidden" name="firmware_id" value="{{fw.firmware_id}}">
   <tr class="row table-borderless">

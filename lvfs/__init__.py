@@ -114,7 +114,7 @@ def error_page_not_found(unused_msg=None):
 @app.errorhandler(CSRFError)
 def error_csrf(e):
     flash(str(e), 'danger')
-    return redirect(url_for('.dashboard'))
+    return redirect(url_for('.route_dashboard'))
 
 from lvfs import views
 from lvfs import views_user

@@ -2,7 +2,7 @@
   <div class="col col-sm-1 btn-group mb-3">
 {% if request.url_rule.endpoint == 'query_show' %}
     <a class="btn btn-falcon-default mr-sm-3"
-      href="{{url_for('.query_list')}}">
+      href="{{url_for('.route_query_list')}}">
       <span class="fas fa-arrow-left"></span>
     </a>
 {% endif %}
@@ -11,9 +11,9 @@
     <div class="btn-group" role="group">
 {% if g.user.check_acl('@yara-query') %}
       <a class="btn btn-falcon-{{'primary' if request.url_rule.endpoint == 'query_new' else 'default'}}"
-        href="{{url_for('.query_new')}}">New Query</a>
+        href="{{url_for('.route_query_new')}}">New Query</a>
       <a class="btn btn-falcon-{{'primary' if request.url_rule.endpoint == 'query_list' else 'default'}}"
-        href="{{url_for('.query_list')}}">Past Queries</a>
+        href="{{url_for('.route_query_list')}}">Past Queries</a>
 {% endif %}
     </div>
   </div>

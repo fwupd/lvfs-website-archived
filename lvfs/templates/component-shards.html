@@ -51,12 +51,12 @@
       </table>
     </p>
 {% if shard.checksum %}
-    <a class="card-link btn btn-info" href="{{url_for('.firmware_shard_search', kind='checksum', value=shard.checksum)}}">Search checksum</a>
+    <a class="card-link btn btn-info" href="{{url_for('.route_firmware_shard_search', kind='checksum', value=shard.checksum)}}">Search checksum</a>
 {% endif %}
 {% if shard.info and shard.guid %}
-    <a class="card-link btn btn-info" href="{{url_for('.firmware_shard_search', kind='guid', value=shard.guid)}}">Search GUID</a>
+    <a class="card-link btn btn-info" href="{{url_for('.route_firmware_shard_search', kind='guid', value=shard.guid)}}">Search GUID</a>
 {% endif %}
-    <a class="card-link btn btn-info" href="{{url_for('.shard_download', component_shard_id=shard.component_shard_id)}}">Download File</a>
+    <a class="card-link btn btn-info" href="{{url_for('.route_shard_download', component_shard_id=shard.component_shard_id)}}">Download File</a>
   </div>
 </div>
 {% endfor %}

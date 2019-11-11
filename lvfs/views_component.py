@@ -24,7 +24,7 @@ def _sanitize_markdown_text(txt):
 
 @app.route('/lvfs/component/problems')
 @login_required
-def component_problems():
+def route_component_problems():
     """
     Show all components with problems
     """
@@ -44,7 +44,7 @@ def component_problems():
 
 @app.route('/lvfs/component/problems/<remote_name>')
 @login_required
-def component_problems_remote(remote_name):
+def route_component_problems_remote(remote_name):
     """
     Show all components with problems
     """
@@ -61,7 +61,7 @@ def component_problems_remote(remote_name):
 
 @app.route('/lvfs/component/<int:component_id>/shards')
 @login_required
-def component_shards(component_id):
+def route_component_shards(component_id):
     """
     Show the shards of each component
     """
@@ -70,16 +70,16 @@ def component_shards(component_id):
     md = db.session.query(Component).filter(Component.component_id == component_id).first()
     if not md:
         flash('No component matched!', 'danger')
-        return redirect(url_for('.firmware'))
+        return redirect(url_for('.route_firmware'))
 
     # security check
     fw = md.fw
     if not fw:
         flash('No component matched!', 'danger')
-        return redirect(url_for('.firmware'))
+        return redirect(url_for('.route_firmware'))
     if not fw.check_acl('@view'):
         flash('Permission denied: Unable to view component', 'danger')
-        return redirect(url_for('.component_show', component_id=component_id))
+        return redirect(url_for('.route_component_show', component_id=component_id))
 
     return render_template('component-shards.html',
                            category='firmware',
@@ -87,7 +87,7 @@ def component_shards(component_id):
 
 @app.route('/lvfs/component/<int:component_id>/certificates')
 @login_required
-def component_certificates(component_id):
+def route_component_certificates(component_id):
     """
     Show the shards of each component
     """
@@ -96,16 +96,16 @@ def component_certificates(component_id):
     md = db.session.query(Component).filter(Component.component_id == component_id).first()
     if not md:
         flash('No component matched!', 'danger')
-        return redirect(url_for('.firmware'))
+        return redirect(url_for('.route_firmware'))
 
     # security check
     fw = md.fw
     if not fw:
         flash('No firmware matched!', 'danger')
-        return redirect(url_for('.firmware'))
+        return redirect(url_for('.route_firmware'))
     if not fw.check_acl('@view'):
         flash('Permission denied: Unable to view component', 'danger')
-        return redirect(url_for('.component_show', component_id=component_id))
+        return redirect(url_for('.route_component_show', component_id=component_id))
 
     return render_template('component-certificates.html',
                            category='firmware',
@@ -113,19 +113,19 @@ def component_certificates(component_id):
 
 @app.route('/lvfs/component/<int:component_id>/modify', methods=['POST'])
 @login_required
-def component_modify(component_id):
+def route_component_modify(component_id):
     """ Modifies the component properties """
 
     # find firmware
     md = db.session.query(Component).filter(Component.component_id == component_id).first()
     if not md:
         flash('No component matched!', 'danger')
-        return redirect(url_for('.firmware'))
+        return redirect(url_for('.route_firmware'))
 
     # security check
     if not md.check_acl('@modify-updateinfo'):
         flash('Permission denied: Insufficient permissions to modify firmware', 'danger')
-        return redirect(url_for('.component_show', component_id=component_id))
+        return redirect(url_for('.route_component_show', component_id=component_id))
 
     # set new metadata values
     page = 'overview'
@@ -179,29 +179,29 @@ def component_modify(component_id):
     md.fw.mark_dirty()
     db.session.commit()
     flash('Component updated', 'info')
-    return redirect(url_for('.component_show',
+    return redirect(url_for('.route_component_show',
                             component_id=component_id,
                             page=page))
 
 @app.route('/lvfs/component/<int:component_id>/checksums')
 @login_required
-def component_checksums(component_id):
+def route_component_checksums(component_id):
     """ Show firmware component information """
 
     # get firmware component
     md = db.session.query(Component).filter(Component.component_id == component_id).first()
     if not md:
         flash('No component matched!', 'danger')
-        return redirect(url_for('.firmware'))
+        return redirect(url_for('.route_firmware'))
 
     # security check
     fw = md.fw
     if not fw:
         flash('No firmware matched!', 'danger')
-        return redirect(url_for('.firmware'))
+        return redirect(url_for('.route_firmware'))
     if not fw.check_acl('@view'):
         flash('Permission denied: Unable to view component', 'danger')
-        return redirect(url_for('.component_show', component_id=component_id))
+        return redirect(url_for('.route_component_show', component_id=component_id))
 
     # find reports witch device checksums that match this firmware
     checksum_counts = db.session.query(func.count(ReportAttribute.value),
@@ -221,23 +221,23 @@ def component_checksums(component_id):
 @app.route('/lvfs/component/<int:component_id>')
 @app.route('/lvfs/component/<int:component_id>/<page>')
 @login_required
-def component_show(component_id, page='overview'):
+def route_component_show(component_id, page='overview'):
     """ Show firmware component information """
 
     # get firmware component
     md = db.session.query(Component).filter(Component.component_id == component_id).first()
     if not md:
         flash('No component matched!', 'danger')
-        return redirect(url_for('.firmware'))
+        return redirect(url_for('.route_firmware'))
 
     # security check
     fw = md.fw
     if not fw:
         flash('No firmware matched!', 'danger')
-        return redirect(url_for('.firmware'))
+        return redirect(url_for('.route_firmware'))
     if not fw.check_acl('@view'):
         flash('Permission denied: Unable to view other vendor firmware', 'danger')
-        return redirect(url_for('.component_show', component_id=component_id))
+        return redirect(url_for('.route_component_show', component_id=component_id))
 
     # firmware requirements are too complicated to show on the simplified fiew
     if page == 'requires' and md.has_complex_requirements:
@@ -259,13 +259,13 @@ def component_show(component_id, page='overview'):
 
 @app.route('/lvfs/component/<int:component_id>/requirement/delete/<requirement_id>')
 @login_required
-def component_requirement_delete(component_id, requirement_id):
+def route_component_requirement_delete(component_id, requirement_id):
 
     # get firmware component
     rq = db.session.query(Requirement).filter(Requirement.requirement_id == requirement_id).first()
     if not rq:
         flash('No requirement matched!', 'danger')
-        return redirect(url_for('.component_show', component_id=component_id))
+        return redirect(url_for('.route_component_show', component_id=component_id))
 
     # get the firmware for the requirement
     md = rq.md
@@ -277,7 +277,7 @@ def component_requirement_delete(component_id, requirement_id):
     # security check
     if not md.check_acl('@modify-requirements'):
         flash('Permission denied: Unable to modify other vendor firmware', 'danger')
-        return redirect(url_for('.component_show', component_id=component_id))
+        return redirect(url_for('.route_component_show', component_id=component_id))
 
     # remove chid
     db.session.delete(rq)
@@ -286,13 +286,13 @@ def component_requirement_delete(component_id, requirement_id):
 
     # log
     flash('Removed requirement %s' % rq.value, 'info')
-    return redirect(url_for('.component_show',
+    return redirect(url_for('.route_component_show',
                             component_id=md.component_id,
                             page='requires'))
 
 @app.route('/lvfs/component/<int:component_id>/requirement/add', methods=['POST'])
 @login_required
-def component_requirement_add(component_id):
+def route_component_requirement_add(component_id):
     """ Adds a requirement to a component """
 
     # check we have data
@@ -307,17 +307,17 @@ def component_requirement_add(component_id):
             filter(Component.component_id == component_id).first()
     if not md:
         flash('No component matched!', 'danger')
-        return redirect(url_for('.firmware'))
+        return redirect(url_for('.route_firmware'))
 
     # security check
     if not md.check_acl('@modify-requirements'):
         flash('Permission denied: Unable to modify other vendor firmware', 'danger')
-        return redirect(url_for('.component_show', component_id=component_id))
+        return redirect(url_for('.route_component_show', component_id=component_id))
 
     # validate CHID is a valid GUID
     if request.form['kind'] == 'hardware' and not _validate_guid(request.form['value']):
         flash('Cannot add requirement: %s is not a valid GUID' % request.form['value'], 'warning')
-        return redirect(url_for('.component_show',
+        return redirect(url_for('.route_component_show',
                                 component_id=md.component_id,
                                 page='requires'))
 
@@ -338,13 +338,13 @@ def component_requirement_add(component_id):
     md.fw.mark_dirty()
     db.session.commit()
     flash('Added requirement', 'info')
-    return redirect(url_for('.component_show',
+    return redirect(url_for('.route_component_show',
                             component_id=md.component_id,
                             page='requires'))
 
 @app.route('/lvfs/component/<int:component_id>/requirement/modify', methods=['POST'])
 @login_required
-def component_requirement_modify(component_id):
+def route_component_requirement_modify(component_id):
     """ Adds a requirement to a component """
 
     # check we have data
@@ -359,17 +359,17 @@ def component_requirement_modify(component_id):
             filter(Component.component_id == component_id).first()
     if not md:
         flash('No component matched!', 'danger')
-        return redirect(url_for('.firmware'))
+        return redirect(url_for('.route_firmware'))
 
     # security check
     if not md.check_acl('@modify-requirements'):
         flash('Permission denied: Unable to modify other vendor firmware', 'danger')
-        return redirect(url_for('.component_show', component_id=component_id))
+        return redirect(url_for('.route_component_show', component_id=component_id))
 
     # validate CHID is a valid GUID
     if request.form['kind'] == 'hardware' and not _validate_guid(request.form['value']):
         flash('Cannot add requirement: %s is not a valid GUID' % request.form['value'], 'warning')
-        return redirect(url_for('.component_show',
+        return redirect(url_for('.route_component_show',
                                 component_id=md.component_id,
                                 page='requires'))
 
@@ -388,7 +388,7 @@ def component_requirement_modify(component_id):
                 db.session.delete(rq)
                 db.session.commit()
                 flash('Deleted requirement %s' % rq.value, 'info')
-                return redirect(url_for('.component_show',
+                return redirect(url_for('.route_component_show',
                                         component_id=md.component_id,
                                         page='requires'))
             rq.compare = request.form['compare']
@@ -397,7 +397,7 @@ def component_requirement_modify(component_id):
             flash('Modified requirement %s' % rq.value, 'info')
         else:
             flash('Modified requirement firmware', 'info')
-        return redirect(url_for('.component_show',
+        return redirect(url_for('.route_component_show',
                                 component_id=md.component_id,
                                 page='requires'))
 
@@ -412,19 +412,19 @@ def component_requirement_modify(component_id):
     md.fw.mark_dirty()
     db.session.commit()
     flash('Added requirement', 'info')
-    return redirect(url_for('.component_show',
+    return redirect(url_for('.route_component_show',
                             component_id=md.component_id,
                             page='requires'))
 
 @app.route('/lvfs/component/<int:component_id>/keyword/<keyword_id>/delete')
 @login_required
-def component_keyword_delete(component_id, keyword_id):
+def route_component_keyword_delete(component_id, keyword_id):
 
     # get firmware component
     kw = db.session.query(Keyword).filter(Keyword.keyword_id == keyword_id).first()
     if not kw:
         flash('No keyword matched!', 'danger')
-        return redirect(url_for('.component_show', component_id=component_id))
+        return redirect(url_for('.route_component_show', component_id=component_id))
 
     # get the firmware for the keyword
     md = kw.md
@@ -436,7 +436,7 @@ def component_keyword_delete(component_id, keyword_id):
     # security check
     if not md.check_acl('@modify-keywords'):
         flash('Permission denied: Unable to modify other vendor firmware', 'danger')
-        return redirect(url_for('.component_show', component_id=component_id))
+        return redirect(url_for('.route_component_show', component_id=component_id))
 
     # remove chid
     db.session.delete(kw)
@@ -445,13 +445,13 @@ def component_keyword_delete(component_id, keyword_id):
 
     # log
     flash('Removed keyword %s' % kw.value, 'info')
-    return redirect(url_for('.component_show',
+    return redirect(url_for('.route_component_show',
                             component_id=md.component_id,
                             page='keywords'))
 
 @app.route('/lvfs/component/<int:component_id>/keyword/add', methods=['POST'])
 @login_required
-def component_keyword_add(component_id):
+def route_component_keyword_add(component_id):
     """ Adds one or more keywords to the existing component """
 
     # check we have data
@@ -464,25 +464,25 @@ def component_keyword_add(component_id):
             filter(Component.component_id == component_id).first()
     if not md:
         flash('No component matched!', 'danger')
-        return redirect(url_for('.firmware'))
+        return redirect(url_for('.route_firmware'))
 
     # security check
     if not md.check_acl('@modify-keywords'):
         flash('Permission denied: Unable to modify other vendor firmware', 'danger')
-        return redirect(url_for('.component_show', component_id=component_id))
+        return redirect(url_for('.route_component_show', component_id=component_id))
 
     # add keyword
     md.add_keywords_from_string(request.form['value'])
     md.fw.mark_dirty()
     db.session.commit()
     flash('Added keywords', 'info')
-    return redirect(url_for('.component_show',
+    return redirect(url_for('.route_component_show',
                             component_id=md.component_id,
                             page='keywords'))
 
 @app.route('/lvfs/component/<int:component_id>/issue/<component_issue_id>/delete')
 @login_required
-def component_issue_delete(component_id, component_issue_id):
+def route_component_issue_delete(component_id, component_issue_id):
 
     # get firmware component
     issue = db.session.query(ComponentIssue).\
@@ -490,13 +490,13 @@ def component_issue_delete(component_id, component_issue_id):
                    ComponentIssue.component_issue_id == component_issue_id).first()
     if not issue:
         flash('No CVE matched!', 'danger')
-        return redirect(url_for('.component_show', component_id=component_id))
+        return redirect(url_for('.route_component_show', component_id=component_id))
 
     # permission check
     md = issue.md
     if not md.check_acl('@modify-updateinfo'):
         flash('Permission denied: Unable to modify firmware', 'danger')
-        return redirect(url_for('.component_show', component_id=component_id))
+        return redirect(url_for('.route_component_show', component_id=component_id))
 
     # remove CVE
     db.session.delete(issue)
@@ -505,25 +505,25 @@ def component_issue_delete(component_id, component_issue_id):
 
     # log
     flash('Removed {}'.format(issue.value), 'info')
-    return redirect(url_for('.component_show',
+    return redirect(url_for('.route_component_show',
                             component_id=md.component_id,
                             page='issues'))
 
 @app.route('/lvfs/component/<int:component_id>/issue/autoimport')
 @login_required
-def component_issue_autoimport(component_id):
+def route_component_issue_autoimport(component_id):
 
     # get firmware component
     md = db.session.query(Component).\
             filter(Component.component_id == component_id).first()
     if not md:
         flash('No component matched!', 'danger')
-        return redirect(url_for('.firmware'))
+        return redirect(url_for('.route_firmware'))
 
     # permission check
     if not md.check_acl('@modify-updateinfo'):
         flash('Permission denied: Unable to modify firmware', 'danger')
-        return redirect(url_for('.component_show', component_id=component_id))
+        return redirect(url_for('.route_component_show', component_id=component_id))
 
     # find any valid CVE numbers in the existing description
     start = 0
@@ -571,13 +571,13 @@ def component_issue_autoimport(component_id):
         md.fw.mark_dirty()
         db.session.commit()
         flash('Added {} issues — now review the update description for sanity'.format(len(issues)), 'info')
-    return redirect(url_for('.component_show',
+    return redirect(url_for('.route_component_show',
                             component_id=md.component_id,
                             page='update'))
 
 @app.route('/lvfs/component/<int:component_id>/issue/add', methods=['POST'])
 @login_required
-def component_issue_add(component_id):
+def route_component_issue_add(component_id):
     """ Adds one or more CVEs to the existing component """
 
     # check we have data
@@ -590,12 +590,12 @@ def component_issue_add(component_id):
             filter(Component.component_id == component_id).first()
     if not md:
         flash('No component matched!', 'danger')
-        return redirect(url_for('.firmware'))
+        return redirect(url_for('.route_firmware'))
 
     # security check
     if not md.check_acl('@modify-updateinfo'):
         flash('Permission denied: Unable to modify firmware', 'danger')
-        return redirect(url_for('.component_show', component_id=component_id))
+        return redirect(url_for('.route_component_show', component_id=component_id))
 
     # add CVE
     for value in request.form['value'].split(','):
@@ -605,39 +605,39 @@ def component_issue_add(component_id):
         issue = ComponentIssue(kind="cve", value=value)
         if issue.problem:
             flash('CVE invalid: {}'.format(issue.problem.description), 'danger')
-            return redirect(url_for('.component_show',
+            return redirect(url_for('.route_component_show',
                                     component_id=component_id,
                                     page='issues'))
         flash('Added {}'.format(value), 'info')
         md.issues.append(issue)
     md.fw.mark_dirty()
     db.session.commit()
-    return redirect(url_for('.component_show',
+    return redirect(url_for('.route_component_show',
                             component_id=md.component_id,
                             page='issues'))
 
 @app.route('/lvfs/component/<int:component_id>/checksum/delete/<checksum_id>')
 @login_required
-def component_checksum_delete(component_id, checksum_id):
+def route_component_checksum_delete(component_id, checksum_id):
 
     # get firmware component
     csum = db.session.query(Checksum).filter(Checksum.checksum_id == checksum_id).first()
     if not csum:
         flash('No checksum matched!', 'danger')
-        return redirect(url_for('.component_show', component_id=component_id))
+        return redirect(url_for('.route_component_show', component_id=component_id))
 
     # get the component for the checksum
     md = csum.md
     if md.component_id != component_id:
         flash('Wrong component ID for checksum', 'danger')
-        return redirect(url_for('.component_show', component_id=component_id))
+        return redirect(url_for('.route_component_show', component_id=component_id))
     if not md:
         return _error_internal('No metadata matched!')
 
     # security check
     if not md.check_acl('@modify-checksums'):
         flash('Permission denied: Unable to modify other vendor firmware', 'danger')
-        return redirect(url_for('.component_show', component_id=component_id))
+        return redirect(url_for('.route_component_show', component_id=component_id))
 
     # remove chid
     md.fw.mark_dirty()
@@ -646,13 +646,13 @@ def component_checksum_delete(component_id, checksum_id):
 
     # log
     flash('Removed device checksum', 'info')
-    return redirect(url_for('.component_show',
+    return redirect(url_for('.route_component_show',
                             component_id=md.component_id,
                             page='checksums'))
 
 @app.route('/lvfs/component/<int:component_id>/checksum/add', methods=['POST'])
 @login_required
-def component_checksum_add(component_id):
+def route_component_checksum_add(component_id):
     """ Adds a checksum to a component """
 
     # check we have data
@@ -665,12 +665,12 @@ def component_checksum_add(component_id):
             filter(Component.component_id == component_id).first()
     if not md:
         flash('No component matched!', 'danger')
-        return redirect(url_for('.firmware'))
+        return redirect(url_for('.route_firmware'))
 
     # security check
     if not md.check_acl('@modify-checksums'):
         flash('Permission denied: Unable to modify other vendor firmware', 'danger')
-        return redirect(url_for('.component_show', component_id=component_id))
+        return redirect(url_for('.route_component_show', component_id=component_id))
 
     # validate is a valid hash
     hash_value = request.form['value']
@@ -680,7 +680,7 @@ def component_checksum_add(component_id):
         hash_kind = 'SHA256'
     else:
         flash('%s is not a recognised SHA1 or SHA256 hash' % hash_value, 'warning')
-        return redirect(url_for('.component_show',
+        return redirect(url_for('.route_component_show',
                                 component_id=md.component_id,
                                 page='checksums'))
 
@@ -688,7 +688,7 @@ def component_checksum_add(component_id):
     for csum in md.device_checksums:
         if csum.value == hash_value:
             flash('%s has already been added' % hash_value, 'warning')
-            return redirect(url_for('.component_show',
+            return redirect(url_for('.route_component_show',
                                     component_id=md.component_id,
                                     page='checksums'))
 
@@ -698,26 +698,26 @@ def component_checksum_add(component_id):
     md.fw.mark_dirty()
     db.session.commit()
     flash('Added device checksum', 'info')
-    return redirect(url_for('.component_show',
+    return redirect(url_for('.route_component_show',
                             component_id=md.component_id,
                             page='checksums'))
 
 @app.route('/lvfs/component/<int:component_id>/download')
 @login_required
-def component_download(component_id):
+def route_component_download(component_id):
 
     # get firmware component
     md = db.session.query(Component).\
             filter(Component.component_id == component_id).first()
     if not md:
         flash('No component matched!', 'danger')
-        return redirect(url_for('.firmware'))
+        return redirect(url_for('.route_firmware'))
     if not md.fw.check_acl('@view'):
         flash('Permission denied: Unable to download component', 'danger')
-        return redirect(url_for('.dashboard'))
+        return redirect(url_for('.route_dashboard'))
     if not md.blob:
         flash('Permission denied: Component has no data', 'warning')
-        return redirect(url_for('.dashboard'))
+        return redirect(url_for('.route_dashboard'))
     response = make_response(md.blob)
     response.headers.set('Content-Type', 'application/octet-stream')
     response.headers.set('Content-Disposition', 'attachment', filename=md.filename_contents)

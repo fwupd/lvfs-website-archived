@@ -22,7 +22,7 @@
     <td class="col col-sm-1"><code>{{ev.method}}</code></td>
     <td class="col col-sm-1">{{ev.count}}</td>
     <td class="col">
-      <a class="btn btn-block btn-danger" href="{{url_for('.search_delete', search_event_id=ev.search_event_id)}}">Delete</a>
+      <a class="btn btn-block btn-danger" href="{{url_for('.route_search_delete', search_event_id=ev.search_event_id)}}">Delete</a>
     </td>
   </tr>
 {% endfor %}

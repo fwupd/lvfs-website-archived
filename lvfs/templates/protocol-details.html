@@ -5,7 +5,7 @@
 <div class="card">
   <div class="card-body">
     <div class="card-title">Protocol Details</div>
-<form method="post" action="{{url_for('.protocol_modify', protocol_id=protocol.protocol_id)}}">
+<form method="post" action="{{url_for('.route_protocol_modify', protocol_id=protocol.protocol_id)}}">
   <input type="hidden" name="csrf_token" value="{{csrf_token()}}"/>
   <div class="form-group">
     <label for="group_id">Value:</label>
@@ -70,7 +70,7 @@
       <div class="modal-footer">
         <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
         <a class="btn btn-danger"
-          href="{{url_for('.protocol_delete', protocol_id=protocol.protocol_id)}}"
+          href="{{url_for('.route_protocol_delete', protocol_id=protocol.protocol_id)}}"
           role="button">Delete</a>
       </div>
     </div>

@@ -6,7 +6,7 @@
   <div class="card-body">
     <div class="card-title">Devices</div>
 {% for device in devices %}
-<li><a href="{{url_for('.device_show', appstream_id=device)}}">{{device}}</a></li>
+<li><a href="{{url_for('.route_device_show', appstream_id=device)}}">{{device}}</a></li>
 {% else %}
 <p class="card-text">No devices to show!</p>
 {% endfor %}

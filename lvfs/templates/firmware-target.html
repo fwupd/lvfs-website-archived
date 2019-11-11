@@ -14,7 +14,7 @@
       <p class="card-text">Firmware is only available to your specific user.</p>
 {% if fw.remote.name != 'private' and fw.check_acl('@promote-private') %}
       <a class="card-link btn btn-block btn-primary"
-        href="{{url_for('.firmware_promote', firmware_id=fw.firmware_id, target='private')}}">
+        href="{{url_for('.route_firmware_promote', firmware_id=fw.firmware_id, target='private')}}">
         Move firmware
       </a>
 {% endif %}
@@ -26,7 +26,7 @@
       <p class="card-text">Firmware is available to anyone in your vendor group.</p>
 {% if not fw.remote.name.startswith('embargo') and fw.check_acl('@promote-embargo') %}
       <a class="card-link btn btn-block btn-primary"
-        href="{{url_for('.firmware_promote', firmware_id=fw.firmware_id, target='embargo')}}">
+        href="{{url_for('.route_firmware_promote', firmware_id=fw.firmware_id, target='embargo')}}">
         Move firmware
       </a>
 {% endif %}
@@ -40,7 +40,7 @@
 {% if fw.remote.name != 'stable' %}
 {% if fw.problems|length == 0 %}
       <a class="card-link btn btn-block btn-primary"
-        href="{{url_for('.firmware_promote', firmware_id=fw.firmware_id, target='testing')}}">
+        href="{{url_for('.route_firmware_promote', firmware_id=fw.firmware_id, target='testing')}}">
         Move firmware
       </a>
 {% else %}
@@ -118,7 +118,7 @@
       </div>
       <div class="modal-footer">
         <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
-        <a class="btn btn-danger" href="{{url_for('.firmware_promote', firmware_id=fw.firmware_id, target='testing')}}" role="button">Demote back to testing</a>
+        <a class="btn btn-danger" href="{{url_for('.route_firmware_promote', firmware_id=fw.firmware_id, target='testing')}}" role="button">Demote back to testing</a>
       </div>
     </div>
   </div>
@@ -145,7 +145,7 @@
       </div>
       <div class="modal-footer">
         <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
-        <a class="btn btn-primary" href="{{url_for('.firmware_promote', firmware_id=fw.firmware_id, target='stable')}}" role="button">Promote to stable</a>
+        <a class="btn btn-primary" href="{{url_for('.route_firmware_promote', firmware_id=fw.firmware_id, target='stable')}}" role="button">Promote to stable</a>
       </div>
     </div>
   </div>

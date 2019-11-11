@@ -56,7 +56,7 @@
     </p>
 
     <a class="card-link btn btn-info"
-       href="{{url_for('.protocol_details', protocol_id=pr.protocol_id)}}"
+       href="{{url_for('.route_protocol_details', protocol_id=pr.protocol_id)}}"
        role="button">Details</a>
   </div>
 </div>
@@ -64,7 +64,7 @@
 
 {% endif %}
 
-<form method="post" action="{{url_for('.protocol_add')}}" class="form">
+<form method="post" action="{{url_for('.route_protocol_add')}}" class="form">
 <input type="hidden" name="csrf_token" value="{{csrf_token()}}"/>
 <div class="card mt-3">
   <div class="card-body">

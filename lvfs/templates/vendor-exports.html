@@ -36,7 +36,7 @@
       </div>
 {% if v.check_acl('@modify-exports') %}
       <a class="card-link btn btn-danger"
-        href="{{url_for('.vendor_export_delete', vendor_id=v.vendor_id, export_id=export_id)}}"
+        href="{{url_for('.route_vendor_export_delete', vendor_id=v.vendor_id, export_id=export_id)}}"
         role="button">Remove</a>
 {% endif %}
     </div>
@@ -46,7 +46,7 @@
 {% endif %}
 
 {% if v.check_acl('@modify-exports') %}
-<form method="post" action="{{url_for('.vendor_export_add', vendor_id=v.vendor_id)}}">
+<form method="post" action="{{url_for('.route_vendor_export_add', vendor_id=v.vendor_id)}}">
 <input type="hidden" name="csrf_token" value="{{csrf_token()}}"/>
 <div class="card">
   <div class="card-body">

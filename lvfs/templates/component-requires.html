@@ -13,7 +13,7 @@
 {% endif %}
 {% endif %}
 
-<form class="form" action="{{url_for('.component_requirement_modify', component_id=md.component_id)}}" method="POST" >
+<form class="form" action="{{url_for('.route_component_requirement_modify', component_id=md.component_id)}}" method="POST" >
 <input type="hidden" name="csrf_token" value="{{csrf_token()}}"/>
 <input type="hidden" name="kind" value="firmware">
 <input type="hidden" name="value" value="">
@@ -45,7 +45,7 @@
 </div>
 </form>
 
-<form class="form" action="{{url_for('.component_requirement_modify', component_id=md.component_id)}}" method="POST" >
+<form class="form" action="{{url_for('.route_component_requirement_modify', component_id=md.component_id)}}" method="POST" >
 <input type="hidden" name="csrf_token" value="{{csrf_token()}}"/>
 <input type="hidden" name="kind" value="firmware"/>
 <input type="hidden" name="value" value="bootloader"/>
@@ -77,7 +77,7 @@
 </div>
 </form>
 
-<form class="form mt-2" action="{{url_for('.component_requirement_modify', component_id=md.component_id)}}" method="POST" >
+<form class="form mt-2" action="{{url_for('.route_component_requirement_modify', component_id=md.component_id)}}" method="POST" >
 <input type="hidden" name="csrf_token" value="{{csrf_token()}}"/>
 <input type="hidden" name="kind" value="id">
 <input type="hidden" name="value" value="org.freedesktop.fwupd">
@@ -109,7 +109,7 @@
 </div>
 </form>
 
-<form class="form" action="{{url_for('.component_requirement_add', component_id=md.component_id)}}" method="POST" >
+<form class="form" action="{{url_for('.route_component_requirement_add', component_id=md.component_id)}}" method="POST" >
 <input type="hidden" name="csrf_token" value="{{csrf_token()}}"/>
 <div class="card mt-3">
   <div class="card-body">
@@ -126,7 +126,7 @@
     </td>
     <td class="col col-sm-2 text-right">
       <a class="btn btn-secondary btn-block"
-        href="{{url_for('.component_requirement_delete', component_id=rq.md.component_id, requirement_id=rq.requirement_id)}}"
+        href="{{url_for('.route_component_requirement_delete', component_id=rq.md.component_id, requirement_id=rq.requirement_id)}}"
         role="button">Remove</a>
     </td>
   </tr>
@@ -141,7 +141,7 @@
     <input class="card-link btn btn-primary" type="submit" value="Add"/>
 {% endif %}
 {% if md.requirements %}
-    <a class="card-link btn btn-info" href="{{url_for('.component_show', component_id=md.component_id, page='requires-advanced')}}">Show detailed view</a>
+    <a class="card-link btn btn-info" href="{{url_for('.route_component_show', component_id=md.component_id, page='requires-advanced')}}">Show detailed view</a>
 {% endif %}
   </div>
 </div>

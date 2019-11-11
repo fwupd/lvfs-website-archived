@@ -19,7 +19,7 @@
               <h5> Log in as <code>{{u.username}}</code></h5>
             </div>
           </div>
-          <form method="post" action="{{url_for('.login')}}">
+          <form method="post" action="{{url_for('.route_login')}}">
             <input type="hidden" name="csrf_token" value="{{csrf_token()}}"/>
             <input type="hidden" name="username" value="{{u.username}}">
             <div class="form-group mt-3">
@@ -31,11 +31,11 @@
             </div>
 {% endif %}
             <div class="row justify-content-between">
-              <div class="col-auto"><a class="fs--1" href="{{url_for('.user_recover')}}">Forget Password?</a></div>
+              <div class="col-auto"><a class="fs--1" href="{{url_for('.route_user_recover')}}">Forget Password?</a></div>
             </div>
             <div class="form-group mb-0">
               <button class="btn btn-primary btn-block mt-3" type="submit" name="submit">Login</button>
-              <a class="btn btn-outline-secondary btn-block mt-3" href="{{url_for('.login1')}}">Cancel</a>
+              <a class="btn btn-outline-secondary btn-block mt-3" href="{{url_for('.route_login1')}}">Cancel</a>
             </div>
           </form>
         </div>

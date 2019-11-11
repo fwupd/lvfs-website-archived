@@ -2,7 +2,7 @@ Dear {{ user.display_name }},
 
 You have been added as a user on the Linux Vendor Firmware Service by {{ g.user.display_name }} <{{ g.user.username }}>. Please click on the following link to log in to the LVFS:
 
-{{ url_for('.index', _external=True) }}
+{{ url_for('.route_index', _external=True) }}
 
 Your credidentials have been set as:
 

@@ -12,9 +12,9 @@ Chart.defaults.global.animation = false;
 </script>
 
 <p class="card-text">
-This data is also available for the last <a href="{{url_for('analytics_vendor', timespan_days=30)}}">1</a>,
-<a href="{{url_for('analytics_vendor', timespan_days=90)}}">3</a>, <a href="{{url_for('analytics_vendor', timespan_days=180)}}">6</a>,
-and <a href="{{url_for('analytics_vendor', timespan_days=360)}}">12</a> months.
+This data is also available for the last <a href="{{url_for('.route_analytics_vendor', timespan_days=30)}}">1</a>,
+<a href="{{url_for('.route_analytics_vendor', timespan_days=90)}}">3</a>, <a href="{{url_for('.route_analytics_vendor', timespan_days=180)}}">6</a>,
+and <a href="{{url_for('.route_analytics_vendor', timespan_days=360)}}">12</a> months.
 </p>
 
 <canvas id="metadataChartUserAgents" width="1000" height="600"></canvas>

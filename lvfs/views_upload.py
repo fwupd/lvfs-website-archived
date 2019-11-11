@@ -68,7 +68,7 @@ def _upload_firmware():
     # verify the user can upload
     if not _user_can_upload(g.user):
         flash('User has not signed legal agreement', 'danger')
-        return redirect(url_for('.dashboard'))
+        return redirect(url_for('.route_dashboard'))
 
     # used a custom vendor_id
     if 'vendor_id' in request.form:
@@ -76,11 +76,11 @@ def _upload_firmware():
             vendor_id = int(request.form['vendor_id'])
         except ValueError as e:
             flash('Failed to upload file: Specified vendor ID %s invalid' % request.form['vendor_id'], 'warning')
-            return redirect(url_for('.upload_firmware'))
+            return redirect(url_for('.route_upload_firmware'))
         vendor = db.session.query(Vendor).filter(Vendor.vendor_id == vendor_id).first()
         if not vendor:
             flash('Failed to upload file: Specified vendor ID not found', 'warning')
-            return redirect(url_for('.upload_firmware'))
+            return redirect(url_for('.route_upload_firmware'))
     else:
         vendor = g.user.vendor
 
@@ -89,7 +89,7 @@ def _upload_firmware():
         flash('Permission denied: Failed to upload file for vendor: '
               'User with vendor %s cannot upload to vendor %s' %
               (g.user.vendor.group_id, vendor.group_id), 'warning')
-        return redirect(url_for('.upload_firmware'))
+        return redirect(url_for('.route_upload_firmware'))
 
     # not correct parameters
     if not 'target' in request.form:
@@ -135,7 +135,7 @@ def _upload_firmware():
             flash('Failed to upload file: A file with hash %s already exists' % fw.checksum_upload, 'warning')
             return redirect('/lvfs/firmware/%s' % fw.firmware_id)
         flash('Failed to upload file: Another user has already uploaded this firmware', 'warning')
-        return redirect(url_for('.upload_firmware'))
+        return redirect(url_for('.route_upload_firmware'))
 
     # check the guid and version does not already exist
     fws = db.session.query(Firmware).all()
@@ -156,10 +156,10 @@ def _upload_firmware():
                 if fw.remote.is_public:
                     flash('Firmware {} cannot be autodeleted as is in remote {}'.format(
                         fw.firmware_id, fw.remote.name), 'danger')
-                    return redirect(url_for('.upload_firmware'))
+                    return redirect(url_for('.route_upload_firmware'))
                 if fw.user.user_id != g.user.user_id:
                     flash('Firmware was not uploaded by this user', 'danger')
-                    return redirect(url_for('.upload_firmware'))
+                    return redirect(url_for('.route_upload_firmware'))
             for fw in fws_already_exist:
                 flash('Firmware %i was auto-deleted due to robot upload' % fw.firmware_id)
                 _firmware_delete(fw)
@@ -267,37 +267,37 @@ def _upload_firmware():
         g.user.vendor.remote.is_dirty = True
         db.session.commit()
 
-    return redirect(url_for('.firmware_show', firmware_id=fw.firmware_id))
+    return redirect(url_for('.route_firmware_show', firmware_id=fw.firmware_id))
 
 @app.route('/lvfs/upload', methods=['GET', 'POST'])
 @login_required
 @csrf.exempt
-def upload_robot():
+def route_upload_robot():
     """ Upload a .cab file to the LVFS service from a robot user """
 
     # old URL being used
     if request.method != 'POST':
-        return redirect(url_for('.upload_firmware'))
+        return redirect(url_for('.route_upload_firmware'))
 
     # check is robot
     if not g.user.is_robot:
         flash('Not a robot user, please try again')
-        return redirect(url_for('.upload_firmware'))
+        return redirect(url_for('.route_upload_firmware'))
 
     # continue with form data
     return _upload_firmware()
 
 @app.route('/lvfs/upload_firmware', methods=['GET', 'POST'])
 @login_required
-def upload_firmware():
+def route_upload_firmware():
     """ Upload a .cab file to the LVFS service """
 
     # only accept form data
     if request.method != 'POST':
         if not hasattr(g, 'user'):
-            return redirect(url_for('.index'))
+            return redirect(url_for('.route_index'))
         if not _user_can_upload(g.user):
-            return redirect(url_for('.agreement_show'))
+            return redirect(url_for('.route_agreement_show'))
         vendor_ids = []
         vendor = db.session.query(Vendor).filter(Vendor.vendor_id == g.user.vendor_id).first()
         if vendor:
@@ -314,7 +314,7 @@ def upload_firmware():
     return _upload_firmware()
 
 @app.route('/lvfs/upload_hwinfo', methods=['POST'])
-def upload_hwinfo():
+def route_upload_hwinfo():
     """ Upload a hwinfo binary file to the LVFS service without authentication """
 
     # not correct parameters

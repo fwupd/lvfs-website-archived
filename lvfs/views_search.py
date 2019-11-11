@@ -21,15 +21,15 @@ from .util import _get_client_address
 @app.route('/lvfs/search/<int:search_event_id>/delete')
 @login_required
 @admin_login_required
-def search_delete(search_event_id):
+def route_search_delete(search_event_id):
     ev = db.session.query(SearchEvent).filter(SearchEvent.search_event_id == search_event_id).first()
     if not ev:
         flash('No search found!', 'danger')
-        return redirect(url_for('.search'))
+        return redirect(url_for('.route_search'))
     db.session.delete(ev)
     db.session.commit()
     flash('Deleted search event', 'info')
-    return redirect(url_for('.analytics_search_history'))
+    return redirect(url_for('.route_analytics_search_history'))
 
 def _add_search_event(ev):
     if db.session.query(SearchEvent).\
@@ -42,11 +42,11 @@ def _add_search_event(ev):
 @app.route('/lvfs/firmware/search', methods=['GET', 'POST'])
 @app.route('/lvfs/firmware/search/<int:max_results>', methods=['GET', 'POST'])
 @login_required
-def search_fw(max_results=100):
+def route_search_fw(max_results=100):
 
     if 'value' not in request.args:
         flash('No search value!', 'danger')
-        return redirect(url_for('.search'))
+        return redirect(url_for('.route_search'))
     keywords = _split_search_string(request.args['value'])
     if not keywords:
         keywords = request.args['value'].split(' ')
@@ -109,7 +109,7 @@ def search_fw(max_results=100):
 
 @app.route('/lvfs/search', methods=['GET', 'POST'])
 @app.route('/lvfs/search/<int:max_results>', methods=['POST'])
-def search(max_results=150):
+def route_search(max_results=150):
 
     # no search results
     if 'value' not in request.args:

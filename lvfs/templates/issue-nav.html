@@ -1,18 +1,18 @@
 <nav class="row">
   <div class="col col-sm-1 btn-group mb-3">
     <a class="btn btn-falcon-default mr-sm-3"
-      href="{{url_for('.issue_all')}}">
+      href="{{url_for('.route_issue_all')}}">
       <span class="fas fa-arrow-left"></span>
     </a>
   </div>
   <div class="col col-sm-10 text-center mb-3">
     <div class="btn-group" role="group">
       <a class="btn btn-falcon-{{'primary' if request.url_rule.endpoint == 'issue_details' else 'default'}}"
-        href="{{url_for('.issue_details', issue_id=issue.issue_id)}}">Details</a>
+        href="{{url_for('.route_issue_details', issue_id=issue.issue_id)}}">Details</a>
       <a class="btn btn-falcon-{{'primary' if request.url_rule.endpoint == 'issue_conditions' else 'default'}}"
-        href="{{url_for('.issue_conditions', issue_id=issue.issue_id)}}">Conditions</a>
+        href="{{url_for('.route_issue_conditions', issue_id=issue.issue_id)}}">Conditions</a>
       <a class="btn btn-falcon-{{'primary' if request.url_rule.endpoint == 'issue_reports' else 'default'}}"
-        href="{{url_for('.issue_reports', issue_id=issue.issue_id)}}">Matching Reports</a>
+        href="{{url_for('.route_issue_reports', issue_id=issue.issue_id)}}">Matching Reports</a>
     </div>
   </div>
 </nav>

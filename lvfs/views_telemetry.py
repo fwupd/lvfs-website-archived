@@ -35,13 +35,13 @@ def _get_split_names_for_firmware(fw):
 @app.route('/lvfs/telemetry/<int:age>')
 @app.route('/lvfs/telemetry')
 @login_required
-def telemetry(age=0, sort_key='success', sort_direction='down'):
+def route_telemetry(age=0, sort_key='success', sort_direction='down'):
     """ Show firmware component information """
 
     # only Analyst users can view this data
     if not g.user.check_acl('@view-analytics'):
         flash('Permission denied: Unable to view telemetry as not Analyst', 'danger')
-        return redirect(url_for('.dashboard'))
+        return redirect(url_for('.route_dashboard'))
 
     # get data
     fws = []

@@ -5,7 +5,7 @@
 <div class="card">
   <div class="card-body">
     <div class="card-title">Component Shard Details</div>
-<form method="post" action="{{url_for('.shard_modify', component_shard_info_id=shard.component_shard_info_id)}}">
+<form method="post" action="{{url_for('.route_shard_modify', component_shard_info_id=shard.component_shard_info_id)}}">
   <input type="hidden" name="csrf_token" value="{{csrf_token()}}"/>
   <div class="form-group">
     <label for="display_name">Description:</label>

@@ -7,7 +7,7 @@
 <div class="card">
   <div class="card-body">
     <div class="card-title">Issue Details</div>
-<form method="post" action="{{url_for('.issue_modify', issue_id=issue.issue_id)}}">
+<form method="post" action="{{url_for('.route_issue_modify', issue_id=issue.issue_id)}}">
   <input type="hidden" name="csrf_token" value="{{csrf_token()}}"/>
   <div class="form-group">
     <label for="group_id">URL:</label>
@@ -54,7 +54,7 @@
       </div>
       <div class="modal-footer">
         <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
-        <a class="btn btn-danger" href="{{url_for('.issue_delete', issue_id=issue.issue_id)}}" role="button">Delete</a>
+        <a class="btn btn-danger" href="{{url_for('.route_issue_delete', issue_id=issue.issue_id)}}" role="button">Delete</a>
       </div>
     </div>
   </div>

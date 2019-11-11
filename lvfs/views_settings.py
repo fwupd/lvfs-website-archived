@@ -39,14 +39,14 @@ def _convert_tests_for_plugin(plugin):
 @app.route('/lvfs/settings/<plugin_id>')
 @login_required
 @admin_login_required
-def settings_view(plugin_id='general'):
+def route_settings_view(plugin_id='general'):
     """
     Allows the admin to change details about the LVFS instance
     """
     plugin = ploader.get_by_id(plugin_id)
     if not plugin:
         flash('No plugin {}'.format(plugin_id), 'danger')
-        return redirect(url_for('.settings_view'))
+        return redirect(url_for('.route_settings_view'))
     tests_by_type = _convert_tests_for_plugin(plugin)
     return render_template('settings.html',
                            category='settings',
@@ -57,14 +57,14 @@ def settings_view(plugin_id='general'):
 @app.route('/lvfs/settings/<plugin_id>/tests/<kind>')
 @login_required
 @admin_login_required
-def settings_tests(plugin_id, kind):
+def route_settings_tests(plugin_id, kind):
     """
     Allows the admin to change details about the LVFS instance
     """
     plugin = ploader.get_by_id(plugin_id)
     if not plugin:
         flash('No plugin {}'.format(plugin_id), 'danger')
-        return redirect(url_for('.settings_view'))
+        return redirect(url_for('.route_settings_view'))
     tests_by_type = _convert_tests_for_plugin(plugin)
     return render_template('settings-tests.html',
                            category='settings',
@@ -75,7 +75,7 @@ def settings_tests(plugin_id, kind):
 @app.route('/lvfs/settings_create')
 @login_required
 @admin_login_required
-def settings_create():
+def route_settings_create():
 
     # create all the plugin default keys
     settings = _get_settings()
@@ -84,7 +84,7 @@ def settings_create():
             if s.key not in settings:
                 db.session.add(Setting(s.key, s.default))
     db.session.commit()
-    return redirect(url_for('.settings_view'))
+    return redirect(url_for('.route_settings_view'))
 
 def _textarea_string_to_text(value_unsafe):
     values = []
@@ -98,12 +98,12 @@ def _textarea_string_to_text(value_unsafe):
 @app.route('/lvfs/settings/modify/<plugin_id>', methods=['GET', 'POST'])
 @login_required
 @admin_login_required
-def settings_modify(plugin_id='general'):
+def route_settings_modify(plugin_id='general'):
     """ Change details about the instance """
 
     # only accept form data
     if request.method != 'POST':
-        return redirect(url_for('.settings_view', plugin_id=plugin_id))
+        return redirect(url_for('.route_settings_view', plugin_id=plugin_id))
 
     # save new values
     settings = _get_settings()
@@ -117,4 +117,4 @@ def settings_modify(plugin_id='general'):
         _event_log('Changed server settings %s to %s' % (key, setting.value))
     db.session.commit()
     flash('Updated settings', 'info')
-    return redirect(url_for('.settings_view', plugin_id=plugin_id), 302)
+    return redirect(url_for('.route_settings_view', plugin_id=plugin_id), 302)

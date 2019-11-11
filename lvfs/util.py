@@ -434,6 +434,6 @@ def admin_login_required(f):
     def decorated_function(*args, **kwargs):
         if not g.user.check_acl('@admin'):
             flash('Only the admin team can access this resource', 'danger')
-            return redirect(url_for('.dashboard'))
+            return redirect(url_for('.route_dashboard'))
         return f(*args, **kwargs)
     return decorated_function

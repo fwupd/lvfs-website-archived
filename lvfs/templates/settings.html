@@ -6,7 +6,7 @@
 {% block content %}
 <div class="card">
   <div class="card-body">
-  <form class="form" method="post" action="{{url_for('.settings_modify', plugin_id=plugin.id)}}">
+  <form class="form" method="post" action="{{url_for('.route_settings_modify', plugin_id=plugin.id)}}">
     <input type="hidden" name="csrf_token" value="{{csrf_token()}}"/>
     <div class="card-title">{{plugin.name()}}</div>
     <p class="card-text">{{plugin.summary()}}</p>

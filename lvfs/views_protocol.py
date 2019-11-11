@@ -17,7 +17,7 @@ from .util import admin_login_required
 @app.route('/lvfs/protocols')
 @login_required
 @admin_login_required
-def protocol_all():
+def route_protocol_all():
 
     # only show protocols with the correct group_id
     protocols = db.session.query(Protocol).order_by(Protocol.name.asc()).all()
@@ -28,7 +28,7 @@ def protocol_all():
 @app.route('/lvfs/protocol/add', methods=['POST'])
 @login_required
 @admin_login_required
-def protocol_add():
+def route_protocol_add():
 
     # ensure has enough data
     if 'value' not in request.form:
@@ -36,49 +36,49 @@ def protocol_add():
     value = request.form['value']
     if not value or not value.islower() or value.find(' ') != -1:
         flash('Failed to add protocol: Value needs to be a lower case word', 'warning')
-        return redirect(url_for('.protocol_all'))
+        return redirect(url_for('.route_protocol_all'))
 
     # already exists
     if db.session.query(Protocol).filter(Protocol.value == value).first():
         flash('Failed to add protocol: The protocol already exists', 'info')
-        return redirect(url_for('.protocol_all'))
+        return redirect(url_for('.route_protocol_all'))
 
     # add protocol
     protocol = Protocol(value=request.form['value'])
     db.session.add(protocol)
     db.session.commit()
     flash('Added protocol', 'info')
-    return redirect(url_for('.protocol_details', protocol_id=protocol.protocol_id))
+    return redirect(url_for('.route_protocol_details', protocol_id=protocol.protocol_id))
 
 @app.route('/lvfs/protocol/<int:protocol_id>/delete')
 @login_required
 @admin_login_required
-def protocol_delete(protocol_id):
+def route_protocol_delete(protocol_id):
 
     # get protocol
     protocol = db.session.query(Protocol).\
             filter(Protocol.protocol_id == protocol_id).first()
     if not protocol:
         flash('No protocol found', 'info')
-        return redirect(url_for('.protocol_all'))
+        return redirect(url_for('.route_protocol_all'))
 
     # delete
     db.session.delete(protocol)
     db.session.commit()
     flash('Deleted protocol', 'info')
-    return redirect(url_for('.protocol_all'))
+    return redirect(url_for('.route_protocol_all'))
 
 @app.route('/lvfs/protocol/<int:protocol_id>/modify', methods=['POST'])
 @login_required
 @admin_login_required
-def protocol_modify(protocol_id):
+def route_protocol_modify(protocol_id):
 
     # find protocol
     protocol = db.session.query(Protocol).\
                 filter(Protocol.protocol_id == protocol_id).first()
     if not protocol:
         flash('No protocol found', 'info')
-        return redirect(url_for('.protocol_all'))
+        return redirect(url_for('.route_protocol_all'))
 
     # modify protocol
     protocol.is_signed = bool('is_signed' in request.form)
@@ -92,19 +92,19 @@ def protocol_modify(protocol_id):
 
     # success
     flash('Modified protocol', 'info')
-    return redirect(url_for('.protocol_details', protocol_id=protocol_id))
+    return redirect(url_for('.route_protocol_details', protocol_id=protocol_id))
 
 @app.route('/lvfs/protocol/<int:protocol_id>/details')
 @login_required
 @admin_login_required
-def protocol_details(protocol_id):
+def route_protocol_details(protocol_id):
 
     # find protocol
     protocol = db.session.query(Protocol).\
             filter(Protocol.protocol_id == protocol_id).first()
     if not protocol:
         flash('No protocol found', 'info')
-        return redirect(url_for('.protocol_all'))
+        return redirect(url_for('.route_protocol_all'))
 
     # show details
     verfmts = db.session.query(Verfmt).order_by(Verfmt.verfmt_id.asc()).all()

@@ -19,13 +19,13 @@
               <h5> Log in</h5>
             </div>
             <div class="col-auto">
-              <p class="fs--1 text-600">or <a href="{{url_for('.new_account')}}">apply for an account</a></p>
+              <p class="fs--1 text-600">or <a href="{{url_for('.route_new_account')}}">apply for an account</a></p>
             </div>
           </div>
           <p class="card-text">
             Accounts are only used by hardware vendors when uploading new firmware.
           </p>
-          <form method="post" action="{{url_for('.login1_response')}}">
+          <form method="post" action="{{url_for('.route_login1_response')}}">
             <input type="hidden" name="csrf_token" value="{{csrf_token()}}"/>
             <div class="form-group">
               <input class="form-control" type="email" name="username" placeholder="Email address" />
@@ -40,7 +40,7 @@
             <div class="form-group mb-0">
               <div class="row no-gutters">
                 <div class="col-sm-12 pr-sm-1">
-                  <a class="btn btn-secondary btn-block mt-2" href="{{url_for('.login_oauth', plugin_id='auth-azure')}}">
+                  <a class="btn btn-secondary btn-block mt-2" href="{{url_for('.route_login_oauth', plugin_id='auth-azure')}}">
                     Azure AD
                   </a>
                 </div>

@@ -19,12 +19,12 @@
     </p>
 {% endif %}
 {% if sort_direction != 'up' %}
-    <a class="card-link btn btn-sm btn-info" href="{{url_for('.telemetry', age=age, sort_key=sort_key, sort_direction='up')}}">
+    <a class="card-link btn btn-sm btn-info" href="{{url_for('.route_telemetry', age=age, sort_key=sort_key, sort_direction='up')}}">
       Sort ▼
     </a>
 {% endif %}
 {% if sort_direction != 'down' %}
-    <a class="card-link btn btn-sm btn-info" href="{{url_for('.telemetry', age=age, sort_key=sort_key, sort_direction='down')}}">
+    <a class="card-link btn btn-sm btn-info" href="{{url_for('.route_telemetry', age=age, sort_key=sort_key, sort_direction='down')}}">
       Sort ▲
     </a>
 {% endif %}
@@ -76,7 +76,7 @@
       Contains firmware for more than one machine.
     </p>
 {% endif %}
-    <a class="card-link btn btn-sm btn-info" href="{{url_for('.firmware_show', firmware_id=fw.firmware_id)}}">
+    <a class="card-link btn btn-sm btn-info" href="{{url_for('.route_firmware_show', firmware_id=fw.firmware_id)}}">
       Details
     </a>
   </div>

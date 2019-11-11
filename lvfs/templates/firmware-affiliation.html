@@ -19,7 +19,7 @@
       to edit the update details or move the firmware to testing or stable.
     </div>
 {% endif %}
-    <form action="{{url_for('.firmware_affiliation_change', firmware_id=fw.firmware_id)}}" method="post">
+    <form action="{{url_for('.route_firmware_affiliation_change', firmware_id=fw.firmware_id)}}" method="post">
       <input type="hidden" name="csrf_token" value="{{csrf_token()}}"/>
       <div class="form-group">
         <label for="vendor_id">Controlling vendor</label>

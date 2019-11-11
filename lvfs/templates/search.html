@@ -4,7 +4,7 @@
 {% block content %}
 
 {% if not g.user is defined %}
-<form method="GET" class="form-inline justify-content-center" action="{{url_for('.search')}}">
+<form method="GET" class="form-inline justify-content-center" action="{{url_for('.route_search')}}">
   <input type="hidden" name="csrf_token" value="{{csrf_token()}}"/>
   <div class="input-group">
     <input type="text" class="form-control" aria-label="search" name="value" required>
@@ -54,7 +54,7 @@
 {% endif %}
     </td>
     <td class="col col-sm-11">
-      <a href="{{url_for('.vendor_list')}}#{{vendor.group_id}}">Hardware Vendor: {{vendor.display_name}}</a><br/>
+      <a href="{{url_for('.route_vendor_list')}}#{{vendor.group_id}}">Hardware Vendor: {{vendor.display_name}}</a><br/>
       Uses the LVFS: {{ 'Yes' if vendor.is_account_holder else 'No' }}<br/>
       Uploading Firmware: {{ 'Yes' if vendor.fw_stable else 'No' }}<br/>
       Official Statement: {{vendor.description}}
@@ -71,7 +71,7 @@
 {% endif %}
     </td>
     <td class="col col-sm-11">
-      <a href="{{url_for('.device_show', appstream_id=md.appstream_id)}}">{{md.name_with_category}}</a><br/>
+      <a href="{{url_for('.route_device_show', appstream_id=md.appstream_id)}}">{{md.name_with_category}}</a><br/>
       Vendor: {{md.developer_name}}<br/>
       Latest Version: {{md.version_display}}
     </td>

@@ -106,7 +106,7 @@ def _abs_to_pc(data, data_other):
     return data_pc
 
 @app.route('/lvfs/vendorlist/<page>')
-def vendor_list_analytics(page):
+def route_vendor_list_analytics(page):
     vendors = db.session.query(Vendor).\
                 order_by(Vendor.display_name).\
                 options(joinedload('fws')).all()
@@ -158,7 +158,7 @@ def cmp_to_key(mycmp):
 @app.route('/status')
 @app.route('/vendorlist') # deprecated
 @app.route('/lvfs/vendorlist')
-def vendor_list():
+def route_vendor_list():
     vendors = db.session.query(Vendor).\
                     order_by(Vendor.display_name).\
                     options(joinedload(Vendor.users),
@@ -172,21 +172,21 @@ def vendor_list():
 @app.route('/lvfs/vendor/add', methods=['GET', 'POST'])
 @login_required
 @admin_login_required
-def vendor_add():
+def route_vendor_add():
     """ Add a vendor [ADMIN ONLY] """
 
     # only accept form data
     if request.method != 'POST':
-        return redirect(url_for('.vendor_list'))
+        return redirect(url_for('.route_vendor_list'))
 
     if not 'group_id' in request.form:
         return _error_internal('Unable to add vendor as no data')
     if db.session.query(Vendor).filter(Vendor.group_id == request.form['group_id']).first():
         flash('Failed to add vendor: Group ID already exists', 'warning')
-        return redirect(url_for('.vendor_list'), 302)
+        return redirect(url_for('.route_vendor_list'), 302)
     if len(request.form['group_id']) > 80:
         flash('Failed to add vendor: Group ID is too long', 'warning')
-        return redirect(url_for('.vendor_list'), 302)
+        return redirect(url_for('.route_vendor_list'), 302)
     r = Remote(name='embargo-%s' % request.form['group_id'])
     db.session.add(r)
     db.session.commit()
@@ -194,32 +194,32 @@ def vendor_add():
     db.session.add(v)
     db.session.commit()
     flash('Added vendor %s' % request.form['group_id'], 'info')
-    return redirect(url_for('.vendor_details', vendor_id=v.vendor_id), 302)
+    return redirect(url_for('.route_vendor_details', vendor_id=v.vendor_id), 302)
 
 @app.route('/lvfs/vendor/<int:vendor_id>/delete')
 @login_required
 @admin_login_required
-def vendor_delete(vendor_id):
+def route_vendor_delete(vendor_id):
     """ Removes a vendor [ADMIN ONLY] """
     vendor = db.session.query(Vendor).filter(Vendor.vendor_id == vendor_id).first()
     if not vendor:
         flash('Failed to delete vendor: No a vendor with that group ID', 'warning')
-        return redirect(url_for('.vendor_list'), 302)
+        return redirect(url_for('.route_vendor_list'), 302)
     db.session.delete(vendor)
     db.session.commit()
     flash('Removed vendor', 'info')
-    return redirect(url_for('.vendor_list'), 302)
+    return redirect(url_for('.route_vendor_list'), 302)
 
 @app.route('/lvfs/vendor/<int:vendor_id>')
 @app.route('/lvfs/vendor/<int:vendor_id>/details')
 @login_required
 @admin_login_required
-def vendor_details(vendor_id):
+def route_vendor_details(vendor_id):
     """ Allows changing a vendor [ADMIN ONLY] """
     vendor = db.session.query(Vendor).filter(Vendor.vendor_id == vendor_id).first()
     if not vendor:
         flash('Failed to get vendor details: No a vendor with that group ID', 'warning')
-        return redirect(url_for('.vendor_list'), 302)
+        return redirect(url_for('.route_vendor_list'), 302)
     verfmts = db.session.query(Verfmt).all()
     return render_template('vendor-details.html',
                            category='vendors',
@@ -229,12 +229,12 @@ def vendor_details(vendor_id):
 @app.route('/lvfs/vendor/<int:vendor_id>/restrictions')
 @login_required
 @admin_login_required
-def vendor_restrictions(vendor_id):
+def route_vendor_restrictions(vendor_id):
     """ Allows changing a vendor [ADMIN ONLY] """
     vendor = db.session.query(Vendor).filter(Vendor.vendor_id == vendor_id).first()
     if not vendor:
         flash('Failed to get vendor details: No a vendor with that group ID', 'warning')
-        return redirect(url_for('.vendor_list'), 302)
+        return redirect(url_for('.route_vendor_list'), 302)
     return render_template('vendor-restrictions.html',
                            category='vendors',
                            v=vendor)
@@ -242,12 +242,12 @@ def vendor_restrictions(vendor_id):
 @app.route('/lvfs/vendor/<int:vendor_id>/namespaces')
 @login_required
 @admin_login_required
-def vendor_namespaces(vendor_id):
+def route_vendor_namespaces(vendor_id):
     """ Allows changing a vendor [ADMIN ONLY] """
     vendor = db.session.query(Vendor).filter(Vendor.vendor_id == vendor_id).first()
     if not vendor:
         flash('Failed to get vendor details: No a vendor with that group ID', 'warning')
-        return redirect(url_for('.vendor_list'), 302)
+        return redirect(url_for('.route_vendor_list'), 302)
 
     # get prefixes from existing firmware
     appstream_ids = defaultdict(int)
@@ -277,55 +277,55 @@ def vendor_namespaces(vendor_id):
 
 @app.route('/lvfs/vendor/<int:vendor_id>/event')
 @login_required
-def vendor_event(vendor_id):
+def route_vendor_event(vendor_id):
     """ Allows changing a vendor """
 
     # security check
     vendor = db.session.query(Vendor).filter(Vendor.vendor_id == vendor_id).first()
     if not vendor:
         flash('Failed to get vendor details: No a vendor with that group ID', 'warning')
-        return redirect(url_for('.vendor_list'), 302)
+        return redirect(url_for('.route_vendor_list'), 302)
     if not vendor.check_acl('@manage-users'):
         flash('Permission denied: Unable to view event log', 'danger')
-        return redirect(url_for('.vendor_details', vendor_id=vendor_id))
+        return redirect(url_for('.route_vendor_details', vendor_id=vendor_id))
     return render_template('vendor-event.html',
                            category='vendors',
                            v=vendor, page='event')
 
 @app.route('/lvfs/vendor/<int:vendor_id>/users')
 @login_required
-def vendor_users(vendor_id):
+def route_vendor_users(vendor_id):
     """ Allows changing a vendor [ADMIN ONLY] """
 
     # check exists
     vendor = db.session.query(Vendor).filter(Vendor.vendor_id == vendor_id).first()
     if not vendor:
         flash('Failed to get vendor details: No a vendor with that group ID', 'warning')
-        return redirect(url_for('.vendor_list'), 302)
+        return redirect(url_for('.route_vendor_list'), 302)
 
     # security check
     if not vendor.check_acl('@manage-users'):
         flash('Permission denied: Unable to edit vendor as non-admin', 'danger')
-        return redirect(url_for('.vendor_details', vendor_id=vendor_id))
+        return redirect(url_for('.route_vendor_details', vendor_id=vendor_id))
     return render_template('vendor-users.html',
                            category='vendors',
                            v=vendor)
 
 @app.route('/lvfs/vendor/<int:vendor_id>/oauth')
 @login_required
-def vendor_oauth(vendor_id):
+def route_vendor_oauth(vendor_id):
     """ Allows changing a vendor [ADMIN ONLY] """
 
     # check exists
     vendor = db.session.query(Vendor).filter(Vendor.vendor_id == vendor_id).first()
     if not vendor:
         flash('Failed to get vendor details: No a vendor with that group ID', 'warning')
-        return redirect(url_for('.vendor_list'), 302)
+        return redirect(url_for('.route_vendor_list'), 302)
 
     # security check
     if not vendor.check_acl('@modify-oauth'):
         flash('Permission denied: Unable to edit vendor as non-admin', 'danger')
-        return redirect(url_for('.vendor_details', vendor_id=vendor_id))
+        return redirect(url_for('.route_vendor_details', vendor_id=vendor_id))
     return render_template('vendor-oauth.html',
                            category='vendors',
                            v=vendor)
@@ -333,51 +333,51 @@ def vendor_oauth(vendor_id):
 @app.route('/lvfs/vendor/<int:vendor_id>/restriction/add', methods=['POST'])
 @login_required
 @admin_login_required
-def vendor_restriction_add(vendor_id):
+def route_vendor_restriction_add(vendor_id):
     """ Allows changing a vendor [ADMIN ONLY] """
 
     # check exists
     vendor = db.session.query(Vendor).filter(Vendor.vendor_id == vendor_id).first()
     if not vendor:
         flash('Failed to get vendor details: No a vendor with that group ID', 'warning')
-        return redirect(url_for('.vendor_list'), 302)
+        return redirect(url_for('.route_vendor_list'), 302)
     if not 'value' in request.form:
         return _error_internal('No value')
     vendor.restrictions.append(Restriction(request.form['value']))
     db.session.commit()
     flash('Added restriction', 'info')
-    return redirect(url_for('.vendor_restrictions', vendor_id=vendor_id), 302)
+    return redirect(url_for('.route_vendor_restrictions', vendor_id=vendor_id), 302)
 
 @app.route('/lvfs/vendor/<int:vendor_id>/restriction/<int:restriction_id>/delete')
 @login_required
 @admin_login_required
-def vendor_restriction_delete(vendor_id, restriction_id):
+def route_vendor_restriction_delete(vendor_id, restriction_id):
     """ Allows changing a vendor [ADMIN ONLY] """
 
     # check exists
     vendor = db.session.query(Vendor).filter(Vendor.vendor_id == vendor_id).first()
     if not vendor:
         flash('Failed to get vendor details: No a vendor with that group ID', 'warning')
-        return redirect(url_for('.vendor_list'), 302)
+        return redirect(url_for('.route_vendor_list'), 302)
     for res in vendor.restrictions:
         if res.restriction_id == restriction_id:
             db.session.delete(res)
             db.session.commit()
             break
     flash('Deleted restriction', 'info')
-    return redirect(url_for('.vendor_restrictions', vendor_id=vendor_id), 302)
+    return redirect(url_for('.route_vendor_restrictions', vendor_id=vendor_id), 302)
 
 @app.route('/lvfs/vendor/<int:vendor_id>/namespace/add', methods=['POST', 'GET'])
 @login_required
 @admin_login_required
-def vendor_namespace_add(vendor_id):
+def route_vendor_namespace_add(vendor_id):
     """ Allows changing a vendor [ADMIN ONLY] """
 
     # check exists
     vendor = db.session.query(Vendor).filter(Vendor.vendor_id == vendor_id).first()
     if not vendor:
         flash('Failed to get vendor details: No a vendor with that group ID', 'warning')
-        return redirect(url_for('.vendor_list'), 302)
+        return redirect(url_for('.route_vendor_list'), 302)
     if 'value' in request.form:
         ns = Namespace(value=request.form['value'], user=g.user)
     elif 'value' in request.args:
@@ -386,46 +386,46 @@ def vendor_namespace_add(vendor_id):
         return _error_internal('No value')
     if not ns.is_valid:
         flash('Failed to add namespace: Invalid value, expecting something like com.dell', 'warning')
-        return redirect(url_for('.vendor_namespaces', vendor_id=vendor_id))
+        return redirect(url_for('.route_vendor_namespaces', vendor_id=vendor_id))
     vendor.namespaces.append(ns)
     db.session.commit()
     flash('Added namespace', 'info')
-    return redirect(url_for('.vendor_namespaces', vendor_id=vendor_id), 302)
+    return redirect(url_for('.route_vendor_namespaces', vendor_id=vendor_id), 302)
 
 @app.route('/lvfs/vendor/<int:vendor_id>/namespace/<int:namespace_id>/delete')
 @login_required
 @admin_login_required
-def vendor_namespace_delete(vendor_id, namespace_id):
+def route_vendor_namespace_delete(vendor_id, namespace_id):
     """ Allows changing a vendor [ADMIN ONLY] """
 
     # check exists
     vendor = db.session.query(Vendor).filter(Vendor.vendor_id == vendor_id).first()
     if not vendor:
         flash('Failed to get vendor details: No a vendor with that group ID', 'warning')
-        return redirect(url_for('.vendor_list'), 302)
+        return redirect(url_for('.route_vendor_list'), 302)
     for res in vendor.namespaces:
         if res.namespace_id == namespace_id:
             db.session.delete(res)
             db.session.commit()
             break
     flash('Deleted namespace', 'info')
-    return redirect(url_for('.vendor_namespaces', vendor_id=vendor_id), 302)
+    return redirect(url_for('.route_vendor_namespaces', vendor_id=vendor_id), 302)
 
 @app.route('/lvfs/vendor/<int:vendor_id>/modify_by_admin', methods=['GET', 'POST'])
 @login_required
 @admin_login_required
-def vendor_modify_by_admin(vendor_id):
+def route_vendor_modify_by_admin(vendor_id):
     """ Change details about the any vendor """
 
     # only accept form data
     if request.method != 'POST':
-        return redirect(url_for('.vendor_list'))
+        return redirect(url_for('.route_vendor_list'))
 
     # save to database
     vendor = db.session.query(Vendor).filter(Vendor.vendor_id == vendor_id).first()
     if not vendor:
         flash('Failed to modify vendor: No a vendor with that group ID', 'warning')
-        return redirect(url_for('.vendor_list'), 302)
+        return redirect(url_for('.route_vendor_list'), 302)
     for key in ['display_name',
                 'internal_team',
                 'group_id',
@@ -454,18 +454,18 @@ def vendor_modify_by_admin(vendor_id):
             setattr(vendor, key, bool(request.form[key] == '1'))
     db.session.commit()
     flash('Updated vendor', 'info')
-    return redirect(url_for('.vendor_list'))
+    return redirect(url_for('.route_vendor_list'))
 
 @app.route('/lvfs/vendor/<int:vendor_id>/upload', methods=['POST'])
 @login_required
 @admin_login_required
-def vendor_upload(vendor_id):
+def route_vendor_upload(vendor_id):
 
     # check exists
     vendor = db.session.query(Vendor).filter(Vendor.vendor_id == vendor_id).first()
     if not vendor:
         flash('Failed to modify vendor: No a vendor with that group ID', 'warning')
-        return redirect(url_for('.vendor_list'), 302)
+        return redirect(url_for('.route_vendor_list'), 302)
 
     # not correct parameters
     if not 'file' in request.files:
@@ -481,7 +481,7 @@ def vendor_upload(vendor_id):
     db.session.commit()
     flash('Modified vendor', 'info')
 
-    return redirect(url_for('.vendor_details', vendor_id=vendor_id), 302)
+    return redirect(url_for('.route_vendor_details', vendor_id=vendor_id), 302)
 
 def _verify_username_vendor_glob(username, username_glob):
     for tmp in username_glob.split(','):
@@ -491,35 +491,35 @@ def _verify_username_vendor_glob(username, username_glob):
 
 @app.route('/lvfs/vendor/<int:vendor_id>/user/add', methods=['POST'])
 @login_required
-def vendor_user_add(vendor_id):
+def route_vendor_user_add(vendor_id):
     """ Add a user to the vendor """
 
     # check exists
     vendor = db.session.query(Vendor).filter(Vendor.vendor_id == vendor_id).first()
     if not vendor:
         flash('Failed to modify vendor: No a vendor with that group ID', 'warning')
-        return redirect(url_for('.vendor_list'), 302)
+        return redirect(url_for('.route_vendor_list'), 302)
 
     # security check
     if not vendor.check_acl('@manage-users'):
         flash('Permission denied: Unable to modify vendor as non-admin', 'danger')
-        return redirect(url_for('.vendor_details', vendor_id=vendor_id))
+        return redirect(url_for('.route_vendor_details', vendor_id=vendor_id))
 
     if not 'username' in request.form or not request.form['username']:
         flash('Unable to add user as no username', 'danger')
-        return redirect(url_for('.vendor_details', vendor_id=vendor_id))
+        return redirect(url_for('.route_vendor_details', vendor_id=vendor_id))
     if not 'display_name' in request.form:
         flash('Unable to add user as no display_name', 'danger')
-        return redirect(url_for('.vendor_details', vendor_id=vendor_id))
+        return redirect(url_for('.route_vendor_details', vendor_id=vendor_id))
     user = db.session.query(User).filter(User.username == request.form['username']).first()
     if user:
         flash('Failed to add user: Username already exists', 'warning')
-        return redirect(url_for('.vendor_users', vendor_id=vendor_id), 302)
+        return redirect(url_for('.route_vendor_users', vendor_id=vendor_id), 302)
 
     # verify email
     if not _email_check(request.form['username']):
         flash('Failed to add user: Invalid email address', 'warning')
-        return redirect(url_for('.user_list'), 302)
+        return redirect(url_for('.route_user_list'), 302)
 
     # verify the username matches the allowed vendor glob
     if not g.user.is_admin:
@@ -527,13 +527,13 @@ def vendor_user_add(vendor_id):
             flash('Failed to add user: '
                   'Admin has not set the account policy for this vendor',
                   'warning')
-            return redirect(url_for('.vendor_users', vendor_id=vendor_id), 302)
+            return redirect(url_for('.route_vendor_users', vendor_id=vendor_id), 302)
         if not _verify_username_vendor_glob(request.form['username'].lower(),
                                             vendor.username_glob):
             flash('Failed to add user: '
                   'Email address does not match account policy %s' % vendor.username_glob,
                   'warning')
-            return redirect(url_for('.vendor_users', vendor_id=vendor_id), 302)
+            return redirect(url_for('.route_vendor_users', vendor_id=vendor_id), 302)
 
     # add user
     if g.user.vendor.oauth_domain_glob:
@@ -561,23 +561,23 @@ def vendor_user_add(vendor_id):
 
     # done!
     flash('Added user %i' % user.user_id, 'info')
-    return redirect(url_for('.vendor_users', vendor_id=vendor_id), 302)
+    return redirect(url_for('.route_vendor_users', vendor_id=vendor_id), 302)
 
 @app.route('/lvfs/vendor/<int:vendor_id>/affiliations')
 @login_required
-def vendor_affiliations(vendor_id):
+def route_vendor_affiliations(vendor_id):
     """ Allows changing vendor affiliations [ADMIN ONLY] """
 
     # check exists
     vendor = db.session.query(Vendor).filter(Vendor.vendor_id == vendor_id).first()
     if not vendor:
         flash('Failed to get vendor details: No a vendor with that group ID', 'warning')
-        return redirect(url_for('.vendor_list'), 302)
+        return redirect(url_for('.route_vendor_list'), 302)
 
     # security check
     if not vendor.check_acl('@view-affiliations'):
         flash('Permission denied: Unable to view affiliations', 'danger')
-        return redirect(url_for('.vendor_details', vendor_id=vendor_id))
+        return redirect(url_for('.route_vendor_details', vendor_id=vendor_id))
 
     # ACLs possible for the OEM to grant to the ODM
     possible_actions = {
@@ -617,58 +617,58 @@ def vendor_affiliations(vendor_id):
 
 @app.route('/lvfs/vendor/<int:vendor_id>/affiliation/<int:affiliation_id>/action/add/<action>')
 @login_required
-def vendor_affiliation_action_add(vendor_id, affiliation_id, action):
+def route_vendor_affiliation_action_add(vendor_id, affiliation_id, action):
     """ add an ACL action to an existing affiliation """
 
     # security check
     vendor = db.session.query(Vendor).filter(Vendor.vendor_id == vendor_id).first()
     if not vendor:
         flash('Failed to get vendor details: No a vendor with that ID', 'warning')
-        return redirect(url_for('.dashboard'))
+        return redirect(url_for('.route_dashboard'))
     if not vendor.check_acl('@modify-affiliation-actions'):
         flash('Permission denied: Unable to modify vendor affiliation', 'danger')
-        return redirect(url_for('.vendor_affiliations', vendor_id=vendor_id))
+        return redirect(url_for('.route_vendor_affiliations', vendor_id=vendor_id))
 
     # already exists?
     aff = db.session.query(Affiliation).filter(Affiliation.affiliation_id == affiliation_id).first()
     if not aff:
         flash('Failed to add action: No affiliation with that ID', 'warning')
-        return redirect(url_for('.vendor_affiliations', vendor_id=vendor_id))
+        return redirect(url_for('.route_vendor_affiliations', vendor_id=vendor_id))
     if not action.startswith('@'):
         flash('Failed to add action: Expected "@" prefix', 'warning')
-        return redirect(url_for('.vendor_affiliations', vendor_id=vendor_id))
+        return redirect(url_for('.route_vendor_affiliations', vendor_id=vendor_id))
     if aff.get_action(action):
         flash('Failed to add action: Already present', 'warning')
-        return redirect(url_for('.vendor_affiliations', vendor_id=vendor_id))
+        return redirect(url_for('.route_vendor_affiliations', vendor_id=vendor_id))
 
     # add
     aff.actions.append(AffiliationAction(action=action, user=g.user))
     db.session.commit()
     flash('Added action', 'info')
-    return redirect(url_for('.vendor_affiliations', vendor_id=vendor_id))
+    return redirect(url_for('.route_vendor_affiliations', vendor_id=vendor_id))
 
 @app.route('/lvfs/vendor/<int:vendor_id>/affiliation/<int:affiliation_id>/action/remove/<action>')
 @login_required
-def vendor_affiliation_action_remove(vendor_id, affiliation_id, action):
+def route_vendor_affiliation_action_remove(vendor_id, affiliation_id, action):
     """ remove an ACL action to an existing affiliation """
 
     # security check
     vendor = db.session.query(Vendor).filter(Vendor.vendor_id == vendor_id).first()
     if not vendor:
         flash('Failed to get vendor details: No a vendor with that ID', 'warning')
-        return redirect(url_for('.dashboard'))
+        return redirect(url_for('.route_dashboard'))
     if not vendor.check_acl('@modify-affiliation-actions'):
         flash('Permission denied: Unable to modify vendor affiliation', 'danger')
-        return redirect(url_for('.vendor_affiliations', vendor_id=vendor_id))
+        return redirect(url_for('.route_vendor_affiliations', vendor_id=vendor_id))
 
     # already exists?
     aff = db.session.query(Affiliation).filter(Affiliation.affiliation_id == affiliation_id).first()
     if not aff:
         flash('Failed to remove action: No affiliation with that ID', 'warning')
-        return redirect(url_for('.vendor_affiliations', vendor_id=vendor_id))
+        return redirect(url_for('.route_vendor_affiliations', vendor_id=vendor_id))
     if not aff.get_action(action):
         flash('Failed to remove action: Not present', 'warning')
-        return redirect(url_for('.vendor_affiliations', vendor_id=vendor_id))
+        return redirect(url_for('.route_vendor_affiliations', vendor_id=vendor_id))
 
     # remove
     for act in aff.actions:
@@ -676,32 +676,32 @@ def vendor_affiliation_action_remove(vendor_id, affiliation_id, action):
             aff.actions.remove(act)
     db.session.commit()
     flash('Removed action', 'info')
-    return redirect(url_for('.vendor_affiliations', vendor_id=vendor_id))
+    return redirect(url_for('.route_vendor_affiliations', vendor_id=vendor_id))
 
 @app.route('/lvfs/vendor/<int:vendor_id>/affiliation/add', methods=['POST'])
 @login_required
-def vendor_affiliation_add(vendor_id):
+def route_vendor_affiliation_add(vendor_id):
     """ Allows changing a vendor [ADMIN ONLY] """
 
     # check exists
     vendor = db.session.query(Vendor).filter(Vendor.vendor_id == vendor_id).first()
     if not vendor:
         flash('Failed to add affiliate: No a vendor with that group ID', 'warning')
-        return redirect(url_for('.vendor_affiliations', vendor_id=vendor_id), 302)
+        return redirect(url_for('.route_vendor_affiliations', vendor_id=vendor_id), 302)
     if not 'vendor_id_odm' in request.form:
         return _error_internal('No value')
 
     # security check
     if not vendor.check_acl('@modify-affiliations'):
         flash('Permission denied: Unable to add vendor affiliation', 'danger')
-        return redirect(url_for('.vendor_details', vendor_id=vendor_id))
+        return redirect(url_for('.route_vendor_details', vendor_id=vendor_id))
 
     # check if it already exists
     vendor_id_odm = int(request.form['vendor_id_odm'])
     for rel in vendor.affiliations:
         if rel.vendor_id_odm == vendor_id_odm:
             flash('Failed to add affiliate: Already a affiliation with that ODM', 'warning')
-            return redirect(url_for('.vendor_affiliations', vendor_id=vendor_id), 302)
+            return redirect(url_for('.route_vendor_affiliations', vendor_id=vendor_id), 302)
 
     # add a new ODM -> OEM affiliation
     aff = Affiliation(vendor_id, vendor_id_odm)
@@ -716,23 +716,23 @@ def vendor_affiliation_add(vendor_id):
     vendor.affiliations.append(aff)
     db.session.commit()
     flash('Added affiliation {}'.format(aff.affiliation_id), 'info')
-    return redirect(url_for('.vendor_affiliations', vendor_id=vendor_id), 302)
+    return redirect(url_for('.route_vendor_affiliations', vendor_id=vendor_id), 302)
 
 @app.route('/lvfs/vendor/<int:vendor_id>/affiliation/<int:affiliation_id>/delete')
 @login_required
-def vendor_affiliation_delete(vendor_id, affiliation_id):
+def route_vendor_affiliation_delete(vendor_id, affiliation_id):
     """ Allows changing a vendor [ADMIN ONLY] """
 
     # check exists
     vendor = db.session.query(Vendor).filter(Vendor.vendor_id == vendor_id).first()
     if not vendor:
         flash('Failed to get vendor details: No a vendor with that group ID', 'warning')
-        return redirect(url_for('.vendor_list'), 302)
+        return redirect(url_for('.route_vendor_list'), 302)
 
     # security check
     if not vendor.check_acl('@modify-affiliations'):
         flash('Permission denied: Unable to delete vendor affiliations', 'danger')
-        return redirect(url_for('.vendor_details', vendor_id=vendor_id))
+        return redirect(url_for('.route_vendor_details', vendor_id=vendor_id))
 
     for res in vendor.affiliations:
         if res.affiliation_id == affiliation_id:
@@ -740,22 +740,22 @@ def vendor_affiliation_delete(vendor_id, affiliation_id):
             db.session.commit()
             break
     flash('Deleted affiliation', 'info')
-    return redirect(url_for('.vendor_affiliations', vendor_id=vendor_id), 302)
+    return redirect(url_for('.route_vendor_affiliations', vendor_id=vendor_id), 302)
 
 @app.route('/lvfs/vendor/<int:vendor_id>/exports')
 @login_required
-def vendor_exports(vendor_id):
+def route_vendor_exports(vendor_id):
 
     # check exists
     vendor = db.session.query(Vendor).filter(Vendor.vendor_id == vendor_id).first()
     if not vendor:
         flash('Failed to get vendor details: No a vendor with that ID', 'warning')
-        return redirect(url_for('.vendor_list'), 302)
+        return redirect(url_for('.route_vendor_list'), 302)
 
     # security check
     if not vendor.check_acl('@view-exports'):
         flash('Permission denied: Unable to view exports', 'danger')
-        return redirect(url_for('.vendor_details', vendor_id=vendor_id))
+        return redirect(url_for('.route_vendor_details', vendor_id=vendor_id))
 
     # add other vendors
     vendors = []
@@ -779,56 +779,56 @@ def _convert_export_ids(v):
 
 @app.route('/lvfs/vendor/<int:vendor_id>/country/add', methods=['POST'])
 @login_required
-def vendor_export_add(vendor_id):
+def route_vendor_export_add(vendor_id):
 
     # check exists
     vendor = db.session.query(Vendor).filter(Vendor.vendor_id == vendor_id).first()
     if not vendor:
         flash('Failed to add affiliate: No a vendor with that ID', 'warning')
-        return redirect(url_for('.vendor_exports', vendor_id=vendor_id), 302)
+        return redirect(url_for('.route_vendor_exports', vendor_id=vendor_id), 302)
     if not 'export_id' in request.form:
         return _error_internal('No value')
 
     # security check
     if not vendor.check_acl('@modify-exports'):
         flash('Permission denied: Unable to add vendor country', 'danger')
-        return redirect(url_for('.vendor_details', vendor_id=vendor_id))
+        return redirect(url_for('.route_vendor_details', vendor_id=vendor_id))
 
     # check if it already exists
     export_id = request.form['export_id']
     export_ids = _convert_export_ids(vendor)
     if export_id in export_ids:
         flash('Failed to add country: Already blocked %s' % export_id, 'warning')
-        return redirect(url_for('.vendor_exports', vendor_id=vendor_id), 302)
+        return redirect(url_for('.route_vendor_exports', vendor_id=vendor_id), 302)
 
     # add a new ODM -> OEM country
     export_ids.append(export_id)
     vendor.banned_country_codes = ','.join(export_ids)
     db.session.commit()
     flash('Added blocked country %s' % export_id, 'info')
-    return redirect(url_for('.vendor_exports', vendor_id=vendor_id), 302)
+    return redirect(url_for('.route_vendor_exports', vendor_id=vendor_id), 302)
 
 @app.route('/lvfs/vendor/<int:vendor_id>/country/<export_id>/delete')
 @login_required
-def vendor_export_delete(vendor_id, export_id):
+def route_vendor_export_delete(vendor_id, export_id):
 
     # check exists
     vendor = db.session.query(Vendor).filter(Vendor.vendor_id == vendor_id).first()
     if not vendor:
         flash('Failed to get vendor details: No a vendor with that ID', 'warning')
-        return redirect(url_for('.vendor_list'), 302)
+        return redirect(url_for('.route_vendor_list'), 302)
 
     # security check
     if not vendor.check_acl('@modify-exports'):
         flash('Permission denied: Unable to delete vendor exports', 'danger')
-        return redirect(url_for('.vendor_details', vendor_id=vendor_id))
+        return redirect(url_for('.route_vendor_details', vendor_id=vendor_id))
 
     export_ids = _convert_export_ids(vendor)
     if export_id not in export_ids:
         flash('Failed to remove country: Not blocked %s' % export_id, 'warning')
-        return redirect(url_for('.vendor_exports', vendor_id=vendor_id), 302)
+        return redirect(url_for('.route_vendor_exports', vendor_id=vendor_id), 302)
     export_ids.remove(export_id)
     vendor.banned_country_codes = ','.join(export_ids)
     db.session.commit()
     flash('Deleted blocked country %s' % export_id, 'info')
-    return redirect(url_for('.vendor_exports', vendor_id=vendor_id), 302)
+    return redirect(url_for('.route_vendor_exports', vendor_id=vendor_id), 302)

@@ -25,10 +25,10 @@ Chart.defaults.global.animation = false;
 
 <p class="card-text">
 This data is also available for the last
-<a href="{{url_for('analytics_user_agents', kind=kind, timespan_days=30)}}">1</a>,
-<a href="{{url_for('analytics_user_agents', kind=kind, timespan_days=90)}}">3</a>,
-<a href="{{url_for('analytics_user_agents', kind=kind, timespan_days=180)}}">6</a>,
-and <a href="{{url_for('analytics_user_agents', kind=kind, timespan_days=360)}}">12</a> months.
+<a href="{{url_for('.route_analytics_user_agents', kind=kind, timespan_days=30)}}">1</a>,
+<a href="{{url_for('.route_analytics_user_agents', kind=kind, timespan_days=90)}}">3</a>,
+<a href="{{url_for('.route_analytics_user_agents', kind=kind, timespan_days=180)}}">6</a>,
+and <a href="{{url_for('.route_analytics_user_agents', kind=kind, timespan_days=360)}}">12</a> months.
 </p>
 
 <canvas id="metadataChartUserAgents" width="1000" height="600"></canvas>

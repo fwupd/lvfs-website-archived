@@ -19,7 +19,7 @@ from .hash import _is_sha1, _is_sha256
 
 @app.route('/lvfs/report/<report_id>')
 @login_required
-def report_view(report_id):
+def route_report_view(report_id):
     report = db.session.query(Report).filter(Report.report_id == report_id).first()
     if not report:
         return _json_error('Report does not exist')
@@ -32,34 +32,34 @@ def report_view(report_id):
 
 @app.route('/lvfs/report/<report_id>/details')
 @login_required
-def report_details(report_id):
+def route_report_details(report_id):
     report = db.session.query(Report).filter(Report.report_id == report_id).first()
     if not report:
         flash('Report does not exist', 'danger')
-        return redirect(url_for('.dashboard'))
+        return redirect(url_for('.route_dashboard'))
     # security check
     if not report.check_acl('@view'):
         flash('Permission denied: Unable to view report', 'danger')
-        return redirect(url_for('.dashboard'))
+        return redirect(url_for('.route_dashboard'))
     return render_template('report-details.html', rpt=report)
 
 @app.route('/lvfs/report/<report_id>/delete')
 @login_required
-def report_delete(report_id):
+def route_report_delete(report_id):
     report = db.session.query(Report).filter(Report.report_id == report_id).first()
     if not report:
         flash('No report found!', 'danger')
-        return redirect(url_for('.analytics_reports'))
+        return redirect(url_for('.route_analytics_reports'))
     # security check
     if not report.check_acl('@delete'):
         flash('Permission denied: Unable to delete report', 'danger')
-        return redirect(url_for('.report_details', report_id=report_id))
+        return redirect(url_for('.route_report_details', report_id=report_id))
     for e in report.attributes:
         db.session.delete(e)
     db.session.delete(report)
     db.session.commit()
     flash('Deleted report', 'info')
-    return redirect(url_for('.analytics_reports'))
+    return redirect(url_for('.route_analytics_reports'))
 
 def _find_issue_for_report_data(data, fw):
     for issue in db.session.query(Issue).order_by(Issue.priority.desc()):
@@ -73,7 +73,7 @@ def _find_issue_for_report_data(data, fw):
 
 @app.route('/lvfs/firmware/report', methods=['POST'])
 @csrf.exempt
-def firmware_report():
+def route_firmware_report():
     """ Upload a report """
 
     # only accept form data

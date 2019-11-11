@@ -17,7 +17,7 @@ from .util import admin_login_required
 
 @app.route('/lvfs/metadata/<group_id>')
 @login_required
-def metadata_remote(group_id):
+def route_metadata_remote(group_id):
     """
     Generate a remote file for a given QA group.
     """
@@ -26,12 +26,12 @@ def metadata_remote(group_id):
     vendor = db.session.query(Vendor).filter(Vendor.group_id == group_id).first()
     if not vendor:
         flash('No vendor with that name', 'danger')
-        return redirect(url_for('.metadata_view'))
+        return redirect(url_for('.route_metadata_view'))
 
     # security check
     if not vendor.check_acl('@view-metadata'):
         flash('Permission denied: Unable to view metadata', 'danger')
-        return redirect(url_for('.metadata_view'))
+        return redirect(url_for('.route_metadata_view'))
 
     # generate file
     remote = []
@@ -50,7 +50,7 @@ def metadata_remote(group_id):
 
 @app.route('/lvfs/metadata')
 @login_required
-def metadata_view():
+def route_metadata_view():
     """
     Show all metadata available to this user.
     """
@@ -71,7 +71,7 @@ def metadata_view():
 @app.route('/lvfs/metadata/rebuild')
 @login_required
 @admin_login_required
-def metadata_rebuild():
+def route_metadata_rebuild():
     """
     Forces a rebuild of all metadata.
     """
@@ -87,12 +87,12 @@ def metadata_rebuild():
             vendor.remote.is_dirty = True
     if scheduled_signing:
         flash('Metadata will be rebuilt %s' % humanize.naturaltime(scheduled_signing), 'info')
-    return redirect(url_for('.metadata_view'))
+    return redirect(url_for('.route_metadata_view'))
 
 @app.route('/lvfs/metadata/rebuild/<remote_id>')
 @login_required
 @admin_login_required
-def metadata_rebuild_remote(remote_id):
+def route_metadata_rebuild_remote(remote_id):
     """
     Forces a rebuild of one metadata remote.
     """
@@ -101,10 +101,10 @@ def metadata_rebuild_remote(remote_id):
     r = db.session.query(Remote).filter(Remote.remote_id == remote_id).first()
     if not r:
         flash('No remote with that ID', 'danger')
-        return redirect(url_for('.metadata_view'))
+        return redirect(url_for('.route_metadata_view'))
     r.is_dirty = True
 
     # modify
     db.session.commit()
     flash('Remote %s marked as dirty' % r.name, 'info')
-    return redirect(url_for('.metadata_view'))
+    return redirect(url_for('.route_metadata_view'))

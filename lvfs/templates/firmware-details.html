@@ -119,7 +119,7 @@ new Chart(ctx, {
         <button type="button" class="btn btn-danger card-link" data-toggle="modal" data-target="#deleteModal">Delete</button>
 {% endif %}
 {% if fw.is_deleted and fw.check_acl('@undelete') %}
-        <a class="btn btn-warning card-link" href="{{url_for('.firmware_undelete', firmware_id=fw.firmware_id)}}" role="button">Undelete</a>
+        <a class="btn btn-warning card-link" href="{{url_for('.route_firmware_undelete', firmware_id=fw.firmware_id)}}" role="button">Undelete</a>
 {% endif %}
 {% if fw.is_deleted and fw.check_acl('@nuke') %}
         <button type="button" class="btn btn-danger card-link" data-toggle="modal" data-target="#nukeModal">☠ Nuke ☠</button>
@@ -149,13 +149,13 @@ new Chart(ctx, {
       <div class="card-body position-relative">
 {% if fw.report_success_cnt > 0 %}
         <p class="card-text">
-          <a href="{{url_for('.firmware_analytics_reports', firmware_id=fw.firmware_id, state=2)}}">
+          <a href="{{url_for('.route_firmware_analytics_reports', firmware_id=fw.firmware_id, state=2)}}">
             {{fw.report_success_cnt}} success reports</a> have been uploaded.
         </p>
 {% endif %}
 {% if fw.report_failure_cnt > 0 %}
         <p class="card-text">
-          <a href="{{url_for('.firmware_analytics_reports', firmware_id=fw.firmware_id, state=3)}}">
+          <a href="{{url_for('.route_firmware_analytics_reports', firmware_id=fw.firmware_id, state=3)}}">
             {{fw.report_failure_cnt}} failed reports</a> have been uploaded.
         </p>
 {% endif %}
@@ -224,7 +224,7 @@ new Chart(ctx, {
       </div>
       <div class="modal-footer">
         <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
-        <a class="btn btn-danger" href="{{url_for('.firmware_delete', firmware_id=fw.firmware_id)}}">Delete Firmware</a>
+        <a class="btn btn-danger" href="{{url_for('.route_firmware_delete', firmware_id=fw.firmware_id)}}">Delete Firmware</a>
       </div>
     </div>
   </div>
@@ -252,7 +252,7 @@ new Chart(ctx, {
       </div>
       <div class="modal-footer">
         <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
-        <a class="btn btn-danger" href="{{url_for('.firmware_nuke', firmware_id=fw.firmware_id)}}">☠ Nuke ☠</a>
+        <a class="btn btn-danger" href="{{url_for('.route_firmware_nuke', firmware_id=fw.firmware_id)}}">☠ Nuke ☠</a>
       </div>
     </div>
   </div>

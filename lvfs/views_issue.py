@@ -15,12 +15,12 @@ from .util import _error_internal
 
 @app.route('/lvfs/issue/all')
 @login_required
-def issue_all():
+def route_issue_all():
 
     # security check
     if not g.user.check_acl('@view-issues'):
         flash('Permission denied: Unable to view issues', 'danger')
-        return redirect(url_for('.issue_all'))
+        return redirect(url_for('.route_issue_all'))
 
     # only show issues with the correct group_id
     issues = []
@@ -33,12 +33,12 @@ def issue_all():
 
 @app.route('/lvfs/issue/add', methods=['POST'])
 @login_required
-def issue_add():
+def route_issue_add():
 
     # security check
     if not Issue().check_acl('@create'):
         flash('Permission denied: Unable to add issue', 'danger')
-        return redirect(url_for('.issue_all'))
+        return redirect(url_for('.route_issue_all'))
 
     # ensure has enough data
     for key in ['url']:
@@ -49,18 +49,18 @@ def issue_add():
     if db.session.query(Issue).\
             filter(Issue.url == request.form['url']).first():
         flash('Failed to add issue: The URL already exists', 'info')
-        return redirect(url_for('.issue_all'))
+        return redirect(url_for('.route_issue_all'))
 
     # add issue
     issue = Issue(url=request.form['url'], vendor_id=g.user.vendor_id)
     db.session.add(issue)
     db.session.commit()
     flash('Added issue', 'info')
-    return redirect(url_for('.issue_details', issue_id=issue.issue_id))
+    return redirect(url_for('.route_issue_details', issue_id=issue.issue_id))
 
 @app.route('/lvfs/issue/<issue_id>/condition/add', methods=['POST'])
 @login_required
-def issue_condition_add(issue_id):
+def route_issue_condition_add(issue_id):
 
     # ensure has enough data
     for key in ['key', 'value', 'compare']:
@@ -72,17 +72,17 @@ def issue_condition_add(issue_id):
                 filter(Issue.issue_id == issue_id).first()
     if not issue:
         flash('No issue found', 'info')
-        return redirect(url_for('.issue_conditions', issue_id=issue_id))
+        return redirect(url_for('.route_issue_conditions', issue_id=issue_id))
     if not issue.check_acl('@modify'):
         flash('Permission denied: Unable to add condition to issue', 'danger')
-        return redirect(url_for('.issue_all'))
+        return redirect(url_for('.route_issue_all'))
 
     # already exists
     if db.session.query(Condition).\
             filter(Condition.key == request.form['key']).\
             filter(Condition.issue_id == issue_id).first():
         flash('Failed to add condition to issue: Key %s already exists' % request.form['key'], 'info')
-        return redirect(url_for('.issue_conditions', issue_id=issue_id))
+        return redirect(url_for('.route_issue_conditions', issue_id=issue_id))
 
     # add condition
     db.session.add(Condition(issue_id,
@@ -91,23 +91,23 @@ def issue_condition_add(issue_id):
                              request.form['compare']))
     db.session.commit()
     flash('Added condition', 'info')
-    return redirect(url_for('.issue_conditions', issue_id=issue_id))
+    return redirect(url_for('.route_issue_conditions', issue_id=issue_id))
 
 @app.route('/lvfs/issue/<issue_id>/condition/<int:condition_id>/delete')
 @login_required
-def issue_condition_delete(issue_id, condition_id):
+def route_issue_condition_delete(issue_id, condition_id):
 
     # disable issue
     issue = db.session.query(Issue).\
                 filter(Issue.issue_id == issue_id).first()
     if not issue:
         flash('No issue found', 'info')
-        return redirect(url_for('.issue_all'))
+        return redirect(url_for('.route_issue_all'))
 
     # security check
     if not issue.check_acl('@modify'):
         flash('Permission denied: Unable to delete condition from issue', 'danger')
-        return redirect(url_for('.issue_all'))
+        return redirect(url_for('.route_issue_all'))
 
     # get issue
     condition = db.session.query(Condition).\
@@ -115,30 +115,30 @@ def issue_condition_delete(issue_id, condition_id):
             filter(Condition.condition_id == condition_id).first()
     if not condition:
         flash('No condition found', 'info')
-        return redirect(url_for('.issue_all'))
+        return redirect(url_for('.route_issue_all'))
 
     # delete
     issue.enabled = False
     db.session.delete(condition)
     db.session.commit()
     flash('Deleted condition, and disabled issue for safety', 'info')
-    return redirect(url_for('.issue_conditions', issue_id=condition.issue_id))
+    return redirect(url_for('.route_issue_conditions', issue_id=condition.issue_id))
 
 @app.route('/lvfs/issue/<int:issue_id>/delete')
 @login_required
-def issue_delete(issue_id):
+def route_issue_delete(issue_id):
 
     # get issue
     issue = db.session.query(Issue).\
             filter(Issue.issue_id == issue_id).first()
     if not issue:
         flash('No issue found', 'info')
-        return redirect(url_for('.issue_all'))
+        return redirect(url_for('.route_issue_all'))
 
     # security check
     if not issue.check_acl('@modify'):
         flash('Permission denied: Unable to delete report', 'danger')
-        return redirect(url_for('.issue_all'))
+        return redirect(url_for('.route_issue_all'))
 
     # delete
     for condition in issue.conditions:
@@ -146,7 +146,7 @@ def issue_delete(issue_id):
     db.session.delete(issue)
     db.session.commit()
     flash('Deleted issue', 'info')
-    return redirect(url_for('.issue_all'))
+    return redirect(url_for('.route_issue_all'))
 
 def _issue_fix_report_failures(issue):
 
@@ -190,24 +190,24 @@ def _issue_fix_report_failures(issue):
 
 @app.route('/lvfs/issue/<int:issue_id>/modify', methods=['POST'])
 @login_required
-def issue_modify(issue_id):
+def route_issue_modify(issue_id):
 
     # find issue
     issue = db.session.query(Issue).\
                 filter(Issue.issue_id == issue_id).first()
     if not issue:
         flash('No issue found', 'info')
-        return redirect(url_for('.issue_all'))
+        return redirect(url_for('.route_issue_all'))
 
     # security check
     if not issue.check_acl('@modify'):
         flash('Permission denied: Unable to modify issue', 'danger')
-        return redirect(url_for('.issue_all'))
+        return redirect(url_for('.route_issue_all'))
 
     # issue cannot be enabled if it has no conditions
     if 'enabled' in request.form and not issue.conditions:
         flash('Issue can not be enabled without conditions', 'warning')
-        return redirect(url_for('.issue_details', issue_id=issue_id))
+        return redirect(url_for('.route_issue_details', issue_id=issue_id))
 
     # modify issue
     issue.enabled = bool('enabled' in request.form)
@@ -226,23 +226,23 @@ def issue_modify(issue_id):
         flash('Modified issue (fixing %i reports)' % cnt_fixed, 'info')
     else:
         flash('Modified issue', 'info')
-    return redirect(url_for('.issue_details', issue_id=issue_id))
+    return redirect(url_for('.route_issue_details', issue_id=issue_id))
 
 @app.route('/lvfs/issue/<int:issue_id>/details')
 @login_required
-def issue_details(issue_id):
+def route_issue_details(issue_id):
 
     # find issue
     issue = db.session.query(Issue).\
             filter(Issue.issue_id == issue_id).first()
     if not issue:
         flash('No issue found', 'info')
-        return redirect(url_for('.issue_all'))
+        return redirect(url_for('.route_issue_all'))
 
     # security check
     if not issue.check_acl('@view'):
         flash('Permission denied: Unable to view issue details', 'danger')
-        return redirect(url_for('.issue_all'))
+        return redirect(url_for('.route_issue_all'))
 
     # show details
     return render_template('issue-details.html',
@@ -251,19 +251,19 @@ def issue_details(issue_id):
 
 @app.route('/lvfs/issue/<int:issue_id>/priority/<op>')
 @login_required
-def issue_priority(issue_id, op):
+def route_issue_priority(issue_id, op):
 
     # find issue
     issue = db.session.query(Issue).\
             filter(Issue.issue_id == issue_id).first()
     if not issue:
         flash('No issue found', 'info')
-        return redirect(url_for('.issue_all'))
+        return redirect(url_for('.route_issue_all'))
 
     # security check
     if not issue.check_acl('@modify'):
         flash('Permission denied: Unable to change issue priority', 'danger')
-        return redirect(url_for('.issue_all'))
+        return redirect(url_for('.route_issue_all'))
 
     # change integer priority
     if op == 'up':
@@ -275,23 +275,23 @@ def issue_priority(issue_id, op):
     db.session.commit()
 
     # show details
-    return redirect(url_for('.issue_all'))
+    return redirect(url_for('.route_issue_all'))
 
 @app.route('/lvfs/issue/<int:issue_id>/reports')
 @login_required
-def issue_reports(issue_id):
+def route_issue_reports(issue_id):
 
     # find issue
     issue = db.session.query(Issue).\
             filter(Issue.issue_id == issue_id).first()
     if not issue:
         flash('No issue found', 'info')
-        return redirect(url_for('.issue_all'))
+        return redirect(url_for('.route_issue_all'))
 
     # security check
     if not issue.check_acl('@view'):
         flash('Permission denied: Unable to view issue reports', 'danger')
-        return redirect(url_for('.issue_all'))
+        return redirect(url_for('.route_issue_all'))
 
     # prefilter with the first 'eq' report attribute
     stmt = db.session.query(Report).join(ReportAttribute)
@@ -330,19 +330,19 @@ def issue_reports(issue_id):
 
 @app.route('/lvfs/issue/<int:issue_id>/conditions')
 @login_required
-def issue_conditions(issue_id):
+def route_issue_conditions(issue_id):
 
     # find issue
     issue = db.session.query(Issue).\
             filter(Issue.issue_id == issue_id).first()
     if not issue:
         flash('No issue found', 'info')
-        return redirect(url_for('.issue_all'))
+        return redirect(url_for('.route_issue_all'))
 
     # security check
     if not issue.check_acl('@view'):
         flash('Permission denied: Unable to view issue conditions', 'danger')
-        return redirect(url_for('.issue_all'))
+        return redirect(url_for('.route_issue_all'))
 
     # show details
     return render_template('issue-conditions.html',

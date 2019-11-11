@@ -40,23 +40,23 @@ def _password_check(value):
 
 @app.route('/lvfs/user/<int:user_id>/modify', methods=['GET', 'POST'])
 @login_required
-def user_modify(user_id):
+def route_user_modify(user_id):
     """ Change details about the current user """
 
     # only accept form data
     if request.method != 'POST':
-        return redirect(url_for('.profile'))
+        return redirect(url_for('.route_profile'))
 
     # security check
     if g.user.user_id != user_id:
         flash('Unable to modify a different user', 'danger')
-        return redirect(url_for('.dashboard'))
+        return redirect(url_for('.route_dashboard'))
     if g.user.auth_type == 'local+locked':
         flash('Unable to change user as account locked', 'danger')
-        return redirect(url_for('.dashboard'))
+        return redirect(url_for('.route_dashboard'))
     if g.user.auth_type == 'oauth':
         flash('Unable to change OAuth-only user', 'danger')
-        return redirect(url_for('.dashboard'))
+        return redirect(url_for('.route_dashboard'))
     user = db.session.query(User).filter(User.user_id == user_id).first()
 
     # verify name
@@ -64,7 +64,7 @@ def user_modify(user_id):
         display_name = request.form['display_name']
         if len(display_name) < 3:
             flash('Failed to modify profile: Name invalid', 'warning')
-            return redirect(url_for('.profile'), 302)
+            return redirect(url_for('.route_profile'), 302)
         user.display_name = display_name
 
     # get the new human_user_id if specified
@@ -74,7 +74,7 @@ def user_modify(user_id):
                             filter(User.username == username).first()
         if not human_user:
             flash('Failed to modify profile: Human user %s not found' % username, 'warning')
-            return redirect(url_for('.profile'), 302)
+            return redirect(url_for('.route_profile'), 302)
         user.human_user_id = human_user.user_id
 
     # unchecked checkbuttons are not included in the form data
@@ -89,64 +89,64 @@ def user_modify(user_id):
     user.mtime = datetime.datetime.utcnow()
     db.session.commit()
     flash('Updated profile', 'info')
-    return redirect(url_for('.profile'))
+    return redirect(url_for('.route_profile'))
 
 @app.route('/lvfs/user/<int:user_id>/deactivate')
 @login_required
-def user_deactivate(user_id):
+def route_user_deactivate(user_id):
 
     # security check
     if g.user.user_id != user_id:
         flash('Unable to modify a different user', 'danger')
-        return redirect(url_for('.dashboard'))
+        return redirect(url_for('.route_dashboard'))
     if not g.user.check_acl('@manage-password'):
         flash('Permission denied: Unable to deactivate', 'danger')
-        return redirect(url_for('.dashboard'))
+        return redirect(url_for('.route_dashboard'))
     user = db.session.query(User).filter(User.user_id == user_id).one()
     user.auth_type = 'disabled'
     user.mtime = datetime.datetime.utcnow()
     db.session.commit()
-    return redirect(url_for('.logout'))
+    return redirect(url_for('.route_logout'))
 
 @app.route('/lvfs/user/<int:user_id>/password', methods=['GET', 'POST'])
 @login_required
-def user_password(user_id):
+def route_user_password(user_id):
     """ Change details about the current user """
 
     # only accept form data
     if request.method != 'POST':
-        return redirect(url_for('.profile'))
+        return redirect(url_for('.route_profile'))
 
     # security check
     if g.user.user_id != user_id:
         flash('Unable to modify a different user', 'danger')
-        return redirect(url_for('.dashboard'))
+        return redirect(url_for('.route_dashboard'))
     if not g.user.check_acl('@manage-password'):
         flash('Permission denied: Unable to modify password', 'danger')
-        return redirect(url_for('.dashboard'))
+        return redirect(url_for('.route_dashboard'))
 
     # check we got enough data
     if not 'password_old' in request.form:
         flash('Unable to change user as no data', 'danger')
-        return redirect(url_for('.dashboard'))
+        return redirect(url_for('.route_dashboard'))
     if not 'password_new' in request.form:
         flash('Unable to change user as no data', 'danger')
-        return redirect(url_for('.dashboard'))
+        return redirect(url_for('.route_dashboard'))
     user = db.session.query(User).filter(User.user_id == user_id).one()
     if not user.verify_password(request.form['password_old']):
         flash('Failed to modify profile: Incorrect existing password', 'danger')
-        return redirect(url_for('.profile'), 302)
+        return redirect(url_for('.route_profile'), 302)
 
     # check the user typed it correctly
     password = request.form['password_new']
     if 'password_confirm' in request.form:
         if request.form['password_confirm'] != password:
             flash('Failed to modify profile: New passwords did not match', 'warning')
-            return redirect(url_for('.profile'), 302)
+            return redirect(url_for('.route_profile'), 302)
 
     # check password
     if not _password_check(password):
-        return redirect(url_for('.profile'), 302)
+        return redirect(url_for('.route_profile'), 302)
 
     # password_ts is only updated if it's different
     user.password = password
@@ -158,30 +158,30 @@ def user_password(user_id):
     # user has to have tested OTP before it can be enabled
     if user.is_otp_enabled and not user.is_otp_working:
         flash('Failed to modify profile: OTP has not been tested', 'warning')
-        return redirect(url_for('.profile'), 302)
+        return redirect(url_for('.route_profile'), 302)
 
     # save to database
     user.mtime = datetime.datetime.utcnow()
     db.session.commit()
     flash('Updated profile', 'info')
-    return redirect(url_for('.profile'))
+    return redirect(url_for('.route_profile'))
 
 @app.route('/lvfs/user/<int:user_id>/auth', methods=['GET', 'POST'])
 @login_required
-def user_auth(user_id):
+def route_user_auth(user_id):
     """ Change details about the current user """
 
     # only accept form data
     if request.method != 'POST':
-        return redirect(url_for('.profile'))
+        return redirect(url_for('.route_profile'))
 
     # security check
     if g.user.user_id != user_id:
         flash('Permission denied: Unable to modify a different user', 'danger')
-        return redirect(url_for('.dashboard'))
+        return redirect(url_for('.route_dashboard'))
     if not g.user.check_acl('@manage-password'):
         flash('Permission denied: Unable to modify password', 'danger')
-        return redirect(url_for('.dashboard'))
+        return redirect(url_for('.route_dashboard'))
 
     # unchecked checkbuttons are not included in the form data
     user = db.session.query(User).filter(User.user_id == user_id).one()
@@ -191,22 +191,22 @@ def user_auth(user_id):
     # user has to have tested OTP before it can be enabled
     if user.is_otp_enabled and not user.is_otp_working:
         flash('Failed to modify profile: OTP has not been tested', 'warning')
-        return redirect(url_for('.profile'), 302)
+        return redirect(url_for('.route_profile'), 302)
 
     # save to database
     user.mtime = datetime.datetime.utcnow()
     db.session.commit()
     flash('Updated profile', 'info')
-    return redirect(url_for('.profile'))
+    return redirect(url_for('.route_profile'))
 
 @app.route('/lvfs/user/qrcode')
 @login_required
-def user_qrcode():
+def route_user_qrcode():
 
     # security check
     if not g.user.check_acl('@view-profile'):
         flash('Permission denied: Unable to view profile as account locked', 'danger')
-        return redirect(url_for('.dashboard'))
+        return redirect(url_for('.route_dashboard'))
 
     # render qrcode for FreeTOTP
     url = pyqrcode.create(g.user.get_totp_uri())
@@ -220,44 +220,44 @@ def user_qrcode():
 
 @app.route('/lvfs/user/otp_test', methods=['POST'])
 @login_required
-def user_otp_test():
+def route_user_otp_test():
 
     # security check
     if not g.user.check_acl('@view-profile'):
         flash('Permission denied: Unable to view profile as account locked', 'danger')
-        return redirect(url_for('.dashboard'))
+        return redirect(url_for('.route_dashboard'))
 
     # check was sent
     if not 'otp' in request.form or not request.form['otp']:
         flash('2FA OTP not set, cannot test', 'warning')
-        return redirect(url_for('.profile'))
+        return redirect(url_for('.route_profile'))
 
     # do dummy test
     if not g.user.verify_totp(request.form['otp']):
         flash('Incorrect 2FA OTP, please check time and date', 'warning')
-        return redirect(url_for('.profile'))
+        return redirect(url_for('.route_profile'))
 
     # success
     g.user.is_otp_working = True
     db.session.commit()
     flash('Correct 2FA OTP, it worked!', 'success')
-    return redirect(url_for('.profile'))
+    return redirect(url_for('.route_profile'))
 
 @app.route('/lvfs/user/<int:user_id>/reset_by_admin')
 @login_required
-def user_reset_by_admin(user_id):
+def route_user_reset_by_admin(user_id):
     """ Reset the users password """
 
     # check exists
     user = db.session.query(User).filter(User.user_id == user_id).first()
     if not user:
         flash('No user matched!', 'danger')
-        return redirect(url_for('.dashboard'), 422)
+        return redirect(url_for('.route_dashboard'), 422)
 
     # security check
     if not user.vendor.check_acl('@manage-users'):
         flash('Permission denied: Unable to modify user as non-admin', 'danger')
-        return redirect(url_for('.dashboard'))
+        return redirect(url_for('.route_dashboard'))
 
     # password is stored hashed
     password = _generate_password()
@@ -273,56 +273,56 @@ def user_reset_by_admin(user_id):
                                user=user, password=password))
 
     flash('Password has been reset and an email has been sent to the user', 'info')
-    return redirect(url_for('.user_admin', user_id=user_id))
+    return redirect(url_for('.route_user_admin', user_id=user_id))
 
 @app.route('/lvfs/user/<int:user_id>/modify_by_admin', methods=['POST'])
 @login_required
-def user_modify_by_admin(user_id):
+def route_user_modify_by_admin(user_id):
     """ Change details about the any user """
 
     # check exists
     user = db.session.query(User).filter(User.user_id == user_id).first()
     if not user:
         flash('No user matched!', 'danger')
-        return redirect(url_for('.dashboard'), 422)
+        return redirect(url_for('.route_dashboard'), 422)
 
     # security check
     if not user.vendor.check_acl('@manage-users'):
         flash('Permission denied: Unable to modify user as non-admin', 'danger')
-        return redirect(url_for('.dashboard'))
+        return redirect(url_for('.route_dashboard'))
     if not g.user.check_acl('@admin') and 'vendor_id' in request.form:
         flash('Permission denied: Unable to modify group for user as non-admin', 'danger')
-        return redirect(url_for('.dashboard'))
+        return redirect(url_for('.route_dashboard'))
 
     # user is being promoted, so check the manager already has this attribute
     if not user.is_vendor_manager and 'is_vendor_manager' in request.form:
         if not g.user.check_acl('@add-attribute-manager'):
             flash('Permission denied: Unable to promote user to manager', 'danger')
-            return redirect(url_for('.dashboard'))
+            return redirect(url_for('.route_dashboard'))
     if not user.is_researcher and 'is_researcher' in request.form:
         if not g.user.check_acl('@add-attribute-researcher'):
             flash('Permission denied: Unable to promote user to researcher', 'danger')
-            return redirect(url_for('.dashboard'))
+            return redirect(url_for('.route_dashboard'))
     if not user.is_analyst and 'is_analyst' in request.form:
         if not g.user.check_acl('@add-attribute-analyst'):
             flash('Permission denied: Unable to promote user to analyst', 'danger')
-            return redirect(url_for('.dashboard'))
+            return redirect(url_for('.route_dashboard'))
     if not user.is_qa and 'is_qa' in request.form:
         if not g.user.check_acl('@add-attribute-qa'):
             flash('Permission denied: Unable to promote user to QA', 'danger')
-            return redirect(url_for('.dashboard'))
+            return redirect(url_for('.route_dashboard'))
     if not user.is_approved_public and 'is_approved_public' in request.form:
         if not g.user.check_acl('@add-attribute-qa'):
             flash('Permission denied: Unable to promote user to QA', 'danger')
-            return redirect(url_for('.dashboard'))
+            return redirect(url_for('.route_dashboard'))
     if not user.is_robot and 'is_robot' in request.form:
         if not g.user.check_acl('@add-attribute-robot'):
             flash('Permission denied: Unable to mark user as robot', 'danger')
-            return redirect(url_for('.dashboard'))
+            return redirect(url_for('.route_dashboard'))
     if not user.is_admin and 'is_admin' in request.form:
         if not g.user.check_acl('@add-attribute-admin'):
             flash('Permission denied: Unable to mark user as admin', 'danger')
-            return redirect(url_for('.dashboard'))
+            return redirect(url_for('.route_dashboard'))
 
     # set each optional thing in turn
     old_vendor = user.vendor
@@ -341,7 +341,7 @@ def user_modify_by_admin(user_id):
                                 filter(User.username == username).first()
             if not human_user:
                 flash('Failed to modify profile: Human user %s not found' % username, 'warning')
-                return redirect(url_for('.profile'), 302)
+                return redirect(url_for('.route_profile'), 302)
             user.human_user_id = human_user.user_id
         else:
             user.human_user_id = None
@@ -415,26 +415,26 @@ def user_modify_by_admin(user_id):
     else:
         flash('Updated profile', 'info')
 
-    return redirect(url_for('.user_admin', user_id=user_id))
+    return redirect(url_for('.route_user_admin', user_id=user_id))
 
 @app.route('/lvfs/user/recover/<secret>')
-def user_recover_with_secret(secret):
+def route_user_recover_with_secret(secret):
 
     # check we have the right token
     user = db.session.query(User).filter(User.password_recovery == secret).first()
     if not user:
         flash('No user with that recovery password', 'danger')
-        return redirect(url_for('.index'), 302)
+        return redirect(url_for('.route_index'), 302)
 
     # user has since been disabled
     if user.auth_type == 'disabled':
         flash('User has been disabled since the recovery email was sent', 'danger')
-        return redirect(url_for('.index'), 302)
+        return redirect(url_for('.route_index'), 302)
 
     # user waited too long
     if datetime.datetime.utcnow() > user.password_recovery_ts + datetime.timedelta(hours=24):
         flash('More than 24 hours elapsed since the recovery email was sent', 'warning')
-        return redirect(url_for('.index'), 302)
+        return redirect(url_for('.route_index'), 302)
 
     # password is stored hashed
     password = _generate_password()
@@ -451,10 +451,10 @@ def user_recover_with_secret(secret):
                render_template('email-recover-password.txt',
                                user=user, password=password))
     flash('Your password has been reset and an email has been sent with the new details', 'info')
-    return redirect(url_for('.index'), 302)
+    return redirect(url_for('.route_index'), 302)
 
 @app.route('/lvfs/user/recover', methods=['GET', 'POST'])
-def user_recover():
+def route_user_recover():
     """
     Shows an account recovery panel for a user
     """
@@ -462,14 +462,14 @@ def user_recover():
         return render_template('user-recover.html')
     if not 'username' in request.form:
         flash('Unable to recover user as no username', 'danger')
-        return redirect(url_for('.dashboard'))
+        return redirect(url_for('.route_dashboard'))
 
     # check exists
     username = request.form['username']
     user = db.session.query(User).filter(User.username == username).first()
     if not user:
         flash('Unable to recover password as no username %s found' % username, 'warning')
-        return redirect(url_for('.index'), 302)
+        return redirect(url_for('.route_index'), 302)
 
     # set the recovery password
     try:
@@ -477,48 +477,48 @@ def user_recover():
         db.session.commit()
     except RuntimeError as e:
         flash('Unable to recover password for %s: %s' % (username, str(e)), 'warning')
-        return redirect(url_for('.index'), 302)
+        return redirect(url_for('.route_index'), 302)
 
     # send email
     send_email("[LVFS] Your login details",
                user.email_address,
                render_template('email-recover.txt', user=user))
     flash('An email has been sent with a recovery link', 'info')
-    return redirect(url_for('.index'), 302)
+    return redirect(url_for('.route_index'), 302)
 
 @app.route('/lvfs/user/certificate/remove/<int:certificate_id>')
 @login_required
-def user_certificate_remove(certificate_id):
+def route_user_certificate_remove(certificate_id):
 
     # check cert exists
     crt = db.session.query(Certificate).filter(Certificate.certificate_id == certificate_id).first()
     if not crt:
         flash('No certificate matched!', 'danger')
-        return redirect(url_for('.dashboard'), 422)
+        return redirect(url_for('.route_dashboard'), 422)
 
     # security check
     if not crt.check_acl('@delete'):
         flash('Permission denied: Unable to delete certificate', 'danger')
-        return redirect(url_for('.profile'))
+        return redirect(url_for('.route_profile'))
 
     # delete
     db.session.delete(crt)
     db.session.commit()
     flash('Deleted certificate', 'info')
-    return redirect(url_for('.profile'))
+    return redirect(url_for('.route_profile'))
 
 @app.route('/lvfs/user/certificate/add', methods=['GET', 'POST'])
 @login_required
-def user_certificate_add():
+def route_user_certificate_add():
 
     # only accept form data
     if request.method != 'POST':
-        return redirect(url_for('.profile'), code=302)
+        return redirect(url_for('.route_profile'), code=302)
 
     # security check
     if not g.user.check_acl('@view-profile'):
         flash('Permission denied: Unable to add certificate as account locked', 'danger')
-        return redirect(url_for('.dashboard'))
+        return redirect(url_for('.route_dashboard'))
 
     # check was sent
     if not 'file' in request.files:
@@ -530,86 +530,86 @@ def user_certificate_add():
         text = fileitem.read().decode('utf8')
     except UnicodeDecodeError as e:
         flash('Invalid data received: %s' % str(e), 'warning')
-        return redirect(url_for('.profile'), code=302)
+        return redirect(url_for('.route_profile'), code=302)
     if not text:
         flash('No data recieved', 'warning')
-        return redirect(url_for('.profile'), code=302)
+        return redirect(url_for('.route_profile'), code=302)
     if text.find('BEGIN CERTIFICATE') == -1:
         flash('Certificate invalid, expected BEGIN CERTIFICATE', 'warning')
-        return redirect(url_for('.profile'), code=302)
+        return redirect(url_for('.route_profile'), code=302)
 
     # get serial for blob
     try:
         info = _pkcs7_certificate_info(text)
     except IOError as e:
         flash('Certificate invalid, cannot parse: %s' % str(e), 'warning')
-        return redirect(url_for('.profile'), code=302)
+        return redirect(url_for('.route_profile'), code=302)
     if 'serial' not in info:
         flash('Certificate invalid, cannot parse serial', 'warning')
-        return redirect(url_for('.profile'), code=302)
+        return redirect(url_for('.route_profile'), code=302)
 
     # check cert exists
     crt = db.session.query(Certificate).filter(Certificate.serial == info['serial']).first()
     if crt:
         flash('Certificate already in use', 'warning')
-        return redirect(url_for('.profile'), code=302)
+        return redirect(url_for('.route_profile'), code=302)
 
     # success
     crt = Certificate(g.user.user_id, info['serial'], text)
     db.session.add(crt)
     db.session.commit()
     flash('Added client certificate with serial %s' % info['serial'], 'success')
-    return redirect(url_for('.profile'), code=302)
+    return redirect(url_for('.route_profile'), code=302)
 
 @app.route('/lvfs/user/add', methods=['GET', 'POST'])
 @login_required
 @admin_login_required
-def user_add():
+def route_user_add():
     """ Add a user [ADMIN ONLY] """
 
     # only accept form data
     if request.method != 'POST':
-        return redirect(url_for('.profile'))
+        return redirect(url_for('.route_profile'))
 
     if not 'username' in request.form:
         flash('Unable to add user as no username', 'danger')
-        return redirect(url_for('.dashboard'))
+        return redirect(url_for('.route_dashboard'))
     if not 'password_new' in request.form:
         flash('Unable to add user as no password_new', 'danger')
-        return redirect(url_for('.dashboard'))
+        return redirect(url_for('.route_dashboard'))
     if not 'group_id' in request.form:
         flash('Unable to add user as no group_id', 'danger')
-        return redirect(url_for('.dashboard'))
+        return redirect(url_for('.route_dashboard'))
     if not 'display_name' in request.form:
         flash('Unable to add user as no display_name', 'danger')
-        return redirect(url_for('.dashboard'))
+        return redirect(url_for('.route_dashboard'))
     user = db.session.query(User).filter(User.username == request.form['username']).first()
     if user:
         flash('Already a user with that username!', 'danger')
-        return redirect(url_for('.dashboard'), 422)
+        return redirect(url_for('.route_dashboard'), 422)
 
     # verify password
     password = request.form['password_new']
     if not _password_check(password):
-        return redirect(url_for('.user_list'), 302)
+        return redirect(url_for('.route_user_list'), 302)
 
     # verify email
     username = request.form['username']
     if not _email_check(username):
         flash('Failed to add user: Invalid email address', 'warning')
-        return redirect(url_for('.user_list'), 302)
+        return redirect(url_for('.route_user_list'), 302)
 
     # verify group_id
     group_id = request.form['group_id']
     if len(group_id) < 3:
         flash('Failed to add user: QA group invalid', 'warning')
-        return redirect(url_for('.user_list'), 302)
+        return redirect(url_for('.route_user_list'), 302)
 
     # verify name
     display_name = request.form['display_name']
     if len(display_name) < 3:
         flash('Failed to add user: Name invalid', 'warning')
-        return redirect(url_for('.user_list'), 302)
+        return redirect(url_for('.route_user_list'), 302)
 
     vendor = db.session.query(Vendor).filter(Vendor.group_id == group_id).first()
     if not vendor:
@@ -627,28 +627,28 @@ def user_add():
     db.session.add(user)
     db.session.commit()
     flash('Added user %i and an email has been sent to the user' % user.user_id, 'info')
-    return redirect(url_for('.user_list'), 302)
+    return redirect(url_for('.route_user_list'), 302)
 
 @app.route('/lvfs/user/<int:user_id>/delete')
 @login_required
 @admin_login_required
-def user_delete(user_id):
+def route_user_delete(user_id):
     """ Delete a user """
 
     # check whether exists in database
     user = db.session.query(User).filter(User.user_id == user_id).first()
     if not user:
         flash('Failed to delete user: No user found', 'danger')
-        return redirect(url_for('.user_list'), 422)
+        return redirect(url_for('.route_user_list'), 422)
     db.session.delete(user)
     db.session.commit()
     flash('Deleted user', 'info')
-    return redirect(url_for('.user_list'), 302)
+    return redirect(url_for('.route_user_list'), 302)
 
 @app.route('/lvfs/userlist')
 @login_required
 @admin_login_required
-def user_list():
+def route_user_list():
     """
     Show a list of all users
     """
@@ -659,7 +659,7 @@ def user_list():
 @app.route('/lvfs/user/<int:user_id>')
 @app.route('/lvfs/user/<int:user_id>/<page>')
 @login_required
-def user_admin(user_id, page='admin'):
+def route_user_admin(user_id, page='admin'):
     """
     Shows an admin panel for a user
     """
@@ -668,12 +668,12 @@ def user_admin(user_id, page='admin'):
     user = db.session.query(User).filter(User.user_id == user_id).first()
     if not user:
         flash('No user found', 'danger')
-        return redirect(url_for('.user_list'), 422)
+        return redirect(url_for('.route_user_list'), 422)
 
     # security check
     if not user.vendor.check_acl('@manage-users'):
         flash('Permission denied: Unable to modify user for non-admin user', 'danger')
-        return redirect(url_for('.dashboard'))
+        return redirect(url_for('.route_dashboard'))
 
     # get all the vendors with LVFS accounts
     vendors = []
@@ -685,7 +685,7 @@ def user_admin(user_id, page='admin'):
 
 @app.route('/lvfs/user/<int:user_id>/queries')
 @login_required
-def user_queries(user_id=None):
+def route_user_queries(user_id=None):
 
     if not user_id:
         user_id = g.user.user_id
@@ -694,11 +694,11 @@ def user_queries(user_id=None):
     user = db.session.query(User).filter(User.user_id == user_id).first()
     if not user:
         flash('No user found', 'danger')
-        return redirect(url_for('.user_list'), 422)
+        return redirect(url_for('.route_user_list'), 422)
 
     # security check
     if not user.vendor.check_acl('@admin'):
         flash('Permission denied: Unable to run queries', 'danger')
-        return redirect(url_for('.dashboard'))
+        return redirect(url_for('.route_dashboard'))
 
     return render_template('user-queries.html', page='queries', u=user)

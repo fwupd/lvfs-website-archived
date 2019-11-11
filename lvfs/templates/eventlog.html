@@ -28,7 +28,7 @@
 <ul class="pagination mt-3">
 {% if start >= page_length %}
   <li class="page-item">
-    <a class="page-link" href="{{url_for('.eventlog', start=start-page_length, length=page_length)}}" tabindex="-1">Previous</a>
+    <a class="page-link" href="{{url_for('.route_eventlog', start=start-page_length, length=page_length)}}" tabindex="-1">Previous</a>
   </li>
 {% else %}
   <li class="page-item disabled">
@@ -41,11 +41,11 @@
     <a class="page-link" href="#!">{{page+1}} <span class="sr-only">(current)</span></a>
   </li>
 {% else %}
-  <li class="page-item"><a class="page-link" href="{{url_for('.eventlog', start=page*page_length, length=page_length)}}">{{page+1}}</a></li>
+  <li class="page-item"><a class="page-link" href="{{url_for('.route_eventlog', start=page*page_length, length=page_length)}}">{{page+1}}</a></li>
 {% endif %}
 {% endfor %}
   <li class="page-item">
-    <a class="page-link" href="{{url_for('.eventlog', start=start+page_length, length=page_length)}}">Next</a>
+    <a class="page-link" href="{{url_for('.route_eventlog', start=start+page_length, length=page_length)}}">Next</a>
   </li>
 </ul>
 {% endblock %}

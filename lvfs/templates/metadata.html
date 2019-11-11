@@ -24,7 +24,7 @@
 {% endif %}
 {% if g.user.check_acl('@admin') %}
     <a class="card-link btn btn-primary"
-      href={{url_for('metadata_rebuild_remote',
+      href={{url_for('.route_metadata_rebuild_remote',
                      remote_id=remotes['stable'].remote_id)}}>Rebuild</a>
 {% endif %}
   </div>
@@ -50,7 +50,7 @@
 {% endif %}
 {% if g.user.check_acl('@admin') %}
     <a class="card-link btn btn-primary"
-      href={{url_for('metadata_rebuild_remote',
+      href={{url_for('.route_metadata_rebuild_remote',
                      remote_id=remotes['testing'].remote_id)}}>Rebuild</a>
 {% endif %}
   </div>
@@ -78,7 +78,7 @@
     <p class="card-text">
       This remote contains firmware available only to users who have installed the
       vendor remote.
-      To complete an end-to-end test save <a href="{{url_for('.metadata_remote', group_id=v.group_id)}}">
+      To complete an end-to-end test save <a href="{{url_for('.route_metadata_remote', group_id=v.group_id)}}">
       <code>{{v.group_id}}-embargo.conf</code></a> to <code>/etc/fwupd/remotes.d</code>
       if you are using the distribution version of fwupd or to
       <code>/root/snap/fwupd/current/etc/fwupd/remotes.d</code> for the
@@ -97,7 +97,7 @@
 {% endif %}
 {% if g.user.check_acl('@admin') %}
     <a class="card-link btn btn-primary"
-      href={{url_for('metadata_rebuild_remote',
+      href={{url_for('.route_metadata_rebuild_remote',
                      remote_id=remotes['embargo-' + v.group_id].remote_id)}}>Rebuild</a>
 {% endif %}
   </div>
@@ -112,7 +112,7 @@
 <p class="card-text">
   This rebuilds metadata for all targets and QA groups.
 </p>
-<form method=\"get\" action="{{url_for('.metadata_rebuild')}}">
+<form method=\"get\" action="{{url_for('.route_metadata_rebuild')}}">
 <input type="hidden" name="csrf_token" value="{{csrf_token()}}"/>
 <button class="btn btn-danger">Rebuild Metadata</button>
 </form>

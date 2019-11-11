@@ -18,7 +18,7 @@
 <div class="alert alert-warning mb-3" role="alert">
   <b>WARNING</b> This user account should to be secured with two factor
   authentication to comply with site policy.
-  Please visit <a href="{{url_for('.profile')}}">your profile</a> and
+  Please visit <a href="{{url_for('.route_profile')}}">your profile</a> and
   set up 2FA as soon as possible.
   Some LVFS actions may be unavailable until this is completed.
 </div>
@@ -110,7 +110,7 @@ new Chart(ctx, {
         have been downloaded {{download_cnt}} times!
       </p>
 {% if g.user.check_acl('@view-analytics') %}
-      <a class="card-link text-nowrap" href="{{url_for('.telemetry')}}">
+      <a class="card-link text-nowrap" href="{{url_for('.route_telemetry')}}">
         Telemetry <span class="font-weight-bold">›</span>
       </a>
 {% endif %}
@@ -128,7 +128,7 @@ new Chart(ctx, {
       <p class="card-text font-weight-bold">
         Don't worry, uploading firmware doesn't make it public.
       </p>
-      <a class="card-link text-nowrap" href="{{url_for('.upload_firmware')}}">
+      <a class="card-link text-nowrap" href="{{url_for('.route_upload_firmware')}}">
         Upload <span class="font-weight-bold">›</span>
       </a>
     </div>
@@ -140,7 +140,7 @@ new Chart(ctx, {
     <div class="card-body position-relative">
       <div class="card-title">Devices</div>
       <p class="card-text">You have {{devices_cnt}} different devices supported on the LVFS.</p>
-      <a class="card-link text-nowrap" href="{{url_for('.firmware')}}">
+      <a class="card-link text-nowrap" href="{{url_for('.route_firmware')}}">
         See all <span class="font-weight-bold">›</span>
       </a>
     </div>
@@ -160,7 +160,7 @@ new Chart(ctx, {
       </p>
 {% endif %}
 {% if g.user.vendor.check_acl('@manage-users') %}
-      <a class="card-link text-nowrap" href="{{url_for('.vendor_users', vendor_id=g.user.vendor.vendor_id)}}">
+      <a class="card-link text-nowrap" href="{{url_for('.route_vendor_users', vendor_id=g.user.vendor.vendor_id)}}">
         Manage <span class="font-weight-bold">›</span>
       </a>
 {% endif %}
@@ -199,11 +199,11 @@ new Chart(ctx, {
     </div>
     <div class="col text-right pt-1">
       <a class="btn btn-info btn-block"
-        href="{{url_for('.firmware_show', firmware_id=fw.firmware_id)}}">Details</a>
+        href="{{url_for('.route_firmware_show', firmware_id=fw.firmware_id)}}">Details</a>
     </div>
   </div>
 {% endfor %}
-      <a href="{{url_for('.firmware')}}" class="card-link">Show all</a>
+      <a href="{{url_for('.route_firmware')}}" class="card-link">Show all</a>
     </div>
   </div>
 </div>

@@ -27,7 +27,7 @@ from .util import _get_chart_labels_months, _get_chart_labels_days, _get_shard_p
 @app.route('/lvfs/firmware')
 @app.route('/lvfs/firmware/state/<state>')
 @login_required
-def firmware(state=None):
+def route_firmware(state=None):
     """
     Show all firmware uploaded by this user or vendor.
     """
@@ -59,7 +59,7 @@ def firmware(state=None):
 
 @app.route('/lvfs/firmware/new')
 @app.route('/lvfs/firmware/new/<int:limit>')
-def firmware_new(limit=50):
+def route_firmware_new(limit=50):
 
     # get a sorted list of vendors
     fwevs_public = db.session.query(FirmwareEvent).\
@@ -75,19 +75,19 @@ def firmware_new(limit=50):
 
 @app.route('/lvfs/firmware/<int:firmware_id>/undelete')
 @login_required
-def firmware_undelete(firmware_id):
+def route_firmware_undelete(firmware_id):
     """ Undelete a firmware entry and also restore the file from disk """
 
     # check firmware exists in database
     fw = db.session.query(Firmware).filter(Firmware.firmware_id == firmware_id).first()
     if not fw:
         flash('No firmware {} exists'.format(firmware_id), 'danger')
-        return redirect(url_for('.firmware'))
+        return redirect(url_for('.route_firmware'))
 
     # security check
     if not fw.check_acl('@undelete'):
         flash('Permission denied: Insufficient permissions to undelete firmware', 'danger')
-        return redirect(url_for('.firmware_show', firmware_id=firmware_id))
+        return redirect(url_for('.route_firmware_show', firmware_id=firmware_id))
 
     # find private remote
     remote = db.session.query(Remote).filter(Remote.name == 'private').first()
@@ -106,7 +106,7 @@ def firmware_undelete(firmware_id):
     db.session.commit()
 
     flash('Firmware undeleted', 'info')
-    return redirect(url_for('.firmware_show', firmware_id=firmware_id))
+    return redirect(url_for('.route_firmware_show', firmware_id=firmware_id))
 
 def _firmware_delete(fw):
 
@@ -131,47 +131,47 @@ def _firmware_delete(fw):
 
 @app.route('/lvfs/firmware/<int:firmware_id>/delete')
 @login_required
-def firmware_delete(firmware_id):
+def route_firmware_delete(firmware_id):
     """ Delete a firmware entry and also delete the file from disk """
 
     # check firmware exists in database
     fw = db.session.query(Firmware).filter(Firmware.firmware_id == firmware_id).first()
     if not fw:
         flash('No firmware {} exists'.format(firmware_id), 'danger')
-        return redirect(url_for('.firmware'))
+        return redirect(url_for('.route_firmware'))
 
     # security check
     if not fw.check_acl('@delete'):
         flash('Permission denied: Insufficient permissions to delete firmware', 'danger')
-        return redirect(url_for('.firmware_show', firmware_id=firmware_id))
+        return redirect(url_for('.route_firmware_show', firmware_id=firmware_id))
 
     # delete firmware
     _firmware_delete(fw)
     db.session.commit()
 
     flash('Firmware deleted', 'info')
-    return redirect(url_for('.firmware'))
+    return redirect(url_for('.route_firmware'))
 
 @app.route('/lvfs/firmware/<int:firmware_id>/nuke')
 @login_required
-def firmware_nuke(firmware_id):
+def route_firmware_nuke(firmware_id):
     """ Delete a firmware entry and also delete the file from disk """
 
     # check firmware exists in database
     fw = db.session.query(Firmware).filter(Firmware.firmware_id == firmware_id).first()
     if not fw:
         flash('No firmware {} exists'.format(firmware_id), 'danger')
-        return redirect(url_for('.firmware'))
+        return redirect(url_for('.route_firmware'))
 
     # firmware is not deleted yet
     if not fw.is_deleted:
         flash('Cannot nuke file not yet deleted', 'danger')
-        return redirect(url_for('.firmware_show', firmware_id=firmware_id))
+        return redirect(url_for('.route_firmware_show', firmware_id=firmware_id))
 
     # security check
     if not fw.check_acl('@nuke'):
         flash('Permission denied: Insufficient permissions to nuke firmware', 'danger')
-        return redirect(url_for('.firmware_show', firmware_id=firmware_id))
+        return redirect(url_for('.route_firmware_show', firmware_id=firmware_id))
 
     # really delete firmware
     path = os.path.join(app.config['RESTORE_DIR'], fw.filename)
@@ -195,11 +195,11 @@ def firmware_nuke(firmware_id):
     db.session.commit()
 
     flash('Firmware nuked', 'info')
-    return redirect(url_for('.firmware'))
+    return redirect(url_for('.route_firmware'))
 
 @app.route('/lvfs/firmware/<int:firmware_id>/promote/<target>')
 @login_required
-def firmware_promote(firmware_id, target):
+def route_firmware_promote(firmware_id, target):
     """
     Promote or demote a firmware file from one target to another,
     for example from testing to stable, or stable to testing.
@@ -213,12 +213,12 @@ def firmware_promote(firmware_id, target):
     fw = db.session.query(Firmware).filter(Firmware.firmware_id == firmware_id).first()
     if not fw:
         flash('No firmware {} exists'.format(firmware_id), 'danger')
-        return redirect(url_for('.firmware'))
+        return redirect(url_for('.route_firmware'))
 
     # security check
     if not fw.check_acl('@promote-' + target):
         flash('Permission denied: No QA access to {}'.format(firmware_id), 'danger')
-        return redirect(url_for('.firmware_show', firmware_id=firmware_id))
+        return redirect(url_for('.route_firmware_show', firmware_id=firmware_id))
 
     # vendor has to fix the problems first
     if target in ['stable', 'testing'] and fw.problems:
@@ -227,7 +227,7 @@ def firmware_promote(firmware_id, target):
             if problem.kind not in probs:
                 probs.append(problem.kind)
         flash('Firmware has problems that must be fixed first: %s' % ','.join(probs), 'warning')
-        return redirect(url_for('.firmware_problems', firmware_id=firmware_id))
+        return redirect(url_for('.route_firmware_problems', firmware_id=firmware_id))
 
     # set new remote
     if target == 'embargo':
@@ -240,7 +240,7 @@ def firmware_promote(firmware_id, target):
     # same as before
     if fw.remote.remote_id == remote.remote_id:
         flash('Cannot move firmware: Firmware already in that target', 'info')
-        return redirect(url_for('.firmware_target', firmware_id=firmware_id))
+        return redirect(url_for('.route_firmware_target', firmware_id=firmware_id))
 
     # invalidate both the remote it came from and the one it's going to
     remote.is_dirty = True
@@ -270,23 +270,23 @@ def firmware_promote(firmware_id, target):
 
     flash('Moved firmware', 'info')
 
-    return redirect(url_for('.firmware_target', firmware_id=firmware_id))
+    return redirect(url_for('.route_firmware_target', firmware_id=firmware_id))
 
 @app.route('/lvfs/firmware/<int:firmware_id>/components')
 @login_required
-def firmware_components(firmware_id):
+def route_firmware_components(firmware_id):
 
     # get details about the firmware
     fw = db.session.query(Firmware).\
             filter(Firmware.firmware_id == firmware_id).first()
     if not fw:
         flash('No firmware {} exists'.format(firmware_id), 'danger')
-        return redirect(url_for('.firmware'))
+        return redirect(url_for('.route_firmware'))
 
     # security check
     if not fw.check_acl('@view'):
         flash('Permission denied: Insufficient permissions to view components', 'danger')
-        return redirect(url_for('.firmware_show', firmware_id=firmware_id))
+        return redirect(url_for('.route_firmware_show', firmware_id=firmware_id))
 
     return render_template('firmware-components.html',
                            category='firmware',
@@ -294,19 +294,19 @@ def firmware_components(firmware_id):
 
 @app.route('/lvfs/firmware/<int:firmware_id>/limits')
 @login_required
-def firmware_limits(firmware_id):
+def route_firmware_limits(firmware_id):
 
     # get details about the firmware
     fw = db.session.query(Firmware).\
             filter(Firmware.firmware_id == firmware_id).first()
     if not fw:
         flash('No firmware matched!', 'danger')
-        return redirect(url_for('.firmware'))
+        return redirect(url_for('.route_firmware'))
 
     # security check
     if not fw.check_acl('@view'):
         flash('Permission denied: Insufficient permissions to view limits', 'danger')
-        return redirect(url_for('.firmware_show', firmware_id=firmware_id))
+        return redirect(url_for('.route_firmware_show', firmware_id=firmware_id))
 
     return render_template('firmware-limits.html',
                            category='firmware',
@@ -314,30 +314,30 @@ def firmware_limits(firmware_id):
 
 @app.route('/lvfs/firmware/limit/<int:firmware_limit_id>/delete')
 @login_required
-def firmware_limit_delete(firmware_limit_id):
+def route_firmware_limit_delete(firmware_limit_id):
 
     # get details about the firmware
     fl = db.session.query(FirmwareLimit).\
             filter(FirmwareLimit.firmware_limit_id == firmware_limit_id).first()
     if not fl:
         flash('No firmware limit matched!', 'danger')
-        return redirect(url_for('.firmware'))
+        return redirect(url_for('.route_firmware'))
 
     # security check
     if not fl.fw.check_acl('delete-limit'):
         flash('Permission denied: Insufficient permissions to delete limits', 'danger')
-        return redirect(url_for('.firmware'))
+        return redirect(url_for('.route_firmware'))
 
     firmware_id = fl.firmware_id
     fl.fw.mark_dirty()
     db.session.delete(fl)
     db.session.commit()
     flash('Deleted limit', 'info')
-    return redirect(url_for('.firmware_limits', firmware_id=firmware_id))
+    return redirect(url_for('.route_firmware_limits', firmware_id=firmware_id))
 
 @app.route('/lvfs/firmware/<int:firmware_id>/modify', methods=['POST'])
 @login_required
-def firmware_modify(firmware_id):
+def route_firmware_modify(firmware_id):
     """ Modifies the firmware properties """
 
     # find firmware
@@ -348,7 +348,7 @@ def firmware_modify(firmware_id):
     # security check
     if not fw.check_acl('@modify'):
         flash('Permission denied: Insufficient permissions to modify firmware', 'danger')
-        return redirect(url_for('.firmware_show', firmware_id=firmware_id))
+        return redirect(url_for('.route_firmware_show', firmware_id=firmware_id))
 
     # set new metadata values
     if 'failure_minimum' in request.form:
@@ -359,24 +359,24 @@ def firmware_modify(firmware_id):
     # modify
     db.session.commit()
     flash('Firmware updated', 'info')
-    return redirect(url_for('.firmware_limits',
+    return redirect(url_for('.route_firmware_limits',
                             firmware_id=firmware_id))
 
 @app.route('/lvfs/firmware/limit/add', methods=['POST'])
 @login_required
-def firmware_limit_add():
+def route_firmware_limit_add():
 
     # get details about the firmware
     fw = db.session.query(Firmware).\
             filter(Firmware.firmware_id == request.form['firmware_id']).first()
     if not fw:
         flash('No firmware matched!', 'danger')
-        return redirect(url_for('.firmware'))
+        return redirect(url_for('.route_firmware'))
 
     # security check
     if not fw.check_acl('@modify-limit'):
         flash('Permission denied: Unable to add restriction', 'danger')
-        return redirect(url_for('.firmware_show', firmware_id=fw.firmware_id))
+        return redirect(url_for('.route_firmware_show', firmware_id=fw.firmware_id))
 
     # ensure has enough data
     for key in ['value', 'firmware_id']:
@@ -393,23 +393,23 @@ def firmware_limit_add():
     fl.fw.mark_dirty()
     db.session.commit()
     flash('Added limit', 'info')
-    return redirect(url_for('.firmware_limits', firmware_id=fl.firmware_id))
+    return redirect(url_for('.route_firmware_limits', firmware_id=fl.firmware_id))
 
 @app.route('/lvfs/firmware/<int:firmware_id>/affiliation')
 @login_required
-def firmware_affiliation(firmware_id):
+def route_firmware_affiliation(firmware_id):
 
     # get details about the firmware
     fw = db.session.query(Firmware).\
             filter(Firmware.firmware_id == firmware_id).first()
     if not fw:
         flash('No firmware matched!', 'danger')
-        return redirect(url_for('.firmware'))
+        return redirect(url_for('.route_firmware'))
 
     # security check
     if not fw.check_acl('@modify-affiliation'):
         flash('Permission denied: Insufficient permissions to modify affiliations', 'danger')
-        return redirect(url_for('.firmware_show', firmware_id=firmware_id))
+        return redirect(url_for('.route_firmware_show', firmware_id=firmware_id))
 
     # add other vendors
     if g.user.check_acl('@admin'):
@@ -429,7 +429,7 @@ def firmware_affiliation(firmware_id):
 
 @app.route('/lvfs/firmware/<int:firmware_id>/affiliation/change', methods=['POST'])
 @login_required
-def firmware_affiliation_change(firmware_id):
+def route_firmware_affiliation_change(firmware_id):
     """ Changes the assigned vendor ID for the firmware """
 
     # change the vendor
@@ -440,20 +440,20 @@ def firmware_affiliation_change(firmware_id):
     fw = db.session.query(Firmware).filter(Firmware.firmware_id == firmware_id).first()
     if not fw:
         flash('No firmware matched!', 'danger')
-        return redirect(url_for('.firmware'))
+        return redirect(url_for('.route_firmware'))
 
     # security check
     if not fw.check_acl('@modify-affiliation'):
         flash('Permission denied: Insufficient permissions to change affiliation', 'danger')
-        return redirect(url_for('.firmware_show', firmware_id=firmware_id))
+        return redirect(url_for('.route_firmware_show', firmware_id=firmware_id))
 
     vendor_id = int(request.form['vendor_id'])
     if vendor_id == fw.vendor_id:
         flash('No affiliation change required', 'info')
-        return redirect(url_for('.firmware_affiliation', firmware_id=fw.firmware_id))
+        return redirect(url_for('.route_firmware_affiliation', firmware_id=fw.firmware_id))
     if not g.user.is_admin and not g.user.vendor.is_affiliate_for(vendor_id) and vendor_id != g.user.vendor_id:
         flash('Insufficient permissions to change affiliation to {}'.format(vendor_id), 'danger')
-        return redirect(url_for('.firmware_show', firmware_id=firmware_id))
+        return redirect(url_for('.route_firmware_show', firmware_id=firmware_id))
     old_vendor = fw.vendor
     fw.vendor_id = vendor_id
     db.session.commit()
@@ -469,23 +469,23 @@ def firmware_affiliation_change(firmware_id):
         db.session.commit()
 
     flash('Changed firmware vendor', 'info')
-    return redirect(url_for('.firmware_show', firmware_id=fw.firmware_id))
+    return redirect(url_for('.route_firmware_show', firmware_id=fw.firmware_id))
 
 @app.route('/lvfs/firmware/<int:firmware_id>/problems')
 @login_required
-def firmware_problems(firmware_id):
+def route_firmware_problems(firmware_id):
 
     # get details about the firmware
     fw = db.session.query(Firmware).\
             filter(Firmware.firmware_id == firmware_id).first()
     if not fw:
         flash('No firmware matched!', 'danger')
-        return redirect(url_for('.firmware'))
+        return redirect(url_for('.route_firmware'))
 
     # security check
     if not fw.check_acl('@view'):
         flash('Permission denied: Insufficient permissions to view components', 'danger')
-        return redirect(url_for('.firmware'))
+        return redirect(url_for('.route_firmware'))
 
     return render_template('firmware-problems.html',
                            category='firmware',
@@ -493,19 +493,19 @@ def firmware_problems(firmware_id):
 
 @app.route('/lvfs/firmware/<int:firmware_id>/target')
 @login_required
-def firmware_target(firmware_id):
+def route_firmware_target(firmware_id):
 
     # get details about the firmware
     fw = db.session.query(Firmware).\
             filter(Firmware.firmware_id == firmware_id).first()
     if not fw:
         flash('No firmware matched!', 'danger')
-        return redirect(url_for('.firmware'))
+        return redirect(url_for('.route_firmware'))
 
     # security check
     if not fw.check_acl('@view'):
         flash('Permission denied: Insufficient permissions to view firmware', 'danger')
-        return redirect(url_for('.firmware'))
+        return redirect(url_for('.route_firmware'))
 
     return render_template('firmware-target.html',
                            category='firmware',
@@ -513,7 +513,7 @@ def firmware_target(firmware_id):
 
 @app.route('/lvfs/firmware/<int:firmware_id>')
 @login_required
-def firmware_show(firmware_id):
+def route_firmware_show(firmware_id):
     """ Show firmware information """
 
     # get details about the firmware
@@ -522,12 +522,12 @@ def firmware_show(firmware_id):
             first()
     if not fw:
         flash('No firmware matched!', 'danger')
-        return redirect(url_for('.firmware'))
+        return redirect(url_for('.route_firmware'))
 
     # security check
     if not fw.check_acl('@view'):
         flash('Permission denied: Insufficient permissions to view firmware', 'danger')
-        return redirect(url_for('.firmware'))
+        return redirect(url_for('.route_firmware'))
 
     # get data for the last month or year
     graph_data = []
@@ -567,19 +567,19 @@ def firmware_show(firmware_id):
 @app.route('/lvfs/firmware/<int:firmware_id>/analytics')
 @app.route('/lvfs/firmware/<int:firmware_id>/analytics/clients')
 @login_required
-def firmware_analytics_clients(firmware_id):
+def route_firmware_analytics_clients(firmware_id):
     """ Show firmware clients information """
 
     # get details about the firmware
     fw = db.session.query(Firmware).filter(Firmware.firmware_id == firmware_id).first()
     if not fw:
         flash('No firmware matched!', 'danger')
-        return redirect(url_for('.firmware'))
+        return redirect(url_for('.route_firmware'))
 
     # security check
     if not fw.check_acl('@view-analytics'):
         flash('Permission denied: Insufficient permissions to view analytics', 'danger')
-        return redirect(url_for('.firmware_show', firmware_id=firmware_id))
+        return redirect(url_for('.route_firmware_show', firmware_id=firmware_id))
     clients = db.session.query(Client).filter(Client.firmware_id == fw.firmware_id).\
                 order_by(Client.id.desc()).limit(10).all()
     return render_template('firmware-analytics-clients.html',
@@ -591,19 +591,19 @@ def firmware_analytics_clients(firmware_id):
 @app.route('/lvfs/firmware/<int:firmware_id>/analytics/reports/<int:state>')
 @app.route('/lvfs/firmware/<int:firmware_id>/analytics/reports/<int:state>/<int:limit>')
 @login_required
-def firmware_analytics_reports(firmware_id, state=None, limit=100):
+def route_firmware_analytics_reports(firmware_id, state=None, limit=100):
     """ Show firmware clients information """
 
     # get reports about the firmware
     fw = db.session.query(Firmware).filter(Firmware.firmware_id == firmware_id).first()
     if not fw:
         flash('No firmware matched!', 'danger')
-        return redirect(url_for('.firmware'))
+        return redirect(url_for('.route_firmware'))
 
     # security check
     if not fw.check_acl('@view-analytics'):
         flash('Permission denied: Insufficient permissions to view analytics', 'danger')
-        return redirect(url_for('.firmware_show', firmware_id=firmware_id))
+        return redirect(url_for('.route_firmware_show', firmware_id=firmware_id))
     if state:
         reports = db.session.query(Report).\
                     filter(Report.firmware_id == firmware_id).\
@@ -621,19 +621,19 @@ def firmware_analytics_reports(firmware_id, state=None, limit=100):
 
 @app.route('/lvfs/firmware/<int:firmware_id>/tests')
 @login_required
-def firmware_tests(firmware_id):
+def route_firmware_tests(firmware_id):
 
     # get details about the firmware
     fw = db.session.query(Firmware).\
             filter(Firmware.firmware_id == firmware_id).first()
     if not fw:
         flash('No firmware matched!', 'danger')
-        return redirect(url_for('.firmware'))
+        return redirect(url_for('.route_firmware'))
 
     # security check
     if not fw.check_acl('@view'):
         flash('Permission denied: Insufficient permissions to view firmware', 'danger')
-        return redirect(url_for('.firmware'))
+        return redirect(url_for('.route_firmware'))
 
     return render_template('firmware-tests.html',
                            category='firmware',
@@ -641,7 +641,7 @@ def firmware_tests(firmware_id):
 
 @app.route('/lvfs/firmware/shard/search/<kind>/<value>')
 @login_required
-def firmware_shard_search(kind, value):
+def route_firmware_shard_search(kind, value):
     """
     Show firmware with shards that match the value
     """

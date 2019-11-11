@@ -19,7 +19,7 @@
     <div class="card-title">{{c.fw.md_prio.name_with_category}}</code></div>
     <p class="card-text">{{c.timestamp}} &mdash; from <code>{{c.addr|truncate(9, False, '…')}}</code></p>
     <p class="card-text"><code>{{c.user_agent}}</code></p>
-    <a class="card-link" href="{{url_for('.firmware_show', firmware_id=c.fw.firmware_id)}}">Details</a>
+    <a class="card-link" href="{{url_for('.route_firmware_show', firmware_id=c.fw.firmware_id)}}">Details</a>
   </div>
 </div>
 {% endfor %}
