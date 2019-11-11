@@ -246,7 +246,7 @@ def _generate_metadata_kind(filename, fws, firmware_baseuri='', local=False):
                 child = ET.Element('value')
                 child.set('key', 'LVFS::InhibitDownload')
                 elements['LVFS::InhibitDownload'] = child
-            if md.verfmt:
+            if md.verfmt_with_fallback:
                 if 'LVFS::VersionFormat' in elements:
                     continue
                 child = ET.Element('value')
