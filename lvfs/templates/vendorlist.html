@@ -80,7 +80,7 @@
 <div class="card mt-3">
   <div class="card-body">
     <div class="card-title">Create a new vendor</div>
-<form method="post" action="{{url_for('.route_vendor_add')}}" class="form-inline">
+<form method="post" action="{{url_for('.route_vendor_create')}}" class="form-inline">
   <input type="hidden" name="csrf_token" value="{{csrf_token()}}"/>
   <input class="form-control" type="text" size="20" name="group_id" placeholder="Group ID" required>
   <input class="btn btn-primary" type="submit" value="Add">

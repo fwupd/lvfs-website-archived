@@ -25,10 +25,10 @@ def route_protocol_all():
                            category='admin',
                            protocols=protocols)
 
-@app.route('/lvfs/protocol/add', methods=['POST'])
+@app.route('/lvfs/protocol/create', methods=['POST'])
 @login_required
 @admin_login_required
-def route_protocol_add():
+def route_protocol_create():
 
     # ensure has enough data
     if 'value' not in request.form:

@@ -362,9 +362,9 @@ def route_firmware_modify(firmware_id):
     return redirect(url_for('.route_firmware_limits',
                             firmware_id=firmware_id))
 
-@app.route('/lvfs/firmware/limit/add', methods=['POST'])
+@app.route('/lvfs/firmware/limit/create', methods=['POST'])
 @login_required
-def route_firmware_limit_add():
+def route_firmware_limit_create():
 
     # get details about the firmware
     fw = db.session.query(Firmware).\

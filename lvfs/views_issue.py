@@ -31,9 +31,9 @@ def route_issue_all():
                            category='firmware',
                            issues=issues)
 
-@app.route('/lvfs/issue/add', methods=['POST'])
+@app.route('/lvfs/issue/create', methods=['POST'])
 @login_required
-def route_issue_add():
+def route_issue_create():
 
     # security check
     if not Issue().check_acl('@create'):
@@ -58,9 +58,9 @@ def route_issue_add():
     flash('Added issue', 'info')
     return redirect(url_for('.route_issue_details', issue_id=issue.issue_id))
 
-@app.route('/lvfs/issue/<issue_id>/condition/add', methods=['POST'])
+@app.route('/lvfs/issue/<issue_id>/condition/create', methods=['POST'])
 @login_required
-def route_issue_condition_add(issue_id):
+def route_issue_condition_create(issue_id):
 
     # ensure has enough data
     for key in ['key', 'value', 'compare']:

@@ -290,9 +290,9 @@ def route_component_requirement_delete(component_id, requirement_id):
                             component_id=md.component_id,
                             page='requires'))
 
-@app.route('/lvfs/component/<int:component_id>/requirement/add', methods=['POST'])
+@app.route('/lvfs/component/<int:component_id>/requirement/create', methods=['POST'])
 @login_required
-def route_component_requirement_add(component_id):
+def route_component_requirement_create(component_id):
     """ Adds a requirement to a component """
 
     # check we have data
@@ -449,9 +449,9 @@ def route_component_keyword_delete(component_id, keyword_id):
                             component_id=md.component_id,
                             page='keywords'))
 
-@app.route('/lvfs/component/<int:component_id>/keyword/add', methods=['POST'])
+@app.route('/lvfs/component/<int:component_id>/keyword/create', methods=['POST'])
 @login_required
-def route_component_keyword_add(component_id):
+def route_component_keyword_create(component_id):
     """ Adds one or more keywords to the existing component """
 
     # check we have data
@@ -575,9 +575,9 @@ def route_component_issue_autoimport(component_id):
                             component_id=md.component_id,
                             page='update'))
 
-@app.route('/lvfs/component/<int:component_id>/issue/add', methods=['POST'])
+@app.route('/lvfs/component/<int:component_id>/issue/create', methods=['POST'])
 @login_required
-def route_component_issue_add(component_id):
+def route_component_issue_create(component_id):
     """ Adds one or more CVEs to the existing component """
 
     # check we have data
@@ -650,9 +650,9 @@ def route_component_checksum_delete(component_id, checksum_id):
                             component_id=md.component_id,
                             page='checksums'))
 
-@app.route('/lvfs/component/<int:component_id>/checksum/add', methods=['POST'])
+@app.route('/lvfs/component/<int:component_id>/checksum/create', methods=['POST'])
 @login_required
-def route_component_checksum_add(component_id):
+def route_component_checksum_create(component_id):
     """ Adds a checksum to a component """
 
     # check we have data

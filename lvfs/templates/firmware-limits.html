@@ -86,7 +86,7 @@
     </td>
   </tr>
 {% endfor %}
-  <form method="post" action="{{url_for('.route_firmware_limit_add')}}" class="form">
+  <form method="post" action="{{url_for('.route_firmware_limit_create')}}" class="form">
   <input type="hidden" name="csrf_token" value="{{csrf_token()}}"/>
   <input type="hidden" name="firmware_id" value="{{fw.firmware_id}}">
   <tr class="row table-borderless">

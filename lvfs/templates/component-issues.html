@@ -30,7 +30,7 @@
   </tr>
 {% endfor %}
 {% if md.check_acl('@modify-updateinfo') %}
-  <form method="post" action="{{url_for('.route_component_issue_add', component_id=md.component_id)}}" class="form">
+  <form method="post" action="{{url_for('.route_component_issue_create', component_id=md.component_id)}}" class="form">
   <input type="hidden" name="csrf_token" value="{{csrf_token()}}"/>
   <tr class="row table-borderless">
     <td class="col col-lg-10">

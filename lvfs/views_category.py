@@ -23,10 +23,10 @@ def route_category_all():
                            category='admin',
                            categories=categories)
 
-@app.route('/lvfs/category/add', methods=['POST'])
+@app.route('/lvfs/category/create', methods=['POST'])
 @login_required
 @admin_login_required
-def route_category_add():
+def route_category_create():
     # ensure has enough data
     if 'value' not in request.form:
         return _error_internal('No form data found!')

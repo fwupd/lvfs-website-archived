@@ -107,9 +107,9 @@ def route_query_delete(yara_query_id):
     flash('Deleted YARA query', 'info')
     return redirect(url_for('.route_query_list'))
 
-@app.route('/lvfs/query/add', methods=['POST'])
+@app.route('/lvfs/query/create', methods=['POST'])
 @login_required
-def route_query_add():
+def route_query_create():
 
     # security check
     if not g.user.check_acl('@yara-query'):

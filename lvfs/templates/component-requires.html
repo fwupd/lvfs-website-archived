@@ -109,7 +109,7 @@
 </div>
 </form>
 
-<form class="form" action="{{url_for('.route_component_requirement_add', component_id=md.component_id)}}" method="POST" >
+<form class="form" action="{{url_for('.route_component_requirement_create', component_id=md.component_id)}}" method="POST" >
 <input type="hidden" name="csrf_token" value="{{csrf_token()}}"/>
 <div class="card mt-3">
   <div class="card-body">

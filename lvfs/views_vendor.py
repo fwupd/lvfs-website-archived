@@ -169,10 +169,10 @@ def route_vendor_list():
                            vendors=vendors,
                            page='overview')
 
-@app.route('/lvfs/vendor/add', methods=['GET', 'POST'])
+@app.route('/lvfs/vendor/create', methods=['GET', 'POST'])
 @login_required
 @admin_login_required
-def route_vendor_add():
+def route_vendor_create():
     """ Add a vendor [ADMIN ONLY] """
 
     # only accept form data
@@ -330,10 +330,10 @@ def route_vendor_oauth(vendor_id):
                            category='vendors',
                            v=vendor)
 
-@app.route('/lvfs/vendor/<int:vendor_id>/restriction/add', methods=['POST'])
+@app.route('/lvfs/vendor/<int:vendor_id>/restriction/create', methods=['POST'])
 @login_required
 @admin_login_required
-def route_vendor_restriction_add(vendor_id):
+def route_vendor_restriction_create(vendor_id):
     """ Allows changing a vendor [ADMIN ONLY] """
 
     # check exists
@@ -367,10 +367,10 @@ def route_vendor_restriction_delete(vendor_id, restriction_id):
     flash('Deleted restriction', 'info')
     return redirect(url_for('.route_vendor_restrictions', vendor_id=vendor_id), 302)
 
-@app.route('/lvfs/vendor/<int:vendor_id>/namespace/add', methods=['POST', 'GET'])
+@app.route('/lvfs/vendor/<int:vendor_id>/namespace/create', methods=['POST', 'GET'])
 @login_required
 @admin_login_required
-def route_vendor_namespace_add(vendor_id):
+def route_vendor_namespace_create(vendor_id):
     """ Allows changing a vendor [ADMIN ONLY] """
 
     # check exists
@@ -489,9 +489,9 @@ def _verify_username_vendor_glob(username, username_glob):
             return True
     return False
 
-@app.route('/lvfs/vendor/<int:vendor_id>/user/add', methods=['POST'])
+@app.route('/lvfs/vendor/<int:vendor_id>/user/create', methods=['POST'])
 @login_required
-def route_vendor_user_add(vendor_id):
+def route_vendor_user_create(vendor_id):
     """ Add a user to the vendor """
 
     # check exists
@@ -615,9 +615,9 @@ def route_vendor_affiliations(vendor_id):
                            possible_actions=possible_actions,
                            other_vendors=vendors)
 
-@app.route('/lvfs/vendor/<int:vendor_id>/affiliation/<int:affiliation_id>/action/add/<action>')
+@app.route('/lvfs/vendor/<int:vendor_id>/affiliation/<int:affiliation_id>/action/create/<action>')
 @login_required
-def route_vendor_affiliation_action_add(vendor_id, affiliation_id, action):
+def route_vendor_affiliation_action_create(vendor_id, affiliation_id, action):
     """ add an ACL action to an existing affiliation """
 
     # security check
@@ -678,9 +678,9 @@ def route_vendor_affiliation_action_remove(vendor_id, affiliation_id, action):
     flash('Removed action', 'info')
     return redirect(url_for('.route_vendor_affiliations', vendor_id=vendor_id))
 
-@app.route('/lvfs/vendor/<int:vendor_id>/affiliation/add', methods=['POST'])
+@app.route('/lvfs/vendor/<int:vendor_id>/affiliation/create', methods=['POST'])
 @login_required
-def route_vendor_affiliation_add(vendor_id):
+def route_vendor_affiliation_create(vendor_id):
     """ Allows changing a vendor [ADMIN ONLY] """
 
     # check exists
@@ -777,9 +777,9 @@ def _convert_export_ids(v):
         return []
     return v.banned_country_codes.split(',')
 
-@app.route('/lvfs/vendor/<int:vendor_id>/country/add', methods=['POST'])
+@app.route('/lvfs/vendor/<int:vendor_id>/country/create', methods=['POST'])
 @login_required
-def route_vendor_export_add(vendor_id):
+def route_vendor_export_create(vendor_id):
 
     # check exists
     vendor = db.session.query(Vendor).filter(Vendor.vendor_id == vendor_id).first()

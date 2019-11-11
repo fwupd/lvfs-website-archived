@@ -507,9 +507,9 @@ def route_user_certificate_remove(certificate_id):
     flash('Deleted certificate', 'info')
     return redirect(url_for('.route_profile'))
 
-@app.route('/lvfs/user/certificate/add', methods=['GET', 'POST'])
+@app.route('/lvfs/user/certificate/create', methods=['GET', 'POST'])
 @login_required
-def route_user_certificate_add():
+def route_user_certificate_create():
 
     # only accept form data
     if request.method != 'POST':
@@ -561,10 +561,10 @@ def route_user_certificate_add():
     flash('Added client certificate with serial %s' % info['serial'], 'success')
     return redirect(url_for('.route_profile'), code=302)
 
-@app.route('/lvfs/user/add', methods=['GET', 'POST'])
+@app.route('/lvfs/user/create', methods=['GET', 'POST'])
 @login_required
 @admin_login_required
-def route_user_add():
+def route_user_create():
     """ Add a user [ADMIN ONLY] """
 
     # only accept form data

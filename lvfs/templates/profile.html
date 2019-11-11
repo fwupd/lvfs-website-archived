@@ -147,7 +147,7 @@
 {% endfor %}
         </table>
 {% endif %}
-        <form method="post" enctype="multipart/form-data" action="{{url_for('.route_user_certificate_add')}}" id="form">
+        <form method="post" enctype="multipart/form-data" action="{{url_for('.route_user_certificate_create')}}" id="form">
           <input type="hidden" name="csrf_token" value="{{csrf_token()}}"/>
           <label class="btn btn-primary card-text">
             Upload Certificate

@@ -25,7 +25,7 @@
 {% endif %}
 
 {% if v.namespaces and v.check_acl('@modify-affiliations') %}
-<form method="post" action="{{url_for('.route_vendor_affiliation_add', vendor_id=v.vendor_id)}}">
+<form method="post" action="{{url_for('.route_vendor_affiliation_create', vendor_id=v.vendor_id)}}">
 <input type="hidden" name="csrf_token" value="{{csrf_token()}}"/>
 <div class="card mt-3">
   <div class="card-body">
@@ -87,7 +87,7 @@
                             action=act.action)}}">Remove</a>
 {% else %}
           <a class="btn btn-primary btn-block"
-            href="{{url_for('.route_vendor_affiliation_action_add',
+            href="{{url_for('.route_vendor_affiliation_action_create',
                             vendor_id=aff.vendor_id,
                             affiliation_id=aff.affiliation_id,
                             action=possible_action)}}">Add</a>

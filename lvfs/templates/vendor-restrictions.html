@@ -39,7 +39,7 @@
 </div>
 {% endif %}
 
-<form method="post" action="{{url_for('.route_vendor_restriction_add', vendor_id=v.vendor_id)}}">
+<form method="post" action="{{url_for('.route_vendor_restriction_create', vendor_id=v.vendor_id)}}">
 <input type="hidden" name="csrf_token" value="{{csrf_token()}}"/>
 <div class="card mt-3">
   <div class="card-body">

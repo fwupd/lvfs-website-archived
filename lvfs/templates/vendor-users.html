@@ -47,7 +47,7 @@
   </div>
 </div>
 
-<form method="post" action="{{url_for('.route_vendor_user_add', vendor_id=v.vendor_id)}}" class="form">
+<form method="post" action="{{url_for('.route_vendor_user_create', vendor_id=v.vendor_id)}}" class="form">
 <input type="hidden" name="csrf_token" value="{{csrf_token()}}"/>
 <div class="card mt-3">
   <div class="card-body">

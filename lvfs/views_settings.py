@@ -72,7 +72,7 @@ def route_settings_tests(plugin_id, kind):
                            tests_by_type=tests_by_type,
                            plugin=plugin)
 
-@app.route('/lvfs/settings_create')
+@app.route('/lvfs/settings/create')
 @login_required
 @admin_login_required
 def route_settings_create():

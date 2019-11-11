@@ -47,7 +47,7 @@
 {% endfor %}
 {% if md.check_acl('@modify-requirements') %}
   <tr class="row table-borderless">
-    <form class="form-inline" action="{{url_for('.route_component_requirement_add', component_id=md.component_id)}}" method="POST" >
+    <form class="form-inline" action="{{url_for('.route_component_requirement_create', component_id=md.component_id)}}" method="POST" >
       <input type="hidden" name="csrf_token" value="{{csrf_token()}}"/>
       <td class="col col-sm-6">
         <input type="hidden" name="kind" value="id">
@@ -107,7 +107,7 @@
 {% endfor %}
 {% if md.check_acl('@modify-requirements') %}
   <tr class="row table-borderless">
-    <form class="form-inline" action="{{url_for('.route_component_requirement_add', component_id=md.component_id)}}" method="POST" >
+    <form class="form-inline" action="{{url_for('.route_component_requirement_create', component_id=md.component_id)}}" method="POST" >
       <input type="hidden" name="csrf_token" value="{{csrf_token()}}"/>
       <td class="col col-sm-6">
         <input type="hidden" name="kind" value="firmware">
@@ -153,7 +153,7 @@
 {% endfor %}
 {% if md.check_acl('@modify-requirements') %}
   <tr class="row table-borderless">
-    <form class="form-inline" action="{{url_for('.route_component_requirement_add', component_id=md.component_id)}}" method="POST" >
+    <form class="form-inline" action="{{url_for('.route_component_requirement_create', component_id=md.component_id)}}" method="POST" >
       <input type="hidden" name="csrf_token" value="{{csrf_token()}}"/>
       <td class="col col-sm-10">
         <input type="hidden" name="kind" value="hardware">

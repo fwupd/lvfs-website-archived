@@ -23,10 +23,10 @@ def route_verfmt_all():
                            category='admin',
                            verfmts=verfmts)
 
-@app.route('/lvfs/verfmt/add', methods=['POST'])
+@app.route('/lvfs/verfmt/create', methods=['POST'])
 @login_required
 @admin_login_required
-def route_verfmt_add():
+def route_verfmt_create():
     # ensure has enough data
     if 'value' not in request.form:
         return _error_internal('No form data found!')

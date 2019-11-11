@@ -75,21 +75,21 @@ class LvfsTestCase(unittest.TestCase):
 
         # ensure the plugins settings are set up
         self.login()
-        self.app.get('/lvfs/settings_create')
+        self.app.get('/lvfs/settings/create')
         self.app.get('/lvfs/agreement/create')
         self.app.get('/lvfs/agreement/1/accept')
         for value in ['com.hughski.colorhug', 'org.usb.dfu', 'org.uefi.capsule']:
-            rv = self.app.post('/lvfs/protocol/add', data=dict(
+            rv = self.app.post('/lvfs/protocol/create', data=dict(
                 value=value,
             ), follow_redirects=True)
             assert b'Added protocol' in rv.data, rv.data
         for value in ['X-Device', 'X-ManagementEngine']:
-            rv = self.app.post('/lvfs/category/add', data=dict(
+            rv = self.app.post('/lvfs/category/create', data=dict(
                 value=value,
             ), follow_redirects=True)
             assert b'Added category' in rv.data, rv.data
         for value in ['quad', 'triplet']:
-            rv = self.app.post('/lvfs/verfmt/add', data=dict(
+            rv = self.app.post('/lvfs/verfmt/create', data=dict(
                 value=value,
             ), follow_redirects=True)
             assert b'Added version format' in rv.data, rv.data
@@ -134,7 +134,7 @@ class LvfsTestCase(unittest.TestCase):
         assert b'Firmware deleted' in rv.data, rv.data
 
     def _add_user(self, username, group_id, password):
-        return self.app.post('/lvfs/user/add', data=dict(
+        return self.app.post('/lvfs/user/create', data=dict(
             username=username,
             password_new=password,
             group_id=group_id,
@@ -549,7 +549,7 @@ class LvfsTestCase(unittest.TestCase):
         assert b'ETOOSLOW' not in rv.data, rv.data
 
         # set download limit of 2
-        rv = self.app.post('/lvfs/firmware/limit/add', data=dict(
+        rv = self.app.post('/lvfs/firmware/limit/create', data=dict(
             firmware_id='1',
             value='2',
             user_agent_glob='fwupd/*',
@@ -796,14 +796,14 @@ class LvfsTestCase(unittest.TestCase):
         assert b'Create a new vendor' in rv.data, rv.data
 
         # create new vendor
-        rv = self.app.post('/lvfs/vendor/add', data=dict(group_id='testvendor'),
+        rv = self.app.post('/lvfs/vendor/create', data=dict(group_id='testvendor'),
                            follow_redirects=True)
         assert b'Added vendor' in rv.data, rv.data
         rv = self.app.get('/lvfs/vendorlist')
         assert b'testvendor' in rv.data, rv.data
 
         # create duplicate
-        rv = self.app.post('/lvfs/vendor/add', data=dict(group_id='testvendor'),
+        rv = self.app.post('/lvfs/vendor/create', data=dict(group_id='testvendor'),
                            follow_redirects=True)
         assert b'Group ID already exists' in rv.data, rv.data
 
@@ -812,7 +812,7 @@ class LvfsTestCase(unittest.TestCase):
         assert b'testvendor' in rv.data, rv.data
 
         # create a restriction
-        rv = self.app.post('/lvfs/vendor/2/restriction/add', data=dict(value='USB:0x1234'),
+        rv = self.app.post('/lvfs/vendor/2/restriction/create', data=dict(value='USB:0x1234'),
                            follow_redirects=True)
         assert b'Added restriction' in rv.data, rv.data
 
@@ -826,12 +826,12 @@ class LvfsTestCase(unittest.TestCase):
         assert b'USB:0x1234' not in rv.data, rv.data
 
         # create a namespace
-        rv = self.app.post('/lvfs/vendor/2/namespace/add', data=dict(value='com.dell'),
+        rv = self.app.post('/lvfs/vendor/2/namespace/create', data=dict(value='com.dell'),
                            follow_redirects=True)
         assert b'Added namespace' in rv.data, rv.data
 
         # create a namespace
-        rv = self.app.post('/lvfs/vendor/2/namespace/add', data=dict(value='lenovo'),
+        rv = self.app.post('/lvfs/vendor/2/namespace/create', data=dict(value='lenovo'),
                            follow_redirects=True)
         assert b'Failed to add namespace' in rv.data, rv.data
 
@@ -868,7 +868,7 @@ class LvfsTestCase(unittest.TestCase):
         assert b'testvendor' not in rv.data, rv.data
 
     def add_vendor(self, group_id):
-        rv = self.app.post('/lvfs/vendor/add', data=dict(group_id=group_id),
+        rv = self.app.post('/lvfs/vendor/create', data=dict(group_id=group_id),
                            follow_redirects=True)
         assert b'Added vendor' in rv.data, rv.data
 
@@ -983,7 +983,7 @@ class LvfsTestCase(unittest.TestCase):
 
         # create a new vendor
         self.login()
-        rv = self.app.post('/lvfs/vendor/add', data=dict(group_id='testvendor'),
+        rv = self.app.post('/lvfs/vendor/create', data=dict(group_id='testvendor'),
                            follow_redirects=True)
         assert b'Added vendor' in rv.data, rv.data
 
@@ -1001,14 +1001,14 @@ class LvfsTestCase(unittest.TestCase):
         self.login('alice@testvendor.com')
 
         # try to add new user to new vendor with non-matching domain (fail)
-        rv = self.app.post('/lvfs/vendor/2/user/add', data=dict(
+        rv = self.app.post('/lvfs/vendor/2/user/create', data=dict(
             username='bob@hotmail.com',
             display_name='Generic Name',
         ), follow_redirects=True)
         assert b'Email address does not match account policy' in rv.data, rv.data
 
         # add new user with matching domain
-        rv = self.app.post('/lvfs/vendor/2/user/add', data=dict(
+        rv = self.app.post('/lvfs/vendor/2/user/create', data=dict(
             username='clara@testvendor.com',
             display_name='Generic Name',
         ), follow_redirects=True)
@@ -1457,7 +1457,7 @@ ma+I7fM5pmgsEL4tkCZAg0+CPTyhHkMV/cWuOZUjqTsYbDq1pZI=
         assert b'Changed firmware vendor' in rv.data, rv.data.decode()
 
     def add_affiliation(self, vendor_id_oem, vendor_id_odm, default_actions=True, actions=None):
-        rv = self.app.post('/lvfs/vendor/%u/affiliation/add' % vendor_id_oem, data=dict(
+        rv = self.app.post('/lvfs/vendor/%u/affiliation/create' % vendor_id_oem, data=dict(
             vendor_id_odm=vendor_id_odm,
         ), follow_redirects=True)
         assert b'Added affiliation' in rv.data, rv.data
@@ -1475,12 +1475,12 @@ ma+I7fM5pmgsEL4tkCZAg0+CPTyhHkMV/cWuOZUjqTsYbDq1pZI=
         if default_actions:
             actions.append('@modify-limit')
         for act in actions:
-            rv = self.app.get('/lvfs/vendor/{}/affiliation/{}/action/add/{}'.format(vendor_id_oem, aff_id, act),
+            rv = self.app.get('/lvfs/vendor/{}/affiliation/{}/action/create/{}'.format(vendor_id_oem, aff_id, act),
                               follow_redirects=True)
             assert b'Added action' in rv.data, rv.data.decode()
 
     def add_namespace(self, vendor_id=1, value='com.hughski'):
-        rv = self.app.post('/lvfs/vendor/{}/namespace/add'.format(vendor_id),
+        rv = self.app.post('/lvfs/vendor/{}/namespace/create'.format(vendor_id),
                            data=dict(value=value),
                            follow_redirects=True)
         assert b'Added namespace' in rv.data, rv.data
@@ -1514,7 +1514,7 @@ ma+I7fM5pmgsEL4tkCZAg0+CPTyhHkMV/cWuOZUjqTsYbDq1pZI=
         assert b'<div class="card-title">\n      BobOEM' in rv.data, rv.data.decode()
 
         # add duplicate (as admin)
-        rv = self.app.post('/lvfs/vendor/2/affiliation/add', data=dict(
+        rv = self.app.post('/lvfs/vendor/2/affiliation/create', data=dict(
             vendor_id_odm='3',
         ), follow_redirects=True)
         assert b'Already a affiliation with that ODM' in rv.data, rv.data
@@ -1523,10 +1523,10 @@ ma+I7fM5pmgsEL4tkCZAg0+CPTyhHkMV/cWuOZUjqTsYbDq1pZI=
         self.add_namespace(vendor_id=2, value='com.hughski')
 
         # add and remove actions
-        rv = self.app.get('/lvfs/vendor/2/affiliation/1/action/add/DAVE',
+        rv = self.app.get('/lvfs/vendor/2/affiliation/1/action/create/DAVE',
                           follow_redirects=True)
         assert b'Failed to add action: Expected' in rv.data, rv.data.decode()
-        rv = self.app.get('/lvfs/vendor/2/affiliation/1/action/add/@test',
+        rv = self.app.get('/lvfs/vendor/2/affiliation/1/action/create/@test',
                           follow_redirects=True)
         assert b'Added action' in rv.data, rv.data.decode()
         rv = self.app.get('/lvfs/vendor/2/affiliation/1/action/remove/@notgoingtoexist',
@@ -1675,7 +1675,7 @@ ma+I7fM5pmgsEL4tkCZAg0+CPTyhHkMV/cWuOZUjqTsYbDq1pZI=
         assert b'>bob<' in rv.data, rv.data
 
         # add another set of keywords
-        rv = self.app.post('/lvfs/component/1/keyword/add', data=dict(
+        rv = self.app.post('/lvfs/component/1/keyword/create', data=dict(
             value='Clara Dave',
         ), follow_redirects=True)
         assert b'Added keywords' in rv.data, rv.data
@@ -1701,7 +1701,7 @@ ma+I7fM5pmgsEL4tkCZAg0+CPTyhHkMV/cWuOZUjqTsYbDq1pZI=
         assert b'CVE-2017' in rv.data, rv.data.decode()
 
         # add another set of CVEs
-        rv = self.app.post('/lvfs/component/1/issue/add', data=dict(
+        rv = self.app.post('/lvfs/component/1/issue/create', data=dict(
             value='CVE-2018-00000,CVE-2019-00000',
         ), follow_redirects=True)
         assert b'Added CVE-' in rv.data, rv.data.decode()
@@ -1744,30 +1744,30 @@ ma+I7fM5pmgsEL4tkCZAg0+CPTyhHkMV/cWuOZUjqTsYbDq1pZI=
         self.upload()
 
         # add invalid checksums
-        rv = self.app.post('/lvfs/component/1/checksum/add', data=dict(
+        rv = self.app.post('/lvfs/component/1/checksum/create', data=dict(
             value='xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx',
         ), follow_redirects=True)
         assert b'is not a recognised SHA1 or SHA256 hash' in rv.data, rv.data
-        rv = self.app.post('/lvfs/component/1/checksum/add', data=dict(
+        rv = self.app.post('/lvfs/component/1/checksum/create', data=dict(
             value='xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx',
         ), follow_redirects=True)
         assert b'is not a recognised SHA1 or SHA256 hash' in rv.data, rv.data
 
         # add a SHA256 checksum
-        rv = self.app.post('/lvfs/component/1/checksum/add', data=dict(
+        rv = self.app.post('/lvfs/component/1/checksum/create', data=dict(
             value='9d72ffd950d3bedcda99a197d760457e90f3d6f2a62b30b95a488511f0dfa4ad',
         ), follow_redirects=True)
         assert b'Added device checksum' in rv.data, rv.data
         assert b'9d72ffd950d3bedcda99a197d760457e90f3d6f2a62b30b95a488511f0dfa4ad' in rv.data, rv.data
 
         # add the same checksum again
-        rv = self.app.post('/lvfs/component/1/checksum/add', data=dict(
+        rv = self.app.post('/lvfs/component/1/checksum/create', data=dict(
             value='9d72ffd950d3bedcda99a197d760457e90f3d6f2a62b30b95a488511f0dfa4ad',
         ), follow_redirects=True)
         assert b'has already been added' in rv.data, rv.data
 
         # add a SHA1 checksum
-        rv = self.app.post('/lvfs/component/1/checksum/add', data=dict(
+        rv = self.app.post('/lvfs/component/1/checksum/create', data=dict(
             value='fb6439cbda2add6c394f71b7cf955dd9a276ca5a',
         ), follow_redirects=True)
         assert b'Added device checksum' in rv.data, rv.data
@@ -1892,7 +1892,7 @@ ma+I7fM5pmgsEL4tkCZAg0+CPTyhHkMV/cWuOZUjqTsYbDq1pZI=
     def add_issue(self, issue_id=1, url='https://github.com/hughsie/fwupd/wiki/Arch-Linux', name='ColorHug on Fedora'):
 
         # create an issue
-        rv = self.app.post('/lvfs/issue/add', data=dict(
+        rv = self.app.post('/lvfs/issue/create', data=dict(
             url=url,
         ), follow_redirects=True)
         assert b'Added issue' in rv.data, rv.data
@@ -1923,7 +1923,7 @@ ma+I7fM5pmgsEL4tkCZAg0+CPTyhHkMV/cWuOZUjqTsYbDq1pZI=
             'value': value,
             'compare': compare,
         }
-        return self.app.post('/lvfs/issue/%i/condition/add' % issue_id,
+        return self.app.post('/lvfs/issue/%i/condition/create' % issue_id,
                              data=data, follow_redirects=True)
 
     def add_issue_condition(self, issue_id=1):
@@ -1996,7 +1996,7 @@ ma+I7fM5pmgsEL4tkCZAg0+CPTyhHkMV/cWuOZUjqTsYbDq1pZI=
             data = {
                 'file': (fd, filename)
             }
-            return self.app.post('/lvfs/user/certificate/add', data=data, follow_redirects=True)
+            return self.app.post('/lvfs/user/certificate/create', data=data, follow_redirects=True)
 
     def test_user_certificates(self):
 
@@ -2225,12 +2225,12 @@ rule AMITestKey
 
         # create a new query
         self.login()
-        rv = self.app.post('/lvfs/query/add', data=dict(value=yara_rule),
+        rv = self.app.post('/lvfs/query/create', data=dict(value=yara_rule),
                            follow_redirects=True)
         assert b'added and will be run soon' in rv.data, rv.data.decode()
 
         # add duplicate
-        rv = self.app.post('/lvfs/query/add', data=dict(value=yara_rule),
+        rv = self.app.post('/lvfs/query/create', data=dict(value=yara_rule),
                            follow_redirects=True)
         assert b'Already a query' in rv.data, rv.data.decode()
 

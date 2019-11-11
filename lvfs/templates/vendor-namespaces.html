@@ -47,7 +47,7 @@
 </div>
 {% endif %}
 
-<form method="post" action="{{url_for('.route_vendor_namespace_add', vendor_id=v.vendor_id)}}">
+<form method="post" action="{{url_for('.route_vendor_namespace_create', vendor_id=v.vendor_id)}}">
 <input type="hidden" name="csrf_token" value="{{csrf_token()}}"/>
 <div class="card mt-3">
   <div class="card-body">
@@ -74,7 +74,7 @@
 {% endif %}
         </td>
         <td class="col-2">
-          <a class="btn btn-primary btn-block" href="{{url_for('.route_vendor_namespace_add', vendor_id=v.vendor_id, value=appstream_id)}}">Add</a>
+          <a class="btn btn-primary btn-block" href="{{url_for('.route_vendor_namespace_create', vendor_id=v.vendor_id, value=appstream_id)}}">Add</a>
         </td>
       </tr>
 {% endfor %}

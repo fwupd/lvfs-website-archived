@@ -5,7 +5,7 @@
 
 {% block content %}
 
-<form method="post" action="{{url_for('.route_query_add')}}">
+<form method="post" action="{{url_for('.route_query_create')}}">
 <input type="hidden" name="csrf_token" value="{{csrf_token()}}"/>
 <div class="card mt-3">
   <div class="card-body">
