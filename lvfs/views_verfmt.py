@@ -14,10 +14,10 @@ from .models import Verfmt
 from .util import admin_login_required
 from .util import _error_internal
 
-@app.route('/lvfs/verfmt/all')
+@app.route('/lvfs/verfmt/list')
 @login_required
 @admin_login_required
-def route_verfmt_all():
+def route_verfmt_list():
     verfmts = db.session.query(Verfmt).order_by(Verfmt.verfmt_id.asc()).all()
     return render_template('verfmt-list.html',
                            category='admin',
@@ -33,12 +33,12 @@ def route_verfmt_create():
     value = request.form['value']
     if not value or value.find(' ') != -1:
         flash('Failed to add version format: Value needs to be valid', 'warning')
-        return redirect(url_for('.route_verfmt_all'))
+        return redirect(url_for('.route_verfmt_list'))
 
     # already exists
     if db.session.query(Verfmt).filter(Verfmt.value == value).first():
         flash('Failed to add version format: Already exists', 'info')
-        return redirect(url_for('.route_verfmt_all'))
+        return redirect(url_for('.route_verfmt_list'))
 
     # add verfmt
     verfmt = Verfmt(value=request.form['value'])
@@ -57,13 +57,13 @@ def route_verfmt_delete(verfmt_id):
             filter(Verfmt.verfmt_id == verfmt_id).first()
     if not verfmt:
         flash('No verfmt found', 'info')
-        return redirect(url_for('.route_verfmt_all'))
+        return redirect(url_for('.route_verfmt_list'))
 
     # delete
     db.session.delete(verfmt)
     db.session.commit()
     flash('Deleted version format', 'info')
-    return redirect(url_for('.route_verfmt_all'))
+    return redirect(url_for('.route_verfmt_list'))
 
 @app.route('/lvfs/verfmt/<int:verfmt_id>/modify', methods=['POST'])
 @login_required
@@ -75,7 +75,7 @@ def route_verfmt_modify(verfmt_id):
                 filter(Verfmt.verfmt_id == verfmt_id).first()
     if not verfmt:
         flash('No version format found', 'info')
-        return redirect(url_for('.route_verfmt_all'))
+        return redirect(url_for('.route_verfmt_list'))
 
     # modify verfmt
     for key in ['name', 'example', 'value', 'fwupd_version']:
@@ -97,7 +97,7 @@ def route_verfmt_details(verfmt_id):
             filter(Verfmt.verfmt_id == verfmt_id).first()
     if not verfmt:
         flash('No version format found', 'info')
-        return redirect(url_for('.route_verfmt_all'))
+        return redirect(url_for('.route_verfmt_list'))
 
     # show details
     return render_template('verfmt-details.html',

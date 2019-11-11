@@ -82,7 +82,7 @@
             </li>
 {% if g.user.check_acl('@view-issues') %}
             <li class="nav-item {{'active' if request.url_rule.endpoint == 'issue_all'}}">
-              <a class="nav-link" href="{{url_for('.route_issue_all')}}">Known Issues</a>
+              <a class="nav-link" href="{{url_for('.route_issue_list')}}">Known Issues</a>
             </li>
 {% endif %}
 {% if g.user.check_acl('@yara-query') %}
@@ -139,13 +139,13 @@
               <a class="nav-link" href="{{url_for('.route_protocol_all')}}">Flashing Protocols</a>
             </li>
             <li class="nav-item {{'active' if request.url_rule.endpoint == 'category_all'}}">
-              <a class="nav-link" href="{{url_for('.route_category_all')}}">Update Categories</a>
+              <a class="nav-link" href="{{url_for('.route_category_list')}}">Update Categories</a>
             </li>
             <li class="nav-item {{'active' if request.url_rule.endpoint == 'verfmt_all'}}">
-              <a class="nav-link" href="{{url_for('.route_verfmt_all')}}">Version Formats</a>
+              <a class="nav-link" href="{{url_for('.route_verfmt_list')}}">Version Formats</a>
             </li>
             <li class="nav-item {{'active' if request.url_rule.endpoint == 'shard_all'}}">
-              <a class="nav-link" href="{{url_for('.route_shard_all')}}">Component Shards</a>
+              <a class="nav-link" href="{{url_for('.route_shard_list')}}">Component Shards</a>
             </li>
             <li class="nav-item {{'active' if request.url_rule.endpoint == 'agreement_list'}}">
               <a class="nav-link" href="{{url_for('.route_agreement_list')}}">Agreements</a>

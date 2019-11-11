@@ -243,7 +243,7 @@ class LvfsTestCase(unittest.TestCase):
         self.run_cron_stats()
 
         # edit a shard description
-        rv = self.app.get('/lvfs/shard/all')
+        rv = self.app.get('/lvfs/shard/list')
         assert '12345678-1234-5678-1234-567812345678' in rv.data.decode('utf-8'), rv.data.decode()
         rv = self.app.get('/lvfs/shard/1/details')
         rv = self.app.post('/lvfs/shard/1/modify', data=dict(
@@ -1896,7 +1896,7 @@ ma+I7fM5pmgsEL4tkCZAg0+CPTyhHkMV/cWuOZUjqTsYbDq1pZI=
             url=url,
         ), follow_redirects=True)
         assert b'Added issue' in rv.data, rv.data
-        rv = self.app.get('/lvfs/issue/all')
+        rv = self.app.get('/lvfs/issue/list')
         assert url in rv.data.decode('utf-8'), rv.data
         rv = self.app.get('/lvfs/issue/%i/details' % issue_id, follow_redirects=True)
         assert url in rv.data.decode('utf-8'), rv.data
@@ -1934,7 +1934,7 @@ ma+I7fM5pmgsEL4tkCZAg0+CPTyhHkMV/cWuOZUjqTsYbDq1pZI=
 
         # login, and check there are no issues
         self.login()
-        rv = self.app.get('/lvfs/issue/all')
+        rv = self.app.get('/lvfs/issue/list')
         assert b'No issues have been created' in rv.data, rv.data
 
         # create an issue
@@ -2054,7 +2054,7 @@ ma+I7fM5pmgsEL4tkCZAg0+CPTyhHkMV/cWuOZUjqTsYbDq1pZI=
 
         # bob can only see the admin issue, not the one from alice
         self.login('bob@fwupd.org')
-        rv = self.app.get('/lvfs/issue/all')
+        rv = self.app.get('/lvfs/issue/list')
         assert b'Shared' in rv.data, rv.data
         assert b'Secret' not in rv.data, rv.data
 

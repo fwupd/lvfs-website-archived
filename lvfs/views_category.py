@@ -14,10 +14,10 @@ from .models import Category
 from .util import admin_login_required
 from .util import _error_internal
 
-@app.route('/lvfs/category/all')
+@app.route('/lvfs/category/list')
 @login_required
 @admin_login_required
-def route_category_all():
+def route_category_list():
     categories = db.session.query(Category).order_by(Category.category_id.asc()).all()
     return render_template('category-list.html',
                            category='admin',
@@ -33,12 +33,12 @@ def route_category_create():
     value = request.form['value']
     if not value or not value.startswith('X-') or value.find(' ') != -1:
         flash('Failed to add category: Value needs to be a valid group name', 'warning')
-        return redirect(url_for('.route_category_all'))
+        return redirect(url_for('.route_category_list'))
 
     # already exists
     if db.session.query(Category).filter(Category.value == value).first():
         flash('Failed to add category: The category already exists', 'info')
-        return redirect(url_for('.route_category_all'))
+        return redirect(url_for('.route_category_list'))
 
     # add category
     cat = Category(value=request.form['value'])
@@ -57,13 +57,13 @@ def route_category_delete(category_id):
             filter(Category.category_id == category_id).first()
     if not cat:
         flash('No category found', 'info')
-        return redirect(url_for('.route_category_all'))
+        return redirect(url_for('.route_category_list'))
 
     # delete
     db.session.delete(cat)
     db.session.commit()
     flash('Deleted category', 'info')
-    return redirect(url_for('.route_category_all'))
+    return redirect(url_for('.route_category_list'))
 
 @app.route('/lvfs/category/<int:category_id>/modify', methods=['POST'])
 @login_required
@@ -75,7 +75,7 @@ def route_category_modify(category_id):
                 filter(Category.category_id == category_id).first()
     if not cat:
         flash('No category found', 'info')
-        return redirect(url_for('.route_category_all'))
+        return redirect(url_for('.route_category_list'))
 
     # modify category
     cat.expect_device_checksum = bool('expect_device_checksum' in request.form)
@@ -98,7 +98,7 @@ def route_category_details(category_id):
             filter(Category.category_id == category_id).first()
     if not cat:
         flash('No category found', 'info')
-        return redirect(url_for('.route_category_all'))
+        return redirect(url_for('.route_category_list'))
 
     # show details
     return render_template('category-details.html',
