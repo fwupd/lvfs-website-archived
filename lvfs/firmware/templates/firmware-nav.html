@@ -1,0 +1,40 @@
+<nav>
+  <div class="text-center mb-3">
+    <div class="btn-group" role="group">
+      <a class="btn btn-falcon-{{'primary' if request.url_rule.endpoint == 'firmware_show' else 'default'}}"
+        href="{{url_for('firmware.route_show', firmware_id=fw.firmware_id)}}">Details</a>
+{% if not fw.is_deleted %}
+      <a class="btn btn-falcon-{{'primary' if request.url_rule.endpoint == 'firmware_target' else 'default'}}"
+        href="{{url_for('firmware.route_target', firmware_id=fw.firmware_id)}}">Target</a>
+{% endif %}
+{% if fw.tests|length > 0 %}
+      <a class="btn btn-falcon-{{'primary' if request.url_rule.endpoint == 'firmware_tests' else 'default'}}"
+        href="{{url_for('firmware.route_tests', firmware_id=fw.firmware_id)}}">Tests</a>
+{% endif %}
+      <a class="btn btn-falcon-{{'primary' if request.url_rule.endpoint == 'firmware_components' else 'default'}}"
+        href="{{url_for('firmware.route_components', firmware_id=fw.firmware_id)}}">Components</a>
+{% if fw.check_acl('@modify-affiliation') %}
+      <a class="btn btn-falcon-{{'primary' if request.url_rule.endpoint == 'firmware_affiliation' else 'default'}}"
+        href="{{url_for('firmware.route_affiliation', firmware_id=fw.firmware_id)}}">Vendor</a>
+{% endif %}
+{% if fw.problems|length > 0 %}
+      <a class="btn btn-falcon-{{'primary' if request.url_rule.endpoint == 'firmware_problems' else 'default'}}"
+        href="{{url_for('firmware.route_problems', firmware_id=fw.firmware_id)}}">Problems</a>
+{% endif %}
+{% if not fw.do_not_track and fw.check_acl('@modify-limit') %}
+      <a class="btn btn-falcon-{{'primary' if request.url_rule.endpoint == 'firmware_limits' else 'default'}}"
+        href="{{url_for('firmware.route_limits', firmware_id=fw.firmware_id)}}">Limits</a>
+{% endif %}
+{% if fw.check_acl('@view-analytics') %}
+{% if fw.download_cnt > 0 %}
+      <a class="btn btn-falcon-{{'primary' if request.url_rule.endpoint == 'firmware_analytics_clients' else 'default'}}"
+        href="{{url_for('firmware.route_analytics_clients', firmware_id=fw.firmware_id)}}">Downloads</a>
+{% endif %}
+{% if fw.report_success_cnt or fw.report_failure_cnt %}
+      <a class="btn btn-falcon-{{'primary' if request.url_rule.endpoint == 'firmware_analytics_reports' else 'default'}}"
+        href="{{url_for('firmware.route_analytics_reports', firmware_id=fw.firmware_id)}}">Reports</a>
+{% endif %}
+{% endif %}
+    </div>
+  </div>
+</nav>

@@ -6,7 +6,7 @@ A firmware has been uploaded to the Linux Vendor Firmware Service by {{user_uplo
  * {{md.name_with_category}} version {{md.version_display}}
 {% endfor %}
 
-You can log into the LVFS and view the firmware: {{url_for('.route_firmware_show', firmware_id=fw.firmware_id, _external=True)}}
+You can log into the LVFS and view the firmware: {{url_for('firmware.route_show', firmware_id=fw.firmware_id, _external=True)}}
 
 If you believe this action should not have been allowed please contact the LVFS administrator by forwarding the email to info@fwupd.org with details.
 

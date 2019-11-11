@@ -1,0 +1,38 @@
+{% extends "default.html" %}
+{% block title %}Vendor Affiliation{% endblock %}
+
+{% block nav %}
+{% include 'firmware-nav.html' %}
+{% endblock %}
+
+{% block content %}
+<div class="card">
+  <div class="card-body">
+    <div class="card-title">Vendor Affiliation</div>
+    <p class="card-text">
+      Care must be taken changing the assigned vendor of firmware as it gives the
+      owner the ablity to change the target and even delete the firmware.
+    </p>
+{% if not g.user.check_acl('@admin') %}
+    <div class="alert alert-warning mt-1" role="alert">
+      If you move this firmware to an different vendor it will not be possible
+      to edit the update details or move the firmware to testing or stable.
+    </div>
+{% endif %}
+    <form action="{{url_for('firmware.route_affiliation_change', firmware_id=fw.firmware_id)}}" method="post">
+      <input type="hidden" name="csrf_token" value="{{csrf_token()}}"/>
+      <div class="form-group">
+        <label for="vendor_id">Controlling vendor</label>
+        <select class="form-control" name="vendor_id" required>
+{% for v in vendors %}
+          <option value="{{v.vendor_id}}" {{ 'selected' if v.vendor_id == fw.vendor_id }}>{{v.display_name_with_team}}</option>
+{% endfor %}
+        </select>
+      </div>
+      <input type="submit" class="btn btn-danger card-link" value="Change"/>
+    </form>
+  </div>
+</div>
+
+
+{% endblock %}

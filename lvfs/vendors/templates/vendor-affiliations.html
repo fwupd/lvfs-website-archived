@@ -1,0 +1,110 @@
+{% extends "default.html" %}
+{% block title %}Vendor Affiliations{% endblock %}
+
+{% block nav %}{% include 'vendor-nav.html' %}{% endblock %}
+
+{% block content %}
+{% if v.check_acl('@modify-affiliations') %}
+
+{% if v.namespaces %}
+<div class="alert alert-warning mt-1" role="alert">
+  Be <b>very careful</b> using this feature as ODMs will be able to upload to
+  OEM embargo targets, and OEMs will be able to delete ODM firmware.
+</div>
+{% else %}
+<div class="alert alert-warning mt-1" role="alert">
+  No AppStream <a href="{{url_for('vendors.route_namespaces', vendor_id=v.vendor_id)}}">namespaces</a>
+  have been set up and therefore no new affiliates can be created.
+</div>
+{% endif %}
+
+{% else %}
+<div class="alert alert-info mt-1" role="alert">
+  Please contact the LVFS administrator if you would like to add or remove affiliations.
+</div>
+{% endif %}
+
+{% if v.namespaces and v.check_acl('@modify-affiliations') %}
+<form method="post" action="{{url_for('vendors.route_affiliation_create', vendor_id=v.vendor_id)}}">
+<input type="hidden" name="csrf_token" value="{{csrf_token()}}"/>
+<div class="card mt-3">
+  <div class="card-body">
+    <div class="card-title">Add affiliation</div>
+    <p class="card-text">
+      <select class="form-control" name="vendor_id_odm">
+{% for ov in other_vendors %}
+        <option value="{{ov.vendor_id}}" required>
+          {{ov.display_name_with_team}}
+        </option>
+{% endfor %}
+      </select>
+    </p>
+    <input type="submit" class="card-link btn btn-primary" value="Add"/>
+  </div>
+</div>
+</form>
+{% endif %}
+
+{% if v.affiliations|length == 0 %}
+<div class="card mt-3">
+  <div class="card-body">
+    <div class="card-title">ODMs acting on behalf of {{v.display_name_with_team}}</div>
+    <p class="card-text">
+      No affiliations exist.
+    </p>
+  </div>
+</div>
+{% else %}
+{% for aff in v.affiliations %}
+<div class="card mt-3">
+  <div class="card-body">
+    <div class="card-title">
+      {{aff.vendor_odm.display_name_with_team}}
+{% if aff.vendor_odm.icon %}
+      <img class="float-right mb-3" src="/uploads/{{aff.vendor_odm.icon}}" width="64"/>
+{% endif %}
+    </div>
+    <table class="table mt-3">
+      <tr class="row">
+        <th class="col">Action</td>
+        <th class="col">Added on</td>
+        <th class="col">Added by</td>
+        <th class="col col-2">&nbsp;</th>
+      </tr>
+{% for possible_action in possible_actions %}
+{% set act = aff.get_action(possible_action) %}
+      <tr class="row">
+        <td class="col">{{possible_actions[possible_action]}}</td>
+        <td class="col">{{act.ctime if act else '—'}}</td>
+        <td class="col"><code>{{act.user.username if act else '—'}}</code></td>
+        <td class="col col-2">
+{% if v.check_acl('@modify-affiliation-actions') %}
+{% if act %}
+          <a class="btn btn-warning btn-block"
+            href="{{url_for('vendors.route_affiliation_action_remove',
+                            vendor_id=aff.vendor_id,
+                            affiliation_id=aff.affiliation_id,
+                            action=act.action)}}">Remove</a>
+{% else %}
+          <a class="btn btn-primary btn-block"
+            href="{{url_for('vendors.route_affiliation_action_create',
+                            vendor_id=aff.vendor_id,
+                            affiliation_id=aff.affiliation_id,
+                            action=possible_action)}}">Add</a>
+{% endif %}
+{% endif %}
+        </td>
+      </tr>
+{% endfor %}
+    </table>
+{% if v.check_acl('@modify-affiliation-actions') %}
+    <a class="card-link btn btn-danger"
+      href="{{url_for('vendors.route_affiliation_delete', vendor_id=v.vendor_id, affiliation_id=aff.affiliation_id)}}"
+      role="button">Delete</a>
+{% endif %}
+  </div>
+</div>
+{% endfor %}
+{% endif %}
+
+{% endblock %}

@@ -1,0 +1,48 @@
+{% extends "default.html" %}
+{% block title %}User YARA Queries{% endblock %}
+
+{% block nav %}{% include 'user-nav.html' %}{% endblock %}
+
+{% block content %}
+
+{% if u.queries|length == 0 %}
+<div class="card">
+  <div class="card-body">
+    <p class="card-text">
+      No queries have been performed by this user.
+    </p>
+  </div>
+</div>
+{% endif %}
+
+{% for query in u.queries %}
+<div class="card mb-3">
+  <div class="card-header card-title list-group-item-{{query.color}}">
+    {{query.title}}: {{query.found}} out of {{query.total}}
+    <span class="float-right">{{query.ctime}}</span>
+  </div>
+  <div class="card-body">
+    <pre class="mb-3">{{query.value}}</pre>
+{% if query.error %}
+    <pre class="mb-3">{{query.error}}</pre>
+{% endif %}
+{% if query.check_acl('@show') and query.ended_ts %}
+    <a class="card-link btn btn-info"
+       href="{{url_for('queries.route_show', yara_query_id=query.yara_query_id)}}"
+       role="button">Details</a>
+{% endif %}
+{% if query.check_acl('@retry') and query.started_ts %}
+    <a class="card-link btn btn-warning"
+       href="{{url_for('queries.route_retry', yara_query_id=query.yara_query_id)}}"
+       role="button">Retry</a>
+{% endif %}
+{% if query.check_acl('@delete') %}
+    <a class="card-link btn btn-danger"
+       href="{{url_for('queries.route_delete', yara_query_id=query.yara_query_id)}}"
+       role="button">Delete</a>
+{% endif %}
+  </div>
+</div>
+{% endfor %}
+
+{% endblock %}

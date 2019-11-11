@@ -1,0 +1,296 @@
+{% extends "default.html" %}
+{% block title %}Home{% endblock %}
+
+{% block content %}
+
+<div class="row no-gutters">
+
+  <div class="col-xl-8 pr-xl-2">
+
+    <!-- profile -->
+    <div class="card mb-3">
+      <div class="card-body bg-light">
+        <div class="card-title">Profile Settings</div>
+        <form class="form" method="post" action="{{url_for('users.route_modify', user_id=g.user.user_id)}}">
+          <input type="hidden" name="csrf_token" value="{{csrf_token()}}"/>
+          <div class="row">
+            <div class="col-lg-12">
+              <div class="form-group">
+                <label for="display_name">Display Name</label>
+                <input class="form-control" id="display_name" type="text" name="display_name" value="{{g.user.display_name}}" required>
+              </div>
+            </div>
+{% if g.user.is_robot %}
+            <div class="col-12">
+              <div class="form-group">
+                <label for="human_user">Contact Email</label>
+                <input class="form-control" id="human_user" type="text" name="human_user" value="{{u.human_user.username}}">
+                <p class="text-secondary">
+                  This has to match the exact username of an existing LVFS user.
+                </p>
+              </div>
+            </div>
+{% endif %}
+          </div>
+          <button class="btn btn-primary" type="submit">Update</button>
+        </form>
+      </div>
+    </div>
+
+    <!-- notifications -->
+    <form class="form" method="post" action="{{url_for('users.route_modify', user_id=g.user.user_id)}}">
+    <input type="hidden" name="csrf_token" value="{{csrf_token()}}"/>
+    <div class="card mb-3 mb-xl-3">
+      <div class="card-body bg-light">
+        <div class="card-title">Email Notifications</div>
+        <p class="card-text">
+          The LVFS can optionally send an email when a condition is met.
+        </p>
+        <div class="row">
+          <div class="col">
+            <div class="custom-control custom-switch">
+              <input class="custom-control-input" type="checkbox" id="notify_demote_failures"
+                name="notify_demote_failures" value="1" {{'checked' if u.notify_demote_failures}}/>
+              <label class="custom-control-label" for="notify_demote_failures">
+                When my firmware is demoted due to reported problems.
+              </label>
+            </div>
+          </div>
+        </div>
+{% if g.user.is_admin %}
+        <div class="row">
+          <div class="col">
+            <div class="custom-control custom-switch">
+              <input class="custom-control-input" type="checkbox" id="notify_server_error"
+                name="notify_server_error" value="1" {{'checked' if u.notify_server_error}}/>
+              <label class="custom-control-label" for="notify_server_error">
+                When a critical server error occurs.
+              </label>
+            </div>
+          </div>
+        </div>
+{% endif %}
+{% if g.user.is_qa %}
+        <div class="row">
+          <div class="col">
+            <div class="custom-control custom-switch">
+              <input class="custom-control-input" type="checkbox" id="notify_upload_vendor"
+                name="notify_upload_vendor" value="1" {{'checked' if u.notify_upload_vendor}}/>
+              <label class="custom-control-label" for="notify_upload_vendor">
+                When firmware is uploaded by anyone in the {{u.vendor.group_id}} group.
+              </label>
+            </div>
+          </div>
+        </div>
+        <div class="row">
+          <div class="col">
+            <div class="custom-control custom-switch">
+              <input class="custom-control-input" type="checkbox" id="notify_upload_affiliate"
+                name="notify_upload_affiliate" value="1" {{'checked' if u.notify_upload_affiliate}}/>
+              <label class="custom-control-label" for="notify_upload_affiliate">
+                When firmware is uploaded by an affiliate vendor on
+                behalf of the {{u.vendor.group_id}} group.
+              </label>
+            </div>
+          </div>
+        </div>
+        <div class="row">
+          <div class="col">
+            <div class="custom-control custom-switch">
+              <input class="custom-control-input" type="checkbox" id="notify_promote"
+                name="notify_promote" value="1" {{'checked' if u.notify_promote}}/>
+              <label class="custom-control-label" for="notify_promote">
+                When firmware is promted to testing or stable.
+              </label>
+            </div>
+          </div>
+        </div>
+{% endif %}
+        <button class="btn btn-primary mt-3" type="submit">Update</button>
+      </div>
+    </div>
+    </form>
+
+    <!-- certificates -->
+    <div class="card mb-3 mb-xl-0">
+      <div class="card-body bg-light">
+        <div class="card-title">Client Certificates</div>
+        <p class="card-text">
+          Client certificates are used to verify that a report was sent from a specific
+          user or machine and can be used to automatically set device checksums.
+        </p>
+        <p class="card-text">
+          The <code>/var/lib/fwupd/pki/client.pem</code> certificate is automatically
+          created when using fwupd 1.2.6 or newer.
+        </p>
+{% if g.user.certificates|length == 0 %}
+        <p class="text-muted">
+          No client certificates have been uploaded for this user.
+        </p>
+{% else %}
+        <table class="table">
+          <tr class="row table-borderless">
+            <th class="col col-md-3">Added</th>
+            <th class="col col-md-7">Signature</th>
+            <th class="col">&nbsp;</th>
+          </tr>
+{% for crt in g.user.certificates %}
+          <tr class="row">
+            <td class="col col-md-3">{{crt.ctime}}</td>
+            <td class="col col-md-7 text-truncate"><code>{{crt.serial}}</code></td>
+            <td class="col">
+              <a class="btn btn-danger btn-block"
+                 href="{{url_for('users.route_certificate_remove',
+                                 certificate_id=crt.certificate_id)}}">Remove</a>
+            </td>
+          </tr>
+{% endfor %}
+        </table>
+{% endif %}
+        <form method="post" enctype="multipart/form-data" action="{{url_for('users.route_certificate_create')}}" id="form">
+          <input type="hidden" name="csrf_token" value="{{csrf_token()}}"/>
+          <label class="btn btn-primary card-text">
+            Upload Certificate
+            <input type="file" id="file" name="file" hidden>
+          </label>
+        </form>
+      </div>
+    </div>
+  </div>
+
+{% if g.user.check_acl('@manage-password') %}
+  <div class="col-xl-4 pl-xl-2">
+    <div class="sticky-top sticky-sidebar">
+
+      <!-- authentication -->
+      <div class="card mb-3 overflow-hidden">
+        <div class="card-body bg-light">
+          <div class="card-title">Authentication</div>
+          <form method="post" action="{{url_for('users.route_auth', user_id=g.user.user_id)}}">
+            <input type="hidden" name="csrf_token" value="{{csrf_token()}}"/>
+            <p>Using 2 factor authentication secures your account more than just using a password.</p>
+{% if g.user.is_otp_working %}
+            <div class="custom-control custom-switch">
+              <input class="custom-control-input" type="checkbox" id="is_otp_enabled"
+                name="is_otp_enabled" value="1" {{'checked' if u.is_otp_enabled}}/>
+              <label class="custom-control-label" for="is_otp_enabled">
+                Require OTP to login
+              </label>
+            </div>
+{% endif %}
+            <button type="button" class="btn btn-secondary btn-block mt-3" data-toggle="modal" data-target="#otpSetupModal">
+              {{ 'Show QR Code' if g.user.is_otp_working else 'Set up using QR code' }}
+            </button>
+            <button class="btn btn-primary btn-block" type="submit">Update</button>
+          </form>
+        </div>
+      </div>
+
+      <!-- password -->
+      <div class="card mb-3">
+        <div class="card-body bg-light">
+          <div class="card-title">Change Password</div>
+          <form method="post" action="{{url_for('users.route_password', user_id=g.user.user_id)}}">
+            <input type="hidden" name="csrf_token" value="{{csrf_token()}}"/>
+            <div class="form-group">
+              <label for="password_old">Old Password</label>
+              <input class="form-control" id="password_old" type="password" name="password_old" required>
+            </div>
+            <div class="form-group">
+              <label for="password_new">New Password</label>
+              <input class="form-control" id="password_new" type="password" name="password_new" required>
+            </div>
+            <div class="form-group">
+              <label for="password_confirm">Confirm Password</label>
+              <input class="form-control" id="password_confirm" type="password" name="password_confirm" required>
+            </div>
+            <button class="btn btn-primary btn-block" type="submit">Update Password</button>
+          </form>
+        </div>
+      </div>
+
+      <!-- deactivate -->
+      <div class="card">
+        <div class="card-body bg-light">
+          <div class="card-title">Danger Zone</div>
+          <h5 class="fs-0">Delete this account</h5>
+          <p class="fs--1">Once you delete the account there is no going back.</p>
+          <button type="button" class="btn btn-block btn-falcon-danger" data-toggle="modal" data-target="#deactivateModal">
+            Deactivate Account
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+{% endif %}
+</div>
+
+<script>
+// one click upload button
+document.getElementById("file").onchange = function() {
+    document.getElementById("form").submit();
+}
+</script>
+
+<!-- Modal -->
+<div class="modal" id="otpSetupModal" tabindex="-1" role="dialog" aria-labelledby="otpSetupModalLabel" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="otpSetupModalLabel">Setup OTP</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <p class="card-text">
+          Please use <a href="https://freeotp.github.io/">FreeOTP</a>,
+          <a href="https://play.google.com/store/apps/details?id=com.google.android.apps.authenticator2">Google Authenticator</a>
+          or any other suitable OTP application to scan this QR code:
+        </p>
+        <p class="text-center">
+          <img id="qrcode" src="{{ url_for('users.route_qrcode') }}">
+        </p>
+        <form method="post" action="{{url_for('users.route_otp_test')}}">
+          <input type="hidden" name="csrf_token" value="{{csrf_token()}}"/>
+          <div class="form-group">
+            <label for="otp">Test your OTP code:</label>
+            <input id="otp" class="form-control" type="password" name="otp" placeholder="123456" aria-label="OTP">
+          </div>
+          <button class="btn btn-primary btn-block" type="submit">
+            <b>Test OTP</b>
+          </button>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- modal dialog -->
+<div class="modal" id="deactivateModal" tabindex="-1" role="dialog" aria-labelledby="nukeModalLabel" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="nukeModalLabel">Really Deactivate User?</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <p class="card-text">
+          This will deactivate the this user account and you will no longer be
+          able to access any of the files you have uploaded to the LVFS.
+        </p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+        <a class="btn btn-danger" href="{{url_for('users.route_deactivate', user_id=g.user.user_id)}}">☠ Deactivate ☠</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock %}

@@ -1,0 +1,64 @@
+{% extends "default.html" %}
+{% block title %}Device Shards{% endblock %}
+
+{% block nav %}{% include 'component-nav.html' %}{% endblock %}
+
+{% block content %}
+
+{% for shard in md.shards %}
+<div class="card mb-3">
+  <div class="card-body">
+    <div class="card-title">
+      {{shard.name}}
+    </div>
+    <p class="card-text">
+{% if shard.description %}
+      {{shard.description}}
+{% else %}
+      We don't know what this module does! Can you tell us?
+{% endif %}
+    </p>
+    <p class="card-text">
+      <table class="table">
+{% if shard.plugin_id %}
+        <tr class="row">
+          <th class="col-2">Plugin</th>
+          <td class="col">{{format_plugin_id(shard.plugin_id).name()}}</td>
+        </tr>
+{% endif %}
+{% if shard.size %}
+        <tr class="row">
+          <th class="col-2">Size</th>
+          <td class="col">{{format_size(shard.size)}}</td>
+        </tr>
+{% endif %}
+{% if shard.entropy %}
+        <tr class="row">
+          <th class="col-2">Entropy</th>
+          <td class="col">{{shard.entropy|round(2)}}</td>
+        </tr>
+{% endif %}
+        <tr class="row">
+          <th class="col-2">GUID</th>
+          <td class="col"><code>{{shard.guid}}</code></td>
+        </tr>
+{% for csum in shard.checksums %}
+        <tr class="row">
+          <th class="col-2">{{csum.kind}}</th>
+          <td class="col text-truncate"><code>{{csum.value}}</code></td>
+        </tr>
+{% endfor %}
+      </table>
+    </p>
+{% if shard.checksum %}
+    <a class="card-link btn btn-info" href="{{url_for('firmware.route_shard_search', kind='checksum', value=shard.checksum)}}">Search checksum</a>
+{% endif %}
+{% if shard.info and shard.guid %}
+    <a class="card-link btn btn-info" href="{{url_for('firmware.route_shard_search', kind='guid', value=shard.guid)}}">Search GUID</a>
+{% endif %}
+    <a class="card-link btn btn-info" href="{{url_for('shards.route_download', component_shard_id=shard.component_shard_id)}}">Download File</a>
+  </div>
+</div>
+{% endfor %}
+
+{% endblock %}

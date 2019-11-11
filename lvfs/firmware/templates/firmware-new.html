@@ -1,0 +1,43 @@
+{% extends "default.html" %}
+{% block title %}New Firmware{% endblock %}
+
+{% block content %}
+<div class="card">
+  <div class="card-body">
+    <div class="card-title">New Firmware</div>
+<p class="card-text">
+  This list show the newest public firmwares available on the LVFS.
+</p>
+
+{% if fwevs|length == 0 %}
+<p class="text-muted">
+  No firmware has been uploaded yet.
+</p>
+{% else %}
+<table class="table card-text">
+  <tr class="row">
+    <th class="col col-sm-2">When</th>
+    <th class="col col-sm-5">Hardware</th>
+    <th class="col col-sm-3">Version</th>
+    <th class="col col-sm-2">&nbsp;</th>
+  </tr>
+{% for fwev in fwevs %}
+  <tr class="row">
+    <td class="col col-sm-2">{{format_humanize_naturaltime(fwev.timestamp)}}</td>
+    <td class="col col-sm-5">
+      {{fwev.fw.md_prio.developer_name_display}}
+      {{fwev.fw.md_prio.name_with_category}}
+    </td>
+    <td class="col col-sm-3">{{fwev.fw.version_display}}</td>
+    <td class="col col-sm-2">
+      <a href="{{url_for('devices.route_show', appstream_id=fwev.fw.md_prio.appstream_id)}}"
+         class="btn btn-info btn-block">Details</a>
+    </td>
+  </tr>
+{% endfor %}
+</table>
+{% endif %}
+  </div>
+</div>
+
+{% endblock %}

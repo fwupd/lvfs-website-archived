@@ -20,7 +20,7 @@ You can now:
 {% endif %}
 {% if user.auth_type == 'oauth' %}You can access the LVFS by clicking the 'Login' button then using the 'Log in with Azure AD' option.{% endif %}
 You may need to log out and back in before these changes will be applied:
-{{ url_for('.route_logout', _external=True) }}
+{{ url_for('main.route_logout', _external=True) }}
 
 Regards,
 

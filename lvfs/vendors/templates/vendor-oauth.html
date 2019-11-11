@@ -1,0 +1,39 @@
+{% extends "default.html" %}
+{% block title %}Vendor OAuth Settings{% endblock %}
+
+{% block nav %}{% include 'vendor-nav.html' %}{% endblock %}
+
+{% block content %}
+<div class="alert alert-warning mt-1" role="alert">
+  Be <b>very careful</b> using this feature as this could allow unauthorised
+  users to upload files to your embargoed remote.
+</div>
+<div class="card mt-3">
+  <div class="card-body">
+<form method="post" action="{{url_for('vendors.route_modify_by_admin', vendor_id=v.vendor_id)}}">
+  <input type="hidden" name="csrf_token" value="{{csrf_token()}}"/>
+  <div class="form-group">
+    <label for="auth_type">Action when user with no account logs in using OAuth:</label>
+    <select class="form-control" name="oauth_unknown_user">
+      <option value="" {{ 'selected' if not v.oauth_unknown_user }}>
+        Error message
+      </option>
+      <option value="disabled" {{ 'selected' if v.oauth_unknown_user == 'disabled' }}>
+        Create disabled user
+      </option>
+      <option value="create" {{ 'selected' if v.oauth_unknown_user == 'create' }}>
+        Create ODM user (no QA privileges)
+      </option>
+    </select>
+  </div>
+  <div class="form-group">
+    <label for="email">Domains to match for authentication:</label>
+    <input type="text" class="form-control" name="oauth_domain_glob"
+          value="{{ v.oauth_domain_glob if v.oauth_domain_glob }}"
+          placeholder="*.domain.com,*.domain2.com" required>
+  </div>
+  <input type="submit" class="btn btn-primary btn-large" value="Modify">
+</form>
+  </div>
+</div>
+{% endblock %}

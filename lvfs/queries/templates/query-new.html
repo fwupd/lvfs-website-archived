@@ -1,0 +1,22 @@
+{% extends "default.html" %}
+{% block title %}Create a YARA Query{% endblock %}
+
+{% block nav %}{% include 'query-nav.html' %}{% endblock %}
+
+{% block content %}
+
+<form method="post" action="{{url_for('queries.route_create')}}">
+<input type="hidden" name="csrf_token" value="{{csrf_token()}}"/>
+<div class="card mt-3">
+  <div class="card-body">
+    <div class="card-title">Add a new YARA query</div>
+    <div class="form-group">
+      <textarea class="form-control" name="value" value="" placeholder="rule FooBarBaz {" rows="10" required></textarea>
+    </div>
+    <input type="submit" class="btn btn-primary btn-block" value="Add">
+  </div>
+</div>
+</form>
+
+{% endblock %}
+

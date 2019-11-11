@@ -24,9 +24,9 @@ from lvfs.models import Remote, Firmware, Vendor, Client, AnalyticVendor, User, 
 from lvfs.models import AnalyticFirmware, Useragent, UseragentKind, Analytic, Report
 from lvfs.models import ComponentShard, ComponentShardInfo, Test, Component, Category, Protocol, FirmwareEvent
 from lvfs.models import _get_datestr_from_datetime
-from lvfs.metadata import _metadata_update_targets, _metadata_update_pulp
+from lvfs.metadata.utils import _metadata_update_targets, _metadata_update_pulp
 from lvfs.util import _event_log, _get_shard_path, _get_absolute_path
-from lvfs.uploadedfile import UploadedFile, MetadataInvalid
+from lvfs.upload.uploadedfile import UploadedFile, MetadataInvalid
 
 def _regenerate_and_sign_metadata(only_embargo=False):
 

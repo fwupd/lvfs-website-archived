@@ -1,0 +1,68 @@
+{% extends "default.html" %}
+{% block title %}{{title}}{% endblock %}
+
+{% block content %}
+{% if fws|length == 0 %}
+<div class="card">
+  <div class="card-body">
+{% if remote %}
+    <div class="card-title">Firmware in &lsquo;{{remote.name}}&rsquo;</div>
+{% else %}
+    <div class="card-title">All Firmware</div>
+{% endif %}
+  <p class="card-text">
+    No firmware has been uploaded or is visible by this user.
+  </p>
+  </div>
+</div>
+
+{% else %}
+
+<div class="card">
+  <div class="card-body">
+{% if remote %}
+    <div class="card-title">Firmware in &lsquo;{{remote.name}}&rsquo; ({{fws|length}})</div>
+{% else %}
+    <div class="card-title">All Firmware ({{fws|length}})</div>
+{% endif %}
+<table class="table card-text">
+{% for fw in fws %}
+  <tr class="row">
+    <td class="col col-sm-8">
+      <p class="list-group-item-title">
+        {{fw.vendor.display_name}}
+        {{fw.md_prio.name_with_category}}
+      </p>
+      <p class="text-muted">
+        Version {{fw.version_display}} uploaded {{format_humanize_naturaltime(fw.timestamp)}}
+      </p>
+    </td>
+    <td class="col col-sm-1">
+      <img src="/img/symbolic-{{fw.remote.icon_name}}.svg" width="24"
+        alt="{{fw.remote.name}}"
+        title="{{fw.remote.description}}"/>
+{% if fw.problems|length %}
+      <img src="/img/symbolic-problem.svg" width="24"
+        title="{{fw.problems|length}} problems"/>
+{% endif %}
+    </td>
+    <td class="col col-sm-1">
+{% if not fw.do_not_track %}
+      <span class="text-muted">
+        <img src="/img/symbolic-download.svg" width="24" alt="download icon"/>
+        {{format_humanize_intchar(fw.download_cnt)}}
+      </span>
+{% endif %}
+    </td>
+    <td class="col col-sm-2">
+      <a class="btn btn-info btn-block"
+        href="{{url_for('firmware.route_show', firmware_id=fw.firmware_id)}}">Details</a>
+    </td>
+  </tr>
+{% endfor %}
+</table>
+  </div>
+</div>
+
+{% endif %}
+{% endblock %}

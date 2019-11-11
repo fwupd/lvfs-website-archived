@@ -1,0 +1,34 @@
+<nav class="row">
+  <div class="col col-sm-1 btn-group mb-3">
+    <a class="btn btn-falcon-default mr-sm-3"
+      href="{{url_for('firmware.route_show', firmware_id=md.fw.firmware_id)}}">
+      <span class="fas fa-arrow-left"></span>
+    </a>
+  </div>
+  <div class="col col-sm-10 text-center mb-3">
+    <div class="btn-group" role="group">
+      <a class="btn btn-falcon-{{'primary' if request.url_rule.endpoint == 'component_show' and page == 'overview' else 'default'}}"
+        href="{{url_for('components.route_show', component_id=md.component_id, page='overview')}}">Overview</a>
+{% if md.protocol and md.protocol.can_verify %}
+      <a class="btn btn-falcon-{{'primary' if request.url_rule.endpoint == 'component_checksums' else 'default'}}"
+        href="{{url_for('components.route_checksums', component_id=md.component_id)}}">Checksums</a>
+{% endif %}
+      <a class="btn btn-falcon-{{'primary' if request.url_rule.endpoint == 'component_show' and page == 'update' else 'default'}}"
+        href="{{url_for('components.route_show', component_id=md.component_id, page='update')}}">Update</a>
+      <a class="btn btn-falcon-{{'primary' if request.url_rule.endpoint == 'component_show' and page == 'issues' else 'default'}}"
+        href="{{url_for('components.route_show', component_id=md.component_id, page='issues')}}">Issues</a>
+      <a class="btn btn-falcon-{{'primary' if request.url_rule.endpoint == 'component_show' and page in ['requires', 'requires-advanced'] else 'default'}}"
+        href="{{url_for('components.route_show', component_id=md.component_id, page='requires')}}">Requirements</a>
+      <a class="btn btn-falcon-{{'primary' if request.url_rule.endpoint == 'component_show' and page == 'keywords' else 'default'}}"
+        href="{{url_for('components.route_show', component_id=md.component_id, page='keywords')}}">Keywords</a>
+{% if md.shards %}
+      <a class="btn btn-falcon-{{'primary' if request.url_rule.endpoint == 'component_shards' else 'default'}}"
+        href="{{url_for('components.route_shards', component_id=md.component_id)}}">Shards</a>
+{% endif %}
+{% if md.certificates %}
+      <a class="btn btn-falcon-{{'primary' if request.url_rule.endpoint == 'component_certificates' else 'default'}}"
+        href="{{url_for('components.route_certificates', component_id=md.component_id)}}">Certificates</a>
+{% endif %}
+    </div>
+  </div>
+</nav>

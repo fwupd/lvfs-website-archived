@@ -1,0 +1,34 @@
+{% extends "default.html" %}
+{% block title %}Firmware Details{% endblock %}
+
+{% block nav %}{% include 'firmware-nav.html' %}{% endblock %}
+
+{% block content %}
+
+{% if reports|length > 0 %}
+
+{% for r in reports %}
+<div class="card mb-3">
+  <div class="card-header card-title list-group-item-{{r.color}}">
+    {{r.timestamp}}
+  </div>
+  <div class="card-body">
+    <p class="card-text">
+      <code>{{r.to_kvs()}}</code>
+    </p>
+{% if g.user.check_acl('@admin') %}
+    <a class="card-link btn btn-danger" href="{{url_for('reports.route_delete', report_id=r.report_id)}}">Delete</a>
+{% endif %}
+  </div>
+</div>
+{% endfor %}
+
+{% else %}
+
+<div class="alert alert-light" role="alert">
+  No reports found.
+</div>
+
+{% endif %}
+
+{% endblock %}

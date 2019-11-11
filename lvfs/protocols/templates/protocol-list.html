@@ -1,0 +1,80 @@
+{% extends "default.html" %}
+{% block title %}Protocols{% endblock %}
+
+{% block content %}
+
+{% if protocols|length == 0 %}
+<div class="card">
+  <div class="card-body">
+    <div class="card-title">Known Protocols</div>
+    <p class="card-text">
+      No protocols have been created.
+    </p>
+  </div>
+</div>
+
+{% else %}
+
+<div class="card">
+  <div class="card-body">
+    <div class="card-title">Known Protocols</div>
+    <p class="card-text">
+      New protocols should be added to the fwupd project before adding here.
+    </p>
+  </div>
+</div>
+
+{% for pr in protocols %}
+<div class="card mt-3">
+  <div class="card-body">
+    <div class="card-title">
+      {{pr.name}}
+      <code class="float-right">{{pr.value}}</code>
+    </div>
+    <p class="card-text">
+{% if pr.is_signed %}
+      <span class="badge badge-success text-uppercase">Signed</span>
+{% endif %}
+{% if pr.can_verify %}
+      <span class="badge badge-success text-uppercase">Can Verify</span>
+{% endif %}
+{% if pr.has_header %}
+      <span class="badge badge-success text-uppercase">Has Header</span>
+{% endif %}
+{% if not pr.is_public %}
+      <span class="badge badge-danger text-uppercase">Nonpublic</span>
+{% endif %}
+{% if not pr.is_signed %}
+      <span class="badge badge-warning text-uppercase">Unsigned</span>
+{% endif %}
+{% if not pr.can_verify %}
+      <span class="badge badge-warning text-uppercase">Cannot Verify</span>
+{% endif %}
+{% if not pr.has_header %}
+      <span class="badge badge-warning text-uppercase">No Header</span>
+{% endif %}
+    </p>
+
+    <a class="card-link btn btn-info"
+       href="{{url_for('protocols.route_show', protocol_id=pr.protocol_id)}}"
+       role="button">Details</a>
+  </div>
+</div>
+{% endfor %}
+
+{% endif %}
+
+<form method="post" action="{{url_for('protocols.route_create')}}" class="form">
+<input type="hidden" name="csrf_token" value="{{csrf_token()}}"/>
+<div class="card mt-3">
+  <div class="card-body">
+    <div class="card-title">Create a new update protocol</div>
+    <p class="card-text">
+      <input class="form-control" type="text" name="value" placeholder="Value" required>
+    </p>
+    <input class="card-link btn btn-primary" type="submit" value="Add">
+  </div>
+</div>
+</form>
+
+{% endblock %}

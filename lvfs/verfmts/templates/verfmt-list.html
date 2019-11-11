@@ -1,0 +1,48 @@
+{% extends "default.html" %}
+{% block title %}Version Formats{% endblock %}
+
+{% block content %}
+
+{% if verfmts|length == 0 %}
+<div class="card">
+  <div class="card-body">
+    <div class="card-title">Version Formats</div>
+    <p class="card-text">
+      No version formats have been created.
+    </p>
+  </div>
+</div>
+
+{% else %}
+
+{% for verfmt in verfmts %}
+<div class="card mt-3">
+  <div class="card-body">
+    <div class="card-title">
+      {{verfmt.name}}
+      <code class="float-right">{{verfmt.value}}</code>
+    </div>
+    <a class="card-link btn btn-info"
+      href="{{url_for('verfmts.route_show', verfmt_id=verfmt.verfmt_id)}}"
+      role="button">Details &raquo;</a>
+  </div>
+</div>
+{% endfor %}
+
+{% endif %}
+
+<div class="card mt-3">
+  <div class="card-body">
+    <div class="card-title">Create a new version format</div>
+    <form method="post" action="{{url_for('verfmts.route_create')}}" class="form">
+      <input type="hidden" name="csrf_token" value="{{csrf_token()}}"/>
+      <div class="form-group card-text">
+        <label>Value name, e.g. <code>intel-me2</code></label>
+        <input class="form-control" type="text" name="value" placeholder="Value" required />
+      </div>
+      <input class="card-link btn btn-primary" type="submit" value="Add"/>
+    </form>
+  </div>
+</div>
+
+{% endblock %}

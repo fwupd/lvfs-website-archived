@@ -29,14 +29,15 @@ from sqlalchemy import Column, Integer, Float, String, Text, Boolean, DateTime, 
 from sqlalchemy.ext.associationproxy import association_proxy
 from sqlalchemy.orm import relationship
 
-from lvfs import db
 from cabarchive import CabArchive
 from pkgversion import vercmp
 
-from .dbutils import _execute_count_star
-from .hash import _qa_hash, _password_hash, _otp_hash
-from .util import _generate_password, _xml_from_markdown, _get_update_description_problems
-from .util import _get_absolute_path, _get_shard_path, _validate_guid
+from lvfs import db
+
+from lvfs.dbutils import _execute_count_star
+from lvfs.hash import _qa_hash, _password_hash, _otp_hash
+from lvfs.util import _generate_password, _xml_from_markdown, _get_update_description_problems
+from lvfs.util import _get_absolute_path, _get_shard_path, _validate_guid
 
 class SecurityClaim:
 
@@ -1656,7 +1657,7 @@ class Component(db.Model):
         if not self.protocol or self.protocol.value == 'unknown':
             problem = Problem('no-protocol',
                               'Update protocol has not been set')
-            problem.url = url_for('.route_components_show',
+            problem.url = url_for('components.route_show',
                                   component_id=self.component_id)
             problems.append(problem)
 
@@ -1665,7 +1666,7 @@ class Component(db.Model):
             if not _validate_guid(guid.value):
                 problem = Problem('invalid-guid',
                                   'GUID {} is not valid'.format(guid.value))
-                problem.url = url_for('.route_components_show',
+                problem.url = url_for('components.route_show',
                                       component_id=self.component_id)
                 problems.append(problem)
 
@@ -1676,7 +1677,7 @@ class Component(db.Model):
                                   'Version number {} incompatible with {}'.\
                                   format(self.version_display,
                                          self.verfmt_with_fallback.value))
-                problem.url = url_for('.route_components_show',
+                problem.url = url_for('components.route_show',
                                       component_id=self.component_id)
                 problems.append(problem)
 
@@ -1687,7 +1688,7 @@ class Component(db.Model):
                                   'Version vormat {} incompatible with protocol-defined {}'.\
                                   format(self.verfmt.value,
                                          self.protocol.verfmt.value))
-                problem.url = url_for('.route_components_show',
+                problem.url = url_for('components.route_show',
                                       component_id=self.component_id)
                 problems.append(problem)
 
@@ -1695,7 +1696,7 @@ class Component(db.Model):
         if not self.category or self.category.value == 'unknown':
             problem = Problem('no-category',
                               'Firmware category has not been set')
-            problem.url = url_for('.route_components_show',
+            problem.url = url_for('components.route_show',
                                   component_id=self.component_id)
             problems.append(problem)
 
@@ -1703,7 +1704,7 @@ class Component(db.Model):
         if self.protocol and not self.protocol.is_public:
             problem = Problem('no-protocol',
                               'Update protocol is not public')
-            problem.url = url_for('.route_components_show',
+            problem.url = url_for('components.route_show',
                                   component_id=self.component_id)
             problems.append(problem)
 
@@ -1711,7 +1712,7 @@ class Component(db.Model):
         if self.requires_source_url and not self.source_url:
             problem = Problem('no-source',
                               'Update does not link to source code')
-            problem.url = url_for('.route_components_show',
+            problem.url = url_for('components.route_show',
                                   component_id=self.component_id,
                                   page='update')
             problems.append(problem)
@@ -1720,14 +1721,14 @@ class Component(db.Model):
         if self.details_url and not _is_valid_url(self.details_url):
             problem = Problem('invalid-details-url',
                               'The update details URL was provided but not valid')
-            problem.url = url_for('.route_components_show',
+            problem.url = url_for('components.route_show',
                                   page='update',
                                   component_id=self.component_id)
             problems.append(problem)
         if self.source_url and not _is_valid_url(self.source_url):
             problem = Problem('invalid-source-url',
                               'The release source URL was provided but not valid')
-            problem.url = url_for('.route_components_show',
+            problem.url = url_for('components.route_show',
                                   page='update',
                                   component_id=self.component_id)
             problems.append(problem)
@@ -1745,7 +1746,7 @@ class Component(db.Model):
                               'for vendor {}: {}'.format(self.appstream_id_prefix,
                                                          self.fw.vendor_odm.group_id,
                                                          ','.join(values)))
-            problem.url = url_for('.route_firmware_affiliation',
+            problem.url = url_for('firmware.route_affiliation',
                                   firmware_id=self.fw.firmware_id)
             problems.append(problem)
 
@@ -1757,7 +1758,7 @@ class Component(db.Model):
                 if _sanitize_keyword(word) in nvs_kws:
                     problem = Problem('invalid-name-variant-suffix',
                                       '{} is already part of the <name>'.format(word))
-                    problem.url = url_for('.route_components_show',
+                    problem.url = url_for('components.route_show',
                                           component_id=self.component_id)
                     problems.append(problem)
 
@@ -1770,7 +1771,7 @@ class Component(db.Model):
         for problem in problems:
             if problem.url:
                 continue
-            problem.url = url_for('.route_components_show',
+            problem.url = url_for('components.route_show',
                                   component_id=self.component_id,
                                   page='update')
         return problems
@@ -2170,23 +2171,23 @@ class Firmware(db.Model):
         problems = []
         if self.is_deleted:
             problem = Problem('deleted')
-            problem.url = url_for('.route_firmware_show', firmware_id=self.firmware_id)
+            problem.url = url_for('firmware.route_show', firmware_id=self.firmware_id)
             problems.append(problem)
         if not self.signed_timestamp:
             problem = Problem('unsigned')
-            problem.url = url_for('.route_firmware_show', firmware_id=self.firmware_id)
+            problem.url = url_for('firmware.route_show', firmware_id=self.firmware_id)
             problems.append(problem)
         # test failures
         for test in self.tests:
             if not test.started_ts:
                 problem = Problem('test-pending',
                                   'Runtime test %s is pending' % test.plugin_id)
-                problem.url = url_for('.route_firmware_tests', firmware_id=self.firmware_id)
+                problem.url = url_for('firmware.route_tests', firmware_id=self.firmware_id)
                 problems.append(problem)
             elif not test.success and not test.waived_ts:
                 problem = Problem('test-failed',
                                   'Runtime test %s did not succeed' % test.plugin_id)
-                problem.url = url_for('.route_firmware_tests', firmware_id=self.firmware_id)
+                problem.url = url_for('firmware.route_tests', firmware_id=self.firmware_id)
                 problems.append(problem)
         for md in self.mds:
             for problem in md.problems:

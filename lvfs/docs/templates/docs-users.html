@@ -1,0 +1,156 @@
+{% extends "default.html" %}
+
+{% block title %}Users{% endblock %}
+
+{% block content %}
+<div class="card">
+  <div class="card-body">
+    <div class="card-title">Introduction</div>
+<p class="card-text">
+  To update a BIOS or device firmware in Linux traditionally meant
+  rebooting into Microsoft Windows, or preparing a MS-DOS floppy disk (!) and
+  hoping that everything would work after the update.
+  Periodically searching a vendor website for updates is a manual and
+  error-prone task and not something we should ask users to do.
+</p>
+  </div>
+</div>
+
+<div class="card mt-3">
+  <div class="card-header card-title list-group-item-info">Is my hardware supported?</div>
+  <div class="card-body">
+    <p class="card-text">
+      The LVFS only provides firmware once the original OEM vendor has joined
+      the project and uploaded files themselves.
+      The OEM vendor is in full control over what models are supported and is the
+      only entity that can add support for new hardware.
+      There are a large number of <a href="{{url_for('devices.route_list')}}">devices already supported</a>
+      and we also <a href="{{url_for('vendors.route_list')}}">have a public record</a> that explains
+      vendor engagement with the LVFS project.
+    </p>
+  </div>
+</div>
+
+<div class="card mt-3">
+  <div class="card-body">
+    <div class="card-title">fwupd</div>
+<p class="card-text">
+  fwupd is a simple daemon to allow session software to update device firmware on
+  your local machine. It's designed for desktops, but also usable on phones and
+  headless servers.
+  You can either use a GUI software manager like GNOME Software to view and apply
+  updates, the command-line tool or the system D-Bus interface directly.
+  Updating firmware on Linux is now automatic, safe and reliable.
+</p>
+<pre class="prettyprint">
+$ fwupdmgr get-devices
+Unifying Receiver
+  DeviceId:             5ad59b26d556e226f9e5e1ca13e4b717fe19802c
+  Guid:                 77d843f7-682c-57e8-8e29-584f5b4f52a1
+  Summary:              A miniaturised USB wireless receiver
+  Plugin:               unifying
+  Flags:                updatable|supported|registered
+  Vendor:               Logitech
+  VendorId:             USB:0x046D
+  Version:              RQR24.05_B0029
+  VersionBootloader:    BOT03.01_B0008
+</pre>
+<p class="card-text">
+You can see all the command line options using <code>--help</code>:
+</p>
+  </div>
+</div>
+
+<div class="card mt-3">
+  <div class="card-body">
+    <div class="card-title">GNOME Software</div>
+<p class="card-text">
+  GNOME Software is an application store designed to make installing, removing
+  and updating both easy and beautiful.
+  It is available for Linux and used by millions of people on RHEL &ge; 7.4,
+  Fedora &ge; 22, Ubuntu &ge; 16.04 and Debian &ge; 9.
+</p>
+<p class="card-text">
+  When required, metadata files are automatically downloaded from the LVFS and
+  submitted into fwupd over D-Bus.
+  If there are updates that need applying then they are downloaded and the user
+  is notified and the update details are shown.
+  The user has to explicitly agree to the firmware update action before the update is performed.
+</p>
+
+<figure class="text-center">
+  <img src="/img/gnome-software1.png" class="p-3 border border-info rounded figure-img img-fluid rounded" alt="gnome-software updates panel">
+  <figcaption class="figure-caption">New versions of GNOME Software will show and auto-download updates automatically.</figcaption>
+</figure>
+  </div>
+</div>
+
+<div class="card mt-3">
+  <div class="card-body">
+    <div class="card-title">KDE Discover</div>
+<p class="card-text">
+  Discover is intended for users and distros where the terminal isn't the optimal
+  solution for installation of apps and add-ons or updates. 
+  It comes Pre-installled with many Linux distro's such as KDE Neon, Kubuntu and is generally
+  bundled with KDE Plasma. Metadata files are periodically downloaded, from the LVFS and
+  submitted into fwupd over D-Bus.
+</p>
+<figure class="text-center">
+  <img src="/img/discover-software.png" class="p-3 border border-info rounded figure-img img-fluid rounded" alt="discover-software updates panel">
+  <figcaption class="figure-caption">Discover 5.14.8 onwards, the updates section will also show firmware updates via fwupd</figcaption>
+</figure>
+  </div>
+</div>
+
+<div class="card mt-3">
+  <div class="card-body">
+    <div class="card-title">Search Using The LVFS</div>
+<p class="card-text">
+  You can search for firmware and hardware vendors
+  <a href="{{url_for('search.route_search')}}">directly on the LVFS</a>:
+</p>
+<figure class="text-center">
+  <img src="/img/lvfs-search.png" class="p-3 border border-info rounded figure-img img-fluid rounded" alt="LVFS Search Results">
+  <figcaption class="figure-caption">Showing vendor and model search results</figcaption>
+</figure>
+  </div>
+</div>
+
+<div class="card mt-3">
+  <div class="card-body">
+    <div class="card-title">Using the D-Bus API</div>
+<p class="card-text">
+  The fwupd daemon is launched when queried for the first time.
+  This exports an interface that can be queried from any language with
+  a D-Bus binding such as C, Python or Java.
+</p>
+<pre class="prettyprint">
+$ $ gdbus call --system --dest org.freedesktop.fwupd --object-path / --method org.freedesktop.fwupd.GetDevices 
+({'5ad59b26d556e226f9e5e1ca13e4b717fe19802c':
+  'CHug-usb:00:01:04:04':
+   {'Guid': &lt;'84f40464-9272-4ef7-9399-cd95f12da696'&gt;,
+    'DisplayName': &lt;'ColorHugALS'&gt;,
+    'Version': &lt;'4.0.0'&gt;,
+    'Flags': &lt;uint64 6&gt;}},)
+</pre>
+  </div>
+</div>
+
+<div class="card mt-3">
+  <div class="card-header card-title list-group-item-info">Do I always need the root password to update?</div>
+  <div class="card-body">
+    <p class="card-text">
+      By default, any users are able to update signed firmware for removable hardware.
+      The logic here is that if the hardware can be removed, it can easily be moved to
+      a different device that the attacker owns.
+      For non-removable devices only user accounts with administrative rights
+      are able to update using firmware signed by the LVFS.
+    </p>
+    <p class="card-text">
+      Administrative users (i.e. <code>root</code>) can install firmware that
+      does not originate from the LVFS (e.g. locally built) but fwupd does
+      not affect the separate secure boot requirements in any way.
+    </p>
+  </div>
+</div>
+{% endblock %}

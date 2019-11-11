@@ -1,0 +1,43 @@
+{% extends "default.html" %}
+{% block title %}Agreement List{% endblock %}
+
+{% block content %}
+<div class="card">
+  <div class="card-body">
+    <div class="card-title">Agreement List</div>
+{% if agreements|length > 0 %}
+<table class="table">
+  <tr class="row table-borderless">
+    <th class="col col-sm-2">Created</th>
+    <th class="col col-sm-1">Version</th>
+    <th class="col col-sm-7">Text</th>
+    <th class="col col-sm-2">&nbsp;</th>
+  </tr>
+{% for u in agreements|sort(attribute='created',reverse=True) %}
+  <tr class="row">
+    <td class="col col-sm-2">{{u.created}}</td>
+    <td class="col col-sm-1">{{u.version}}</td>
+    <td class="col col-sm-7">{{u.text|truncate(300, False, '…')}}</td>
+    <td class="col col-sm-2">
+      <a class="btn btn-info btn-block" href="{{url_for('agreements.route_modify', agreement_id=u.agreement_id)}}">Details</a>
+    </td>
+  </tr>
+{% endfor %}
+  <tr class="row">
+    <td class="col col-sm-2"></td>
+    <td class="col col-sm-1"></td>
+    <td class="col col-sm-7"></td>
+    <td class="col col-sm-2">
+      <a class="btn btn-info btn-block" href="{{url_for('agreements.route_create')}}">Create</a>
+    </td>
+  </tr>
+</table>
+{% else %}
+<p class="text-secondary">
+  No agreements defined.
+</p>
+{% endif %}
+  </div>
+</div>
+
+{% endblock %}

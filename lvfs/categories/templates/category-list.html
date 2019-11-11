@@ -1,0 +1,48 @@
+{% extends "default.html" %}
+{% block title %}Update Categories{% endblock %}
+
+{% block content %}
+
+{% if categories|length == 0 %}
+<div class="card">
+  <div class="card-body">
+    <div class="card-title">Update Categories</div>
+    <p class="card-text">
+      No categories have been created.
+    </p>
+  </div>
+</div>
+
+{% else %}
+
+{% for cat in categories %}
+<div class="card mt-3">
+  <div class="card-body">
+    <div class="card-title">
+      {{cat.name}}
+      <code class="float-right">{{cat.value}}</code>
+    </div>
+    <a class="card-link btn btn-info"
+      href="{{url_for('categories.route_show', category_id=cat.category_id)}}"
+      role="button">Details &raquo;</a>
+  </div>
+</div>
+{% endfor %}
+
+{% endif %}
+
+<div class="card mt-3">
+  <div class="card-body">
+    <div class="card-title">Create a new category</div>
+    <form method="post" action="{{url_for('categories.route_create')}}" class="form">
+      <input type="hidden" name="csrf_token" value="{{csrf_token()}}"/>
+      <div class="form-group card-text">
+        <label>Value name, e.g. <code>X-DeviceFoo</code></label>
+        <input class="form-control" type="text" name="value" placeholder="Value" required />
+      </div>
+      <input class="card-link btn btn-primary" type="submit" value="Add"/>
+    </form>
+  </div>
+</div>
+
+{% endblock %}

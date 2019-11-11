@@ -11,8 +11,8 @@ import os
 import sys
 import argparse
 
-from lvfs.metadata import _generate_metadata_kind
-from lvfs.uploadedfile import UploadedFile
+from lvfs.metadata.utils import _generate_metadata_kind
+from lvfs.upload.uploadedfile import UploadedFile
 
 def parse_args():
     parser = argparse.ArgumentParser(description="Generate local metadata to use with fwupd")

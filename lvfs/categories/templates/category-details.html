@@ -1,0 +1,55 @@
+{% extends "default.html" %}
+{% block title %}Update Category Details{% endblock %}
+
+{% block content %}
+<div class="card">
+  <div class="card-body">
+    <div class="card-title">Update Category Details</div>
+<form method="post" action="{{url_for('categories.route_modify', category_id=cat.category_id)}}">
+  <input type="hidden" name="csrf_token" value="{{csrf_token()}}"/>
+  <div class="form-group">
+    <label for="group_id">Value:</label>
+    <input type="text" class="form-control" name="value" value="{{cat.value}}" required />
+  </div>
+  <div class="form-group">
+    <label for="display_name">Name:</label>
+    <input type="text" class="form-control" name="name" value="{{cat.name if cat.name}}" required />
+  </div>
+  <div class="form-group">
+    <label for="fallbacks">Fallbacks:</label>
+    <input type="text" class="form-control" name="fallbacks" value="{{cat.fallbacks if cat.fallbacks}}" />
+  </div>
+  <div class="form-group">
+    <label for="expect_device_checksum">
+      <input class="checkbox" type="checkbox" name="expect_device_checksum" value="1" {{'checked' if cat.expect_device_checksum}} //>
+      Expect a device checksum, e.g. a <code>PCR0</code>.
+    </label>
+  </div>
+  <input type="submit" class="btn btn-primary btn-large" value="Modify">
+  <button type="button" class="btn btn-danger" data-toggle="modal" data-target="#deleteModal">Delete</button>
+</form>
+  </div>
+</div>
+
+<!-- modal dialog -->
+<div class="modal" id="deleteModal" tabindex="-1" role="dialog" aria-labelledby="deleteModalLabel" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="deleteModalLabel">Really Delete Category?</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        Once deleted, categories can not be recovered.
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+        <a class="btn btn-danger" href="{{url_for('categories.route_delete', category_id=cat.category_id)}}" role="button">Delete</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock %}

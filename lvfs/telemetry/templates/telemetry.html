@@ -1,0 +1,95 @@
+{% extends "default.html" %}
+{% block title %}Telemetry{% endblock %}
+
+{% block content %}
+
+{% if fws|length > 0 %}
+<div class="card mt-3">
+  <div class="card-body">
+    <div class="card-title">
+      Telemetry for group {{group_id}}
+    </div>
+{% if age %}
+    <p class="card-text">
+      Only firmware that has been uploaded less than {{age}} days ago and downloaded at least once will be shown here.
+    </p>
+{% else %}
+    <p class="card-text">
+      Only firmware that has been downloaded at least once will be shown here.
+    </p>
+{% endif %}
+{% if sort_direction != 'up' %}
+    <a class="card-link btn btn-sm btn-info" href="{{url_for('telemetry.route_show', age=age, sort_key=sort_key, sort_direction='up')}}">
+      Sort ▼
+    </a>
+{% endif %}
+{% if sort_direction != 'down' %}
+    <a class="card-link btn btn-sm btn-info" href="{{url_for('telemetry.route_show', age=age, sort_key=sort_key, sort_direction='down')}}">
+      Sort ▲
+    </a>
+{% endif %}
+  </div>
+</div>
+{% endif %}
+
+{% if fws|length > 0 %}
+{% for fw in fws %}
+<div class="card mt-3">
+  <div class="card-header card-title list-group-item-{{fw.color}}">
+    <div class="row">
+      <div class="col col-lg-8 text-truncate">
+        {{fw.names|join(' & ')}}
+      </div>
+      <div class="col">
+        <code class="float-right">{{fw.version_display}}</code>
+      </div>
+    </div>
+{% if fw.remote.name == 'testing' %}
+    <div class="row">
+      <div class="col">
+        <span class="badge badge-secondary">testing</span>
+      </div>
+    </div>
+{% endif %}
+  </div>
+  <div class="card-body">
+    <table class="card-text table table-borderless">
+      <tr class="row">
+        <th class="col-4">Downloads</th>
+        <td class="col">{{fw.download_cnt}}</td>
+      </tr>
+{% if fw.success != None %}
+      <tr class="row">
+        <th class="col-4">Reported Success</th>
+        <td class="col">{{fw.success|round(1)}}%
+        ({{fw.report_success_cnt}} <span class="fas fa-check-circle fs--1 text-success"></span>
+         {{fw.report_failure_cnt}}  <span class="fas fa-times-circle fs--1 text-danger"></span>)</td>
+      </tr>
+{% endif %}
+      <tr class="row">
+        <th class="col-4">Known issues</th>
+        <td class="col">{{fw.report_issue_cnt}}</td>
+      </tr>
+    </table>
+{% if fw.mds|length > 1 %}
+    <p class="card-text">
+      Contains firmware for more than one machine.
+    </p>
+{% endif %}
+    <a class="card-link btn btn-sm btn-info" href="{{url_for('firmware.route_show', firmware_id=fw.firmware_id)}}">
+      Details
+    </a>
+  </div>
+</div>
+{% endfor %}
+{% else %}
+<div class="card mt-3">
+  <div class="card-body">
+    <p class="card-text text-secondary">
+      There are no reports for firmware uploaded in the last {{age}} days.
+    </p>
+  </div>
+</div>
+{% endif %}
+
+{% endblock %}

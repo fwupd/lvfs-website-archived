@@ -1,0 +1,262 @@
+{% extends "default.html" %}
+{% block title %}Firmware Details{% endblock %}
+
+{% block nav %}
+{% include 'firmware-nav.html' %}
+{% endblock %}
+
+{% block content %}
+{% if fw.is_deleted and fw.target_duration.total_seconds() > 60*60*24*30 %}
+<div class="alert alert-warning mt-1" role="alert">
+  This firmware will be purged after 6 months in the deleted state.
+</div>
+{% endif %}
+
+{% if graph_data %}
+<div class="card mb-3">
+  <div class="card-body rounded-soft bg-gradient">
+    <div class="card-title text-white">Downloads</div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.8.0/Chart.js" crossorigin="anonymous"></script>
+<script>
+Chart.defaults.global.animation = false;
+</script>
+<canvas class="rounded" id="metadataChartMonthsDays" width="1618" height="450" role="img"></canvas>
+  </div>
+</div>
+<script>
+var ctx = document.getElementById("metadataChartMonthsDays").getContext("2d");
+var data = {
+    labels: {{graph_labels|safe}},
+    datasets: [
+        {
+            label: "Firmware",
+            borderWidth: 3,
+            borderColor: "rgba(255,255,255,0.8)",
+            backgroundColor: "rgba(255,255,255,0.15)",
+            data: {{graph_data|safe}}
+        },
+    ]
+};
+
+new Chart(ctx, {
+    type: 'line',
+    data: data,
+    options: {
+      legend: {
+          display: false
+      },
+      scales: {
+        xAxes: [{
+          ticks: {
+            fontColor: "rgba(255,255,255,0.7)",
+            fontStyle: 600,
+          },
+          gridLines: {
+            color: "rgba(255,255,255,0.1)",
+            lineWidth: 1,
+          },
+        }],
+        yAxes: [{
+          ticks: {
+            precision: 0,
+            fontColor: "rgba(255,255,255,0.7)",
+            fontStyle: 600,
+            beginAtZero: true
+          },
+          gridLines: {
+            color: "rgba(255,255,255,0.1)",
+            lineWidth: 1,
+          }
+        }]
+      }
+    }
+});
+
+</script>
+{% endif %}
+
+
+<div class="row no-gutters">
+  <div class="col-xl-6">
+    <div class="card overflow-hidden" style="min-width: 12rem">
+      <div class="bg-holder bg-card" style="background-image:url(/img/corner-1.png);"></div>
+      <div class="card-body position-relative">
+        <div class="card-title">
+          Overview
+          <img class="img-thumbnail float-right" src="/uploads/{{fw.vendor.icon}}" width="64"/>
+        </div>
+        <p class="card-text">
+{% if fw.do_not_track %}
+          No download statistics are available for this firmware as
+          <code>LVFS::DoNotTrack</code> is being used.
+{% else %}
+          <a href="{{fw.filename_absolute}}">{{fw.md_prio.name}} {{fw.version_display}}</a>
+          has been downloaded {{fw.download_cnt}} times.
+        </p>
+{% endif %}
+{% if fw.signed_timestamp %}
+<!-- Signed: {{fw.signed_timestamp}} -->
+{% endif %}
+{% if fw.inhibit_download %}
+        <p class="text-muted">
+          A link for direct download is not available for end-users.
+        </p>
+{% endif %}
+        <p class="card-text">
+{% if fw.remote.is_signed and fw.is_dirty %}
+          <div class="alert alert-warning" role="alert">
+            The <code>{{fw.remote.name}}</code> metadata will be regenerated to
+            include this firmware in {{format_timedelta_approx(fw.remote.scheduled_signing)}}.
+          </div>
+{% else %}
+          The firmware is in the <code>{{fw.remote.name}}</code> remote.
+{% if fw.target_duration.total_seconds() > 5 %}
+          It was moved {{format_timedelta_approx(fw.target_duration)}}.
+{% endif %}
+{% endif %}
+        </p>
+{% if not fw.is_deleted and fw.check_acl('@delete') %}
+        <button type="button" class="btn btn-danger card-link" data-toggle="modal" data-target="#deleteModal">Delete</button>
+{% endif %}
+{% if fw.is_deleted and fw.check_acl('@undelete') %}
+        <a class="btn btn-warning card-link" href="{{url_for('firmware.route_undelete', firmware_id=fw.firmware_id)}}" role="button">Undelete</a>
+{% endif %}
+{% if fw.is_deleted and fw.check_acl('@nuke') %}
+        <button type="button" class="btn btn-danger card-link" data-toggle="modal" data-target="#nukeModal">☠ Nuke ☠</button>
+{% endif %}
+      </div>
+    </div>
+  </div>
+  <div class="col-xl-6 pl-xl-3">
+    <div class="card overflow-hidden mt-3 mt-xl-0" style="min-width: 12rem">
+      <div class="bg-holder bg-card" style="background-image:url(/img/corner-2.png);"></div>
+      <div class="card-body position-relative">
+        <div class="card-title">Details</div>
+        <p class="card-text">
+          {{fw.filename[41:]}} was uploaded on {{fw.timestamp}} by {{fw.user.username}}.
+        </p>
+        <p class="card-text">
+          The firmware is now owned by <code>{{fw.vendor.group_id}}</code>.
+        </p>
+      </div>
+    </div>
+{% if fw.success != None %}
+    <div class="card overflow-hidden mt-3" style="min-width: 12rem">
+      <div class="bg-holder bg-card" style="background-image:url(/img/corner-3.png);"></div>
+      <div class="card-header card-title list-group-item-{{fw.color}}">
+        {{fw.success|round(1)}}% Reported Success
+      </div>
+      <div class="card-body position-relative">
+{% if fw.report_success_cnt > 0 %}
+        <p class="card-text">
+          <a href="{{url_for('firmware.route_analytics_reports', firmware_id=fw.firmware_id, state=2)}}">
+            {{fw.report_success_cnt}} success reports</a> have been uploaded.
+        </p>
+{% endif %}
+{% if fw.report_failure_cnt > 0 %}
+        <p class="card-text">
+          <a href="{{url_for('firmware.route_analytics_reports', firmware_id=fw.firmware_id, state=3)}}">
+            {{fw.report_failure_cnt}} failed reports</a> have been uploaded.
+        </p>
+{% endif %}
+      </div>
+    </div>
+{% endif %}
+{% if fw.banned_country_codes %}
+    <div class="card overflow-hidden mt-3" style="min-width: 12rem">
+      <div class="bg-holder bg-card" style="background-image:url(/img/corner-1.png);"></div>
+      <div class="card-body position-relative">
+        <div class="card-title">
+          Banned Countries
+        </div>
+        <p class="card-text">
+          The firmware cannot be downloaded from users in these countries:
+          <code>{{fw.banned_country_codes}}</code>.
+        </p>
+      </div>
+    </div>
+{% endif %}
+  </div>
+</div>
+
+<!-- modal dialog -->
+<div class="modal" id="deleteModal" tabindex="-1" role="dialog" aria-labelledby="deleteModalLabel" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="deleteModalLabel">Really Remove Firmware?</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <p class="card-text">
+          Unless you are required to delete this file for legal or compliance reasons,
+          removing a firmware is not recommended for the following reasons:
+        </p>
+        <ul>
+          <li class="confirm">
+            Users will only see the update descriptions for the latest released update,
+            rather than all the details for unapplied updates.
+          </li>
+          <li class="confirm">
+            Users who have installed this firmware will be unable to verify the hardware
+            checksum as the information will be gone from the metadata.
+          </li>
+          <li class="confirm">
+            Client tools have to take into account <b>all</b> the update severities of
+            updates not yet installed.
+            If the user has version 1.2.3 installed, 1.2.4 is a security update,
+            and 1.2.5 is a low priority update we want to show the update from
+            1.2.3&#8594;1.2.5 as high importance in a GUI.
+          </li>
+          <li class="confirm">
+            Users cannot downgrade firmware versions if they encounter problems
+            with the latest update.
+            If downgrading to specific versions needs to be disabled for technical
+            reasons, this can be handled inside the UEFI UpdateCapsule.
+          </li>
+          <li class="confirm">
+            Anyone using old metadata and trying to download the firmware will
+            get a &lsquo;404: File not found&rsquo; warning.
+          </li>
+        </ul>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+        <a class="btn btn-danger" href="{{url_for('firmware.route_delete', firmware_id=fw.firmware_id)}}">Delete Firmware</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% if fw.is_deleted and fw.check_acl('@nuke') %}
+<!-- modal dialog -->
+<div class="modal" id="nukeModal" tabindex="-1" role="dialog" aria-labelledby="nukeModalLabel" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="nukeModalLabel">Really Nuke Firmware?</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <p class="card-text">
+          This will delete the firmware file and remove all audit history about
+          the upload (including client downloads) PERMANENTLY.
+          There is no way to recover the information short of reinstalling from
+          a backup, so this action should only be done in exceptional
+          circumstances.
+        </p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+        <a class="btn btn-danger" href="{{url_for('firmware.route_nuke', firmware_id=fw.firmware_id)}}">☠ Nuke ☠</a>
+      </div>
+    </div>
+  </div>
+</div>
+{% endif %}
+
+{% endblock %}

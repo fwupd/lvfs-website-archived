@@ -24,15 +24,15 @@
           </a>
           <div class="dropdown-menu dropdown-menu-card" aria-labelledby="navbarDropdownPages">
             <div class="bg-white rounded-soft py-2">
-              <a class="dropdown-item" href="{{url_for('.route_docs_introduction')}}">Introduction</a>
-              <a class="dropdown-item" href="{{url_for('.route_docs_vendors')}}">Hardware Vendors</a>
-              <a class="dropdown-item" href="{{url_for('.route_docs_users')}}">End Users</a>
-              <a class="dropdown-item" href="{{url_for('.route_docs_developers')}}">Developers</a>
+              <a class="dropdown-item" href="{{url_for('docs.route_introduction')}}">Introduction</a>
+              <a class="dropdown-item" href="{{url_for('docs.route_vendors')}}">Hardware Vendors</a>
+              <a class="dropdown-item" href="{{url_for('docs.route_users')}}">End Users</a>
+              <a class="dropdown-item" href="{{url_for('docs.route_developers')}}">Developers</a>
               <div class="dropdown-divider"></div>
-              <a class="dropdown-item" href="{{url_for('.route_firmware_new')}}">New Firmware</a>
-              <a class="dropdown-item" href="{{url_for('.route_devices_list')}}">Supported Devices</a>
-              <a class="dropdown-item" href="{{url_for('.route_vendors_list')}}">Vendor List</a>
-              <a class="dropdown-item" href="{{url_for('.route_docs_privacy')}}">Privacy Report</a>
+              <a class="dropdown-item" href="{{url_for('firmware.route_new')}}">New Firmware</a>
+              <a class="dropdown-item" href="{{url_for('devices.route_list')}}">Supported Devices</a>
+              <a class="dropdown-item" href="{{url_for('vendors.route_list')}}">Vendor List</a>
+              <a class="dropdown-item" href="{{url_for('docs.route_privacy')}}">Privacy Report</a>
             </div>
           </div>
         </li>
@@ -42,18 +42,18 @@
           </a>
           <div class="dropdown-menu dropdown-menu-card" aria-labelledby="navbarDropdownDocumentation">
             <div class="bg-white rounded-soft py-2">
-              <a class="dropdown-item" href="{{url_for('.route_docs_agreement')}}">Vendor Agreement</a>
-              <a class="dropdown-item" href="{{url_for('.route_docs_archive')}}">Archive Formats</a>
-              <a class="dropdown-item" href="{{url_for('.route_docs_metainfo')}}">MetaInfo Files</a>
-              <a class="dropdown-item" href="{{url_for('.route_docs_metainfo', page='restrict')}}">Adding Restrictions</a>
-              <a class="dropdown-item" href="{{url_for('.route_docs_metainfo', page='protocol')}}">Update Protocol</a>
-              <a class="dropdown-item" href="{{url_for('.route_docs_metainfo', page='version')}}">Version Format</a>
-              <a class="dropdown-item" href="{{url_for('.route_docs_metainfo', page='category')}}">Update Category</a>
-              <a class="dropdown-item" href="{{url_for('.route_docs_metainfo', page='urls')}}">Source URLs</a>
-              <a class="dropdown-item" href="{{url_for('.route_docs_metainfo', page='style')}}">Style Guide</a>
-              <a class="dropdown-item" href="{{url_for('.route_docs_composite')}}">Composite Devices</a>
-              <a class="dropdown-item" href="{{url_for('.route_docs_telemetry')}}">Telemetry</a>
-              <a class="dropdown-item" href="{{url_for('.route_docs_affiliates')}}">Affiliates</a>
+              <a class="dropdown-item" href="{{url_for('docs.route_agreement')}}">Vendor Agreement</a>
+              <a class="dropdown-item" href="{{url_for('docs.route_archive')}}">Archive Formats</a>
+              <a class="dropdown-item" href="{{url_for('docs.route_metainfo')}}">MetaInfo Files</a>
+              <a class="dropdown-item" href="{{url_for('docs.route_metainfo', page='restrict')}}">Adding Restrictions</a>
+              <a class="dropdown-item" href="{{url_for('docs.route_metainfo', page='protocol')}}">Update Protocol</a>
+              <a class="dropdown-item" href="{{url_for('docs.route_metainfo', page='version')}}">Version Format</a>
+              <a class="dropdown-item" href="{{url_for('docs.route_metainfo', page='category')}}">Update Category</a>
+              <a class="dropdown-item" href="{{url_for('docs.route_metainfo', page='urls')}}">Source URLs</a>
+              <a class="dropdown-item" href="{{url_for('docs.route_metainfo', page='style')}}">Style Guide</a>
+              <a class="dropdown-item" href="{{url_for('docs.route_composite')}}">Composite Devices</a>
+              <a class="dropdown-item" href="{{url_for('docs.route_telemetry')}}">Telemetry</a>
+              <a class="dropdown-item" href="{{url_for('docs.route_affiliates')}}">Affiliates</a>
             </div>
           </div>
         </li>
@@ -61,7 +61,7 @@
 
       <ul class="navbar-nav align-items-center d-none d-lg-block ml-3">
         <li class="nav-item">
-          <form class="form-inline search-box" action="{{url_for('.route_search')}}">
+          <form class="form-inline search-box" action="{{url_for('search.route_search')}}">
             <input type="hidden" name="csrf_token" value="{{csrf_token()}}"/>
             <input class="form-control search-input" type="search" placeholder="Search for firmware..." name="value" aria-label="Search" style="background: none;"/>
             <span class="position-absolute fas fa-search text-400 search-box-icon"></span>
@@ -77,23 +77,23 @@
           </a>
           <div class="dropdown-menu dropdown-menu-card" aria-labelledby="navbarDropdownProfile">
             <div class="bg-white rounded-soft py-2">
-              <a class="dropdown-item" href="{{url_for('.route_dashboard')}}">Dashboard</a>
+              <a class="dropdown-item" href="{{url_for('main.route_dashboard')}}">Dashboard</a>
 {% if g.user.check_acl('@view-profile') %}
-              <a class="dropdown-item" href="{{url_for('.route_profile')}}">User</a>
+              <a class="dropdown-item" href="{{url_for('main.route_profile')}}">User</a>
 {% endif %}
 {% if g.user.vendor.check_acl('@manage-users') %}
-              <a class="dropdown-item" href="{{url_for('.route_vendors_users', vendor_id=g.user.vendor_id)}}">Vendor</a>
+              <a class="dropdown-item" href="{{url_for('vendors.route_users', vendor_id=g.user.vendor_id)}}">Vendor</a>
 {% endif %}
 {% if g.user.check_acl('@view-eventlog') %}
-              <a class="dropdown-item" href="{{url_for('.route_eventlog')}}">Events</a>
+              <a class="dropdown-item" href="{{url_for('main.route_eventlog')}}">Events</a>
 {% endif %}
-              <a class="dropdown-item" href="{{url_for('.route_logout')}}">Log Out</a>
+              <a class="dropdown-item" href="{{url_for('main.route_logout')}}">Log Out</a>
             </div>
           </div>
         </li>
 {% else %}
         <li class="nav-item">
-          <a class="btn btn-sm btn-falcon-default" href="{{url_for('.route_login1')}}" role="button">
+          <a class="btn btn-sm btn-falcon-default" href="{{url_for('main.route_login1')}}" role="button">
             Login
           </a>
         </li>

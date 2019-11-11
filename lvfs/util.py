@@ -211,7 +211,7 @@ def _get_update_description_problems(root):
 def _get_settings(prefix=None):
     """ return a dict of all the settings """
     from lvfs import db
-    from .models import Setting
+    from lvfs.models import Setting
     settings = {}
     stmt = db.session.query(Setting)
     if prefix:
@@ -248,7 +248,7 @@ def _event_log(msg, is_important=False):
         vendor_id = g.user.vendor_id
     if request:
         request_path = request.path
-    from .models import Event
+    from lvfs.models import Event
     from lvfs import db
     event = Event(user_id=user_id,
                   message=msg,
@@ -434,6 +434,6 @@ def admin_login_required(f):
     def decorated_function(*args, **kwargs):
         if not g.user.check_acl('@admin'):
             flash('Only the admin team can access this resource', 'danger')
-            return redirect(url_for('.route_dashboard'))
+            return redirect(url_for('main.route_dashboard'))
         return f(*args, **kwargs)
     return decorated_function

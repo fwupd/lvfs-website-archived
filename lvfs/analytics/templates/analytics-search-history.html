@@ -1,0 +1,39 @@
+{% extends "default.html" %}
+{% block title %}Analytics{% endblock %}
+
+{% block content %}
+<div class="card">
+  <div class="card-body">
+{% if search_events|length > 0 %}
+<table class="table">
+  <tr class="row table-borderless">
+    <th class="col col-sm-2">Timestamp</th>
+    <th class="col col-sm-2">Address</th>
+    <th class="col col-sm-4">Value</th>
+    <th class="col col-sm-1">Method</th>
+    <th class="col col-sm-1">Results</th>
+    <th class="col col-sm-2">&nbsp;</th>
+  </tr>
+{% for ev in search_events %}
+  <tr class="row">
+    <td class="col col-sm-2">{{ev.timestamp}}</td>
+    <td class="col col-sm-2"><code>{{ev.addr|truncate(13, False, '…')}}</code></td>
+    <td class="col col-sm-4"><code>{{ev.value}}</code></td>
+    <td class="col col-sm-1"><code>{{ev.method}}</code></td>
+    <td class="col col-sm-1">{{ev.count}}</td>
+    <td class="col">
+      <a class="btn btn-block btn-danger" href="{{url_for('search.route_delete', search_event_id=ev.search_event_id)}}">Delete</a>
+    </td>
+  </tr>
+{% endfor %}
+</table>
+
+{% else %}
+<p class="text-secondary">
+  No searches exist.
+</p>
+{% endif %}
+  </div>
+</div>
+
+{% endblock %}

@@ -1,0 +1,17 @@
+{% extends "default.html" %}
+{% block title %}Legal Agreement{% endblock %}
+
+{% block content %}
+<div class="card">
+  <div class="card-body">
+    <div class="card-title">Legal Agreement</div>
+{{agreement.text|safe}}
+<p class="text-muted">Version {{agreement.version}}</p>
+<div class="text-center">
+  <a class="btn btn-primary btn-lg" href="{{url_for('agreements.route_confirm', agreement_id=agreement.agreement_id)}}">Agree</a>
+  <a class="btn btn-danger btn-lg" href="{{url_for('agreements.route_decline', agreement_id=agreement.agreement_id)}}">Decline</a>
+</div>
+  </div>
+</div>
+
+{% endblock %}

@@ -13,7 +13,7 @@ import logging
 
 from logging.handlers import SMTPHandler
 
-from flask import Flask, flash, render_template, message_flashed, request, redirect, url_for, Response, g
+from flask import Blueprint, Flask, flash, render_template, message_flashed, request, redirect, url_for, Response, g
 from flask_login import LoginManager
 from flask_migrate import Migrate
 from flask_mail import Mail
@@ -22,9 +22,9 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_wtf.csrf import CSRFProtect, CSRFError
 from werkzeug.local import LocalProxy
 
-from .pluginloader import Pluginloader
-from .util import _error_internal, _event_log
-from .dbutils import drop_db, init_db, anonymize_db
+from lvfs.pluginloader import Pluginloader
+from lvfs.util import _error_internal, _event_log
+from lvfs.dbutils import drop_db, init_db, anonymize_db
 
 app = Flask(__name__)
 app_config_fn = os.environ.get('LVFS_APP_SETTINGS', 'custom.cfg')
@@ -45,8 +45,59 @@ csrf = CSRFProtect(app)
 
 migrate = Migrate(app, db)
 
+lm = LoginManager(app)
+lm.login_view = 'login1'
+
+ploader = Pluginloader('plugins')
+
+from lvfs.agreements.routes import bp_agreements
+from lvfs.analytics.routes import bp_analytics
+from lvfs.categories.routes import bp_categories
+from lvfs.components.routes import bp_components
+from lvfs.devices.routes import bp_devices
+from lvfs.docs.routes import bp_docs
+from lvfs.firmware.routes import bp_firmware
+from lvfs.issues.routes import bp_issues
+from lvfs.main.routes import bp_main
+from lvfs.metadata.routes import bp_metadata
+from lvfs.protocols.routes import bp_protocols
+from lvfs.queries.routes import bp_queries
+from lvfs.reports.routes import bp_reports
+from lvfs.search.routes import bp_search
+from lvfs.settings.routes import bp_settings
+from lvfs.shards.routes import bp_shards
+from lvfs.telemetry.routes import bp_telemetry
+from lvfs.tests.routes import bp_tests
+from lvfs.upload.routes import bp_upload
+from lvfs.users.routes import bp_users
+from lvfs.vendors.routes import bp_vendors
+from lvfs.verfmts.routes import bp_verfmts
+
+app.register_blueprint(bp_agreements, url_prefix='/lvfs/agreements')
+app.register_blueprint(bp_analytics, url_prefix='/lvfs/analytics')
+app.register_blueprint(bp_categories, url_prefix='/lvfs/categories')
+app.register_blueprint(bp_components, url_prefix='/lvfs/components')
+app.register_blueprint(bp_devices, url_prefix='/lvfs/devices')
+app.register_blueprint(bp_docs, url_prefix='/lvfs/docs')
+app.register_blueprint(bp_firmware, url_prefix='/lvfs/firmware')
+app.register_blueprint(bp_issues, url_prefix='/lvfs/issues')
+app.register_blueprint(bp_main)
+app.register_blueprint(bp_metadata, url_prefix='/lvfs/metadata')
+app.register_blueprint(bp_protocols, url_prefix='/lvfs/protocols')
+app.register_blueprint(bp_queries, url_prefix='/lvfs/queries')
+app.register_blueprint(bp_reports, url_prefix='/lvfs/reports')
+app.register_blueprint(bp_search, url_prefix='/lvfs/search')
+app.register_blueprint(bp_settings, url_prefix='/lvfs/settings')
+app.register_blueprint(bp_shards, url_prefix='/lvfs/shards')
+app.register_blueprint(bp_telemetry, url_prefix='/lvfs/telemetry')
+app.register_blueprint(bp_tests, url_prefix='/lvfs/tests')
+app.register_blueprint(bp_upload, url_prefix='/lvfs/upload')
+app.register_blueprint(bp_users, url_prefix='/lvfs/users')
+app.register_blueprint(bp_vendors, url_prefix='/lvfs/vendors')
+app.register_blueprint(bp_verfmts, url_prefix='/lvfs/verfmts')
+
 def _set_up_notify_server_error():
-    from .models import User
+    from lvfs.models import User
     toaddrs = [user.username for user in db.session.query(User).\
                                             filter(User.is_admin).\
                                             filter(User.notify_server_error).all()]
@@ -86,18 +137,13 @@ def flash_save_eventlog(unused_sender, message, category, **unused_extra):
 
 message_flashed.connect(flash_save_eventlog, app)
 
-lm = LoginManager(app)
-lm.login_view = 'login1'
-
-ploader = Pluginloader('plugins')
-
 @app.teardown_appcontext
 def shutdown_session(unused_exception=None):
     db.session.remove()
 
 @lm.user_loader
 def load_user(user_id):
-    from .models import User
+    from lvfs.models import User
     g.user = db.session.query(User).filter(User.username == user_id).first()
     return g.user
 
@@ -114,26 +160,4 @@ def error_page_not_found(unused_msg=None):
 @app.errorhandler(CSRFError)
 def error_csrf(e):
     flash(str(e), 'danger')
-    return redirect(url_for('.route_dashboard'))
-
-from lvfs import views
-from lvfs import views_user
-from lvfs import views_device
-from lvfs import views_firmware
-from lvfs import views_vendor
-from lvfs import views_component
-from lvfs import views_telemetry
-from lvfs import views_report
-from lvfs import views_metadata
-from lvfs import views_settings
-from lvfs import views_analytics
-from lvfs import views_upload
-from lvfs import views_issue
-from lvfs import views_search
-from lvfs import views_agreement
-from lvfs import views_protocol
-from lvfs import views_category
-from lvfs import views_tests
-from lvfs import views_shard
-from lvfs import views_query
-from lvfs import views_verfmt
+    return redirect(url_for('main.route_dashboard'))

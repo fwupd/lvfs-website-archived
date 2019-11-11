@@ -4,7 +4,7 @@ A firmware you uploaded to the Linux Vendor Firmware Service has been demoted ba
 {% for md in fw.mds %}
  * {{md.name_with_category}} version {{md.version_display}}
 {% endfor %}
-Please log into the LVFS and view the failures: {{url_for('.route_firmware_analytics_reports', firmware_id=fw.firmware_id, state=3, _external=True)}}
+Please log into the LVFS and view the failures: {{url_for('firmware.route_analytics_reports', firmware_id=fw.firmware_id, state=3, _external=True)}}
 
 Regards,
 

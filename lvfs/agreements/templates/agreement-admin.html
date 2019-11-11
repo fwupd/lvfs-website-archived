@@ -1,0 +1,24 @@
+{% extends "default.html" %}
+{% block title %}Legal Agreement{% endblock %}
+
+{% block content %}
+<div class="card">
+  <div class="card-body">
+    <div class="card-title">Legal Agreement</div>
+<form method="post" action="{{url_for('agreements.route_modify', agreement_id=agreement.agreement_id)}}">
+  <input type="hidden" name="csrf_token" value="{{csrf_token()}}"/>
+  <div class="form-group">
+    <label for="version">Version (incrementing will prompt users):</label>
+    <input type="number" class="form-control" name="version" value="{{agreement.version}}" required>
+  </div>
+  <div class="form-group">
+    <label for="text">Markup in HTML format:</label>
+    <textarea class="form-control" name="text" cols="100" rows="25">{{agreement.text}}</textarea>
+  </div>
+  <input type="submit" class="btn btn-primary" value="Modify">
+  <a class="btn btn-danger" href="{{url_for('agreements.route_delete', agreement_id=agreement.agreement_id)}}">Delete</a>
+</form>
+  </div>
+</div>
+
+{% endblock %}

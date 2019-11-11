@@ -11,7 +11,7 @@
 <div class="container">
 
   <nav class="navbar navbar-vertical navbar-expand-lg navbar-light navbar-glass">
-    <a class="navbar-brand text-left" href="{{url_for('.route_dashboard')}}">
+    <a class="navbar-brand text-left" href="{{url_for('main.route_dashboard')}}">
       <div class="d-flex align-items-center text-primary py-3">
         <div class="d-inline-flex flex-center">
           <img class="mr-2" src="/avatar.png" alt="" width="40" />
@@ -32,19 +32,19 @@
           </a>
           <ul class="nav collapse {{'show' if category == 'home'}}" id="home" data-parent="#navbarVerticalCollapse">
             <li class="nav-item {{'active' if request.url_rule.endpoint == 'dashboard'}}">
-              <a class="nav-link" href="{{url_for('.route_dashboard')}}">Dashboard</a>
+              <a class="nav-link" href="{{url_for('main.route_dashboard')}}">Dashboard</a>
             </li>
 {% if g.user.vendor.check_acl('@manage-users') %}
             <li class="nav-item {{'active' if request.url_rule.endpoint == 'vendor_users'}}">
-              <a class="nav-link" href="{{url_for('.route_vendors_users', vendor_id=g.user.vendor_id)}}">Vendor</a>
+              <a class="nav-link" href="{{url_for('vendors.route_users', vendor_id=g.user.vendor_id)}}">Vendor</a>
             </li>
 {% endif %}
             <li class="nav-item {{'active' if request.url_rule.endpoint == 'docs_news'}}">
-              <a class="nav-link" href="{{url_for('.route_docs_news')}}">News</a>
+              <a class="nav-link" href="{{url_for('docs.route_news')}}">News</a>
             </li>
 {% if g.user.check_acl('@view-eventlog') %}
             <li class="nav-item {{'active' if request.url_rule.endpoint == 'eventlog'}}">
-              <a class="nav-link" href="{{url_for('.route_eventlog')}}">Events</a>
+              <a class="nav-link" href="{{url_for('main.route_eventlog')}}">Events</a>
             </li>
 {% endif %}
           </ul>
@@ -60,38 +60,38 @@
           </a>
           <ul class="nav collapse {{'show' if category == 'firmware'}}" id="firmware" data-parent="#navbarVerticalCollapse">
             <li class="nav-item {{'active' if request.url_rule.endpoint == 'upload'}}">
-              <a class="nav-link" href="{{url_for('.route_upload_firmware')}}">Upload new</a>
+              <a class="nav-link" href="{{url_for('upload.route_firmware')}}">Upload new</a>
             </li>
             <li class="nav-item {{'active' if request.url_rule.endpoint == 'firmware' and state == 'private'}}">
-              <a class="nav-link" href="{{url_for('.route_firmware', state='private')}}">In Private</a>
+              <a class="nav-link" href="{{url_for('firmware.route_firmware', state='private')}}">In Private</a>
             </li>
             <li class="nav-item {{'active' if request.url_rule.endpoint == 'firmware' and state == 'embargo'}}">
-              <a class="nav-link" href="{{url_for('.route_firmware', state='embargo')}}">In Embargo</a>
+              <a class="nav-link" href="{{url_for('firmware.route_firmware', state='embargo')}}">In Embargo</a>
             </li>
             <li class="nav-item {{'active' if request.url_rule.endpoint == 'testing' and state == 'testing'}}">
-              <a class="nav-link" href="{{url_for('.route_firmware', state='testing')}}">In Testing</a>
+              <a class="nav-link" href="{{url_for('firmware.route_firmware', state='testing')}}">In Testing</a>
             </li>
             <li class="nav-item {{'active' if request.url_rule.endpoint == 'firmware' and state == 'stable'}}">
-              <a class="nav-link" href="{{url_for('.route_firmware', state='stable')}}">In Stable</a>
+              <a class="nav-link" href="{{url_for('firmware.route_firmware', state='stable')}}">In Stable</a>
             </li>
             <li class="nav-item {{'active' if request.url_rule.endpoint == 'firmware' and state == 'deleted'}}">
-              <a class="nav-link" href="{{url_for('.route_firmware', state='deleted')}}">In Deleted</a>
+              <a class="nav-link" href="{{url_for('firmware.route_firmware', state='deleted')}}">In Deleted</a>
             </li>
             <li class="nav-item {{'active' if request.url_rule.endpoint == 'firmware' and not state}}">
-              <a class="nav-link" href="{{url_for('.route_firmware')}}">Show all</a>
+              <a class="nav-link" href="{{url_for('firmware.route_firmware')}}">Show all</a>
             </li>
 {% if g.user.check_acl('@view-issues') %}
             <li class="nav-item {{'active' if request.url_rule.endpoint == 'issue_all'}}">
-              <a class="nav-link" href="{{url_for('.route_issues_list')}}">Known Issues</a>
+              <a class="nav-link" href="{{url_for('issues.route_list')}}">Known Issues</a>
             </li>
 {% endif %}
 {% if g.user.check_acl('@yara-query') %}
             <li class="nav-item {{'active' if request.url_rule.endpoint.startswith('query_')}}">
-              <a class="nav-link" href="{{url_for('.route_queries_new')}}">YARA Queries</a>
+              <a class="nav-link" href="{{url_for('queries.route_new')}}">YARA Queries</a>
             </li>
 {% endif %}
             <li class="nav-item {{'active' if request.url_rule.endpoint == 'metadata_view'}}">
-              <a class="nav-link" href="{{url_for('.route_metadata_view')}}">Metadata</a>
+              <a class="nav-link" href="{{url_for('metadata.route_view')}}">Metadata</a>
             </li>
           </ul>
         </li>
@@ -107,16 +107,16 @@
           </a>
           <ul class="nav collapse {{'show' if category == 'telemetry'}}" id="telemetry" data-parent="#navbarVerticalCollapse">
             <li class="nav-item {{'active' if request.url_rule.endpoint == 'telemetry' and age==0 and sort_key=='download_cnt'}}">
-              <a class="nav-link" href="{{url_for('.route_telemetry', age=0, sort_key='download_cnt', sort_direction='up')}}">Downloads</a>
+              <a class="nav-link" href="{{url_for('telemetry.route_show', age=0, sort_key='download_cnt', sort_direction='up')}}">Downloads</a>
             </li>
             <li class="nav-item {{'active' if request.url_rule.endpoint == 'telemetry' and age==0 and sort_key=='success'}}">
-              <a class="nav-link" href="{{url_for('.route_telemetry', age=0, sort_key='success', sort_direction='down')}}">Success</a>
+              <a class="nav-link" href="{{url_for('telemetry.route_show', age=0, sort_key='success', sort_direction='down')}}">Success</a>
             </li>
             <li class="nav-item {{'active' if request.url_rule.endpoint == 'telemetry' and age==30}}">
-              <a class="nav-link" href="{{url_for('.route_telemetry', age=30)}}">Last 30 days</a>
+              <a class="nav-link" href="{{url_for('telemetry.route_show', age=30)}}">Last 30 days</a>
             </li>
             <li class="nav-item {{'active' if request.url_rule.endpoint == 'telemetry' and age==180}}">
-              <a class="nav-link" href="{{url_for('.route_telemetry', age=180)}}">Last 6 months</a>
+              <a class="nav-link" href="{{url_for('telemetry.route_show', age=180)}}">Last 6 months</a>
             </li>
           </ul>
         </li>
@@ -133,22 +133,22 @@
           </a>
           <ul class="nav collapse {{'show' if category == 'admin'}}" id="admin" data-parent="#navbarVerticalCollapse">
             <li class="nav-item {{'active' if request.url_rule.endpoint == 'user_list'}}">
-              <a class="nav-link" href="{{url_for('.route_users_list')}}">User List</a>
+              <a class="nav-link" href="{{url_for('users.route_list')}}">User List</a>
             </li>
             <li class="nav-item {{'active' if request.url_rule.endpoint == 'protocol_all'}}">
-              <a class="nav-link" href="{{url_for('.route_protocols_list')}}">Flashing Protocols</a>
+              <a class="nav-link" href="{{url_for('protocols.route_list')}}">Flashing Protocols</a>
             </li>
             <li class="nav-item {{'active' if request.url_rule.endpoint == 'category_all'}}">
-              <a class="nav-link" href="{{url_for('.route_categories_list')}}">Update Categories</a>
+              <a class="nav-link" href="{{url_for('categories.route_list')}}">Update Categories</a>
             </li>
             <li class="nav-item {{'active' if request.url_rule.endpoint == 'verfmt_all'}}">
-              <a class="nav-link" href="{{url_for('.route_verfmts_list')}}">Version Formats</a>
+              <a class="nav-link" href="{{url_for('verfmts.route_list')}}">Version Formats</a>
             </li>
             <li class="nav-item {{'active' if request.url_rule.endpoint == 'shard_all'}}">
-              <a class="nav-link" href="{{url_for('.route_shards_list')}}">Component Shards</a>
+              <a class="nav-link" href="{{url_for('shards.route_list')}}">Component Shards</a>
             </li>
             <li class="nav-item {{'active' if request.url_rule.endpoint == 'agreement_list'}}">
-              <a class="nav-link" href="{{url_for('.route_agreements_list')}}">Agreements</a>
+              <a class="nav-link" href="{{url_for('agreements.route_list')}}">Agreements</a>
             </li>
           </ul>
         </li>
@@ -164,7 +164,7 @@
           <ul class="nav collapse {{'show' if category == 'settings'}}" id="settings" data-parent="#navbarVerticalCollapse">
 {% for plugin in loader_plugins %}
             <li class="nav-item {{'active' if category == 'settings' and plugin_id == plugin.id}}">
-              <a class="nav-link" href="{{url_for('.route_settings_view', plugin_id=plugin.id)}}">{{plugin.name()}}</a>
+              <a class="nav-link" href="{{url_for('settings.route_view', plugin_id=plugin.id)}}">{{plugin.name()}}</a>
             </li>
 {% endfor %}
           </ul>
@@ -180,16 +180,16 @@
           </a>
           <ul class="nav collapse {{'show' if category == 'vendors'}}" id="vendors" data-parent="#navbarVerticalCollapse">
             <li class="nav-item {{'active' if request.url_rule.endpoint == 'vendor_list'}}">
-              <a class="nav-link" href="{{url_for('.route_vendors_list')}}">Overview</a>
+              <a class="nav-link" href="{{url_for('vendors.route_list')}}">Overview</a>
             </li>
             <li class="nav-item {{'active' if request.url_rule.endpoint == 'vendor_list_analytics' and page=='publicfw'}}">
-              <a class="nav-link" href="{{url_for('.route_vendors_list_analytics', page='publicfw')}}">Total Firmware</a>
+              <a class="nav-link" href="{{url_for('vendors.route_list_analytics', page='publicfw')}}">Total Firmware</a>
             </li>
             <li class="nav-item {{'active' if request.url_rule.endpoint == 'vendor_list_analytics' and page=='downloads'}}">
-              <a class="nav-link" href="{{url_for('.route_vendors_list_analytics', page='downloads')}}">Client Downloads</a>
+              <a class="nav-link" href="{{url_for('vendors.route_list_analytics', page='downloads')}}">Client Downloads</a>
             </li>
             <li class="nav-item {{'active' if request.url_rule.endpoint == 'vendor_list_analytics' and page=='devices'}}">
-              <a class="nav-link" href="{{url_for('.route_vendors_list_analytics', page='devices')}}">Supported Devices</a>
+              <a class="nav-link" href="{{url_for('vendors.route_list_analytics', page='devices')}}">Supported Devices</a>
             </li>
           </ul>
         </li>
@@ -204,37 +204,37 @@
           </a>
           <ul class="nav collapse {{'show' if category == 'analytics'}}" id="analytics" data-parent="#navbarVerticalCollapse">
             <li class="nav-item {{'active' if request.url_rule.endpoint == 'analytics_month'}}">
-              <a class="nav-link" href="{{url_for('.route_analytics_month')}}">Download Month</a>
+              <a class="nav-link" href="{{url_for('analytics.route_month')}}">Download Month</a>
             </li>
             <li class="nav-item {{'active' if request.url_rule.endpoint == 'analytics_year'}}">
-              <a class="nav-link" href="{{url_for('.route_analytics_year')}}">Download Year</a>
+              <a class="nav-link" href="{{url_for('analytics.route_year')}}">Download Year</a>
             </li>
             <li class="nav-item {{'active' if request.url_rule.endpoint == 'analytics_user_agents' and kind == 'APP'}}">
-              <a class="nav-link" href="{{url_for('.route_analytics_user_agents', kind='APP')}}">User Agent :: App</a>
+              <a class="nav-link" href="{{url_for('analytics.route_user_agents', kind='APP')}}">User Agent :: App</a>
             </li>
             <li class="nav-item {{'active' if request.url_rule.endpoint == 'analytics_user_agents' and kind == 'FWUPD'}}">
-              <a class="nav-link" href="{{url_for('.route_analytics_user_agents', kind='FWUPD')}}">User Agent :: fwupd</a>
+              <a class="nav-link" href="{{url_for('analytics.route_user_agents', kind='FWUPD')}}">User Agent :: fwupd</a>
             </li>
             <li class="nav-item {{'active' if request.url_rule.endpoint == 'analytics_user_agents' and kind == 'LANG'}}">
-              <a class="nav-link" href="{{url_for('.route_analytics_user_agents', kind='LANG')}}">User Agent :: Lang</a>
+              <a class="nav-link" href="{{url_for('analytics.route_user_agents', kind='LANG')}}">User Agent :: Lang</a>
             </li>
             <li class="nav-item {{'active' if request.url_rule.endpoint == 'analytics_user_agents' and kind == 'DISTRO'}}">
-              <a class="nav-link" href="{{url_for('.route_analytics_user_agents', kind='DISTRO')}}">User Agent :: Distro</a>
+              <a class="nav-link" href="{{url_for('analytics.route_user_agents', kind='DISTRO')}}">User Agent :: Distro</a>
             </li>
             <li class="nav-item {{'active' if request.url_rule.endpoint == 'analytics_vendor'}}">
-              <a class="nav-link" href="{{url_for('.route_analytics_vendor')}}">Vendor Downloads</a>
+              <a class="nav-link" href="{{url_for('analytics.route_vendor')}}">Vendor Downloads</a>
             </li>
             <li class="nav-item {{'active' if request.url_rule.endpoint == 'analytics_clients'}}">
-              <a class="nav-link" href="{{url_for('.route_analytics_clients')}}">Recent Downloads</a>
+              <a class="nav-link" href="{{url_for('analytics.route_clients')}}">Recent Downloads</a>
             </li>
             <li class="nav-item {{'active' if request.url_rule.endpoint == 'analytics_reports'}}">
-              <a class="nav-link" href="{{url_for('.route_analytics_reports')}}">Recent Reports</a>
+              <a class="nav-link" href="{{url_for('analytics.route_reports')}}">Recent Reports</a>
             </li>
             <li class="nav-item {{'active' if request.url_rule.endpoint == 'analytics_search_history'}}">
-              <a class="nav-link" href="{{url_for('.route_analytics_search_history')}}">Recent Searches</a>
+              <a class="nav-link" href="{{url_for('analytics.route_search_history')}}">Recent Searches</a>
             </li>
             <li class="nav-item {{'active' if request.url_rule.endpoint == 'analytics_search_stats'}}">
-              <a class="nav-link" href="{{url_for('.route_analytics_search_stats')}}">Popular Searches</a>
+              <a class="nav-link" href="{{url_for('analytics.route_search_stats')}}">Popular Searches</a>
             </li>
           </ul>
         </li>
@@ -249,22 +249,22 @@
           </a>
           <ul class="nav collapse {{'show' if category == 'tests'}}" id="tests" data-parent="#navbarVerticalCollapse">
             <li class="nav-item {{'active' if request.url_rule.endpoint == 'test_overview'}}">
-              <a class="nav-link" href="{{url_for('.route_tests_overview')}}">Overview</a>
+              <a class="nav-link" href="{{url_for('tests.route_overview')}}">Overview</a>
             </li>
             <li class="nav-item {{'active' if request.url_rule.endpoint == 'test_pending'}}">
-              <a class="nav-link" href="{{url_for('.route_tests_pending')}}">Pending</a>
+              <a class="nav-link" href="{{url_for('tests.route_pending')}}">Pending</a>
             </li>
             <li class="nav-item {{'active' if request.url_rule.endpoint == 'test_running'}}">
-              <a class="nav-link" href="{{url_for('.route_tests_running')}}">Running</a>
+              <a class="nav-link" href="{{url_for('tests.route_running')}}">Running</a>
             </li>
             <li class="nav-item {{'active' if request.url_rule.endpoint == 'test_failed'}}">
-              <a class="nav-link" href="{{url_for('.route_tests_failed')}}">Failed</a>
+              <a class="nav-link" href="{{url_for('tests.route_failed')}}">Failed</a>
             </li>
             <li class="nav-item {{'active' if request.url_rule.endpoint == 'test_waived'}}">
-              <a class="nav-link" href="{{url_for('.route_tests_waived')}}">Waived</a>
+              <a class="nav-link" href="{{url_for('tests.route_waived')}}">Waived</a>
             </li>
             <li class="nav-item {{'active' if request.url_rule.endpoint == 'test_recent'}}">
-              <a class="nav-link" href="{{url_for('.route_tests_recent')}}">Recent</a>
+              <a class="nav-link" href="{{url_for('tests.route_recent')}}">Recent</a>
             </li>
           </ul>
         </li>
@@ -283,40 +283,40 @@
           </a>
           <ul class="nav collapse {{'show' if category == 'documentation'}}" id="documentation" data-parent="#navbarVerticalCollapse">
             <li class="nav-item {{'active' if request.url_rule.endpoint == 'docs_agreement'}}">
-              <a class="nav-link" href="{{url_for('.route_docs_agreement')}}">Vendor Agreement</a>
+              <a class="nav-link" href="{{url_for('docs.route_agreement')}}">Vendor Agreement</a>
             </li>
             <li class="nav-item {{'active' if request.url_rule.endpoint == 'docs_archive'}}">
-              <a class="nav-link" href="{{url_for('.route_docs_archive')}}">Archive Formats</a>
+              <a class="nav-link" href="{{url_for('docs.route_archive')}}">Archive Formats</a>
             </li>
             <li class="nav-item {{'active' if request.url_rule.endpoint == 'docs_metainfo' and page=='intro'}}">
-              <a class="nav-link" href="{{url_for('.route_docs_metainfo')}}">MetaInfo Files</a>
+              <a class="nav-link" href="{{url_for('docs.route_metainfo')}}">MetaInfo Files</a>
             </li>
             <li class="nav-item {{'active' if request.url_rule.endpoint == 'docs_metainfo' and page=='restrict'}}">
-              <a class="nav-link" href="{{url_for('.route_docs_metainfo', page='restrict')}}">Adding Restrictions</a>
+              <a class="nav-link" href="{{url_for('docs.route_metainfo', page='restrict')}}">Adding Restrictions</a>
             </li>
             <li class="nav-item {{'active' if request.url_rule.endpoint == 'docs_metainfo' and page=='protocol'}}">
-              <a class="nav-link" href="{{url_for('.route_docs_metainfo', page='protocol')}}">Update Protocol</a>
+              <a class="nav-link" href="{{url_for('docs.route_metainfo', page='protocol')}}">Update Protocol</a>
             </li>
             <li class="nav-item {{'active' if request.url_rule.endpoint == 'docs_metainfo' and page=='version'}}">
-              <a class="nav-link" href="{{url_for('.route_docs_metainfo', page='version')}}">Version Format</a>
+              <a class="nav-link" href="{{url_for('docs.route_metainfo', page='version')}}">Version Format</a>
             </li>
             <li class="nav-item {{'active' if request.url_rule.endpoint == 'docs_metainfo' and page=='category'}}">
-              <a class="nav-link" href="{{url_for('.route_docs_metainfo', page='category')}}">Update Category</a>
+              <a class="nav-link" href="{{url_for('docs.route_metainfo', page='category')}}">Update Category</a>
             </li>
             <li class="nav-item {{'active' if request.url_rule.endpoint == 'docs_metainfo' and page=='urls'}}">
-              <a class="nav-link" href="{{url_for('.route_docs_metainfo', page='urls')}}">Source URLs</a>
+              <a class="nav-link" href="{{url_for('docs.route_metainfo', page='urls')}}">Source URLs</a>
             </li>
             <li class="nav-item {{'active' if request.url_rule.endpoint == 'docs_metainfo' and page=='style'}}">
-              <a class="nav-link" href="{{url_for('.route_docs_metainfo', page='style')}}">Style Guide</a>
+              <a class="nav-link" href="{{url_for('docs.route_metainfo', page='style')}}">Style Guide</a>
             </li>
             <li class="nav-item {{'active' if request.url_rule.endpoint == 'docs_composite'}}">
-              <a class="nav-link" href="{{url_for('.route_docs_composite')}}">Composite Devices</a>
+              <a class="nav-link" href="{{url_for('docs.route_composite')}}">Composite Devices</a>
             </li>
             <li class="nav-item {{'active' if request.url_rule.endpoint == 'docs_telemetry'}}">
-              <a class="nav-link" href="{{url_for('.route_docs_telemetry')}}">Telemetry</a>
+              <a class="nav-link" href="{{url_for('docs.route_telemetry')}}">Telemetry</a>
             </li>
             <li class="nav-item {{'active' if request.url_rule.endpoint == 'docs_affiliates'}}">
-              <a class="nav-link" href="{{url_for('.route_docs_affiliates')}}">Affiliates</a>
+              <a class="nav-link" href="{{url_for('docs.route_affiliates')}}">Affiliates</a>
             </li>
           </ul>
         </li>
@@ -339,7 +339,7 @@
       <div class="collapse navbar-collapse" id="navbarNavDropdown1">
         <ul class="navbar-nav align-items-center d-none d-lg-block">
           <li class="nav-item">
-            <form class="form-inline search-box" action="{{url_for('.route_search_fw')}}">
+            <form class="form-inline search-box" action="{{url_for('search.route_fw')}}">
               <input type="hidden" name="csrf_token" value="{{csrf_token()}}"/>
               <input class="form-control rounded-pill search-input" type="search" placeholder="Search firmware..." name="value" aria-label="Search" />
               <span class="position-absolute fas fa-search text-400 search-box-icon"></span>
@@ -374,10 +374,10 @@
             <div class="dropdown-menu dropdown-menu-right py-0" aria-labelledby="navbarDropdownUser">
               <div class="bg-white rounded-soft py-2">
 {% if g.user.check_acl('@view-profile') %}
-                <a class="dropdown-item" href="{{url_for('.route_profile')}}">Profile Settings</a>
+                <a class="dropdown-item" href="{{url_for('main.route_profile')}}">Profile Settings</a>
                 <div class="dropdown-divider"></div>
 {% endif %}
-                <a class="dropdown-item" href="{{url_for('.route_logout')}}">Logout</a>
+                <a class="dropdown-item" href="{{url_for('main.route_logout')}}">Logout</a>
               </div>
             </div>
           </li>

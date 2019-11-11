@@ -1,0 +1,63 @@
+{% extends "default.html" %}
+{% block title %}Vendor Exports{% endblock %}
+
+{% block nav %}{% include 'vendor-nav.html' %}{% endblock %}
+
+{% block content %}
+{% if v.check_acl('@modify-exports') %}
+<div class="alert alert-warning mt-1" role="alert">
+  <b>Talk to your legal team</b> before changing the export control list.
+</div>
+{% else %}
+<div class="alert alert-info mt-1" role="alert">
+  Please contact the your vendor manager if you would like to add or remove
+  embargoed countries to the export control list.
+</div>
+{% endif %}
+
+{% if not v.banned_country_codes %}
+<div class="card mt-3 mb-3">
+  <div class="card-body">
+    <div class="card-title">All countries can download firmware</div>
+    <p class="card-text">
+      Like most other vendors on the LVFS, no countries are included in the
+      export control list.
+    </p>
+  </div>
+</div>
+{% else %}
+<div class="card-columns mt-3">
+{% for export_id in v.banned_country_codes.split(',') %}
+  <div class="card">
+    <div class="card-body">
+      <div class="card-title">
+        {{format_iso3166(export_id)}}
+        <code class="float-right small">{{export_id}}</code>
+      </div>
+{% if v.check_acl('@modify-exports') %}
+      <a class="card-link btn btn-danger"
+        href="{{url_for('vendors.route_export_delete', vendor_id=v.vendor_id, export_id=export_id)}}"
+        role="button">Remove</a>
+{% endif %}
+    </div>
+  </div>
+{% endfor %}
+</div>
+{% endif %}
+
+{% if v.check_acl('@modify-exports') %}
+<form method="post" action="{{url_for('vendors.route_export_create', vendor_id=v.vendor_id)}}">
+<input type="hidden" name="csrf_token" value="{{csrf_token()}}"/>
+<div class="card">
+  <div class="card-body">
+    <div class="card-title">Add ISO 3166 country to export control list</div>
+    <p class="card-text">
+      <input type="text" class="form-control" name="export_id">
+    </p>
+    <input type="submit" class="card-link btn btn-primary" value="Add"/>
+  </div>
+</div>
+</form>
+{% endif %}
+
+{% endblock %}
