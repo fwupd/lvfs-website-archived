@@ -1570,7 +1570,7 @@ class Component(db.Model):
             return self.verfmt
         if self.protocol and self.protocol.verfmt:
             return self.protocol.verfmt
-        if self.fw.vendor.verfmt:
+        if self.fw.vendor.verfmt and self.protocol and self.protocol.value == 'org.uefi.capsule':
             return self.fw.vendor.verfmt
         return None
 
