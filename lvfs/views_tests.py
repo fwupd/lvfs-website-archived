@@ -16,11 +16,11 @@ from lvfs import app, db, ploader
 from .models import Test
 from .util import admin_login_required
 
-@app.route('/lvfs/test')
-@app.route('/lvfs/test/overview')
+@app.route('/lvfs/tests')
+@app.route('/lvfs/tests/overview')
 @login_required
 @admin_login_required
-def route_test_overview():
+def route_tests_overview():
 
     # get all the test data
     tests = db.session.query(Test).\
@@ -69,10 +69,10 @@ def route_test_overview():
                            tests_waived=tests_waived,
                            tests_failed=tests_failed)
 
-@app.route('/lvfs/test/recent')
+@app.route('/lvfs/tests/recent')
 @login_required
 @admin_login_required
-def route_test_recent():
+def route_tests_recent():
     tests = db.session.query(Test).\
                 filter(Test.started_ts != None). \
                 filter(Test.ended_ts != None). \
@@ -80,10 +80,10 @@ def route_test_recent():
                 order_by(Test.ended_ts.desc()).limit(20).all()
     return render_template('test-list.html', category='tests', tests=tests)
 
-@app.route('/lvfs/test/running')
+@app.route('/lvfs/tests/running')
 @login_required
 @admin_login_required
-def route_test_running():
+def route_tests_running():
     tests = db.session.query(Test). \
                 filter(Test.started_ts != None). \
                 filter(Test.ended_ts == None). \
@@ -91,20 +91,20 @@ def route_test_running():
                 order_by(Test.scheduled_ts.desc()).all()
     return render_template('test-list.html', category='tests', tests=tests)
 
-@app.route('/lvfs/test/pending')
+@app.route('/lvfs/tests/pending')
 @login_required
 @admin_login_required
-def route_test_pending():
+def route_tests_pending():
     tests = db.session.query(Test). \
                 filter(Test.started_ts == None). \
                 options(joinedload('attributes')). \
                 order_by(Test.scheduled_ts.desc()).all()
     return render_template('test-list.html', category='tests', tests=tests)
 
-@app.route('/lvfs/test/failed')
+@app.route('/lvfs/tests/failed')
 @login_required
 @admin_login_required
-def route_test_failed():
+def route_tests_failed():
     tests = db.session.query(Test).\
                 filter(Test.ended_ts != None). \
                 filter(Test.waived_ts == None). \
@@ -116,10 +116,10 @@ def route_test_failed():
             tests_failed.append(test)
     return render_template('test-list.html', category='tests', tests=tests_failed)
 
-@app.route('/lvfs/test/waived')
+@app.route('/lvfs/tests/waived')
 @login_required
 @admin_login_required
-def route_test_waived():
+def route_tests_waived():
     tests = db.session.query(Test).\
                 filter(Test.ended_ts != None). \
                 filter(Test.waived_ts != None). \
@@ -127,20 +127,20 @@ def route_test_waived():
                 order_by(Test.scheduled_ts.desc()).all()
     return render_template('test-list.html', category='tests', tests=tests)
 
-@app.route('/lvfs/test/retry/<int:test_id>')
+@app.route('/lvfs/tests/retry/<int:test_id>')
 @login_required
-def route_test_retry(test_id):
+def route_tests_retry(test_id):
 
     # get test
     test = db.session.query(Test).filter(Test.test_id == test_id).first()
     if not test:
         flash('No test matched', 'danger')
-        return redirect(url_for('.route_test_overview'))
+        return redirect(url_for('.route_tests_overview'))
 
     # security check
     if not test.check_acl('@retry'):
         flash('Permission denied: Unable to retry test', 'danger')
-        return redirect(url_for('.route_test_overview'))
+        return redirect(url_for('.route_tests_overview'))
 
     # remove child
     test.retry()
@@ -150,20 +150,20 @@ def route_test_retry(test_id):
     flash('Test %s will be re-run soon' % test.plugin_id, 'info')
     return redirect(url_for('.route_firmware_tests', firmware_id=test.fw.firmware_id))
 
-@app.route('/lvfs/test/waive/<int:test_id>')
+@app.route('/lvfs/tests/waive/<int:test_id>')
 @login_required
-def route_test_waive(test_id):
+def route_tests_waive(test_id):
 
     # get test
     test = db.session.query(Test).filter(Test.test_id == test_id).first()
     if not test:
         flash('No test matched', 'danger')
-        return redirect(url_for('.route_test_overview'))
+        return redirect(url_for('.route_tests_overview'))
 
     # security check
     if not test.waivable or not test.check_acl('@waive'):
         flash('Permission denied: Unable to waive test', 'danger')
-        return redirect(url_for('.route_test_overview'))
+        return redirect(url_for('.route_tests_overview'))
 
     # remove chid
     test.waive()
@@ -173,10 +173,10 @@ def route_test_waive(test_id):
     flash('Test %s was waived' % test.plugin_id, 'info')
     return redirect(url_for('.route_firmware_tests', firmware_id=test.fw.firmware_id))
 
-@app.route('/lvfs/test/retry/<plugin_id>')
+@app.route('/lvfs/tests/retry/<plugin_id>')
 @login_required
 @admin_login_required
-def route_test_retry_all(plugin_id):
+def route_tests_retry_all(plugin_id):
 
     # get tests
     tests = db.session.query(Test).\
@@ -185,19 +185,19 @@ def route_test_retry_all(plugin_id):
                 filter(Test.plugin_id == plugin_id).all()
     if not tests:
         flash('No tests matched', 'warning')
-        return redirect(url_for('.route_test_overview'))
+        return redirect(url_for('.route_tests_overview'))
     for test in tests:
         test.retry()
     db.session.commit()
 
     # log
     flash('%i tests will be re-run soon' % len(tests), 'info')
-    return redirect(url_for('.route_test_overview'))
+    return redirect(url_for('.route_tests_overview'))
 
-@app.route('/lvfs/test/waive/<plugin_id>')
+@app.route('/lvfs/tests/waive/<plugin_id>')
 @login_required
 @admin_login_required
-def route_test_waive_all(plugin_id):
+def route_tests_waive_all(plugin_id):
 
     # get tests
     tests = db.session.query(Test).\
@@ -210,30 +210,30 @@ def route_test_waive_all(plugin_id):
             tests_failed.append(test)
     if not tests_failed:
         flash('No tests could be waived', 'warning')
-        return redirect(url_for('.route_test_overview'))
+        return redirect(url_for('.route_tests_overview'))
     for test in tests_failed:
         test.waive()
     db.session.commit()
 
     # log
     flash('%i tests have been waived' % len(tests_failed), 'info')
-    return redirect(url_for('.route_test_overview'))
+    return redirect(url_for('.route_tests_overview'))
 
-@app.route('/lvfs/test/delete/<plugin_id>')
+@app.route('/lvfs/tests/delete/<plugin_id>')
 @login_required
 @admin_login_required
-def route_test_delete_all(plugin_id):
+def route_tests_delete_all(plugin_id):
 
     # get tests
     tests = db.session.query(Test).\
                 filter(Test.plugin_id == plugin_id).all()
     if not tests:
         flash('No tests matched', 'warning')
-        return redirect(url_for('.route_test_overview'))
+        return redirect(url_for('.route_tests_overview'))
     for test in tests:
         db.session.delete(test)
     db.session.commit()
 
     # log
     flash('%i tests have been deleted' % len(tests), 'info')
-    return redirect(url_for('.route_test_overview'))
+    return redirect(url_for('.route_tests_overview'))

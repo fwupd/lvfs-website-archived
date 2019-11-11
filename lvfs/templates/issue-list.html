@@ -20,18 +20,18 @@
 {% endif %}
     </div>
     <p class="card-text">{{issue.description}}</p>
-    <a class="btn btn-info card-link" href="{{url_for('.route_issue_details', issue_id=issue.issue_id)}}" role="button">Details &raquo;</a>
+    <a class="btn btn-info card-link" href="{{url_for('.route_issues_details', issue_id=issue.issue_id)}}" role="button">Details &raquo;</a>
 
 {% if issue.check_acl('@modify') %}
     <!-- {{issue.priority}} -->
     <div class="btn-group float-right" role="group">
 {% if issue == issues[0] %}
-      <a class="btn btn-sm btn-outline-dark" href="{{url_for('.route_issue_priority', issue_id=issue.issue_id, op='down')}}">▼</a>
+      <a class="btn btn-sm btn-outline-dark" href="{{url_for('.route_issues_priority', issue_id=issue.issue_id, op='down')}}">▼</a>
 {% elif issue == issues[issues|length-1] %}
-      <a class="btn btn-sm btn-outline-dark" href="{{url_for('.route_issue_priority', issue_id=issue.issue_id, op='up')}}">▲</a>
+      <a class="btn btn-sm btn-outline-dark" href="{{url_for('.route_issues_priority', issue_id=issue.issue_id, op='up')}}">▲</a>
 {% else %}
-      <a class="btn btn-sm btn-outline-dark" href="{{url_for('.route_issue_priority', issue_id=issue.issue_id, op='up')}}">▲</a>
-      <a class="btn btn-sm btn-outline-dark" href="{{url_for('.route_issue_priority', issue_id=issue.issue_id, op='down')}}">▼</a>
+      <a class="btn btn-sm btn-outline-dark" href="{{url_for('.route_issues_priority', issue_id=issue.issue_id, op='up')}}">▲</a>
+      <a class="btn btn-sm btn-outline-dark" href="{{url_for('.route_issues_priority', issue_id=issue.issue_id, op='down')}}">▼</a>
 {% endif %}
     </div>
 {% endif %}
@@ -43,7 +43,7 @@
   <div class="card-body">
     <div class="card-title">Create a new issue</div>
     <div class="card-text">
-    <form method="post" action="{{url_for('.route_issue_create')}}" class="form">
+    <form method="post" action="{{url_for('.route_issues_create')}}" class="form">
       <input type="hidden" name="csrf_token" value="{{csrf_token()}}"/>
       <div class="form-group">
         <label for="url">Issue URL</label>

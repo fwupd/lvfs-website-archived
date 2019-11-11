@@ -13,7 +13,7 @@
 </div>
 {% endif %}
 
-<form method="post" action="{{url_for('.route_user_modify_by_admin', user_id=u.user_id)}}">
+<form method="post" action="{{url_for('.route_users_modify_by_admin', user_id=u.user_id)}}">
   <input type="hidden" name="csrf_token" value="{{csrf_token()}}"/>
 {% if u.auth_type != 'oauth' %}
   <div class="form-group row">
@@ -159,7 +159,7 @@
 {% endif %}
   <input type="submit" class="btn btn-primary btn-large" value="Modify">
   <div class="float-right">
-    <a class="btn btn-warning" href="{{url_for('.route_user_reset_by_admin', user_id=u.user_id)}}">Reset Password</a>
+    <a class="btn btn-warning" href="{{url_for('.route_users_reset_by_admin', user_id=u.user_id)}}">Reset Password</a>
 {% if g.user.check_acl('@admin') and u.group_id != 'admin' %}
     <button type="button" class="btn btn-danger" data-toggle="modal" data-target="#deleteModal">Delete</button>
 {% endif %}
@@ -194,7 +194,7 @@
       </div>
       <div class="modal-footer">
         <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
-        <a class="btn btn-danger" href="{{url_for('.route_user_delete', user_id=u.user_id)}}">Delete</a>
+        <a class="btn btn-danger" href="{{url_for('.route_users_delete', user_id=u.user_id)}}">Delete</a>
       </div>
     </div>
   </div>

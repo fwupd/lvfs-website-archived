@@ -588,3 +588,11 @@ def route_developers_html():
 @app.route('/index.html')
 def route_index_html():
     return redirect(url_for('.route_index'), code=302)
+@app.route('/lvfs/devicelist')
+def route_devicelist():
+    return redirect(url_for('.route_devices_list'), code=302)
+@app.route('/status')
+@app.route('/vendorlist') # deprecated
+@app.route('/lvfs/vendorlist')
+def route_vendorlist():
+    return redirect(url_for('.route_vendors_list'), code=302)

@@ -17,7 +17,7 @@
       <code>{{r.to_kvs()}}</code>
     </p>
 {% if g.user.check_acl('@admin') %}
-    <a class="card-link btn btn-danger" href="{{url_for('.route_report_delete', report_id=r.report_id)}}">Delete</a>
+    <a class="card-link btn btn-danger" href="{{url_for('.route_reports_delete', report_id=r.report_id)}}">Delete</a>
 {% endif %}
   </div>
 </div>

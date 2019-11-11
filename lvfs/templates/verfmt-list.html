@@ -23,7 +23,7 @@
       <code class="float-right">{{verfmt.value}}</code>
     </div>
     <a class="card-link btn btn-info"
-      href="{{url_for('.route_verfmt_details', verfmt_id=verfmt.verfmt_id)}}"
+      href="{{url_for('.route_verfmts_details', verfmt_id=verfmt.verfmt_id)}}"
       role="button">Details &raquo;</a>
   </div>
 </div>
@@ -34,7 +34,7 @@
 <div class="card mt-3">
   <div class="card-body">
     <div class="card-title">Create a new version format</div>
-    <form method="post" action="{{url_for('.route_verfmt_create')}}" class="form">
+    <form method="post" action="{{url_for('.route_verfmts_create')}}" class="form">
       <input type="hidden" name="csrf_token" value="{{csrf_token()}}"/>
       <div class="form-group card-text">
         <label>Value name, e.g. <code>intel-me2</code></label>

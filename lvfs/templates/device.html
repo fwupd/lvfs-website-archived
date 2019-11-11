@@ -116,9 +116,9 @@
   </div>
 </div>
 {% if fw.md_prio.shards %}
-    <a class="card-link btn btn-info" href="{{url_for('.route_device_shards', component_id=fw.md_prio.component_id)}}">Firmware Details</a>
+    <a class="card-link btn btn-info" href="{{url_for('.route_devices_shards', component_id=fw.md_prio.component_id)}}">Firmware Details</a>
 {% if fw_previous[fw] %}
-    <a class="card-link btn btn-info" href="{{url_for('.route_device_shards_diff',
+    <a class="card-link btn btn-info" href="{{url_for('.route_devices_shards_diff',
                                                       component_id_old=fw_previous[fw].md_prio.component_id,
                                                       component_id_new=fw.md_prio.component_id)}}">Compare with previous</a>
 {% endif %}

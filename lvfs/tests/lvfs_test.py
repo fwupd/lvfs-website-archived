@@ -76,20 +76,20 @@ class LvfsTestCase(unittest.TestCase):
         # ensure the plugins settings are set up
         self.login()
         self.app.get('/lvfs/settings/create')
-        self.app.get('/lvfs/agreement/create')
-        self.app.get('/lvfs/agreement/1/accept')
+        self.app.get('/lvfs/agreements/create')
+        self.app.get('/lvfs/agreements/1/accept')
         for value in ['com.hughski.colorhug', 'org.usb.dfu', 'org.uefi.capsule']:
-            rv = self.app.post('/lvfs/protocol/create', data=dict(
+            rv = self.app.post('/lvfs/protocols/create', data=dict(
                 value=value,
             ), follow_redirects=True)
             assert b'Added protocol' in rv.data, rv.data
         for value in ['X-Device', 'X-ManagementEngine']:
-            rv = self.app.post('/lvfs/category/create', data=dict(
+            rv = self.app.post('/lvfs/categories/create', data=dict(
                 value=value,
             ), follow_redirects=True)
             assert b'Added category' in rv.data, rv.data
         for value in ['quad', 'triplet']:
-            rv = self.app.post('/lvfs/verfmt/create', data=dict(
+            rv = self.app.post('/lvfs/verfmts/create', data=dict(
                 value=value,
             ), follow_redirects=True)
             assert b'Added version format' in rv.data, rv.data
@@ -117,16 +117,16 @@ class LvfsTestCase(unittest.TestCase):
 
     def login(self, username='sign-test@fwupd.org', password='Pa$$w0rd', accept_agreement=True):
         rv = self._login(username, password)
-        assert b'/lvfs/upload_firmware' in rv.data, rv.data
+        assert b'/lvfs/upload/firmware' in rv.data, rv.data
         assert b'Incorrect username' not in rv.data, rv.data
         if accept_agreement and username != 'sign-test@fwupd.org':
-            rv = self.app.get('/lvfs/agreement/1/accept', follow_redirects=True)
+            rv = self.app.get('/lvfs/agreements/1/accept', follow_redirects=True)
             assert b'Recorded acceptance of the agreement' in rv.data, rv.data
 
     def logout(self):
         rv = self._logout()
         assert b'Logged out' in rv.data, rv.data
-        assert b'/lvfs/upload_firmware' not in rv.data, rv.data
+        assert b'/lvfs/upload/firmware' not in rv.data, rv.data
 
     def delete_firmware(self, firmware_id=1):
         rv = self.app.get('/lvfs/firmware/%i/delete' % firmware_id,
@@ -134,7 +134,7 @@ class LvfsTestCase(unittest.TestCase):
         assert b'Firmware deleted' in rv.data, rv.data
 
     def _add_user(self, username, group_id, password):
-        return self.app.post('/lvfs/user/create', data=dict(
+        return self.app.post('/lvfs/users/create', data=dict(
             username=username,
             password_new=password,
             group_id=group_id,
@@ -165,7 +165,7 @@ class LvfsTestCase(unittest.TestCase):
                 data['is_approved_public'] = '1'
             if is_robot:
                 data['is_robot'] = '1'
-            rv = self.app.post('/lvfs/user/%i/modify_by_admin' % user_id,
+            rv = self.app.post('/lvfs/users/%i/modify_by_admin' % user_id,
                                data=data, follow_redirects=True)
             assert b'Updated profile' in rv.data, rv.data
 
@@ -177,7 +177,7 @@ class LvfsTestCase(unittest.TestCase):
             }
             if vendor_id:
                 data['vendor_id'] = vendor_id
-            return self.app.post('/lvfs/upload_firmware', data=data, follow_redirects=True)
+            return self.app.post('/lvfs/upload/firmware', data=data, follow_redirects=True)
 
     def _ensure_checksums_from_upload(self):
         # peek into the database to get the checksums
@@ -199,12 +199,12 @@ class LvfsTestCase(unittest.TestCase):
 
         # test logging in and out
         rv = self._login('sign-test@fwupd.org', 'Pa$$w0rd')
-        assert b'/lvfs/upload_firmware' in rv.data, rv.data
+        assert b'/lvfs/upload/firmware' in rv.data, rv.data
         rv = self._logout()
         rv = self._login('sign-test@fwupd.org', 'Pa$$w0rd')
-        assert b'/lvfs/upload_firmware' in rv.data, rv.data
+        assert b'/lvfs/upload/firmware' in rv.data, rv.data
         rv = self._logout()
-        assert b'/lvfs/upload_firmware' not in rv.data, rv.data
+        assert b'/lvfs/upload/firmware' not in rv.data, rv.data
         rv = self._login('sign-test@fwupd.orgx', 'default')
         assert b'Incorrect username' in rv.data, rv.data
         rv = self._login('sign-test@fwupd.org', 'defaultx')
@@ -243,17 +243,17 @@ class LvfsTestCase(unittest.TestCase):
         self.run_cron_stats()
 
         # edit a shard description
-        rv = self.app.get('/lvfs/shard/list')
+        rv = self.app.get('/lvfs/shards')
         assert '12345678-1234-5678-1234-567812345678' in rv.data.decode('utf-8'), rv.data.decode()
-        rv = self.app.get('/lvfs/shard/1/details')
-        rv = self.app.post('/lvfs/shard/1/modify', data=dict(
+        rv = self.app.get('/lvfs/shards/1/details')
+        rv = self.app.post('/lvfs/shards/1/modify', data=dict(
             description='Hello Dave',
         ), follow_redirects=True)
         assert b'Modified shard' in rv.data, rv.data
         assert b'Hello Dave' in rv.data, rv.data
 
         # view component certificates
-        rv = self.app.get('/lvfs/component/1/certificates')
+        rv = self.app.get('/lvfs/components/1/certificates')
         assert 'Default Company Ltd' in rv.data.decode('utf-8'), rv.data
 
     def test_plugin_intelme(self):
@@ -325,16 +325,16 @@ class LvfsTestCase(unittest.TestCase):
             assert b'LVFS: Error' not in rv.data, rv.data
 
         # check component view shows GUID
-        rv = self.app.get('/lvfs/component/1')
+        rv = self.app.get('/lvfs/components/1')
         assert b'2082b5e0-7a64-478a-b1b2-e3404fab6dad' in rv.data, rv.data
 
         # check private firmware isn't visible when not logged in
-        rv = self.app.get('/lvfs/device')
+        rv = self.app.get('/lvfs/devices')
         assert b'2082b5e0-7a64-478a-b1b2-e3404fab6dad' not in rv.data, rv.data
-        rv = self.app.get('/lvfs/device/com.hughski.ColorHug2.firmware')
+        rv = self.app.get('/lvfs/devices/com.hughski.ColorHug2.firmware')
         # FIXME is it a bug that we show the device exists even though it's not got any mds?
         assert b'MCDC04 errata' not in rv.data, rv.data
-        rv = self.app.get('/lvfs/devicelist')
+        rv = self.app.get('/lvfs/devices')
         assert b'ColorHug' not in rv.data, rv.data
         self.login()
 
@@ -354,9 +354,9 @@ class LvfsTestCase(unittest.TestCase):
 
         # check it's now in the devicelist as anon
         self.logout()
-        rv = self.app.get('/lvfs/devicelist')
+        rv = self.app.get('/lvfs/devices')
         assert b'ColorHug' in rv.data, rv.data
-        rv = self.app.get('/lvfs/device/com.hughski.ColorHug2.firmware')
+        rv = self.app.get('/lvfs/devices/com.hughski.ColorHug2.firmware')
         assert b'MCDC04 errata' in rv.data, rv.data
         self.login()
 
@@ -394,9 +394,9 @@ class LvfsTestCase(unittest.TestCase):
         assert b'No searches exist' in rv.data, rv.data
 
         # search logged in
-        rv = self.app.get('/lvfs/firmware/search?value=colorhug2')
+        rv = self.app.get('/lvfs/search/firmware?value=colorhug2')
         assert b'ColorHug2 X-Device' in rv.data, rv.data
-        rv = self.app.get('/lvfs/firmware/search?value=foobarbaz')
+        rv = self.app.get('/lvfs/search/firmware?value=foobarbaz')
         assert b'No firmware has been uploaded or is visible by this user' in rv.data, rv.data
         self.logout()
 
@@ -457,7 +457,7 @@ class LvfsTestCase(unittest.TestCase):
         self.upload()
 
         # enable emails
-        rv = self.app.post('/lvfs/user/1/modify_by_admin',
+        rv = self.app.post('/lvfs/users/1/modify_by_admin',
                            data={'notify_demote_failures': '1',
                                  'is_qa': '1',
                                  'is_approved_public': '1'},
@@ -787,65 +787,65 @@ class LvfsTestCase(unittest.TestCase):
     def test_vendorlist(self):
 
         # check users can't modify the list
-        rv = self.app.get('/lvfs/vendorlist')
+        rv = self.app.get('/lvfs/vendors')
         assert b'Create a new vendor' not in rv.data, rv.data
 
         # check admin can
         self.login()
-        rv = self.app.get('/lvfs/vendorlist')
+        rv = self.app.get('/lvfs/vendors')
         assert b'Create a new vendor' in rv.data, rv.data
 
         # create new vendor
-        rv = self.app.post('/lvfs/vendor/create', data=dict(group_id='testvendor'),
+        rv = self.app.post('/lvfs/vendors/create', data=dict(group_id='testvendor'),
                            follow_redirects=True)
         assert b'Added vendor' in rv.data, rv.data
-        rv = self.app.get('/lvfs/vendorlist')
+        rv = self.app.get('/lvfs/vendors')
         assert b'testvendor' in rv.data, rv.data
 
         # create duplicate
-        rv = self.app.post('/lvfs/vendor/create', data=dict(group_id='testvendor'),
+        rv = self.app.post('/lvfs/vendors/create', data=dict(group_id='testvendor'),
                            follow_redirects=True)
         assert b'Group ID already exists' in rv.data, rv.data
 
         # show the details page
-        rv = self.app.get('/lvfs/vendor/2/details')
+        rv = self.app.get('/lvfs/vendors/2/details')
         assert b'testvendor' in rv.data, rv.data
 
         # create a restriction
-        rv = self.app.post('/lvfs/vendor/2/restriction/create', data=dict(value='USB:0x1234'),
+        rv = self.app.post('/lvfs/vendors/2/restriction/create', data=dict(value='USB:0x1234'),
                            follow_redirects=True)
         assert b'Added restriction' in rv.data, rv.data
 
         # show the restrictions page
-        rv = self.app.get('/lvfs/vendor/2/restrictions')
+        rv = self.app.get('/lvfs/vendors/2/restrictions')
         assert b'USB:0x1234' in rv.data, rv.data
 
         # delete a restriction
-        rv = self.app.get('/lvfs/vendor/2/restriction/1/delete', follow_redirects=True)
+        rv = self.app.get('/lvfs/vendors/2/restriction/1/delete', follow_redirects=True)
         assert b'Deleted restriction' in rv.data, rv.data
         assert b'USB:0x1234' not in rv.data, rv.data
 
         # create a namespace
-        rv = self.app.post('/lvfs/vendor/2/namespace/create', data=dict(value='com.dell'),
+        rv = self.app.post('/lvfs/vendors/2/namespace/create', data=dict(value='com.dell'),
                            follow_redirects=True)
         assert b'Added namespace' in rv.data, rv.data
 
         # create a namespace
-        rv = self.app.post('/lvfs/vendor/2/namespace/create', data=dict(value='lenovo'),
+        rv = self.app.post('/lvfs/vendors/2/namespace/create', data=dict(value='lenovo'),
                            follow_redirects=True)
         assert b'Failed to add namespace' in rv.data, rv.data
 
         # show the namespaces page
-        rv = self.app.get('/lvfs/vendor/2/namespaces')
+        rv = self.app.get('/lvfs/vendors/2/namespaces')
         assert b'com.dell' in rv.data, rv.data
 
         # delete a namespace
-        rv = self.app.get('/lvfs/vendor/2/namespace/1/delete', follow_redirects=True)
+        rv = self.app.get('/lvfs/vendors/2/namespace/1/delete', follow_redirects=True)
         assert b'Deleted namespace' in rv.data, rv.data
         assert b'com.dell' not in rv.data, rv.data
 
         # change some properties
-        rv = self.app.post('/lvfs/vendor/2/modify_by_admin', data=dict(
+        rv = self.app.post('/lvfs/vendors/2/modify_by_admin', data=dict(
             display_name='VendorName',
             plugins='dfu 1.2.3',
             description='Everything supported',
@@ -854,21 +854,21 @@ class LvfsTestCase(unittest.TestCase):
             comments='Emailed Dave on 2018-01-14 to follow up.',
         ), follow_redirects=True)
         assert b'Updated vendor' in rv.data, rv.data
-        rv = self.app.get('/lvfs/vendorlist')
+        rv = self.app.get('/lvfs/vendors')
         assert b'testvendor' in rv.data, rv.data
         assert b'Everything supported' in rv.data, rv.data
         assert b'Emailed Dave' not in rv.data, rv.data
 
         # delete
-        rv = self.app.get('/lvfs/vendor/999/delete', follow_redirects=True)
+        rv = self.app.get('/lvfs/vendors/999/delete', follow_redirects=True)
         assert b'No a vendor with that group ID' in rv.data, rv.data
-        rv = self.app.get('/lvfs/vendor/2/delete', follow_redirects=True)
+        rv = self.app.get('/lvfs/vendors/2/delete', follow_redirects=True)
         assert b'Removed vendor' in rv.data, rv.data
-        rv = self.app.get('/lvfs/vendorlist')
+        rv = self.app.get('/lvfs/vendors')
         assert b'testvendor' not in rv.data, rv.data
 
     def add_vendor(self, group_id):
-        rv = self.app.post('/lvfs/vendor/create', data=dict(group_id=group_id),
+        rv = self.app.post('/lvfs/vendors/create', data=dict(group_id=group_id),
                            follow_redirects=True)
         assert b'Added vendor' in rv.data, rv.data
 
@@ -886,12 +886,12 @@ class LvfsTestCase(unittest.TestCase):
         # add vendor2 and move user to that
         self.login()
         self.add_vendor('odm') # 3
-        rv = self.app.post('/lvfs/user/3/modify_by_admin', data=dict(
+        rv = self.app.post('/lvfs/users/3/modify_by_admin', data=dict(
             vendor_id='3',
             reparent='1',
         ), follow_redirects=True)
         assert b'Updated profile' in rv.data, rv.data
-        rv = self.app.get('/lvfs/userlist')
+        rv = self.app.get('/lvfs/users')
         assert b'>odm<' in rv.data, rv.data
         assert b'>acme<' not in rv.data, rv.data
 
@@ -919,15 +919,15 @@ class LvfsTestCase(unittest.TestCase):
         # add a good user, and check the user and group was created
         rv = self._add_user('testuser@fwupd.org', 'testgroup', 'Pa$$w0rd')
         assert b'Added user' in rv.data, rv.data
-        rv = self.app.get('/lvfs/userlist')
+        rv = self.app.get('/lvfs/users')
         assert b'testuser' in rv.data, rv.data
-        rv = self.app.get('/lvfs/user/3/admin')
+        rv = self.app.get('/lvfs/users/3/admin')
         assert b'testuser@fwupd.org' in rv.data, rv.data
-        rv = self.app.get('/lvfs/vendorlist')
+        rv = self.app.get('/lvfs/vendors')
         assert b'testgroup' in rv.data, rv.data
 
         # modify an existing user as the admin
-        rv = self.app.post('/lvfs/user/3/modify_by_admin', data=dict(
+        rv = self.app.post('/lvfs/users/3/modify_by_admin', data=dict(
             auth_type='local',
             auth_warning='Caveat Emptor',
             is_qa='1',
@@ -936,17 +936,17 @@ class LvfsTestCase(unittest.TestCase):
             display_name='Slightly Less Generic Name',
         ), follow_redirects=True)
         assert b'Updated profile' in rv.data, rv.data
-        rv = self.app.get('/lvfs/user/3/admin')
+        rv = self.app.get('/lvfs/users/3/admin')
         assert b'Slightly Less Generic Name' in rv.data, rv.data
 
         # ensure the user can log in
         self.logout()
         rv = self._login('testuser@fwupd.org')
-        assert b'/lvfs/upload_firmware' in rv.data, rv.data
+        assert b'/lvfs/upload/firmware' in rv.data, rv.data
         assert b'Caveat Emptor' in rv.data, rv.data
 
         # ensure the user can change their own display name
-        rv = self.app.post('/lvfs/user/3/modify', data=dict(
+        rv = self.app.post('/lvfs/users/3/modify', data=dict(
             display_name='Something Funky',
         ), follow_redirects=True)
         assert b'Updated profile' in rv.data, rv.data
@@ -954,12 +954,12 @@ class LvfsTestCase(unittest.TestCase):
         assert b'Something Funky' in rv.data, rv.data
 
         # ensure the user can change their own password
-        rv = self.app.post('/lvfs/user/3/password', data=dict(
+        rv = self.app.post('/lvfs/users/3/password', data=dict(
             password_old='not-even-close',
             password_new='Hi$$t0ry',
         ), follow_redirects=True)
         assert b'Incorrect existing password' in rv.data, rv.data
-        rv = self.app.post('/lvfs/user/3/password', data=dict(
+        rv = self.app.post('/lvfs/users/3/password', data=dict(
             password_old='Pa$$w0rd',
             password_new='Hi$$t0ry',
         ), follow_redirects=True)
@@ -968,27 +968,27 @@ class LvfsTestCase(unittest.TestCase):
         assert b'Something Funky' in rv.data, rv.data
 
         # try to self-delete
-        rv = self.app.get('/lvfs/user/3/delete', follow_redirects=True)
+        rv = self.app.get('/lvfs/users/3/delete', follow_redirects=True)
         assert b'Only the admin team can access this resource' in rv.data, rv.data
 
         # delete the user as the admin
         self.logout()
         self.login()
-        rv = self.app.get('/lvfs/user/3/delete', follow_redirects=True)
+        rv = self.app.get('/lvfs/users/3/delete', follow_redirects=True)
         assert b'Deleted user' in rv.data, rv.data
-        rv = self.app.get('/lvfs/userlist')
+        rv = self.app.get('/lvfs/users')
         assert b'testuser@fwupd.org' not in rv.data, rv.data
 
     def test_manager_users(self):
 
         # create a new vendor
         self.login()
-        rv = self.app.post('/lvfs/vendor/create', data=dict(group_id='testvendor'),
+        rv = self.app.post('/lvfs/vendors/create', data=dict(group_id='testvendor'),
                            follow_redirects=True)
         assert b'Added vendor' in rv.data, rv.data
 
         # set the username glob
-        rv = self.app.post('/lvfs/vendor/2/modify_by_admin', data=dict(
+        rv = self.app.post('/lvfs/vendors/2/modify_by_admin', data=dict(
             username_glob='*@testvendor.com,*@anothervendor.com',
         ), follow_redirects=True)
         assert b'Updated vendor' in rv.data, rv.data
@@ -1001,21 +1001,21 @@ class LvfsTestCase(unittest.TestCase):
         self.login('alice@testvendor.com')
 
         # try to add new user to new vendor with non-matching domain (fail)
-        rv = self.app.post('/lvfs/vendor/2/user/create', data=dict(
+        rv = self.app.post('/lvfs/vendors/2/user/create', data=dict(
             username='bob@hotmail.com',
             display_name='Generic Name',
         ), follow_redirects=True)
         assert b'Email address does not match account policy' in rv.data, rv.data
 
         # add new user with matching domain
-        rv = self.app.post('/lvfs/vendor/2/user/create', data=dict(
+        rv = self.app.post('/lvfs/vendors/2/user/create', data=dict(
             username='clara@testvendor.com',
             display_name='Generic Name',
         ), follow_redirects=True)
         assert b'Added user' in rv.data, rv.data
 
         # change the new user to allow a local login
-        rv = self.app.post('/lvfs/user/4/modify_by_admin', data=dict(
+        rv = self.app.post('/lvfs/users/4/modify_by_admin', data=dict(
             auth_type='local',
             password='Pa$$w0rd',
             is_vendor_manager=True,
@@ -1234,11 +1234,11 @@ ma+I7fM5pmgsEL4tkCZAg0+CPTyhHkMV/cWuOZUjqTsYbDq1pZI=
         assert b'replaces old report' in rv.data, rv.data
 
         # get a report that does not exist
-        rv = self.app.get('/lvfs/report/123456')
+        rv = self.app.get('/lvfs/reports/123456')
         assert b'Report does not exist' in rv.data, rv.data
 
         # check the saved report
-        rv = self.app.get('/lvfs/report/1')
+        rv = self.app.get('/lvfs/reports/1')
         assert b'UpdateState=success' in rv.data, rv.data
 
         # download the firmware at least once
@@ -1256,11 +1256,11 @@ ma+I7fM5pmgsEL4tkCZAg0+CPTyhHkMV/cWuOZUjqTsYbDq1pZI=
         assert b'ColorHug2' in rv.data, rv.data
 
         # delete the report
-        rv = self.app.get('/lvfs/report/1/delete', follow_redirects=True)
+        rv = self.app.get('/lvfs/reports/1/delete', follow_redirects=True)
         assert b'Deleted report' in rv.data, rv.data
 
         # check it is really deleted
-        rv = self.app.get('/lvfs/report/1')
+        rv = self.app.get('/lvfs/reports/1')
         assert b'Report does not exist' in rv.data, rv.data
 
     def test_settings(self):
@@ -1297,19 +1297,19 @@ ma+I7fM5pmgsEL4tkCZAg0+CPTyhHkMV/cWuOZUjqTsYbDq1pZI=
         self.login()
         self.add_namespace()
         self.upload()
-        rv = self.app.get('/lvfs/component/1/update')
+        rv = self.app.get('/lvfs/components/1/update')
         assert b'Work around the MCDC04 errata' in rv.data, rv.data
         assert b'value="low" selected' in rv.data, rv.data
 
         # edit the description and severity
-        rv = self.app.post('/lvfs/component/1/modify', data=dict(
+        rv = self.app.post('/lvfs/components/1/modify', data=dict(
             urgency='critical',
             description='Not enough cats!',
         ), follow_redirects=True)
         assert b'Component updated' in rv.data, rv.data
 
         # verify the new update info
-        rv = self.app.get('/lvfs/component/1/update')
+        rv = self.app.get('/lvfs/components/1/update')
         assert b'Not enough cats' in rv.data, rv.data
         assert b'value="critical" selected' in rv.data, rv.data
 
@@ -1321,7 +1321,7 @@ ma+I7fM5pmgsEL4tkCZAg0+CPTyhHkMV/cWuOZUjqTsYbDq1pZI=
         self.upload()
 
         # edit the name_variant_suffix to something contained in the <name>
-        rv = self.app.post('/lvfs/component/1/modify', data=dict(
+        rv = self.app.post('/lvfs/components/1/modify', data=dict(
             name_variant_suffix='Pre-Release ColorHug2',
         ), follow_redirects=True)
         assert b'Component updated' in rv.data, rv.data
@@ -1331,7 +1331,7 @@ ma+I7fM5pmgsEL4tkCZAg0+CPTyhHkMV/cWuOZUjqTsYbDq1pZI=
         assert b'ColorHug2 is already part' in rv.data, rv.data.decode()
 
         # edit the name_variant_suffix
-        rv = self.app.post('/lvfs/component/1/modify', data=dict(
+        rv = self.app.post('/lvfs/components/1/modify', data=dict(
             name_variant_suffix='Pre-Release',
         ), follow_redirects=True)
         assert b'Component updated' in rv.data, rv.data
@@ -1348,7 +1348,7 @@ ma+I7fM5pmgsEL4tkCZAg0+CPTyhHkMV/cWuOZUjqTsYbDq1pZI=
         self.upload()
 
         # check requirements were copied out from the .metainfo.xml file
-        rv = self.app.get('/lvfs/component/1/requires')
+        rv = self.app.get('/lvfs/components/1/requires')
         assert b'85d38fda-fc0e-5c6f-808f-076984ae7978' in rv.data, rv.data
         assert b'name="version" value="1.0.3' in rv.data, rv.data
         assert b'ge" selected' in rv.data, rv.data
@@ -1356,18 +1356,18 @@ ma+I7fM5pmgsEL4tkCZAg0+CPTyhHkMV/cWuOZUjqTsYbDq1pZI=
         assert b'BOT03.0[2-9]_*' in rv.data, rv.data
 
         # remove the CHID requirement
-        rv = self.app.get('/lvfs/component/1/requirement/delete/3', follow_redirects=True)
+        rv = self.app.get('/lvfs/components/1/requirement/delete/3', follow_redirects=True)
         assert b'Removed requirement 85d38fda-fc0e-5c6f-808f-076984ae7978' in rv.data, rv.data
 
         # add an invalid CHID
-        rv = self.app.post('/lvfs/component/1/requirement/modify', data=dict(
+        rv = self.app.post('/lvfs/components/1/requirement/modify', data=dict(
             kind='hardware',
             value='NOVALIDGUID',
         ), follow_redirects=True)
         assert b'NOVALIDGUID is not a valid GUID' in rv.data, rv.data
 
         # add a valid CHID
-        rv = self.app.post('/lvfs/component/1/requirement/modify', data=dict(
+        rv = self.app.post('/lvfs/components/1/requirement/modify', data=dict(
             kind='hardware',
             value='85d38fda-fc0e-5c6f-808f-076984ae7978',
         ), follow_redirects=True)
@@ -1375,7 +1375,7 @@ ma+I7fM5pmgsEL4tkCZAg0+CPTyhHkMV/cWuOZUjqTsYbDq1pZI=
         assert b'Added requirement' in rv.data, rv.data
 
         # modify an existing requirement by adding it again
-        rv = self.app.post('/lvfs/component/1/requirement/modify', data=dict(
+        rv = self.app.post('/lvfs/components/1/requirement/modify', data=dict(
             kind='id',
             value='org.freedesktop.fwupd',
             compare='ge',
@@ -1385,7 +1385,7 @@ ma+I7fM5pmgsEL4tkCZAg0+CPTyhHkMV/cWuOZUjqTsYbDq1pZI=
         assert b'Modified requirement' in rv.data, rv.data
 
         # delete a requirement by adding an 'any' comparison
-        rv = self.app.post('/lvfs/component/1/requirement/modify', data=dict(
+        rv = self.app.post('/lvfs/components/1/requirement/modify', data=dict(
             kind='id',
             value='org.freedesktop.fwupd',
             compare='any',
@@ -1400,11 +1400,11 @@ ma+I7fM5pmgsEL4tkCZAg0+CPTyhHkMV/cWuOZUjqTsYbDq1pZI=
         self.login()
         self.add_vendor('oem')  # 2
         self.add_user('alice@oem.com', 'oem')
-        rv = self.app.post('/lvfs/vendor/2/modify_by_admin', data={}, follow_redirects=True)
+        rv = self.app.post('/lvfs/vendors/2/modify_by_admin', data={}, follow_redirects=True)
         assert b'Updated vendor' in rv.data, rv.data
         self.add_vendor('odm')  # 3
         self.add_user('bob@odm.com', 'odm')
-        rv = self.app.post('/lvfs/vendor/3/modify_by_admin', data={}, follow_redirects=True)
+        rv = self.app.post('/lvfs/vendors/3/modify_by_admin', data={}, follow_redirects=True)
         assert b'Updated vendor' in rv.data, rv.data
         self.add_namespace(vendor_id=2)
         self.add_namespace(vendor_id=3)
@@ -1457,7 +1457,7 @@ ma+I7fM5pmgsEL4tkCZAg0+CPTyhHkMV/cWuOZUjqTsYbDq1pZI=
         assert b'Changed firmware vendor' in rv.data, rv.data.decode()
 
     def add_affiliation(self, vendor_id_oem, vendor_id_odm, default_actions=True, actions=None):
-        rv = self.app.post('/lvfs/vendor/%u/affiliation/create' % vendor_id_oem, data=dict(
+        rv = self.app.post('/lvfs/vendors/%u/affiliation/create' % vendor_id_oem, data=dict(
             vendor_id_odm=vendor_id_odm,
         ), follow_redirects=True)
         assert b'Added affiliation' in rv.data, rv.data
@@ -1475,12 +1475,12 @@ ma+I7fM5pmgsEL4tkCZAg0+CPTyhHkMV/cWuOZUjqTsYbDq1pZI=
         if default_actions:
             actions.append('@modify-limit')
         for act in actions:
-            rv = self.app.get('/lvfs/vendor/{}/affiliation/{}/action/create/{}'.format(vendor_id_oem, aff_id, act),
+            rv = self.app.get('/lvfs/vendors/{}/affiliation/{}/action/create/{}'.format(vendor_id_oem, aff_id, act),
                               follow_redirects=True)
             assert b'Added action' in rv.data, rv.data.decode()
 
     def add_namespace(self, vendor_id=1, value='com.hughski'):
-        rv = self.app.post('/lvfs/vendor/{}/namespace/create'.format(vendor_id),
+        rv = self.app.post('/lvfs/vendors/{}/namespace/create'.format(vendor_id),
                            data=dict(value=value),
                            follow_redirects=True)
         assert b'Added namespace' in rv.data, rv.data
@@ -1494,27 +1494,27 @@ ma+I7fM5pmgsEL4tkCZAg0+CPTyhHkMV/cWuOZUjqTsYbDq1pZI=
         self.add_user('bob@odm.com', 'odm', is_qa=True)
         self.add_vendor('another-unrelated-oem')  # 4
 
-        rv = self.app.post('/lvfs/vendor/2/modify_by_admin', data=dict(
+        rv = self.app.post('/lvfs/vendors/2/modify_by_admin', data=dict(
             display_name='AliceOEM',
         ), follow_redirects=True)
         assert b'Updated vendor' in rv.data, rv.data
 
-        rv = self.app.post('/lvfs/vendor/3/modify_by_admin', data=dict(
+        rv = self.app.post('/lvfs/vendors/3/modify_by_admin', data=dict(
             display_name='BobOEM',
         ), follow_redirects=True)
         assert b'Updated vendor' in rv.data, rv.data
 
         # no affiliations
-        rv = self.app.get('/lvfs/vendor/2/affiliations')
+        rv = self.app.get('/lvfs/vendors/2/affiliations')
         assert b'No affiliations exist' in rv.data, rv.data
 
         # add affiliation (as admin)
         self.add_affiliation(2, 3)
-        rv = self.app.get('/lvfs/vendor/2/affiliations')
+        rv = self.app.get('/lvfs/vendors/2/affiliations')
         assert b'<div class="card-title">\n      BobOEM' in rv.data, rv.data.decode()
 
         # add duplicate (as admin)
-        rv = self.app.post('/lvfs/vendor/2/affiliation/create', data=dict(
+        rv = self.app.post('/lvfs/vendors/2/affiliation/create', data=dict(
             vendor_id_odm='3',
         ), follow_redirects=True)
         assert b'Already a affiliation with that ODM' in rv.data, rv.data
@@ -1523,16 +1523,16 @@ ma+I7fM5pmgsEL4tkCZAg0+CPTyhHkMV/cWuOZUjqTsYbDq1pZI=
         self.add_namespace(vendor_id=2, value='com.hughski')
 
         # add and remove actions
-        rv = self.app.get('/lvfs/vendor/2/affiliation/1/action/create/DAVE',
+        rv = self.app.get('/lvfs/vendors/2/affiliation/1/action/create/DAVE',
                           follow_redirects=True)
         assert b'Failed to add action: Expected' in rv.data, rv.data.decode()
-        rv = self.app.get('/lvfs/vendor/2/affiliation/1/action/create/@test',
+        rv = self.app.get('/lvfs/vendors/2/affiliation/1/action/create/@test',
                           follow_redirects=True)
         assert b'Added action' in rv.data, rv.data.decode()
-        rv = self.app.get('/lvfs/vendor/2/affiliation/1/action/remove/@notgoingtoexist',
+        rv = self.app.get('/lvfs/vendors/2/affiliation/1/action/remove/@notgoingtoexist',
                           follow_redirects=True)
         assert b'Failed to remove action: Not present' in rv.data, rv.data.decode()
-        rv = self.app.get('/lvfs/vendor/2/affiliation/1/action/remove/@test',
+        rv = self.app.get('/lvfs/vendors/2/affiliation/1/action/remove/@test',
                           follow_redirects=True)
         assert b'Removed action' in rv.data, rv.data.decode()
 
@@ -1557,7 +1557,7 @@ ma+I7fM5pmgsEL4tkCZAg0+CPTyhHkMV/cWuOZUjqTsYbDq1pZI=
         assert b'ColorHug2' in rv.data, rv.data.decode()
 
         # check bob can change the update description and severity
-        rv = self.app.post('/lvfs/component/1/modify', data=dict(
+        rv = self.app.post('/lvfs/components/1/modify', data=dict(
             urgency='critical',
             description='Not enough cats!',
         ), follow_redirects=True)
@@ -1580,9 +1580,9 @@ ma+I7fM5pmgsEL4tkCZAg0+CPTyhHkMV/cWuOZUjqTsYbDq1pZI=
 
         # remove affiliation as admin
         self.login()
-        rv = self.app.get('/lvfs/vendor/2/affiliation/1/delete', follow_redirects=True)
+        rv = self.app.get('/lvfs/vendors/2/affiliation/1/delete', follow_redirects=True)
         assert b'Deleted affiliation' in rv.data, rv.data
-        rv = self.app.get('/lvfs/vendor/2/affiliations')
+        rv = self.app.get('/lvfs/vendors/2/affiliations')
         assert b'No affiliations exist' in rv.data, rv.data
 
     def test_affiliated_qa_user_cannot_promote(self):
@@ -1627,9 +1627,9 @@ ma+I7fM5pmgsEL4tkCZAg0+CPTyhHkMV/cWuOZUjqTsYbDq1pZI=
         self.add_user('bob@odm.com', 'odm')
         self.add_vendor('another-unrelated-oem')  # 4
         self.add_affiliation(2, 3)
-        rv = self.app.post('/lvfs/vendor/2/modify_by_admin', data={}, follow_redirects=True)
+        rv = self.app.post('/lvfs/vendors/2/modify_by_admin', data={}, follow_redirects=True)
         assert b'Updated vendor' in rv.data, rv.data
-        rv = self.app.post('/lvfs/vendor/3/modify_by_admin', data={}, follow_redirects=True)
+        rv = self.app.post('/lvfs/vendors/3/modify_by_admin', data={}, follow_redirects=True)
         assert b'Updated vendor' in rv.data, rv.data
         self.logout()
 
@@ -1657,9 +1657,9 @@ ma+I7fM5pmgsEL4tkCZAg0+CPTyhHkMV/cWuOZUjqTsYbDq1pZI=
 
         # remove affiliation as admin
         self.login()
-        rv = self.app.get('/lvfs/vendor/2/affiliation/1/delete', follow_redirects=True)
+        rv = self.app.get('/lvfs/vendors/2/affiliation/1/delete', follow_redirects=True)
         assert b'Deleted affiliation' in rv.data, rv.data
-        rv = self.app.get('/lvfs/vendor/2/affiliations')
+        rv = self.app.get('/lvfs/vendors/2/affiliations')
         assert b'No affiliations exist' in rv.data, rv.data
 
     def test_keywords(self):
@@ -1670,12 +1670,12 @@ ma+I7fM5pmgsEL4tkCZAg0+CPTyhHkMV/cWuOZUjqTsYbDq1pZI=
         self.upload()
 
         # check keywords were copied out from the .metainfo.xml file
-        rv = self.app.get('/lvfs/component/1/keywords')
+        rv = self.app.get('/lvfs/components/1/keywords')
         assert b'>alice<' in rv.data, rv.data
         assert b'>bob<' in rv.data, rv.data
 
         # add another set of keywords
-        rv = self.app.post('/lvfs/component/1/keyword/create', data=dict(
+        rv = self.app.post('/lvfs/components/1/keyword/create', data=dict(
             value='Clara Dave',
         ), follow_redirects=True)
         assert b'Added keywords' in rv.data, rv.data
@@ -1683,7 +1683,7 @@ ma+I7fM5pmgsEL4tkCZAg0+CPTyhHkMV/cWuOZUjqTsYbDq1pZI=
         assert b'>dave<' in rv.data, rv.data
 
         # delete one of the added keywords
-        rv = self.app.get('/lvfs/component/1/keyword/3/delete', follow_redirects=True)
+        rv = self.app.get('/lvfs/components/1/keyword/3/delete', follow_redirects=True)
         assert b'Removed keyword' in rv.data, rv.data
         assert b'>alice<' in rv.data, rv.data
         assert b'>colorimeter<' not in rv.data, rv.data
@@ -1696,12 +1696,12 @@ ma+I7fM5pmgsEL4tkCZAg0+CPTyhHkMV/cWuOZUjqTsYbDq1pZI=
         self.upload(filename='contrib/intelme.cab', target='private')
 
         # check CVEs were copied out from the .metainfo.xml file
-        rv = self.app.get('/lvfs/component/1/issues')
+        rv = self.app.get('/lvfs/components/1/issues')
         assert b'CVE-2016' in rv.data, rv.data.decode()
         assert b'CVE-2017' in rv.data, rv.data.decode()
 
         # add another set of CVEs
-        rv = self.app.post('/lvfs/component/1/issue/create', data=dict(
+        rv = self.app.post('/lvfs/components/1/issue/create', data=dict(
             value='CVE-2018-00000,CVE-2019-00000',
         ), follow_redirects=True)
         assert b'Added CVE-' in rv.data, rv.data.decode()
@@ -1711,12 +1711,12 @@ ma+I7fM5pmgsEL4tkCZAg0+CPTyhHkMV/cWuOZUjqTsYbDq1pZI=
         assert b'CVE-2019' in rv.data, rv.data.decode()
 
         # delete one of the added CVEs
-        rv = self.app.get('/lvfs/component/1/issue/3/delete', follow_redirects=True)
+        rv = self.app.get('/lvfs/components/1/issue/3/delete', follow_redirects=True)
         assert b'Removed CVE-2018' in rv.data, rv.data.decode()
         assert b'CVE-2017' in rv.data, rv.data.decode()
 
         # update the description to include CVEs
-        rv = self.app.post('/lvfs/component/1/modify', data=dict(
+        rv = self.app.post('/lvfs/components/1/modify', data=dict(
             urgency='critical',
             description='- Address security advisories INTEL-SA-00233(CVE-2018-12126, CVE-2018-12127)\n'
                         '- Firmware updates to address security advisory INTEL-SA-00213',
@@ -1728,11 +1728,11 @@ ma+I7fM5pmgsEL4tkCZAg0+CPTyhHkMV/cWuOZUjqTsYbDq1pZI=
         assert b'CVE information should be entered in the issues section' in rv.data, rv.data.decode()
 
         # autoimport the CVEs
-        rv = self.app.get('/lvfs/component/1/issue/autoimport', follow_redirects=True)
+        rv = self.app.get('/lvfs/components/1/issue/autoimport', follow_redirects=True)
         assert b'Added 2 issues' in rv.data, rv.data.decode()
         rv = self.app.get('/lvfs/firmware/1/problems')
         assert b'CVE information should be entered in the issues section' not in rv.data, rv.data.decode()
-        rv = self.app.get('/lvfs/component/1/update')
+        rv = self.app.get('/lvfs/components/1/update')
         assert b'- Address security advisories INTEL-SA-00233(, )\n' +\
                b'- Firmware updates to address security advisory INTEL-SA-00213' in rv.data, rv.data.decode()
 
@@ -1744,30 +1744,30 @@ ma+I7fM5pmgsEL4tkCZAg0+CPTyhHkMV/cWuOZUjqTsYbDq1pZI=
         self.upload()
 
         # add invalid checksums
-        rv = self.app.post('/lvfs/component/1/checksum/create', data=dict(
+        rv = self.app.post('/lvfs/components/1/checksum/create', data=dict(
             value='xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx',
         ), follow_redirects=True)
         assert b'is not a recognised SHA1 or SHA256 hash' in rv.data, rv.data
-        rv = self.app.post('/lvfs/component/1/checksum/create', data=dict(
+        rv = self.app.post('/lvfs/components/1/checksum/create', data=dict(
             value='xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx',
         ), follow_redirects=True)
         assert b'is not a recognised SHA1 or SHA256 hash' in rv.data, rv.data
 
         # add a SHA256 checksum
-        rv = self.app.post('/lvfs/component/1/checksum/create', data=dict(
+        rv = self.app.post('/lvfs/components/1/checksum/create', data=dict(
             value='9d72ffd950d3bedcda99a197d760457e90f3d6f2a62b30b95a488511f0dfa4ad',
         ), follow_redirects=True)
         assert b'Added device checksum' in rv.data, rv.data
         assert b'9d72ffd950d3bedcda99a197d760457e90f3d6f2a62b30b95a488511f0dfa4ad' in rv.data, rv.data
 
         # add the same checksum again
-        rv = self.app.post('/lvfs/component/1/checksum/create', data=dict(
+        rv = self.app.post('/lvfs/components/1/checksum/create', data=dict(
             value='9d72ffd950d3bedcda99a197d760457e90f3d6f2a62b30b95a488511f0dfa4ad',
         ), follow_redirects=True)
         assert b'has already been added' in rv.data, rv.data
 
         # add a SHA1 checksum
-        rv = self.app.post('/lvfs/component/1/checksum/create', data=dict(
+        rv = self.app.post('/lvfs/components/1/checksum/create', data=dict(
             value='fb6439cbda2add6c394f71b7cf955dd9a276ca5a',
         ), follow_redirects=True)
         assert b'Added device checksum' in rv.data, rv.data
@@ -1775,7 +1775,7 @@ ma+I7fM5pmgsEL4tkCZAg0+CPTyhHkMV/cWuOZUjqTsYbDq1pZI=
 
 
         # delete the checksum
-        rv = self.app.get('/lvfs/component/1/checksum/delete/1', follow_redirects=True)
+        rv = self.app.get('/lvfs/components/1/checksum/delete/1', follow_redirects=True)
         assert b'Removed device checksum' in rv.data, rv.data
         assert b'9d72ffd950d3bedcda99a197d760457e90f3d6f2a62b30b95a488511f0dfa4ad' not in rv.data, rv.data
 
@@ -1849,8 +1849,8 @@ ma+I7fM5pmgsEL4tkCZAg0+CPTyhHkMV/cWuOZUjqTsYbDq1pZI=
                 '/status',
                 '/vendorlist',
                 '/lvfs/newaccount',
-                '/lvfs/devicelist',
-                '/lvfs/device/2082b5e0-7a64-478a-b1b2-e3404fab6dad',
+                '/lvfs/devices',
+                '/lvfs/devices/2082b5e0-7a64-478a-b1b2-e3404fab6dad',
                 '/lvfs/docs/introduction',
                 '/lvfs/docs/affiliates',
                 '/lvfs/docs/agreement',
@@ -1892,24 +1892,24 @@ ma+I7fM5pmgsEL4tkCZAg0+CPTyhHkMV/cWuOZUjqTsYbDq1pZI=
     def add_issue(self, issue_id=1, url='https://github.com/hughsie/fwupd/wiki/Arch-Linux', name='ColorHug on Fedora'):
 
         # create an issue
-        rv = self.app.post('/lvfs/issue/create', data=dict(
+        rv = self.app.post('/lvfs/issues/create', data=dict(
             url=url,
         ), follow_redirects=True)
         assert b'Added issue' in rv.data, rv.data
-        rv = self.app.get('/lvfs/issue/list')
+        rv = self.app.get('/lvfs/issues')
         assert url in rv.data.decode('utf-8'), rv.data
-        rv = self.app.get('/lvfs/issue/%i/details' % issue_id, follow_redirects=True)
+        rv = self.app.get('/lvfs/issues/%i/details' % issue_id, follow_redirects=True)
         assert url in rv.data.decode('utf-8'), rv.data
 
         # modify the description
         data = {'name': name,
                 'description': 'Matches updating ColorHug on Fedora'}
-        rv = self.app.post('/lvfs/issue/%i/modify' % issue_id, data=data, follow_redirects=True)
+        rv = self.app.post('/lvfs/issues/%i/modify' % issue_id, data=data, follow_redirects=True)
         assert name in rv.data.decode('utf-8'), rv.data
         assert b'Matches updating ColorHug on Fedora' in rv.data, rv.data
 
     def _enable_issue(self, issue_id=1):
-        return self.app.post('/lvfs/issue/%i/modify' % issue_id, data=dict(
+        return self.app.post('/lvfs/issues/%i/modify' % issue_id, data=dict(
             enabled=True,
         ), follow_redirects=True)
 
@@ -1923,7 +1923,7 @@ ma+I7fM5pmgsEL4tkCZAg0+CPTyhHkMV/cWuOZUjqTsYbDq1pZI=
             'value': value,
             'compare': compare,
         }
-        return self.app.post('/lvfs/issue/%i/condition/create' % issue_id,
+        return self.app.post('/lvfs/issues/%i/condition/create' % issue_id,
                              data=data, follow_redirects=True)
 
     def add_issue_condition(self, issue_id=1):
@@ -1934,7 +1934,7 @@ ma+I7fM5pmgsEL4tkCZAg0+CPTyhHkMV/cWuOZUjqTsYbDq1pZI=
 
         # login, and check there are no issues
         self.login()
-        rv = self.app.get('/lvfs/issue/list')
+        rv = self.app.get('/lvfs/issues')
         assert b'No issues have been created' in rv.data, rv.data
 
         # create an issue
@@ -1980,15 +1980,15 @@ ma+I7fM5pmgsEL4tkCZAg0+CPTyhHkMV/cWuOZUjqTsYbDq1pZI=
         assert b'https://github.com/hughsie/fwupd/wiki/Arch-Linux' not in rv.data, rv.data
 
         # remove Condition
-        rv = self.app.get('/lvfs/issue/1/condition/1/delete', follow_redirects=True)
+        rv = self.app.get('/lvfs/issues/1/condition/1/delete', follow_redirects=True)
         assert b'Deleted condition' in rv.data, rv.data
-        rv = self.app.get('/lvfs/issue/1/condition/1/delete', follow_redirects=True)
+        rv = self.app.get('/lvfs/issues/1/condition/1/delete', follow_redirects=True)
         assert b'No condition found' in rv.data, rv.data
 
         # delete the issue
-        rv = self.app.get('/lvfs/issue/1/delete', follow_redirects=True)
+        rv = self.app.get('/lvfs/issues/1/delete', follow_redirects=True)
         assert b'Deleted issue' in rv.data, rv.data
-        rv = self.app.get('/lvfs/issue/1/delete', follow_redirects=True)
+        rv = self.app.get('/lvfs/issues/1/delete', follow_redirects=True)
         assert b'No issue found' in rv.data, rv.data
 
     def _add_certificate(self, filename='contrib/client.pem'):
@@ -1996,7 +1996,7 @@ ma+I7fM5pmgsEL4tkCZAg0+CPTyhHkMV/cWuOZUjqTsYbDq1pZI=
             data = {
                 'file': (fd, filename)
             }
-            return self.app.post('/lvfs/user/certificate/create', data=data, follow_redirects=True)
+            return self.app.post('/lvfs/users/certificate/create', data=data, follow_redirects=True)
 
     def test_user_certificates(self):
 
@@ -2021,7 +2021,7 @@ ma+I7fM5pmgsEL4tkCZAg0+CPTyhHkMV/cWuOZUjqTsYbDq1pZI=
         assert b'No client certificates have been uploaded' not in rv.data, rv.data
 
         # remove
-        rv = self.app.get('/lvfs/user/certificate/remove/1', follow_redirects=True)
+        rv = self.app.get('/lvfs/users/certificate/remove/1', follow_redirects=True)
         assert b'Deleted certificate' in rv.data, rv.data
         rv = self.app.get('/lvfs/profile')
         assert b'5f11a237b994931bbef869bd0153235874fa8f8b' not in rv.data, rv.data
@@ -2039,7 +2039,7 @@ ma+I7fM5pmgsEL4tkCZAg0+CPTyhHkMV/cWuOZUjqTsYbDq1pZI=
         self.add_issue(name='Shared', url='https://fwupd.org/')
         self.add_issue_condition()
         self.enable_issue()
-        rv = self.app.get('/lvfs/issue/1/priority/down', follow_redirects=True)
+        rv = self.app.get('/lvfs/issues/1/priority/down', follow_redirects=True)
         assert b'<!-- -1 -->' in rv.data, rv.data
         self.logout()
 
@@ -2048,32 +2048,32 @@ ma+I7fM5pmgsEL4tkCZAg0+CPTyhHkMV/cWuOZUjqTsYbDq1pZI=
         self.add_issue(issue_id=2, name='Secret')
         self.add_issue_condition(issue_id=2)
         self.enable_issue(issue_id=2)
-        rv = self.app.get('/lvfs/issue/2/priority/up', follow_redirects=True)
+        rv = self.app.get('/lvfs/issues/2/priority/up', follow_redirects=True)
         assert b'<!-- 1 -->' in rv.data, rv.data
         self.logout()
 
         # bob can only see the admin issue, not the one from alice
         self.login('bob@fwupd.org')
-        rv = self.app.get('/lvfs/issue/list')
+        rv = self.app.get('/lvfs/issues')
         assert b'Shared' in rv.data, rv.data
         assert b'Secret' not in rv.data, rv.data
 
         # we can only view the admin issue
-        rv = self.app.get('/lvfs/issue/1/condition/1/delete', follow_redirects=True)
+        rv = self.app.get('/lvfs/issues/1/condition/1/delete', follow_redirects=True)
         assert b'Unable to delete condition from issue' in rv.data, rv.data
-        rv = self.app.get('/lvfs/issue/1/delete', follow_redirects=True)
+        rv = self.app.get('/lvfs/issues/1/delete', follow_redirects=True)
         assert b'Unable to delete report' in rv.data, rv.data
-        rv = self.app.get('/lvfs/issue/1/details')
+        rv = self.app.get('/lvfs/issues/1/details')
         assert b'Shared' in rv.data, rv.data
 
         # we can't do anything to the secret issue
-        rv = self.app.get('/lvfs/issue/2/condition/1/delete', follow_redirects=True)
+        rv = self.app.get('/lvfs/issues/2/condition/1/delete', follow_redirects=True)
         assert b'Unable to delete condition from issue' in rv.data, rv.data
-        rv = self.app.get('/lvfs/issue/2/delete', follow_redirects=True)
+        rv = self.app.get('/lvfs/issues/2/delete', follow_redirects=True)
         assert b'Unable to delete report' in rv.data, rv.data
-        rv = self.app.get('/lvfs/issue/2/details', follow_redirects=True)
+        rv = self.app.get('/lvfs/issues/2/details', follow_redirects=True)
         assert b'Unable to view issue details' in rv.data, rv.data
-        rv = self.app.get('/lvfs/issue/2/priority/up', follow_redirects=True)
+        rv = self.app.get('/lvfs/issues/2/priority/up', follow_redirects=True)
         assert b'Unable to change issue priority' in rv.data, rv.data
 
     def test_download_repeat(self):
@@ -2123,7 +2123,7 @@ ma+I7fM5pmgsEL4tkCZAg0+CPTyhHkMV/cWuOZUjqTsYbDq1pZI=
         self.add_user('testuser@fwupd.org')
         self.logout()
         self.login('testuser@fwupd.org')
-        rv = self.app.get('/lvfs/agreement/1/decline', follow_redirects=True)
+        rv = self.app.get('/lvfs/agreements/1/decline', follow_redirects=True)
         assert b'Recorded decline of the agreement' in rv.data, rv.data
         rv = self._upload('contrib/hughski-colorhug2-2.0.3.cab', 'private')
         assert b'User has not signed legal agreement' in rv.data, rv.data
@@ -2132,31 +2132,31 @@ ma+I7fM5pmgsEL4tkCZAg0+CPTyhHkMV/cWuOZUjqTsYbDq1pZI=
 
         # get the default one
         self.login()
-        rv = self.app.get('/lvfs/agreement/list')
+        rv = self.app.get('/lvfs/agreements/list')
         assert b'New agreement text' in rv.data, rv.data
 
         # modify the agreement
-        rv = self.app.post('/lvfs/agreement/1/modify', data=dict(
+        rv = self.app.post('/lvfs/agreements/1/modify', data=dict(
             version=12345,
             text='DONOTSIGN',
         ), follow_redirects=True)
         assert b'Modified agreement' in rv.data, rv.data
         assert b'12345' in rv.data, rv.data
         assert b'DONOTSIGN' in rv.data, rv.data
-        rv = self.app.get('/lvfs/agreement/list')
+        rv = self.app.get('/lvfs/agreements/list')
         assert b'12345' in rv.data, rv.data
         assert b'DONOTSIGN' in rv.data, rv.data
 
         # create a new one
-        rv = self.app.get('/lvfs/agreement/create', follow_redirects=True)
+        rv = self.app.get('/lvfs/agreements/create', follow_redirects=True)
         assert b'Created agreement' in rv.data, rv.data
-        rv = self.app.get('/lvfs/agreement/list')
+        rv = self.app.get('/lvfs/agreements/list')
         assert b'New agreement text' in rv.data, rv.data
 
         # delete the original one
-        rv = self.app.get('/lvfs/agreement/1/delete', follow_redirects=True)
+        rv = self.app.get('/lvfs/agreements/1/delete', follow_redirects=True)
         assert b'Deleted agreement' in rv.data, rv.data
-        rv = self.app.get('/lvfs/agreement/list')
+        rv = self.app.get('/lvfs/agreements/list')
         assert b'DONOTSIGN' not in rv.data, rv.data
 
     def _get_token_from_eventlog(self, token_before):
@@ -2179,13 +2179,13 @@ ma+I7fM5pmgsEL4tkCZAg0+CPTyhHkMV/cWuOZUjqTsYbDq1pZI=
         self.logout()
 
         # not logged in
-        rv = self.app.get('/lvfs/user/recover', follow_redirects=True)
+        rv = self.app.get('/lvfs/users/recover', follow_redirects=True)
         assert b'Forgot your password' in rv.data, rv.data
-        rv = self.app.post('/lvfs/user/recover', data=dict(
+        rv = self.app.post('/lvfs/users/recover', data=dict(
             username='NOBODY@fwupd.org',
         ), follow_redirects=True)
         assert b'Unable to recover password as no username' in rv.data, rv.data
-        rv = self.app.post('/lvfs/user/recover', data=dict(
+        rv = self.app.post('/lvfs/users/recover', data=dict(
             username='testuser@fwupd.org',
         ), follow_redirects=True)
         assert b'email has been sent with a recovery link' in rv.data, rv.data
@@ -2225,34 +2225,34 @@ rule AMITestKey
 
         # create a new query
         self.login()
-        rv = self.app.post('/lvfs/query/create', data=dict(value=yara_rule),
+        rv = self.app.post('/lvfs/queries/create', data=dict(value=yara_rule),
                            follow_redirects=True)
         assert b'added and will be run soon' in rv.data, rv.data.decode()
 
         # add duplicate
-        rv = self.app.post('/lvfs/query/create', data=dict(value=yara_rule),
+        rv = self.app.post('/lvfs/queries/create', data=dict(value=yara_rule),
                            follow_redirects=True)
         assert b'Already a query' in rv.data, rv.data.decode()
 
-        rv = self.app.get('/lvfs/query/list', follow_redirects=True)
+        rv = self.app.get('/lvfs/queries', follow_redirects=True)
         assert b'AMITestKey' in rv.data, rv.data.decode()
 
-        rv = self.app.get('/lvfs/query/1', follow_redirects=True)
+        rv = self.app.get('/lvfs/queries/1', follow_redirects=True)
         assert b'AMITestKey' in rv.data, rv.data.decode()
 
         self.run_cron_fwchecks()
 
-        rv = self.app.get('/lvfs/query/list', follow_redirects=True)
+        rv = self.app.get('/lvfs/queries', follow_redirects=True)
         assert b'0 out of 0' in rv.data, rv.data.decode()
         assert b'Retry' in rv.data, rv.data.decode()
 
-        rv = self.app.get('/lvfs/query/1/retry', follow_redirects=True)
+        rv = self.app.get('/lvfs/queries/1/retry', follow_redirects=True)
         assert b'will be rerun soon' in rv.data, rv.data.decode()
 
-        rv = self.app.get('/lvfs/query/1/delete', follow_redirects=True)
+        rv = self.app.get('/lvfs/queries/1/delete', follow_redirects=True)
         assert b'Deleted YARA query' in rv.data, rv.data.decode()
 
-        rv = self.app.get('/lvfs/query/1', follow_redirects=True)
+        rv = self.app.get('/lvfs/queries/1', follow_redirects=True)
         assert b'No YARA query found' in rv.data, rv.data.decode()
 
 if __name__ == '__main__':

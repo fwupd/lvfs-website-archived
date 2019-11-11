@@ -287,7 +287,7 @@ def route_upload_robot():
     # continue with form data
     return _upload_firmware()
 
-@app.route('/lvfs/upload_firmware', methods=['GET', 'POST'])
+@app.route('/lvfs/upload/firmware', methods=['GET', 'POST'])
 @login_required
 def route_upload_firmware():
     """ Upload a .cab file to the LVFS service """
@@ -297,7 +297,7 @@ def route_upload_firmware():
         if not hasattr(g, 'user'):
             return redirect(url_for('.route_index'))
         if not _user_can_upload(g.user):
-            return redirect(url_for('.route_agreement_show'))
+            return redirect(url_for('.route_agreements_show'))
         vendor_ids = []
         vendor = db.session.query(Vendor).filter(Vendor.vendor_id == g.user.vendor_id).first()
         if vendor:
@@ -313,7 +313,7 @@ def route_upload_firmware():
     # continue with form data
     return _upload_firmware()
 
-@app.route('/lvfs/upload_hwinfo', methods=['POST'])
+@app.route('/lvfs/upload/hwinfo', methods=['POST'])
 def route_upload_hwinfo():
     """ Upload a hwinfo binary file to the LVFS service without authentication """
 

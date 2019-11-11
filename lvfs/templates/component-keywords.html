@@ -15,7 +15,7 @@
 {% if md.check_acl('@modify-keywords') %}
 {% if kw.priority < 5 %}
       <a class="btn btn-block btn-danger"
-        href="{{url_for('.route_component_keyword_delete', component_id=md.component_id, keyword_id=kw.keyword_id)}}">Delete</a>
+        href="{{url_for('.route_components_keyword_delete', component_id=md.component_id, keyword_id=kw.keyword_id)}}">Delete</a>
 {% else %}
       <a class="btn btn-block btn-danger disabled" href="#">Delete</a>
 {% endif %}
@@ -24,7 +24,7 @@
   </tr>
 {% endfor %}
 {% if md.check_acl('@modify-keywords') %}
-  <form method="post" action="{{url_for('.route_component_keyword_create', component_id=md.component_id)}}" class="form">
+  <form method="post" action="{{url_for('.route_components_keyword_create', component_id=md.component_id)}}" class="form">
   <input type="hidden" name="csrf_token" value="{{csrf_token()}}"/>
   <tr class="row table-borderless">
     <td class="col col-lg-10">

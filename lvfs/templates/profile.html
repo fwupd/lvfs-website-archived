@@ -11,7 +11,7 @@
     <div class="card mb-3">
       <div class="card-body bg-light">
         <div class="card-title">Profile Settings</div>
-        <form class="form" method="post" action="{{url_for('.route_user_modify', user_id=g.user.user_id)}}">
+        <form class="form" method="post" action="{{url_for('.route_users_modify', user_id=g.user.user_id)}}">
           <input type="hidden" name="csrf_token" value="{{csrf_token()}}"/>
           <div class="row">
             <div class="col-lg-12">
@@ -38,7 +38,7 @@
     </div>
 
     <!-- notifications -->
-    <form class="form" method="post" action="{{url_for('.route_user_modify', user_id=g.user.user_id)}}">
+    <form class="form" method="post" action="{{url_for('.route_users_modify', user_id=g.user.user_id)}}">
     <input type="hidden" name="csrf_token" value="{{csrf_token()}}"/>
     <div class="card mb-3 mb-xl-3">
       <div class="card-body bg-light">
@@ -140,14 +140,14 @@
             <td class="col col-md-7 text-truncate"><code>{{crt.serial}}</code></td>
             <td class="col">
               <a class="btn btn-danger btn-block"
-                 href="{{url_for('.route_user_certificate_remove',
+                 href="{{url_for('.route_users_certificate_remove',
                                  certificate_id=crt.certificate_id)}}">Remove</a>
             </td>
           </tr>
 {% endfor %}
         </table>
 {% endif %}
-        <form method="post" enctype="multipart/form-data" action="{{url_for('.route_user_certificate_create')}}" id="form">
+        <form method="post" enctype="multipart/form-data" action="{{url_for('.route_users_certificate_create')}}" id="form">
           <input type="hidden" name="csrf_token" value="{{csrf_token()}}"/>
           <label class="btn btn-primary card-text">
             Upload Certificate
@@ -166,7 +166,7 @@
       <div class="card mb-3 overflow-hidden">
         <div class="card-body bg-light">
           <div class="card-title">Authentication</div>
-          <form method="post" action="{{url_for('.route_user_auth', user_id=g.user.user_id)}}">
+          <form method="post" action="{{url_for('.route_users_auth', user_id=g.user.user_id)}}">
             <input type="hidden" name="csrf_token" value="{{csrf_token()}}"/>
             <p>Using 2 factor authentication secures your account more than just using a password.</p>
 {% if g.user.is_otp_working %}
@@ -190,7 +190,7 @@
       <div class="card mb-3">
         <div class="card-body bg-light">
           <div class="card-title">Change Password</div>
-          <form method="post" action="{{url_for('.route_user_password', user_id=g.user.user_id)}}">
+          <form method="post" action="{{url_for('.route_users_password', user_id=g.user.user_id)}}">
             <input type="hidden" name="csrf_token" value="{{csrf_token()}}"/>
             <div class="form-group">
               <label for="password_old">Old Password</label>
@@ -249,9 +249,9 @@ document.getElementById("file").onchange = function() {
           or any other suitable OTP application to scan this QR code:
         </p>
         <p class="text-center">
-          <img id="qrcode" src="{{ url_for('.route_user_qrcode') }}">
+          <img id="qrcode" src="{{ url_for('.route_users_qrcode') }}">
         </p>
-        <form method="post" action="{{url_for('.route_user_otp_test')}}">
+        <form method="post" action="{{url_for('.route_users_otp_test')}}">
           <input type="hidden" name="csrf_token" value="{{csrf_token()}}"/>
           <div class="form-group">
             <label for="otp">Test your OTP code:</label>
@@ -287,7 +287,7 @@ document.getElementById("file").onchange = function() {
       </div>
       <div class="modal-footer">
         <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
-        <a class="btn btn-danger" href="{{url_for('.route_user_deactivate', user_id=g.user.user_id)}}">☠ Deactivate ☠</a>
+        <a class="btn btn-danger" href="{{url_for('.route_users_deactivate', user_id=g.user.user_id)}}">☠ Deactivate ☠</a>
       </div>
     </div>
   </div>

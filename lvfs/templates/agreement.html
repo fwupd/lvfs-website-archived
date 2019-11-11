@@ -8,8 +8,8 @@
 {{agreement.text|safe}}
 <p class="text-muted">Version {{agreement.version}}</p>
 <div class="text-center">
-  <a class="btn btn-primary btn-lg" href="{{url_for('.route_agreement_confirm', agreement_id=agreement.agreement_id)}}">Agree</a>
-  <a class="btn btn-danger btn-lg" href="{{url_for('.route_agreement_decline', agreement_id=agreement.agreement_id)}}">Decline</a>
+  <a class="btn btn-primary btn-lg" href="{{url_for('.route_agreements_confirm', agreement_id=agreement.agreement_id)}}">Agree</a>
+  <a class="btn btn-danger btn-lg" href="{{url_for('.route_agreements_decline', agreement_id=agreement.agreement_id)}}">Decline</a>
 </div>
   </div>
 </div>

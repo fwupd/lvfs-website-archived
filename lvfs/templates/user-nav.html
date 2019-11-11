@@ -1,28 +1,28 @@
 <nav class="row">
   <div class="col col-sm-1 btn-group mb-3">
     <a class="btn btn-falcon-default mr-sm-3"
-      href="{{url_for('.route_vendor_users', vendor_id=u.vendor.vendor_id)}}">
+      href="{{url_for('.route_vendors_users', vendor_id=u.vendor.vendor_id)}}">
       <span class="fas fa-arrow-left"></span>
     </a>
   </div>
   <div class="col col-sm-10 text-center mb-3">
     <div class="btn-group" role="group">
       <a class="btn btn-falcon-{{'primary' if request.url_rule.endpoint == 'user_admin' and page == 'admin' else 'default'}}"
-        href="{{url_for('.route_user_admin', user_id=u.user_id, page='admin')}}">Overview</a>
+        href="{{url_for('.route_users_admin', user_id=u.user_id, page='admin')}}">Overview</a>
 {% if u.fws|length > 0 %}
       <a class="btn btn-falcon-{{'primary' if request.url_rule.endpoint == 'user_admin' and page == 'firmware' else 'default'}}"
-        href="{{url_for('.route_user_admin', user_id=u.user_id, page='firmware')}}">Uploaded Firmware</a>
+        href="{{url_for('.route_users_admin', user_id=u.user_id, page='firmware')}}">Uploaded Firmware</a>
 {% endif %}
 {% if g.user.check_acl('@admin') and u.user_id != g.user.user_id %}
       <a class="btn btn-falcon-{{'primary' if request.url_rule.endpoint == 'user_admin' and page == 'vendor' else 'default'}}"
-        href="{{url_for('.route_user_admin', user_id=u.user_id, page='vendor')}}">Change Vendor</a>
+        href="{{url_for('.route_users_admin', user_id=u.user_id, page='vendor')}}">Change Vendor</a>
 {% endif %}
 {% if g.user.check_acl('@admin') %}
       <a class="btn btn-falcon-{{'primary' if request.url_rule.endpoint == 'user_queries' else 'default'}}"
-        href="{{url_for('.route_user_queries', user_id=u.user_id)}}">YARA Queries</a>
+        href="{{url_for('.route_users_queries', user_id=u.user_id)}}">YARA Queries</a>
 {% endif %}
       <a class="btn btn-falcon-{{'primary' if request.url_rule.endpoint == 'user_admin' and page == 'event' else 'default'}}"
-        href="{{url_for('.route_user_admin', user_id=u.user_id, page='event')}}">Event Log</a>
+        href="{{url_for('.route_users_admin', user_id=u.user_id, page='event')}}">Event Log</a>
     </div>
   </div>
 </nav>

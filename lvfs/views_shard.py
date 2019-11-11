@@ -13,10 +13,10 @@ from lvfs import app, db
 from .models import ComponentShard, ComponentShardInfo
 from .util import admin_login_required
 
-@app.route('/lvfs/shard/list')
+@app.route('/lvfs/shards')
 @login_required
 @admin_login_required
-def route_shard_list():
+def route_shards_list():
 
     # only show shards with the correct group_id
     shards = db.session.query(ComponentShardInfo).order_by(ComponentShardInfo.cnt.desc()).all()
@@ -24,17 +24,17 @@ def route_shard_list():
                            category='admin',
                            shards=shards)
 
-@app.route('/lvfs/shard/<int:component_shard_info_id>/modify', methods=['POST'])
+@app.route('/lvfs/shards/<int:component_shard_info_id>/modify', methods=['POST'])
 @login_required
 @admin_login_required
-def route_shard_modify(component_shard_info_id):
+def route_shards_modify(component_shard_info_id):
 
     # find shard
     shard = db.session.query(ComponentShardInfo).\
                 filter(ComponentShardInfo.component_shard_info_id == component_shard_info_id).first()
     if not shard:
         flash('No shard found', 'info')
-        return redirect(url_for('.route_shard_list'))
+        return redirect(url_for('.route_shards_list'))
 
     # modify shard
     for key in ['description']:
@@ -44,36 +44,36 @@ def route_shard_modify(component_shard_info_id):
 
     # success
     flash('Modified shard', 'info')
-    return route_shard_details(component_shard_info_id)
+    return route_shards_details(component_shard_info_id)
 
-@app.route('/lvfs/shard/<int:component_shard_info_id>/details')
+@app.route('/lvfs/shards/<int:component_shard_info_id>/details')
 @login_required
 @admin_login_required
-def route_shard_details(component_shard_info_id):
+def route_shards_details(component_shard_info_id):
 
     # find shard
     shard = db.session.query(ComponentShardInfo).\
             filter(ComponentShardInfo.component_shard_info_id == component_shard_info_id).first()
     if not shard:
         flash('No shard found', 'info')
-        return redirect(url_for('.route_shard_list'))
+        return redirect(url_for('.route_shards_list'))
 
     # show details
     return render_template('shard-details.html',
                            category='admin',
                            shard=shard)
 
-@app.route('/lvfs/shard/<int:component_shard_id>/download')
+@app.route('/lvfs/shards/<int:component_shard_id>/download')
 @login_required
 @admin_login_required
-def route_shard_download(component_shard_id):
+def route_shards_download(component_shard_id):
 
     # find shard
     shard = db.session.query(ComponentShard).\
             filter(ComponentShard.component_shard_id == component_shard_id).first()
     if not shard:
         flash('No shard found', 'info')
-        return redirect(url_for('.route_shard_list'))
+        return redirect(url_for('.route_shards_list'))
     if not shard.md.fw.check_acl('@view'):
         flash('Permission denied: Unable to download shard', 'danger')
         return redirect(url_for('.route_dashboard'))

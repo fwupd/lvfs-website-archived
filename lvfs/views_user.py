@@ -38,9 +38,9 @@ def _password_check(value):
         flash('The password requires at least one non-alphanumeric character', 'warning')
     return success
 
-@app.route('/lvfs/user/<int:user_id>/modify', methods=['GET', 'POST'])
+@app.route('/lvfs/users/<int:user_id>/modify', methods=['GET', 'POST'])
 @login_required
-def route_user_modify(user_id):
+def route_users_modify(user_id):
     """ Change details about the current user """
 
     # only accept form data
@@ -91,9 +91,9 @@ def route_user_modify(user_id):
     flash('Updated profile', 'info')
     return redirect(url_for('.route_profile'))
 
-@app.route('/lvfs/user/<int:user_id>/deactivate')
+@app.route('/lvfs/users/<int:user_id>/deactivate')
 @login_required
-def route_user_deactivate(user_id):
+def route_users_deactivate(user_id):
 
     # security check
     if g.user.user_id != user_id:
@@ -108,9 +108,9 @@ def route_user_deactivate(user_id):
     db.session.commit()
     return redirect(url_for('.route_logout'))
 
-@app.route('/lvfs/user/<int:user_id>/password', methods=['GET', 'POST'])
+@app.route('/lvfs/users/<int:user_id>/password', methods=['GET', 'POST'])
 @login_required
-def route_user_password(user_id):
+def route_users_password(user_id):
     """ Change details about the current user """
 
     # only accept form data
@@ -166,9 +166,9 @@ def route_user_password(user_id):
     flash('Updated profile', 'info')
     return redirect(url_for('.route_profile'))
 
-@app.route('/lvfs/user/<int:user_id>/auth', methods=['GET', 'POST'])
+@app.route('/lvfs/users/<int:user_id>/auth', methods=['GET', 'POST'])
 @login_required
-def route_user_auth(user_id):
+def route_users_auth(user_id):
     """ Change details about the current user """
 
     # only accept form data
@@ -199,9 +199,9 @@ def route_user_auth(user_id):
     flash('Updated profile', 'info')
     return redirect(url_for('.route_profile'))
 
-@app.route('/lvfs/user/qrcode')
+@app.route('/lvfs/users/qrcode')
 @login_required
-def route_user_qrcode():
+def route_users_qrcode():
 
     # security check
     if not g.user.check_acl('@view-profile'):
@@ -218,9 +218,9 @@ def route_user_qrcode():
         'Pragma': 'no-cache',
         'Expires': '0'}
 
-@app.route('/lvfs/user/otp_test', methods=['POST'])
+@app.route('/lvfs/users/otp_test', methods=['POST'])
 @login_required
-def route_user_otp_test():
+def route_users_otp_test():
 
     # security check
     if not g.user.check_acl('@view-profile'):
@@ -243,9 +243,9 @@ def route_user_otp_test():
     flash('Correct 2FA OTP, it worked!', 'success')
     return redirect(url_for('.route_profile'))
 
-@app.route('/lvfs/user/<int:user_id>/reset_by_admin')
+@app.route('/lvfs/users/<int:user_id>/reset_by_admin')
 @login_required
-def route_user_reset_by_admin(user_id):
+def route_users_reset_by_admin(user_id):
     """ Reset the users password """
 
     # check exists
@@ -273,11 +273,11 @@ def route_user_reset_by_admin(user_id):
                                user=user, password=password))
 
     flash('Password has been reset and an email has been sent to the user', 'info')
-    return redirect(url_for('.route_user_admin', user_id=user_id))
+    return redirect(url_for('.route_users_admin', user_id=user_id))
 
-@app.route('/lvfs/user/<int:user_id>/modify_by_admin', methods=['POST'])
+@app.route('/lvfs/users/<int:user_id>/modify_by_admin', methods=['POST'])
 @login_required
-def route_user_modify_by_admin(user_id):
+def route_users_modify_by_admin(user_id):
     """ Change details about the any user """
 
     # check exists
@@ -415,10 +415,10 @@ def route_user_modify_by_admin(user_id):
     else:
         flash('Updated profile', 'info')
 
-    return redirect(url_for('.route_user_admin', user_id=user_id))
+    return redirect(url_for('.route_users_admin', user_id=user_id))
 
-@app.route('/lvfs/user/recover/<secret>')
-def route_user_recover_with_secret(secret):
+@app.route('/lvfs/users/recover/<secret>')
+def route_users_recover_with_secret(secret):
 
     # check we have the right token
     user = db.session.query(User).filter(User.password_recovery == secret).first()
@@ -453,8 +453,8 @@ def route_user_recover_with_secret(secret):
     flash('Your password has been reset and an email has been sent with the new details', 'info')
     return redirect(url_for('.route_index'), 302)
 
-@app.route('/lvfs/user/recover', methods=['GET', 'POST'])
-def route_user_recover():
+@app.route('/lvfs/users/recover', methods=['GET', 'POST'])
+def route_users_recover():
     """
     Shows an account recovery panel for a user
     """
@@ -486,9 +486,9 @@ def route_user_recover():
     flash('An email has been sent with a recovery link', 'info')
     return redirect(url_for('.route_index'), 302)
 
-@app.route('/lvfs/user/certificate/remove/<int:certificate_id>')
+@app.route('/lvfs/users/certificate/remove/<int:certificate_id>')
 @login_required
-def route_user_certificate_remove(certificate_id):
+def route_users_certificate_remove(certificate_id):
 
     # check cert exists
     crt = db.session.query(Certificate).filter(Certificate.certificate_id == certificate_id).first()
@@ -507,9 +507,9 @@ def route_user_certificate_remove(certificate_id):
     flash('Deleted certificate', 'info')
     return redirect(url_for('.route_profile'))
 
-@app.route('/lvfs/user/certificate/create', methods=['GET', 'POST'])
+@app.route('/lvfs/users/certificate/create', methods=['GET', 'POST'])
 @login_required
-def route_user_certificate_create():
+def route_users_certificate_create():
 
     # only accept form data
     if request.method != 'POST':
@@ -561,10 +561,10 @@ def route_user_certificate_create():
     flash('Added client certificate with serial %s' % info['serial'], 'success')
     return redirect(url_for('.route_profile'), code=302)
 
-@app.route('/lvfs/user/create', methods=['GET', 'POST'])
+@app.route('/lvfs/users/create', methods=['GET', 'POST'])
 @login_required
 @admin_login_required
-def route_user_create():
+def route_users_create():
     """ Add a user [ADMIN ONLY] """
 
     # only accept form data
@@ -591,25 +591,25 @@ def route_user_create():
     # verify password
     password = request.form['password_new']
     if not _password_check(password):
-        return redirect(url_for('.route_user_list'), 302)
+        return redirect(url_for('.route_users_list'), 302)
 
     # verify email
     username = request.form['username']
     if not _email_check(username):
         flash('Failed to add user: Invalid email address', 'warning')
-        return redirect(url_for('.route_user_list'), 302)
+        return redirect(url_for('.route_users_list'), 302)
 
     # verify group_id
     group_id = request.form['group_id']
     if len(group_id) < 3:
         flash('Failed to add user: QA group invalid', 'warning')
-        return redirect(url_for('.route_user_list'), 302)
+        return redirect(url_for('.route_users_list'), 302)
 
     # verify name
     display_name = request.form['display_name']
     if len(display_name) < 3:
         flash('Failed to add user: Name invalid', 'warning')
-        return redirect(url_for('.route_user_list'), 302)
+        return redirect(url_for('.route_users_list'), 302)
 
     vendor = db.session.query(Vendor).filter(Vendor.group_id == group_id).first()
     if not vendor:
@@ -627,28 +627,28 @@ def route_user_create():
     db.session.add(user)
     db.session.commit()
     flash('Added user %i and an email has been sent to the user' % user.user_id, 'info')
-    return redirect(url_for('.route_user_list'), 302)
+    return redirect(url_for('.route_users_list'), 302)
 
-@app.route('/lvfs/user/<int:user_id>/delete')
+@app.route('/lvfs/users/<int:user_id>/delete')
 @login_required
 @admin_login_required
-def route_user_delete(user_id):
+def route_users_delete(user_id):
     """ Delete a user """
 
     # check whether exists in database
     user = db.session.query(User).filter(User.user_id == user_id).first()
     if not user:
         flash('Failed to delete user: No user found', 'danger')
-        return redirect(url_for('.route_user_list'), 422)
+        return redirect(url_for('.route_users_list'), 422)
     db.session.delete(user)
     db.session.commit()
     flash('Deleted user', 'info')
-    return redirect(url_for('.route_user_list'), 302)
+    return redirect(url_for('.route_users_list'), 302)
 
-@app.route('/lvfs/userlist')
+@app.route('/lvfs/users')
 @login_required
 @admin_login_required
-def route_user_list():
+def route_users_list():
     """
     Show a list of all users
     """
@@ -656,10 +656,10 @@ def route_user_list():
                            category='admin',
                            users=db.session.query(User).all())
 
-@app.route('/lvfs/user/<int:user_id>')
-@app.route('/lvfs/user/<int:user_id>/<page>')
+@app.route('/lvfs/users/<int:user_id>')
+@app.route('/lvfs/users/<int:user_id>/<page>')
 @login_required
-def route_user_admin(user_id, page='admin'):
+def route_users_admin(user_id, page='admin'):
     """
     Shows an admin panel for a user
     """
@@ -668,7 +668,7 @@ def route_user_admin(user_id, page='admin'):
     user = db.session.query(User).filter(User.user_id == user_id).first()
     if not user:
         flash('No user found', 'danger')
-        return redirect(url_for('.route_user_list'), 422)
+        return redirect(url_for('.route_users_list'), 422)
 
     # security check
     if not user.vendor.check_acl('@manage-users'):
@@ -683,9 +683,9 @@ def route_user_admin(user_id, page='admin'):
                 vendors.append(v)
     return render_template('user-%s.html' % page, page=page, u=user, possible_vendors=vendors)
 
-@app.route('/lvfs/user/<int:user_id>/queries')
+@app.route('/lvfs/users/<int:user_id>/queries')
 @login_required
-def route_user_queries(user_id=None):
+def route_users_queries(user_id=None):
 
     if not user_id:
         user_id = g.user.user_id
@@ -694,7 +694,7 @@ def route_user_queries(user_id=None):
     user = db.session.query(User).filter(User.user_id == user_id).first()
     if not user:
         flash('No user found', 'danger')
-        return redirect(url_for('.route_user_list'), 422)
+        return redirect(url_for('.route_users_list'), 422)
 
     # security check
     if not user.vendor.check_acl('@admin'):

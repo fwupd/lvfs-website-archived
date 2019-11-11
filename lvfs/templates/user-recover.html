@@ -16,7 +16,7 @@
         <div class="card-body p-5">
           <h5 class="mb-0"> Forgot your password?</h5>
           <small>Enter your email and we'll send you a reset link.</small>
-          <form class="mt-4" method="post" action="{{url_for('.route_user_recover')}}">
+          <form class="mt-4" method="post" action="{{url_for('.route_users_recover')}}">
             <input type="hidden" name="csrf_token" value="{{csrf_token()}}"/>
             <div class="form-group">
               <input class="form-control" type="email" name="username" placeholder="Email address" />

@@ -13,7 +13,7 @@
 {% endif %}
 <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#iconModal">Change...</button>
 
-<form method="post" action="{{url_for('.route_vendor_modify_by_admin', vendor_id=v.vendor_id)}}">
+<form method="post" action="{{url_for('.route_vendors_modify_by_admin', vendor_id=v.vendor_id)}}">
   <input type="hidden" name="csrf_token" value="{{csrf_token()}}"/>
   <div class="form-group">
     <label for="group_id">Group ID:</label>
@@ -116,7 +116,7 @@
   Unless you are required to delete a user for legal or compliance reasons,
   removing a vendor is not recommended.
 </p>
-<form method="get" action="{{url_for('.route_vendor_delete', vendor_id=v.vendor_id)}}">
+<form method="get" action="{{url_for('.route_vendors_delete', vendor_id=v.vendor_id)}}">
   <input type="hidden" name="csrf_token" value="{{csrf_token()}}"/>
   <button class="btn btn-danger">Delete</button>
 </form>
@@ -133,7 +133,7 @@
           <span aria-hidden="true">&times;</span>
         </button>
       </div>
-      <form action="{{url_for('.route_vendor_upload', vendor_id=v.vendor_id)}}" method="post" enctype="multipart/form-data" class="form">
+      <form action="{{url_for('.route_vendors_upload', vendor_id=v.vendor_id)}}" method="post" enctype="multipart/form-data" class="form">
         <input type="hidden" name="csrf_token" value="{{csrf_token()}}"/>
         <div class="modal-body">
           <p class="card-text">

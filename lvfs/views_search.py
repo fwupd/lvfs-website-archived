@@ -39,8 +39,8 @@ def _add_search_event(ev):
     db.session.add(ev)
     db.session.commit()
 
-@app.route('/lvfs/firmware/search', methods=['GET', 'POST'])
-@app.route('/lvfs/firmware/search/<int:max_results>', methods=['GET', 'POST'])
+@app.route('/lvfs/search/firmware', methods=['GET', 'POST'])
+@app.route('/lvfs/search/firmware/<int:max_results>', methods=['GET', 'POST'])
 @login_required
 def route_search_fw(max_results=100):
 

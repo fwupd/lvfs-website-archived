@@ -5,7 +5,7 @@
 <div class="card">
   <div class="card-body">
     <div class="card-title">Version Format Details</div>
-<form method="post" action="{{url_for('.route_verfmt_modify', verfmt_id=verfmt.verfmt_id)}}">
+<form method="post" action="{{url_for('.route_verfmts_modify', verfmt_id=verfmt.verfmt_id)}}">
   <input type="hidden" name="csrf_token" value="{{csrf_token()}}"/>
   <div class="form-group">
     <label for="group_id">Value:</label>
@@ -44,7 +44,7 @@
       </div>
       <div class="modal-footer">
         <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
-        <a class="btn btn-danger" href="{{url_for('.route_verfmt_delete', verfmt_id=verfmt.verfmt_id)}}" role="button">Delete</a>
+        <a class="btn btn-danger" href="{{url_for('.route_verfmts_delete', verfmt_id=verfmt.verfmt_id)}}" role="button">Delete</a>
       </div>
     </div>
   </div>

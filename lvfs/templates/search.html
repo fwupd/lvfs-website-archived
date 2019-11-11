@@ -54,7 +54,7 @@
 {% endif %}
     </td>
     <td class="col col-sm-11">
-      <a href="{{url_for('.route_vendor_list')}}#{{vendor.group_id}}">Hardware Vendor: {{vendor.display_name}}</a><br/>
+      <a href="{{url_for('.route_vendors_list')}}#{{vendor.group_id}}">Hardware Vendor: {{vendor.display_name}}</a><br/>
       Uses the LVFS: {{ 'Yes' if vendor.is_account_holder else 'No' }}<br/>
       Uploading Firmware: {{ 'Yes' if vendor.fw_stable else 'No' }}<br/>
       Official Statement: {{vendor.description}}
@@ -71,7 +71,7 @@
 {% endif %}
     </td>
     <td class="col col-sm-11">
-      <a href="{{url_for('.route_device_show', appstream_id=md.appstream_id)}}">{{md.name_with_category}}</a><br/>
+      <a href="{{url_for('.route_devices_show', appstream_id=md.appstream_id)}}">{{md.name_with_category}}</a><br/>
       Vendor: {{md.developer_name}}<br/>
       Latest Version: {{md.version_display}}
     </td>

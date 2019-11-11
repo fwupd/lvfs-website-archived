@@ -17,10 +17,10 @@ from lvfs import app, db
 from .util import admin_login_required
 from .models import Firmware, Component, Remote, Guid
 
-@app.route('/lvfs/device')
+@app.route('/lvfs/devices/admin')
 @login_required
 @admin_login_required
-def route_device():
+def route_devices_list_admin():
     """
     Show all devices -- probably only useful for the admin user.
     """
@@ -59,8 +59,8 @@ def _get_fws_for_appstream_id(value):
                     join(Component).filter(Component.appstream_id == value).\
                     order_by(Firmware.timestamp.desc()).all()
 
-@app.route('/lvfs/device/<appstream_id>')
-def route_device_show(appstream_id):
+@app.route('/lvfs/devices/<appstream_id>')
+def route_devices_show(appstream_id):
     """
     Show information for one device, which can be seen without a valid login
     """
@@ -79,30 +79,30 @@ def route_device_show(appstream_id):
                            fws=fws,
                            fw_previous=fw_previous)
 
-@app.route('/lvfs/device/component/<int:component_id>')
-def route_device_shards(component_id):
+@app.route('/lvfs/devices/component/<int:component_id>')
+def route_devices_shards(component_id):
     """
     Show information for one firmware, which can be seen without a valid login
     """
     md = db.session.query(Component).filter(Component.component_id == component_id).first()
     if not md:
         flash('No component with ID {} exists'.format(component_id), 'danger')
-        return redirect(url_for('.route_device_show', appstream_id=md.appstream_id))
+        return redirect(url_for('.route_devices_show', appstream_id=md.appstream_id))
     return render_template('device-shards.html', md=md, appstream_id=md.appstream_id)
 
-@app.route('/lvfs/device/component/<int:component_id_old>/<int:component_id_new>')
-def route_device_shards_diff(component_id_old, component_id_new):
+@app.route('/lvfs/devices/component/<int:component_id_old>/<int:component_id_new>')
+def route_devices_shards_diff(component_id_old, component_id_new):
     """
     Show information for one firmware, which can be seen without a valid login
     """
     md_old = db.session.query(Component).filter(Component.component_id == component_id_old).first()
     if not md_old:
         flash('No component with ID {} exists'.format(component_id_old), 'danger')
-        return redirect(url_for('.route_device'))
+        return redirect(url_for('.route_devices_list_admin'))
     md_new = db.session.query(Component).filter(Component.component_id == component_id_new).first()
     if not md_new:
         flash('No component with ID {} exists'.format(component_id_new), 'danger')
-        return redirect(url_for('.route_device'))
+        return redirect(url_for('.route_devices_list_admin'))
 
     # shards added
     shard_guids = {}
@@ -140,8 +140,8 @@ def route_device_shards_diff(component_id_old, component_id_new):
                            shards_changed=shards_changed,
                            appstream_id=md_old.appstream_id)
 
-@app.route('/lvfs/device/<appstream_id>/analytics')
-def route_device_analytics(appstream_id):
+@app.route('/lvfs/devices/<appstream_id>/analytics')
+def route_devices_analytics(appstream_id):
     """
     Show analytics for one device, which can be seen without a valid login
     """
@@ -151,7 +151,7 @@ def route_device_analytics(appstream_id):
     fws = _get_fws_for_appstream_id(appstream_id)
     if not fws:
         flash('No firmware with that AppStream ID or GUID exists', 'danger')
-        return redirect(url_for('.route_device'))
+        return redirect(url_for('.route_devices_list_admin'))
     for i in range(-2, 1):
         year = now.year + i
         for quarter in range(0, 4):
@@ -170,8 +170,8 @@ def route_device_analytics(appstream_id):
                            data=data,
                            fws=fws)
 
-@app.route('/lvfs/devicelist')
-def route_device_list():
+@app.route('/lvfs/devices')
+def route_devices_list():
 
     # get a list of firmwares with a map of components
     fws = db.session.query(Firmware).\

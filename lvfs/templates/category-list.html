@@ -23,7 +23,7 @@
       <code class="float-right">{{cat.value}}</code>
     </div>
     <a class="card-link btn btn-info"
-      href="{{url_for('.route_category_details', category_id=cat.category_id)}}"
+      href="{{url_for('.route_categories_details', category_id=cat.category_id)}}"
       role="button">Details &raquo;</a>
   </div>
 </div>
@@ -34,7 +34,7 @@
 <div class="card mt-3">
   <div class="card-body">
     <div class="card-title">Create a new category</div>
-    <form method="post" action="{{url_for('.route_category_create')}}" class="form">
+    <form method="post" action="{{url_for('.route_categories_create')}}" class="form">
       <input type="hidden" name="csrf_token" value="{{csrf_token()}}"/>
       <div class="form-group card-text">
         <label>Value name, e.g. <code>X-DeviceFoo</code></label>

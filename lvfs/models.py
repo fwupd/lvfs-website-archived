@@ -1656,7 +1656,7 @@ class Component(db.Model):
         if not self.protocol or self.protocol.value == 'unknown':
             problem = Problem('no-protocol',
                               'Update protocol has not been set')
-            problem.url = url_for('.route_component_show',
+            problem.url = url_for('.route_components_show',
                                   component_id=self.component_id)
             problems.append(problem)
 
@@ -1665,7 +1665,7 @@ class Component(db.Model):
             if not _validate_guid(guid.value):
                 problem = Problem('invalid-guid',
                                   'GUID {} is not valid'.format(guid.value))
-                problem.url = url_for('.route_component_show',
+                problem.url = url_for('.route_components_show',
                                       component_id=self.component_id)
                 problems.append(problem)
 
@@ -1676,7 +1676,7 @@ class Component(db.Model):
                                   'Version number {} incompatible with {}'.\
                                   format(self.version_display,
                                          self.verfmt_with_fallback.value))
-                problem.url = url_for('.route_component_show',
+                problem.url = url_for('.route_components_show',
                                       component_id=self.component_id)
                 problems.append(problem)
 
@@ -1687,7 +1687,7 @@ class Component(db.Model):
                                   'Version vormat {} incompatible with protocol-defined {}'.\
                                   format(self.verfmt.value,
                                          self.protocol.verfmt.value))
-                problem.url = url_for('.route_component_show',
+                problem.url = url_for('.route_components_show',
                                       component_id=self.component_id)
                 problems.append(problem)
 
@@ -1695,7 +1695,7 @@ class Component(db.Model):
         if not self.category or self.category.value == 'unknown':
             problem = Problem('no-category',
                               'Firmware category has not been set')
-            problem.url = url_for('.route_component_show',
+            problem.url = url_for('.route_components_show',
                                   component_id=self.component_id)
             problems.append(problem)
 
@@ -1703,7 +1703,7 @@ class Component(db.Model):
         if self.protocol and not self.protocol.is_public:
             problem = Problem('no-protocol',
                               'Update protocol is not public')
-            problem.url = url_for('.route_component_show',
+            problem.url = url_for('.route_components_show',
                                   component_id=self.component_id)
             problems.append(problem)
 
@@ -1711,7 +1711,7 @@ class Component(db.Model):
         if self.requires_source_url and not self.source_url:
             problem = Problem('no-source',
                               'Update does not link to source code')
-            problem.url = url_for('.route_component_show',
+            problem.url = url_for('.route_components_show',
                                   component_id=self.component_id,
                                   page='update')
             problems.append(problem)
@@ -1720,14 +1720,14 @@ class Component(db.Model):
         if self.details_url and not _is_valid_url(self.details_url):
             problem = Problem('invalid-details-url',
                               'The update details URL was provided but not valid')
-            problem.url = url_for('.route_component_show',
+            problem.url = url_for('.route_components_show',
                                   page='update',
                                   component_id=self.component_id)
             problems.append(problem)
         if self.source_url and not _is_valid_url(self.source_url):
             problem = Problem('invalid-source-url',
                               'The release source URL was provided but not valid')
-            problem.url = url_for('.route_component_show',
+            problem.url = url_for('.route_components_show',
                                   page='update',
                                   component_id=self.component_id)
             problems.append(problem)
@@ -1757,7 +1757,7 @@ class Component(db.Model):
                 if _sanitize_keyword(word) in nvs_kws:
                     problem = Problem('invalid-name-variant-suffix',
                                       '{} is already part of the <name>'.format(word))
-                    problem.url = url_for('.route_component_show',
+                    problem.url = url_for('.route_components_show',
                                           component_id=self.component_id)
                     problems.append(problem)
 
@@ -1770,7 +1770,7 @@ class Component(db.Model):
         for problem in problems:
             if problem.url:
                 continue
-            problem.url = url_for('.route_component_show',
+            problem.url = url_for('.route_components_show',
                                   component_id=self.component_id,
                                   page='update')
         return problems

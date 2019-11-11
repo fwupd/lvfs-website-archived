@@ -25,7 +25,7 @@
     <ul class="list-group">
 {% for fw in devices %}
       <li class="list-group-item">
-        <a href="{{url_for('.route_device_show', appstream_id=fw.md_prio.appstream_id)}}">{{fw.md_prio.name}}</a>
+        <a href="{{url_for('.route_devices_show', appstream_id=fw.md_prio.appstream_id)}}">{{fw.md_prio.name}}</a>
         was added by {{fw.md_prio.developer_name_display}} {{format_humanize_naturaltime(fw.timestamp)}}.
         <img class="float-right" src="/uploads/{{fw.vendor.icon}}" width="32"/>
       </li>
@@ -61,7 +61,7 @@
     <ul class="list-group">
 {% for md in mds_by_vendor[vendor] %}
       <li class="list-group-item">
-        <a href="{{url_for('.route_device_show', appstream_id=md.appstream_id)}}">{{md.name_with_category}}</a>
+        <a href="{{url_for('.route_devices_show', appstream_id=md.appstream_id)}}">{{md.name_with_category}}</a>
       </li>
 {% endfor %}
     </ul>

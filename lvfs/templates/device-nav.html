@@ -2,9 +2,9 @@
   <div class="text-center mb-3">
     <div class="btn-group" role="group">
       <a class="btn btn-falcon-{{'primary' if request.url_rule.endpoint == 'device_show' else 'default'}}"
-        href="{{url_for('.route_device_show', appstream_id=appstream_id)}}">Details</a>
+        href="{{url_for('.route_devices_show', appstream_id=appstream_id)}}">Details</a>
       <a class="btn btn-falcon-{{'primary' if request.url_rule.endpoint == 'device_analytics' else 'default'}}"
-        href="{{url_for('.route_device_analytics', appstream_id=appstream_id)}}">History</a>
+        href="{{url_for('.route_devices_analytics', appstream_id=appstream_id)}}">History</a>
     </div>
   </div>
 </nav>

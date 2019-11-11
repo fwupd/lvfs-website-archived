@@ -19,7 +19,7 @@
     <td class="col col-sm-5">{{u.username}}</td>
     <td class="col col-sm-2">
       <a class="btn btn-info btn-block"
-        href="{{url_for('.route_user_admin', user_id=u.user_id)}}">Details</a>
+        href="{{url_for('.route_users_admin', user_id=u.user_id)}}">Details</a>
     </td>
   </tr>
 {% endfor %}
@@ -31,7 +31,7 @@
 <div class="card mt-3">
   <div class="card-body">
     <div class="card-title">Create a new user</div>
-<form method="post" action="{{url_for('.route_user_create')}}" class="form">
+<form method="post" action="{{url_for('.route_users_create')}}" class="form">
   <input type="hidden" name="csrf_token" value="{{csrf_token()}}"/>
   <div class="form-group">
     <label for="username">Username:</label>

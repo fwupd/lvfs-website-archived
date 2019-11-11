@@ -12,9 +12,9 @@ from lvfs import app, db
 
 from .models import YaraQuery
 
-@app.route('/lvfs/query/list')
+@app.route('/lvfs/queries')
 @login_required
-def route_query_list():
+def route_queries_list():
 
     # security check
     if not g.user.check_acl('@yara-query'):
@@ -22,9 +22,9 @@ def route_query_list():
         return redirect(url_for('.route_dashboard'))
     return render_template('query-list.html', category='firmware')
 
-@app.route('/lvfs/query/new')
+@app.route('/lvfs/queries/new')
 @login_required
-def route_query_new():
+def route_queries_new():
 
     # security check
     if not g.user.check_acl('@yara-query'):
@@ -32,9 +32,9 @@ def route_query_new():
         return redirect(url_for('.route_dashboard'))
     return render_template('query-new.html', category='firmware')
 
-@app.route('/lvfs/query/<int:yara_query_id>')
+@app.route('/lvfs/queries/<int:yara_query_id>')
 @login_required
-def route_query_show(yara_query_id):
+def route_queries_show(yara_query_id):
 
     # security check
     if not g.user.check_acl('@yara-query'):
@@ -54,9 +54,9 @@ def route_query_show(yara_query_id):
 
     return render_template('query-show.html', category='firmware', query=query)
 
-@app.route('/lvfs/query/<int:yara_query_id>/retry')
+@app.route('/lvfs/queries/<int:yara_query_id>/retry')
 @login_required
-def route_query_retry(yara_query_id):
+def route_queries_retry(yara_query_id):
 
     # security check
     if not g.user.check_acl('@yara-query'):
@@ -79,11 +79,11 @@ def route_query_retry(yara_query_id):
     query.ended_ts = None
     db.session.commit()
     flash('YARA query {} will be rerun soon'.format(query.yara_query_id), 'info')
-    return redirect(url_for('.route_query_list'))
+    return redirect(url_for('.route_queries_list'))
 
-@app.route('/lvfs/query/<int:yara_query_id>/delete')
+@app.route('/lvfs/queries/<int:yara_query_id>/delete')
 @login_required
-def route_query_delete(yara_query_id):
+def route_queries_delete(yara_query_id):
 
     # security check
     if not g.user.check_acl('@yara-query'):
@@ -105,11 +105,11 @@ def route_query_delete(yara_query_id):
     db.session.delete(query)
     db.session.commit()
     flash('Deleted YARA query', 'info')
-    return redirect(url_for('.route_query_list'))
+    return redirect(url_for('.route_queries_list'))
 
-@app.route('/lvfs/query/create', methods=['POST'])
+@app.route('/lvfs/queries/create', methods=['POST'])
 @login_required
-def route_query_create():
+def route_queries_create():
 
     # security check
     if not g.user.check_acl('@yara-query'):
@@ -123,10 +123,10 @@ def route_query_create():
     query = db.session.query(YaraQuery).filter(YaraQuery.value == request.form['value']).first()
     if query:
         flash('Already a query with that text!', 'info')
-        return redirect(url_for('.route_query_list'))
+        return redirect(url_for('.route_queries_list'))
 
     query = YaraQuery(value=request.form['value'], user=g.user)
     db.session.add(query)
     db.session.commit()
     flash('YARA query {} added and will be run soon'.format(query.yara_query_id), 'info')
-    return redirect(url_for('.route_query_list'), 302)
+    return redirect(url_for('.route_queries_list'), 302)

@@ -9,7 +9,7 @@
   <div class="card-body">
     <pre class="mb-3">{{query.value}}</pre>
     <a class="card-link btn btn-info"
-       href="{{url_for('.route_query_retry', yara_query_id=query.yara_query_id)}}"
+       href="{{url_for('.route_queries_retry', yara_query_id=query.yara_query_id)}}"
        role="button">Retry</a>
   </div>
 </div>
@@ -63,7 +63,7 @@
         </tr>
 {% endfor %}
       </table>
-    <a class="card-link btn btn-info" href="{{url_for('.route_shard_download', component_shard_id=shard.component_shard_id)}}">Download File</a>
+    <a class="card-link btn btn-info" href="{{url_for('.route_shards_download', component_shard_id=shard.component_shard_id)}}">Download File</a>
 {% if shard.checksum %}
     <a class="card-link btn btn-info" href="{{url_for('.route_firmware_shard_search', kind='checksum', value=result.shard.checksum)}}">Show all</a>
 {% endif %}
@@ -86,7 +86,7 @@
           <td class="col text-truncate"><code>{{md.checksum_contents}}</code></td>
         </tr>
       </table>
-    <a class="card-link btn btn-info" href="{{url_for('.route_component_download', component_id=md.component_id)}}">Download File</a>
+    <a class="card-link btn btn-info" href="{{url_for('.route_components_download', component_id=md.component_id)}}">Download File</a>
   </div>
 {% endif %}
 </div>

@@ -39,7 +39,7 @@
     </td>
     <td class="col col-sm-2 text-right">
       <a class="btn btn-secondary btn-block"
-        href="{{url_for('.route_component_requirement_delete', component_id=rq.md.component_id, requirement_id=rq.requirement_id)}}"
+        href="{{url_for('.route_components_requirement_delete', component_id=rq.md.component_id, requirement_id=rq.requirement_id)}}"
         role="button">Remove</a>
     </td>
   </tr>
@@ -47,7 +47,7 @@
 {% endfor %}
 {% if md.check_acl('@modify-requirements') %}
   <tr class="row table-borderless">
-    <form class="form-inline" action="{{url_for('.route_component_requirement_create', component_id=md.component_id)}}" method="POST" >
+    <form class="form-inline" action="{{url_for('.route_components_requirement_create', component_id=md.component_id)}}" method="POST" >
       <input type="hidden" name="csrf_token" value="{{csrf_token()}}"/>
       <td class="col col-sm-6">
         <input type="hidden" name="kind" value="id">
@@ -99,7 +99,7 @@
     </td>
     <td class="col col-sm-2 text-right">
       <a class="btn btn-secondary btn-block"
-        href="{{url_for('.route_component_requirement_delete', component_id=rq.md.component_id, requirement_id=rq.requirement_id)}}"
+        href="{{url_for('.route_components_requirement_delete', component_id=rq.md.component_id, requirement_id=rq.requirement_id)}}"
         role="button">Remove</a>
     </td>
   </tr>
@@ -107,7 +107,7 @@
 {% endfor %}
 {% if md.check_acl('@modify-requirements') %}
   <tr class="row table-borderless">
-    <form class="form-inline" action="{{url_for('.route_component_requirement_create', component_id=md.component_id)}}" method="POST" >
+    <form class="form-inline" action="{{url_for('.route_components_requirement_create', component_id=md.component_id)}}" method="POST" >
       <input type="hidden" name="csrf_token" value="{{csrf_token()}}"/>
       <td class="col col-sm-6">
         <input type="hidden" name="kind" value="firmware">
@@ -146,14 +146,14 @@
       <code>{{rq.value}}</code>
     </td>
     <td class="col col-sm-2 text-right">
-      <a class="btn btn-secondary btn-block" href="{{url_for('.route_component_requirement_delete', component_id=rq.md.component_id, requirement_id=rq.requirement_id)}}" role="button">Remove</a>
+      <a class="btn btn-secondary btn-block" href="{{url_for('.route_components_requirement_delete', component_id=rq.md.component_id, requirement_id=rq.requirement_id)}}" role="button">Remove</a>
     </td>
   </tr>
 {% endif %}
 {% endfor %}
 {% if md.check_acl('@modify-requirements') %}
   <tr class="row table-borderless">
-    <form class="form-inline" action="{{url_for('.route_component_requirement_create', component_id=md.component_id)}}" method="POST" >
+    <form class="form-inline" action="{{url_for('.route_components_requirement_create', component_id=md.component_id)}}" method="POST" >
       <input type="hidden" name="csrf_token" value="{{csrf_token()}}"/>
       <td class="col col-sm-10">
         <input type="hidden" name="kind" value="hardware">
@@ -168,7 +168,7 @@
 </table>
 
 {% if not md.has_complex_requirements %}
-<a class="btn btn-info" href="{{url_for('.route_component_show', component_id=md.component_id, page='requires')}}">Show simple view</a>
+<a class="btn btn-info" href="{{url_for('.route_components_show', component_id=md.component_id, page='requires')}}">Show simple view</a>
 {% endif %}
   </div>
 </div>

@@ -17,9 +17,9 @@ from .util import _event_log
 from .util import _json_success, _json_error, _pkcs7_signature_info, _pkcs7_signature_verify
 from .hash import _is_sha1, _is_sha256
 
-@app.route('/lvfs/report/<report_id>')
+@app.route('/lvfs/reports/<report_id>')
 @login_required
-def route_report_view(report_id):
+def route_reports_view(report_id):
     report = db.session.query(Report).filter(Report.report_id == report_id).first()
     if not report:
         return _json_error('Report does not exist')
@@ -30,9 +30,9 @@ def route_report_view(report_id):
                     status=400, \
                     mimetype="application/json")
 
-@app.route('/lvfs/report/<report_id>/details')
+@app.route('/lvfs/reports/<report_id>/details')
 @login_required
-def route_report_details(report_id):
+def route_reports_details(report_id):
     report = db.session.query(Report).filter(Report.report_id == report_id).first()
     if not report:
         flash('Report does not exist', 'danger')
@@ -43,9 +43,9 @@ def route_report_details(report_id):
         return redirect(url_for('.route_dashboard'))
     return render_template('report-details.html', rpt=report)
 
-@app.route('/lvfs/report/<report_id>/delete')
+@app.route('/lvfs/reports/<report_id>/delete')
 @login_required
-def route_report_delete(report_id):
+def route_reports_delete(report_id):
     report = db.session.query(Report).filter(Report.report_id == report_id).first()
     if not report:
         flash('No report found!', 'danger')
@@ -53,7 +53,7 @@ def route_report_delete(report_id):
     # security check
     if not report.check_acl('@delete'):
         flash('Permission denied: Unable to delete report', 'danger')
-        return redirect(url_for('.route_report_details', report_id=report_id))
+        return redirect(url_for('.route_reports_details', report_id=report_id))
     for e in report.attributes:
         db.session.delete(e)
     db.session.delete(report)
