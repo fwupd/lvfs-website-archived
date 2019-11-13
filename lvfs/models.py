@@ -1116,16 +1116,16 @@ class Verfmt(db.Model):
         if self.value == 'plain':
             return str(v)
         if self.value == 'quad':
-            return '%02i.%02i.%02i.%02i' % ((v & 0xff000000) >> 24,
-                                            (v & 0x00ff0000) >> 16,
-                                            (v & 0x0000ff00) >> 8,
-                                            v & 0x000000ff)
+            return '%i.%i.%i.%i' % ((v & 0xff000000) >> 24,
+                                    (v & 0x00ff0000) >> 16,
+                                    (v & 0x0000ff00) >> 8,
+                                    v & 0x000000ff)
         if self.value == 'triplet':
-            return '%02i.%02i.%04i' % ((v & 0xff000000) >> 24,
-                                       (v & 0x00ff0000) >> 16,
-                                       v & 0x0000ffff)
+            return '%i.%i.%i' % ((v & 0xff000000) >> 24,
+                                 (v & 0x00ff0000) >> 16,
+                                 v & 0x0000ffff)
         if self.value == 'pair':
-            return '%02i.%02i' % ((v & 0xffff0000) >> 16, v & 0x0000ffff)
+            return '%i.%i' % ((v & 0xffff0000) >> 16, v & 0x0000ffff)
         if self.value == 'intel-me':
             return '%i.%i.%i.%i' % (((v & 0xe0000000) >> 29) + 0x0b,
                                     (v & 0x1f000000) >> 24,
