@@ -55,6 +55,7 @@ from lvfs.analytics.routes import bp_analytics
 from lvfs.categories.routes import bp_categories
 from lvfs.components.routes import bp_components
 from lvfs.devices.routes import bp_devices
+from lvfs.mdsync.routes import bp_mdsync
 from lvfs.docs.routes import bp_docs
 from lvfs.firmware.routes import bp_firmware
 from lvfs.issues.routes import bp_issues
@@ -78,6 +79,7 @@ app.register_blueprint(bp_analytics, url_prefix='/lvfs/analytics')
 app.register_blueprint(bp_categories, url_prefix='/lvfs/categories')
 app.register_blueprint(bp_components, url_prefix='/lvfs/components')
 app.register_blueprint(bp_devices, url_prefix='/lvfs/devices')
+app.register_blueprint(bp_mdsync, url_prefix='/lvfs/mdsync')
 app.register_blueprint(bp_docs, url_prefix='/lvfs/docs')
 app.register_blueprint(bp_firmware, url_prefix='/lvfs/firmware')
 app.register_blueprint(bp_issues, url_prefix='/lvfs/issues')

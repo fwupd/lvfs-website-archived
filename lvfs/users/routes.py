@@ -331,6 +331,10 @@ def route_modify_by_admin(user_id):
         if not g.user.check_acl('@add-action-admin'):
             flash('Permission denied: Unable to mark user as admin', 'danger')
             return redirect(url_for('main.route_dashboard'))
+    if not user.check_acl('@admin') and 'partner' in request.form:
+        if not g.user.check_acl('@add-action-partner'):
+            flash('Permission denied: Unable to mark user as partner', 'danger')
+            return redirect(url_for('main.route_dashboard'))
 
     # set each optional thing in turn
     old_vendor = user.vendor
@@ -358,7 +362,7 @@ def route_modify_by_admin(user_id):
     for key in ['is_otp_enabled']:
         setattr(user, key, bool(key in request.form))
     for key in ['qa', 'analyst', 'vendor-manager', 'researcher',
-                'approved-public', 'robot', 'admin']:
+                'approved-public', 'robot', 'admin', 'partner']:
         if key in request.form:
             if not user.get_action(key):
                 user.actions.append(UserAction(value=key))

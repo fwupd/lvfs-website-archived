@@ -266,7 +266,7 @@ class User(db.Model):
 
         # decide based on the action
         if action in ['@qa', '@analyst', '@vendor-manager', '@researcher',
-                      '@approved-public', '@robot', '@admin']:
+                      '@approved-public', '@robot', '@admin', '@partner']:
             return self.get_action(action[1:])
         if action == '@view-profile':
             return self.auth_type == 'local'
@@ -288,6 +288,8 @@ class User(db.Model):
             if not self.vendor.check_acl('@manage-users'):
                 return False
             return self.check_acl('@admin') or self.check_acl('@vendor-manager')
+        if action == '@add-action-partner':
+            return self.check_acl('@admin')
         if action == '@add-action-approved-public':
             if not self.vendor.check_acl('@manage-users'):
                 return False
@@ -308,7 +310,7 @@ class User(db.Model):
             return self.vendor.check_acl('@manage-users')
         if action in ('@view-eventlog', '@view-issues'):
             return self.check_acl('@qa')
-        raise NotImplementedError('unknown security check type: %s' % self)
+        raise NotImplementedError('unknown security check type {}: {}'.format(action, self))
 
     def generate_password_recovery(self):
         if self.check_acl('@robot'):
@@ -585,6 +587,8 @@ class Vendor(db.Model):
                                     back_populates="vendor")
     fws = relationship("Firmware",
                        cascade='all,delete-orphan')
+    mdrefs = relationship("ComponentRef",
+                          cascade='all,delete-orphan')
     events = relationship("Event",
                           order_by="desc(Event.timestamp)",
                           lazy='dynamic',
@@ -1424,6 +1428,44 @@ class ComponentClaim(db.Model):
 
     def __repr__(self):
         return '<ComponentClaim {}>'.format(self.value)
+
+class ComponentRef(db.Model):
+
+    # sqlalchemy metadata
+    __tablename__ = 'component_refs'
+    __table_args__ = {'mysql_character_set': 'utf8mb4'}
+
+    component_ref_id = Column(Integer, primary_key=True, unique=True, nullable=False, index=True)
+    component_id = Column(Integer, ForeignKey('components.component_id'))
+    vendor_id = Column(Integer, ForeignKey('vendors.vendor_id'), nullable=False)
+    protocol_id = Column(Integer, ForeignKey('protocol.protocol_id'))
+    appstream_id = Column(Text, default=None)
+    version = Column(Text, nullable=False)
+    release_tag = Column(Text, default=None)
+    date = Column(DateTime, default=None)
+    name = Column(Text, nullable=False)
+    url = Column(Text, default=None)
+    status = Column(Text)
+
+    # link back to parent
+    md = relationship('Component')
+    vendor = relationship('Vendor')
+    protocol = relationship('Protocol')
+
+    def __lt__(self, other):
+        return vercmp(self.version, other.version) < 0
+
+    def __eq__(self, other):
+        return vercmp(self.version, other.version) == 0
+
+    @property
+    def version_with_tag(self):
+        if self.release_tag:
+            return '{} ({})'.format(self.release_tag, self.version)
+        return self.version
+
+    def __repr__(self):
+        return '<ComponentRef {}>'.format(self.version)
 
 class Component(db.Model):
 

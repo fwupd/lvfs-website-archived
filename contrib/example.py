@@ -35,6 +35,36 @@ def _vendor_user_add(session, vendor_id, username, display_name):
         print('failed to create user using %s: %s' % (rv.url, rv.text))
         sys.exit(1)
 
+def _mdsync_import(session, filename):
+
+    # import
+    try:
+        with open(filename, 'r') as f:
+            payload = f.read()
+    except IOError as e:
+        print('Failed to load file', str(e))
+        sys.exit(1)
+    rv = session.post('/'.join([os.environ['LVFS_SERVER'], 'lvfs', 'mdsync', 'import']), data=payload)
+    if rv.status_code != 200:
+        print('failed to import mdsync using %s: %s' % (rv.url, rv.text))
+        sys.exit(1)
+    print('imported {} successfully: {}'.format(filename, rv.text))
+
+def _mdsync_export(session, filename):
+
+    # export
+    rv = session.get('/'.join([os.environ['LVFS_SERVER'], 'lvfs', 'mdsync', 'export']))
+    if rv.status_code != 400:
+        print('failed to export mdsync: {}'.format(rv.status_code))
+        sys.exit(1)
+    try:
+        with open(filename, 'w') as f:
+            f.write(rv.text)
+    except IOError as e:
+        print('Failed to save file', str(e))
+        sys.exit(1)
+    print('exported {} successfully'.format(filename))
+
 if __name__ == '__main__':
 
     # check required env variables are present
@@ -44,7 +74,7 @@ if __name__ == '__main__':
             sys.exit(1)
 
     if len(sys.argv) < 2:
-        print('Usage: %s [upload|create-user]' % sys.argv[0])
+        print('Usage: %s [upload|create-user|mdsync-import|mdsync-export]' % sys.argv[0])
         sys.exit(1)
 
     # log in
@@ -67,6 +97,16 @@ if __name__ == '__main__':
             print('Usage: %s upload vendor_id username display_name' % sys.argv[0])
             sys.exit(1)
         _vendor_user_add(s, sys.argv[2], sys.argv[3], sys.argv[4])
+    elif sys.argv[1] == 'mdsync-import':
+        if len(sys.argv) != 3:
+            print('Usage: %s mdsync-import filename' % sys.argv[0])
+            sys.exit(1)
+        _mdsync_import(s, sys.argv[2])
+    elif sys.argv[1] == 'mdsync-export':
+        if len(sys.argv) != 3:
+            print('Usage: %s mdsync-export filename' % sys.argv[0])
+            sys.exit(1)
+        _mdsync_export(s, sys.argv[2])
     else:
         print('command not found!')
         sys.exit(1)

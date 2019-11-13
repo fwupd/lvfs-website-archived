@@ -1,0 +1,38 @@
+{% extends "default.html" %}
+
+{% block title %}Partner Metadata{% endblock %}
+
+{% block content %}
+
+<div class="card mt-3">
+  <div class="card-body">
+    <div class="card-title">Partner Metadata</div>
+{% if vendors|length == 0 %}
+    <p class="card-text text-muted">No vendors have contributed metadata.</p>
+{% else %}
+    <p class="card-text">
+      External teams contribute metadata about firmware releases from public
+      sources such as a vendor home page.
+    </p>
+{% endif %}
+  </div>
+</div>
+
+{% for v in vendors %}
+<div class="card mt-3" id="{{v.group_id}}">
+  <div class="card-body">
+    <div class="card-title">
+      {{v.display_name}}
+{% if v.icon %}
+      <img class="img-thumbnail float-right" src="/uploads/{{v.icon}}" width="96"/>
+{% else %}
+      <img class="img-thumbnail float-right" src="/uploads/vendor-unknown.png" width="96"/>
+{% endif %}
+    </div>
+    <p class="card-text">{{v.description}}</p>
+    <a class="card-link btn btn-primary mt-3" href="{{url_for('mdsync.route_show', vendor_id=v.vendor_id)}}">Show devices</a>
+  </div>
+</div>
+{% endfor %}
+
+{% endblock %}

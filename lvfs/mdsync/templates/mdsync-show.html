@@ -1,0 +1,124 @@
+{% extends "default.html" %}
+
+{% block title %}Partner Metadata collected by {{v.display_name}}{% endblock %}
+
+{% block nav %}{% include 'mdsync-nav.html' %}{% endblock %}
+
+{% block content %}
+
+<div class="alert alert-info" role="alert">
+  All metadata on this page has been contributed by {{v.display_name}} and the
+  LVFS team has not validated if the information here is correct.
+</div>
+
+{% if not mdrefs_by_id %}
+<div class="alert alert-secondary" role="alert">
+  No metadata is visible for this vendor.</p>
+</div>
+{% endif %}
+
+<div class="card mb-3" id="{appsteam_id}}">
+  <div class="card-body">
+    <div class="card-title">
+      Summary for all models
+    </div>
+    <ul class="list-group">
+{% for appstream_id in mdrefs_by_id|sort %}
+{% set mdrefs = mdrefs_by_id[appstream_id]|sort %}
+{% set mdref_last = mdrefs[-1] %}
+{% set md = md_by_id.get(appstream_id, None) %}
+{% if md %}
+      <li class="list-group-item">
+{% set mdrefmd = mdref_last.md %}
+{% if mdrefmd and mdrefmd.fw.remote.is_public %}
+        <span class="fas fa-check-circle fs-2 text-success mr-2"></span>
+        <a href="#{{appstream_id}}">
+         {{md.fw.vendor.display_name}} {{md.name_with_category}} ({{md.version_display}})
+        </a>
+{% else %}
+        <span class="fas fa-times-circle fs-2 text-danger mr-2"></span>
+        <a href="#{{appstream_id}}">
+         {{md.fw.vendor.display_name}} {{md.name_with_category}} ({{md.version_display}} != {{mdref_last.version}})
+        </a>
+      </li>
+{% endif %}
+{% endif %}
+{% endfor %}
+    </ul>
+  </div>
+</div>
+
+{% for appstream_id in mdrefs_by_id %}
+{% set mdrefs = mdrefs_by_id[appstream_id] %}
+{% if not mdrefs %}
+    <p class="card-text text-muted">No mdrefs for {{appstream_id}}.</p>
+{% else %}
+<a name="{{appstream_id}}"></a>
+<div class="card mb-3" id="{appsteam_id}}">
+  <div class="card-body">
+    <div class="card-title">
+{% set md = md_by_id.get(appstream_id, None) %}
+{% if md %}
+      {{md.fw.vendor.display_name}} {{md.name_with_category}}
+{% else %}
+      {{mdrefs[0].name or 'Unknown'}}
+{% endif %}
+      <code class="float-right">{{appstream_id}}</code>
+    </div>
+{% for mdref in mdrefs|sort %}
+    <h3>
+{% if mdref.md and mdref.md.fw.remote.is_public %}
+      <span class="fas fa-check-circle fs-2 text-success"></span>
+      <a href="{{url_for('components.route_show', component_id=mdref.md.component_id)}}">
+        {{mdref.version}}
+      </a>
+{% elif mdref.md %}
+      <span class="fas fa-times-circle fs-2 text-warning"></span>
+      <a href="{{url_for('components.route_show', component_id=mdref.md.component_id)}}">
+        {{mdref.version}}
+      </a>
+{% else %}
+      <span class="fas fa-times-circle fs-2 text-danger"></span>
+      {{mdref.version}}
+{% endif %}
+    </h3>
+<table class="card-text table">
+{% if mdref.url %}
+  <tr class="row">
+    <th class="col-3">Vendor URL</th>
+    <td class="col">
+      <a href="{{mdref.url}}">{{mdref.url}}</a>
+    </td>
+  </tr>
+{% endif %}
+{% if mdref.release_tag %}
+  <tr class="row">
+    <th class="col-3">Release Tag</th>
+    <td class="col"><code class="text-uppercase">{{mdref.release_tag}}</code></td>
+  </tr>
+{% endif %}
+{% if mdref.date %}
+  <tr class="row">
+    <th class="col-3">Public Release</th>
+    <td class="col">{{mdref.date.strftime('%Y-%m-%d')}}</td>
+  </tr>
+{% endif %}
+{% if mdref.status %}
+  <tr class="row">
+    <th class="col-3">OEM State</th>
+    <td class="col">
+      <img src="/img/symbolic-{{mdref.status}}.svg" width="24"
+        alt="{{mdref.status}}"
+        title="{{mdref.status}}"/>
+      {{mdref.status}}
+    </td>
+  </tr>
+{% endif %}
+</table>
+{% endfor %}
+  </div>
+</div>
+{% endif %}
+{% endfor %}
+
+{% endblock %}

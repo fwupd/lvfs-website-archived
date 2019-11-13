@@ -131,6 +131,15 @@
         </span>
         <br/>
 {% endif %}
+{% if g.user.check_acl('@add-action-partner') %}
+        <span class="switch mt-3 mb-3">
+          <input class="switch mt-3" type="checkbox" name="partner" id="partner" value="1" {{'checked' if u.check_acl('@partner')}}>
+          <label for="partner">
+            Allowed to import and export <strong>public</strong> lists of firmware, e.g. from Microsoft Update
+          </label>
+        </span>
+        <br/>
+{% endif %}
 {% if g.user.check_acl('@add-action-approved-public') %}
         <span class="switch mt-3">
           <input class="switch" type="checkbox" name="approved-public" id="approved-public" value="1" {{'checked' if u.check_acl('@approved-public')}}>

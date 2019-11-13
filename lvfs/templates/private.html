@@ -118,6 +118,11 @@
             <li class="nav-item {{'active' if request.url_rule.endpoint == 'telemetry' and age==180}}">
               <a class="nav-link" href="{{url_for('telemetry.route_show', age=180)}}">Last 6 months</a>
             </li>
+{% if g.user.check_acl('@vendor-manager') %}
+            <li class="nav-item {{'active' if request.url_rule.endpoint.startswith('mdsync.route')}}">
+              <a class="nav-link" href="{{url_for('mdsync.route_list')}}">Partner Metadata</a>
+            </li>
+{% endif %}
           </ul>
         </li>
 {% endif %}
