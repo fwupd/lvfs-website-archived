@@ -22,7 +22,7 @@ import GeoIP
 
 from pkgversion import vercmp
 
-from lvfs import app, db, lm, ploader
+from lvfs import app, db, lm, ploader, csrf
 
 from lvfs.dbutils import _execute_count_star
 from lvfs.pluginloader import PluginError
@@ -326,6 +326,7 @@ def route_login1_response():
     return render_template('login2.html', u=user)
 
 @bp_main.route('/lvfs/login', methods=['POST'])
+@csrf.exempt
 def route_login():
     """ A login screen to allow access to the LVFS main page """
     # auth check
