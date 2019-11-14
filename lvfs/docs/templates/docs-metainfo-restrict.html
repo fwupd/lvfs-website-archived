@@ -88,6 +88,35 @@
 
 <div class="card mt-3">
   <div class="card-body">
+    <div class="card-title"><a id="requires-fw-parent"></a>Restricting to parent version</div>
+    <p class="card-text">
+      For composite devices such as docks you might want to restrict the child
+      device with respect to the parent, for instance requiring the parent to
+      have greater than a specific bootloader version number.
+    </p>
+    <p class="card-text">
+      The other useful thing to use this for is checking if the parent has a specific
+      GUID (of any version) which allows us to match against the common VID&PID
+      instance IDs. This would allow us to restrict a generic child device update to
+      a specific OEM vendor parent.
+    </p>
+    <p class="card-text">
+      Depth is specified as <code>1</code> to match the parent device and
+      <code>2</code> to match the grandparent device:
+    </p>
+<pre>
+  &lt;!-- only newer versions of fwupd understand the 'depth' property --&gt;
+  &lt;requires&gt;
+    &lt;id compare="ge" version="1.3.4"&gt;org.freedesktop.fwupd&lt;/id&gt;
+    &lt;firmware depth="1" compare="ge" version="0.1.2"&gt;bootloader&lt;/firmware&gt;
+    &lt;firmware depth="1"&gt;12345678-1234-1234-1234-123456789012&lt;/firmware&gt;
+  &lt;/requires&gt;
+</pre>
+  </div>
+</div>
+
+<div class="card mt-3">
+  <div class="card-body">
     <div class="card-title"><a id="custom-direct-downloads"></a>Restricting direct downloads</div>
 <p class="card-text">
   If you'd rather not have users downloading the .cab archive directly you

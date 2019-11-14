@@ -436,24 +436,28 @@ class UploadedFile:
         for req in component.xpath('requires/*'):
             if req.tag == 'firmware':
                 text = _node_validate_text(req, minlen=3, maxlen=1000, allow_none=True)
-                rq = Requirement(md.component_id,
-                                 req.tag, text, req.get('compare'),
-                                 req.get('version'))
+                rq = Requirement(kind=req.tag,
+                                 value=text,
+                                 compare=req.get('compare'),
+                                 version=req.get('version'),
+                                 depth=req.get('depth', None))
                 md.requirements.append(rq)
             elif req.tag == 'id':
                 text = _node_validate_text(req, minlen=3, maxlen=1000)
-                rq = Requirement(md.component_id,
-                                 req.tag, text, req.get('compare'),
-                                 req.get('version'))
+                rq = Requirement(kind=req.tag,
+                                 value=text,
+                                 compare=req.get('compare'),
+                                 version=req.get('version'))
                 md.requirements.append(rq)
                 if text == 'org.freedesktop.fwupd':
                     self.fwupd_min_version = req.get('version')
             elif req.tag == 'hardware':
                 text = _node_validate_text(req, minlen=3, maxlen=1000)
                 for req_value in text.split('|'):
-                    rq = Requirement(md.component_id,
-                                     req.tag, req_value, req.get('compare'),
-                                     req.get('version'))
+                    rq = Requirement(kind=req.tag,
+                                     value=req_value,
+                                     compare=req.get('compare'),
+                                     version=req.get('version'))
                     md.requirements.append(rq)
             else:
                 raise MetadataInvalid('<{}> requirement was invalid'.format(req.tag))

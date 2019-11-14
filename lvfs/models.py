@@ -847,17 +847,10 @@ class Requirement(db.Model):
     value = Column(Text, default=None)
     compare = Column(Text, default=None)
     version = Column(Text, default=None)
+    depth = Column(Integer, default=None)
 
     # link back to parent
     md = relationship("Component", back_populates="requirements")
-
-    def __init__(self, component_id=None, kind=None, value=None, compare=None, version=None):
-        """ Constructor for object """
-        self.kind = kind        # e.g. 'id', 'firmware' or 'hardware'
-        self.value = value      # e.g. 'bootloader' or 'org.freedesktop.fwupd'
-        self.compare = compare
-        self.version = version
-        self.component_id = component_id
 
     def __repr__(self):
         return "Requirement object %s/%s/%s/%s" % (self.kind, self.value, self.compare, self.version)
@@ -1797,6 +1790,8 @@ class Component(db.Model):
         for rq in self.requirements:
             if rq.kind == 'firmware':
                 if rq.value not in [None, 'bootloader']:
+                    return True
+                if rq.depth:
                     return True
             key = rq.kind + ':' + str(rq.value)
             if key in seen:

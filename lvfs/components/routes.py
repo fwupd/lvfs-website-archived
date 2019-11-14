@@ -324,18 +324,22 @@ def route_requirement_create(component_id):
                                 page='requires'))
 
     # support empty too
-    compare = request.form['compare'] if 'compare' in request.form else None
+    compare = request.form.get('compare', None)
     if not compare:
         compare = None
-    version = request.form['version'] if 'version' in request.form else None
+    version = request.form.get('version', None)
     if not version:
         version = None
+    depth = request.form.get('depth', None)
+    if not depth:
+        depth = None
 
     # add requirement
-    rq = Requirement(md.component_id,
-                     request.form['kind'],
-                     request.form['value'].strip(),
-                     compare, version)
+    rq = Requirement(kind=request.form['kind'],
+                     value=request.form['value'].strip(),
+                     compare=compare,
+                     version=version,
+                     depth=depth)
     md.requirements.append(rq)
     md.fw.mark_dirty()
     db.session.commit()
@@ -404,11 +408,11 @@ def route_requirement_modify(component_id):
                                 page='requires'))
 
     # add requirement
-    rq = Requirement(md.component_id,
-                     request.form['kind'],
-                     value,
-                     request.form['compare'] if 'compare' in request.form else None,
-                     request.form['version'] if 'version' in request.form else None,
+    rq = Requirement(kind=request.form['kind'],
+                     value=value,
+                     compare=request.form.get('compare', None),
+                     version=request.form.get('version', None),
+                     depth=request.form.get('depth', None),
                     )
     md.requirements.append(rq)
     md.fw.mark_dirty()

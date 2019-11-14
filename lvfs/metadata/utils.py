@@ -90,6 +90,8 @@ def _generate_metadata_kind(filename, fws, firmware_baseuri='', local=False):
                     child.set('compare', rq.compare)
                 if rq.version:
                     child.set('version', rq.version)
+                if rq.depth:
+                    child.set('depth', rq.depth)
                 elements[rq.kind + str(rq.value)] = child
 
         # add a single requirement for <hardware>
