@@ -35,7 +35,7 @@ def route_firmware(state=None):
     Show all firmware uploaded by this user or vendor.
     """
     # pre-filter by user ID or vendor
-    if g.user.is_analyst or g.user.is_qa:
+    if g.user.check_acl('@analyst') or g.user.check_acl('@qa'):
         stmt = db.session.query(Firmware).\
                     filter((Firmware.vendor_id == g.user.vendor.vendor_id) | \
                            (Firmware.user_id == g.user.user_id))
@@ -244,7 +244,7 @@ def route_promote(firmware_id, target):
     for u in fw.get_possible_users_to_email:
         if u == g.user:
             continue
-        if u.notify_promote:
+        if u.get_action('notify-promote'):
             send_email("[LVFS] Firmware has been promoted",
                        u.email_address,
                        render_template('email-firmware-promoted.txt',
@@ -433,7 +433,9 @@ def route_affiliation_change(firmware_id):
     if vendor_id == fw.vendor_id:
         flash('No affiliation change required', 'info')
         return redirect(url_for('firmware.route_affiliation', firmware_id=fw.firmware_id))
-    if not g.user.is_admin and not g.user.vendor.is_affiliate_for(vendor_id) and vendor_id != g.user.vendor_id:
+    if not g.user.check_acl('@admin') and \
+        not g.user.vendor.is_affiliate_for(vendor_id) and \
+        vendor_id != g.user.vendor_id:
         flash('Insufficient permissions to change affiliation to {}'.format(vendor_id), 'danger')
         return redirect(url_for('firmware.route_show', firmware_id=firmware_id))
     old_vendor = fw.vendor

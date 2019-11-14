@@ -19,7 +19,7 @@ from lvfs.emails import send_email
 from lvfs.util import admin_login_required
 from lvfs.util import _error_internal, _email_check, _generate_password
 from lvfs.util import _pkcs7_certificate_info
-from lvfs.models import User, Vendor, Remote, Firmware, Event, FirmwareEvent, Certificate
+from lvfs.models import User, UserAction, Vendor, Remote, Firmware, Event, FirmwareEvent, Certificate
 
 bp_users = Blueprint('users', __name__, template_folder='templates')
 
@@ -80,12 +80,18 @@ def route_modify(user_id):
         user.human_user_id = human_user.user_id
 
     # unchecked checkbuttons are not included in the form data
-    for key in ['notify_demote_failures',
-                'notify_promote',
-                'notify_upload_vendor',
-                'notify_upload_affiliate',
-                'notify_server_error']:
-        setattr(user, key, bool(key in request.form))
+    for key in ['notify-demote-failures',
+                'notify-promote',
+                'notify-upload-vendor',
+                'notify-upload-affiliate',
+                'notify-server-error']:
+        if key in request.form:
+            if not user.get_action(key):
+                user.actions.append(UserAction(value=key))
+        else:
+            action = user.get_action(key)
+            if action:
+                user.actions.remove(action)
 
     # save to database
     user.mtime = datetime.datetime.utcnow()
@@ -297,32 +303,32 @@ def route_modify_by_admin(user_id):
         return redirect(url_for('main.route_dashboard'))
 
     # user is being promoted, so check the manager already has this attribute
-    if not user.is_vendor_manager and 'is_vendor_manager' in request.form:
-        if not g.user.check_acl('@add-attribute-manager'):
+    if not user.check_acl('@vendor-manager') and 'vendor-manager' in request.form:
+        if not g.user.check_acl('@add-action-vendor-manager'):
             flash('Permission denied: Unable to promote user to manager', 'danger')
             return redirect(url_for('main.route_dashboard'))
-    if not user.is_researcher and 'is_researcher' in request.form:
-        if not g.user.check_acl('@add-attribute-researcher'):
+    if not user.check_acl('@researcher') and 'researcher' in request.form:
+        if not g.user.check_acl('@add-action-researcher'):
             flash('Permission denied: Unable to promote user to researcher', 'danger')
             return redirect(url_for('main.route_dashboard'))
-    if not user.is_analyst and 'is_analyst' in request.form:
-        if not g.user.check_acl('@add-attribute-analyst'):
+    if not user.check_acl('@analyst') and 'analyst' in request.form:
+        if not g.user.check_acl('@add-action-analyst'):
             flash('Permission denied: Unable to promote user to analyst', 'danger')
             return redirect(url_for('main.route_dashboard'))
-    if not user.is_qa and 'is_qa' in request.form:
-        if not g.user.check_acl('@add-attribute-qa'):
+    if not user.check_acl('@qa') and 'qa' in request.form:
+        if not g.user.check_acl('@add-action-qa'):
             flash('Permission denied: Unable to promote user to QA', 'danger')
             return redirect(url_for('main.route_dashboard'))
-    if not user.is_approved_public and 'is_approved_public' in request.form:
-        if not g.user.check_acl('@add-attribute-qa'):
-            flash('Permission denied: Unable to promote user to QA', 'danger')
+    if not user.check_acl('@approved-public') and 'approved-public' in request.form:
+        if not g.user.check_acl('@add-action-approved-public'):
+            flash('Permission denied: Unable to promote user to approved public', 'danger')
             return redirect(url_for('main.route_dashboard'))
-    if not user.is_robot and 'is_robot' in request.form:
-        if not g.user.check_acl('@add-attribute-robot'):
+    if not user.check_acl('@robot') and 'robot' in request.form:
+        if not g.user.check_acl('@add-action-robot'):
             flash('Permission denied: Unable to mark user as robot', 'danger')
             return redirect(url_for('main.route_dashboard'))
-    if not user.is_admin and 'is_admin' in request.form:
-        if not g.user.check_acl('@add-attribute-admin'):
+    if not user.check_acl('@admin') and 'admin' in request.form:
+        if not g.user.check_acl('@add-action-admin'):
             flash('Permission denied: Unable to mark user as admin', 'danger')
             return redirect(url_for('main.route_dashboard'))
 
@@ -349,11 +355,17 @@ def route_modify_by_admin(user_id):
             user.human_user_id = None
 
     # unchecked checkbuttons are not included in the form data
-    for key in ['is_qa', 'is_analyst', 'is_vendor_manager', 'is_researcher',
-                'is_approved_public', 'is_robot', 'is_admin',
-                'is_otp_enabled', 'notify_demote_failures',
-                'notify_server_error']:
+    for key in ['is_otp_enabled']:
         setattr(user, key, bool(key in request.form))
+    for key in ['qa', 'analyst', 'vendor-manager', 'researcher',
+                'approved-public', 'robot', 'admin']:
+        if key in request.form:
+            if not user.get_action(key):
+                user.actions.append(UserAction(value=key))
+        else:
+            action = user.get_action(key)
+            if action:
+                user.actions.remove(action)
 
     # password is optional, and hashed
     if 'password' in request.form and request.form['password']:

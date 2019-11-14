@@ -20,7 +20,7 @@
                 <input class="form-control" id="display_name" type="text" name="display_name" value="{{g.user.display_name}}" required>
               </div>
             </div>
-{% if g.user.is_robot %}
+{% if g.user.check_acl('@robot') %}
             <div class="col-12">
               <div class="form-group">
                 <label for="human_user">Contact Email</label>
@@ -49,34 +49,34 @@
         <div class="row">
           <div class="col">
             <div class="custom-control custom-switch">
-              <input class="custom-control-input" type="checkbox" id="notify_demote_failures"
-                name="notify_demote_failures" value="1" {{'checked' if u.notify_demote_failures}}/>
-              <label class="custom-control-label" for="notify_demote_failures">
+              <input class="custom-control-input" type="checkbox" id="notify-demote-failures"
+                name="notify-demote-failures" value="1" {{'checked' if u.get_action('notify-demote-failures')}}/>
+              <label class="custom-control-label" for="notify-demote-failures">
                 When my firmware is demoted due to reported problems.
               </label>
             </div>
           </div>
         </div>
-{% if g.user.is_admin %}
+{% if g.user.check_acl('@admin') %}
         <div class="row">
           <div class="col">
             <div class="custom-control custom-switch">
-              <input class="custom-control-input" type="checkbox" id="notify_server_error"
-                name="notify_server_error" value="1" {{'checked' if u.notify_server_error}}/>
-              <label class="custom-control-label" for="notify_server_error">
+              <input class="custom-control-input" type="checkbox" id="notify-server-error"
+                name="notify-server-error" value="1" {{'checked' if u.get_action('notify-server-error')}}/>
+              <label class="custom-control-label" for="notify-server-error">
                 When a critical server error occurs.
               </label>
             </div>
           </div>
         </div>
 {% endif %}
-{% if g.user.is_qa %}
+{% if g.user.check_acl('@qa') %}
         <div class="row">
           <div class="col">
             <div class="custom-control custom-switch">
-              <input class="custom-control-input" type="checkbox" id="notify_upload_vendor"
-                name="notify_upload_vendor" value="1" {{'checked' if u.notify_upload_vendor}}/>
-              <label class="custom-control-label" for="notify_upload_vendor">
+              <input class="custom-control-input" type="checkbox" id="notify-upload-vendor"
+                name="notify-upload-vendor" value="1" {{'checked' if u.get_action('notify-upload-vendor')}}/>
+              <label class="custom-control-label" for="notify-upload-vendor">
                 When firmware is uploaded by anyone in the {{u.vendor.group_id}} group.
               </label>
             </div>
@@ -85,9 +85,9 @@
         <div class="row">
           <div class="col">
             <div class="custom-control custom-switch">
-              <input class="custom-control-input" type="checkbox" id="notify_upload_affiliate"
-                name="notify_upload_affiliate" value="1" {{'checked' if u.notify_upload_affiliate}}/>
-              <label class="custom-control-label" for="notify_upload_affiliate">
+              <input class="custom-control-input" type="checkbox" id="notify-upload-affiliate"
+                name="notify-upload-affiliate" value="1" {{'checked' if u.get_action('notify-upload-affiliate')}}/>
+              <label class="custom-control-label" for="notify-upload-affiliate">
                 When firmware is uploaded by an affiliate vendor on
                 behalf of the {{u.vendor.group_id}} group.
               </label>
@@ -97,10 +97,10 @@
         <div class="row">
           <div class="col">
             <div class="custom-control custom-switch">
-              <input class="custom-control-input" type="checkbox" id="notify_promote"
-                name="notify_promote" value="1" {{'checked' if u.notify_promote}}/>
-              <label class="custom-control-label" for="notify_promote">
-                When firmware is promted to testing or stable.
+              <input class="custom-control-input" type="checkbox" id="notify-promote"
+                name="notify-promote" value="1" {{'checked' if u.get_action('notify-promote')}}/>
+              <label class="custom-control-label" for="notify-promote">
+                When firmware is promoted to testing or stable.
               </label>
             </div>
           </div>

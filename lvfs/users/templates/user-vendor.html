@@ -13,20 +13,20 @@
   <div class="card-body">
 <form method="post" action="{{url_for('users.route_modify_by_admin', user_id=u.user_id)}}">
   <input type="hidden" name="csrf_token" value="{{csrf_token()}}"/>
-{% if u.is_qa %}
-  <input type="hidden" name="is_qa" value="1">
+{% if u.check_acl('@qa') %}
+  <input type="hidden" name="qa" value="1">
 {% endif %}
-{% if u.is_analyst %}
-  <input type="hidden" name="is_analyst" value="1">
+{% if u.check_acl('@analyst') %}
+  <input type="hidden" name="analyst" value="1">
 {% endif %}
-{% if u.is_vendor_manager %}
-  <input type="hidden" name="is_vendor_manager" value="1">
+{% if u.check_acl('@vendor-manager') %}
+  <input type="hidden" name="vendor-manager" value="1">
 {% endif %}
-{% if u.is_researcher %}
-  <input type="hidden" name="is_researcher" value="1">
+{% if u.check_acl('@researcher') %}
+  <input type="hidden" name="researcher" value="1">
 {% endif %}
-{% if u.is_approved_public %}
-  <input type="hidden" name="is_approved_public" value="1">
+{% if u.check_acl('@approved-public') %}
+  <input type="hidden" name="approved-public" value="1">
 {% endif %}
 
   <div class="form-group row">

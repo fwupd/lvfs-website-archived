@@ -7,15 +7,15 @@ You can now:
  * Upload firmware to {{user.vendor.display_name}}
 {% for aff in user.vendor.affiliations_for %}
  * Upload firmware on behalf of {{aff.vendor.display_name}}
-{% endfor %}{% if user.is_analyst %}
+{% endfor %}{% if user.check_acl('@analyst') %}
  * Access all firmware and associated reports in the {{user.vendor.group_id}} group
-{% endif %}{% if user.is_qa %}
+{% endif %}{% if user.check_acl('@qa') %}
  * Modify all the firmware uploaded to the {{user.vendor.group_id}} group
-{% endif %}{% if user.is_vendor_manager %}
+{% endif %}{% if user.check_acl('@vendor-manager') %}
  * Add, remove and modify users in the {{user.vendor.group_id}} group
-{% endif %}{% if user.is_approved_public %}
+{% endif %}{% if user.check_acl('@approved-public') %}
  * Move firmware to the public testing and stable remotes
-{% endif %}{% if user.is_researcher %}
+{% endif %}{% if user.check_acl('@researcher') %}
  * Create YARA rules to run on public firmware
 {% endif %}
 {% if user.auth_type == 'oauth' %}You can access the LVFS by clicking the 'Login' button then using the 'Log in with Azure AD' option.{% endif %}

@@ -140,20 +140,20 @@ class LvfsTestCase(unittest.TestCase):
         if is_qa or is_analyst or is_vendor_manager or is_approved_public or is_robot:
             data = {'auth_type': 'local'}
             if is_qa:
-                data['is_qa'] = '1'
+                data['qa'] = '1'
             if is_analyst:
-                data['is_analyst'] = '1'
+                data['analyst'] = '1'
             if is_vendor_manager:
-                data['is_vendor_manager'] = '1'
+                data['vendor-manager'] = '1'
             if is_researcher:
-                data['is_researcher'] = '1'
+                data['researcher'] = '1'
             if is_approved_public:
-                data['is_approved_public'] = '1'
+                data['approved-public'] = '1'
             if is_robot:
-                data['is_robot'] = '1'
+                data['robot'] = '1'
             rv = self.app.post('/lvfs/users/%i/modify_by_admin' % user_id,
                                data=data, follow_redirects=True)
-            assert b'Updated profile' in rv.data, rv.data
+            assert b'Updated profile' in rv.data, rv.data.decode()
 
     def _upload(self, filename='contrib/hughski-colorhug2-2.0.3.cab', target='private', vendor_id=None):
         with open(filename, 'rb') as fd:

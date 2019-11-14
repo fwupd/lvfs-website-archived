@@ -522,7 +522,7 @@ def route_user_create(vendor_id):
         return redirect(url_for('users.route_list'), 302)
 
     # verify the username matches the allowed vendor glob
-    if not g.user.is_admin:
+    if not g.user.check_acl('@admin'):
         if not vendor.username_glob:
             flash('Failed to add user: '
                   'Admin has not set the account policy for this vendor',

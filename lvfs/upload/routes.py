@@ -153,7 +153,7 @@ def _upload_firmware():
 
     # all the components existed, so build an error out of all the versions
     if len(fws_already_exist) == len(ufile.fw.mds):
-        if g.user.is_robot and 'auto-delete' in request.form:
+        if g.user.check_acl('@robot') and 'auto-delete' in request.form:
             for fw in fws_already_exist:
                 if fw.remote.is_public:
                     flash('Firmware {} cannot be autodeleted as is in remote {}'.format(
@@ -186,7 +186,7 @@ def _upload_firmware():
                 if old_guid in new_guids:
                     continue
                 fw_str = str(md.fw.firmware_id)
-                if g.user.is_qa or g.user.is_robot:
+                if g.user.check_acl('@qa') or g.user.check_acl('@robot'):
                     flash('Firmware drops GUID {} previously supported '
                           'in firmware {}'.format(old_guid, fw_str), 'warning')
                 else:
@@ -250,12 +250,12 @@ def _upload_firmware():
     for u in fw.get_possible_users_to_email:
         if u == g.user:
             continue
-        if u.notify_upload_vendor and u.vendor == fw.vendor:
+        if u.get_action('notify-upload-vendor') and u.vendor == fw.vendor:
             send_email("[LVFS] Firmware has been uploaded",
                        u.email_address,
                        render_template('email-firmware-uploaded.txt',
                                        user=u, user_upload=g.user, fw=fw))
-        elif u.notify_upload_affiliate:
+        elif u.get_action('notify-upload-affiliate'):
             send_email("[LVFS] Firmware has been uploaded by affiliate",
                        u.email_address,
                        render_template('email-firmware-uploaded.txt',
@@ -282,7 +282,7 @@ def route_robot():
         return redirect(url_for('upload.route_firmware'))
 
     # check is robot
-    if not g.user.is_robot:
+    if not g.user.check_acl('@robot'):
         flash('Not a robot user, please try again')
         return redirect(url_for('upload.route_firmware'))
 

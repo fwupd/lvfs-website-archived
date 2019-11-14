@@ -3,7 +3,7 @@
 
 {% block content %}
 
-{% if g.user.is_qa %}
+{% if g.user.check_acl('@qa') %}
 
 <div class="card mt-3">
   <div class="card-body">

@@ -25,14 +25,10 @@
       <code>
       {{ 'me' if u.user_id == g.user.user_id }}
       {{ u.auth_type if u.auth_type else 'disabled' }}
-      {{ 'admin' if u.is_admin }}
-      {{ 'robot' if u.is_robot }}
-      {{ 'approved' if u.is_approved_public }}
-      {{ 'manager' if u.is_vendor_manager }}
-      {{ 'qa' if u.is_qa }}
-      {{ 'analyst' if u.is_analyst }}
-      {{ 'researcher' if u.is_researcher }}
       {{ 'otp' if u.is_otp_enabled }}
+{% for action in u.actions %}
+      {{action.value}}
+{% endfor %}
       </code>
     </td>
     <td class="col col-sm-2">

@@ -351,7 +351,7 @@ def _demote_back_to_testing(fw):
         return
 
     # send email to uploading user
-    if fw.user.notify_demote_failures:
+    if fw.user.get_action('notify-demote-failures'):
         send_email("[LVFS] Firmware has been demoted",
                    fw.user.email_address,
                    render_template('email-firmware-demote.txt',

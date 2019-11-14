@@ -97,10 +97,16 @@ app.register_blueprint(bp_vendors, url_prefix='/lvfs/vendors')
 app.register_blueprint(bp_verfmts, url_prefix='/lvfs/verfmts')
 
 def _set_up_notify_server_error():
-    from lvfs.models import User
-    toaddrs = [user.username for user in db.session.query(User).\
-                                            filter(User.is_admin).\
-                                            filter(User.notify_server_error).all()]
+    from lvfs.models import User, UserAction
+    stmt = db.session.query(User.user_id).\
+                            join(UserAction).\
+                            filter(UserAction.value == 'admin').\
+                            subquery()
+    toaddrs = db.session.query(User.username).\
+                               outerjoin(stmt, User.user_id == stmt.c.user_id).\
+                               join(UserAction).\
+                               filter(UserAction.value == 'notify-server-error').\
+                               all()
     if not toaddrs:
         return
     mail_handler = SMTPHandler(

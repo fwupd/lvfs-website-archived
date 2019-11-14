@@ -127,6 +127,22 @@ class Agreement(db.Model):
     version = Column(Integer, nullable=False)
     text = Column(Text, default=None)
 
+class UserAction(db.Model):
+
+    # database
+    __tablename__ = 'user_actions'
+    __table_args__ = {'mysql_character_set': 'utf8mb4'}
+
+    user_action_id = Column(Integer, primary_key=True, unique=True, nullable=False)
+    user_id = Column(Integer, ForeignKey('users.user_id'), nullable=False)
+    ctime = Column(DateTime, nullable=False, default=datetime.datetime.utcnow)
+    value = Column(Text, default=None)
+
+    user = relationship('User', foreign_keys=[user_id], back_populates='actions')
+
+    def __repr__(self):
+        return "<UserAction {}>".format(self.value)
+
 class User(db.Model):
 
     # database
@@ -146,13 +162,13 @@ class User(db.Model):
     vendor_id = Column(Integer, ForeignKey('vendors.vendor_id'), nullable=False)
     auth_type = Column(Text, default='disabled')
     auth_warning = Column(Text, default=None)
-    is_qa = Column(Boolean, default=False)
-    is_robot = Column(Boolean, default=False)
-    is_analyst = Column(Boolean, default=False)
-    is_vendor_manager = Column(Boolean, default=False)
-    is_approved_public = Column(Boolean, default=False)
-    is_admin = Column(Boolean, default=False)
-    is_researcher = Column(Boolean, default=False)
+    unused_is_qa = Column('is_qa', Boolean, default=False)
+    unused_is_robot = Column('is_robot', Boolean, default=False)
+    unused_is_analyst = Column('is_analyst', Boolean, default=False)
+    unused_is_vendor_manager = Column('is_vendor_manager', Boolean, default=False)
+    unused_is_approved_public = Column('is_approved_public', Boolean, default=False)
+    unused_is_admin = Column('is_admin', Boolean, default=False)
+    unused_is_researcher = Column('is_researcher', Boolean, default=False)
     is_otp_enabled = Column(Boolean, default=False)
     is_otp_working = Column(Boolean, default=False)
     agreement_id = Column(Integer, ForeignKey('agreements.agreement_id'))
@@ -161,11 +177,11 @@ class User(db.Model):
     atime = Column(DateTime, default=None)
     dtime = Column(DateTime, default=None)
     human_user_id = Column(Integer, ForeignKey('users.user_id'), nullable=True)
-    notify_demote_failures = Column(Boolean, default=False)
-    notify_server_error = Column(Boolean, default=False)
-    notify_upload_vendor = Column(Boolean, default=False)
-    notify_upload_affiliate = Column(Boolean, default=False)
-    notify_promote = Column(Boolean, default=False)
+    unused_notify_demote_failures = Column('notify_demote_failures', Boolean, default=False)
+    unused_notify_server_error = Column('notify_server_error', Boolean, default=False)
+    unused_notify_upload_vendor = Column('notify_upload_vendor', Boolean, default=False)
+    unused_notify_upload_affiliate = Column('notify_upload_affiliate', Boolean, default=False)
+    unused_notify_promote = Column('notify_promote', Boolean, default=False)
 
     # link using foreign keys
     vendor = relationship('Vendor', foreign_keys=[vendor_id])
@@ -185,27 +201,29 @@ class User(db.Model):
     certificates = relationship("Certificate",
                                 order_by="desc(Certificate.ctime)",
                                 cascade='all,delete-orphan')
+    actions = relationship("UserAction",
+                           lazy='joined',
+                           cascade='all,delete-orphan')
 
     def __init__(self, username, password_hash=None, display_name=None,
-                 vendor_id=None, auth_type='disabled', is_analyst=False, is_qa=False,
-                 is_admin=False, is_vendor_manager=False, is_approved_public=False,
-                 is_otp_enabled=False):
+                 vendor_id=None, auth_type='disabled', is_otp_enabled=False):
         """ Constructor for object """
         self.username = username
         self.password_hash = password_hash
         self.display_name = display_name
         self.auth_type = auth_type
-        self.is_analyst = is_analyst
-        self.is_qa = is_qa
         self.vendor_id = vendor_id
-        self.is_admin = is_admin
-        self.is_vendor_manager = is_vendor_manager
-        self.is_approved_public = is_approved_public
         self.is_otp_enabled = is_otp_enabled
 
         # generate a random secret
         if self.otp_secret is None:
             self.otp_secret = _otp_hash()
+
+    def get_action(self, value):
+        for action in self.actions:
+            if action.value == value:
+                return action
+        return None
 
     @property
     def password(self):
@@ -247,28 +265,25 @@ class User(db.Model):
             return False
 
         # of required userclass
-        return self.is_admin or self.is_vendor_manager
+        return self.check_acl('@admin') or self.check_acl('@vendor-manager')
 
     def verify_totp(self, token):
         return onetimepass.valid_totp(token, self.otp_secret)
 
     def check_acl(self, action=None):
 
-        # anyone who is an admin can do everything
-        if self.is_admin:
-            return True
-
         # disabled users can do nothing
         if self.auth_type == 'disabled':
             return False
 
         # decide based on the action
-        if action == '@admin':
-            return False
+        if action in ['@qa', '@analyst', '@vendor-manager', '@researcher',
+                      '@approved-public', '@robot', '@admin']:
+            return self.get_action(action[1:])
         if action == '@view-profile':
             return self.auth_type == 'local'
         if action == '@view-analytics':
-            if self.is_qa or self.is_analyst:
+            if self.check_acl('@qa') or self.check_acl('@analyst'):
                 return True
             return False
         if action == '@manage-password':
@@ -276,39 +291,39 @@ class User(db.Model):
                 return True
             return False
         if action == '@yara-query':
-            return self.is_researcher
-        if action == '@add-attribute-researcher':
+            return self.check_acl('@admin') or self.check_acl('@researcher')
+        if action == '@add-action-researcher':
             if not self.vendor.check_acl('@manage-users'):
                 return False
-            return self.is_researcher
-        if action == '@add-attribute-manager':
+            return self.check_acl('@admin') or self.check_acl('@researcher')
+        if action == '@add-action-vendor-manager':
             if not self.vendor.check_acl('@manage-users'):
                 return False
-            return self.is_vendor_manager
-        if action == '@add-attribute-approved':
+            return self.check_acl('@admin') or self.check_acl('@vendor-manager')
+        if action == '@add-action-approved-public':
             if not self.vendor.check_acl('@manage-users'):
                 return False
-            return self.is_approved_public
-        if action == '@add-attribute-analyst':
+            return self.check_acl('@admin') or self.check_acl('@approved-public')
+        if action == '@add-action-analyst':
             if not self.vendor.check_acl('@manage-users'):
                 return False
-            return self.is_analyst
-        if action == '@add-attribute-qa':
+            return self.check_acl('@admin') or self.check_acl('@analyst')
+        if action == '@add-action-qa':
             if not self.vendor.check_acl('@manage-users'):
                 return False
-            return self.is_qa
-        if action == '@add-attribute-admin':
+            return self.check_acl('@admin') or self.check_acl('@qa')
+        if action == '@add-action-admin':
             if not self.vendor.check_acl('@manage-users'):
                 return False
-            return self.is_admin
-        if action == '@add-attribute-robot':
+            return self.check_acl('@admin')
+        if action == '@add-action-robot':
             return self.vendor.check_acl('@manage-users')
         if action in ('@view-eventlog', '@view-issues'):
-            return self.is_qa
+            return self.check_acl('@qa')
         raise NotImplementedError('unknown security check type: %s' % self)
 
     def generate_password_recovery(self):
-        if self.is_robot:
+        if self.check_acl('@robot'):
             raise RuntimeError('account is a robot')
         if self.auth_type == 'disabled':
             raise RuntimeError('account is locked')
@@ -412,7 +427,7 @@ class YaraQuery(db.Model):
         # fall back
         if not user:
             user = g.user
-        if user.is_admin:
+        if user.check_acl('@admin'):
             return True
 
         # depends on the action requested
@@ -709,7 +724,7 @@ class Vendor(db.Model):
         # fall back
         if not user:
             user = g.user
-        if user.is_admin:
+        if user.check_acl('@admin'):
             return True
 
         # depends on the action requested
@@ -728,21 +743,21 @@ class Vendor(db.Model):
             return False
         if action == '@manage-users':
             # manager user can modify any users in his group
-            if user.is_vendor_manager and user.vendor_id == self.vendor_id:
+            if user.check_acl('@vendor-manager') and user.vendor_id == self.vendor_id:
                 return True
             return False
         if action == '@modify-oauth':
             return False
         if action == '@view-affiliations':
-            return user.is_vendor_manager
+            return user.check_acl('@vendor-manager')
         if action == '@modify-affiliations':
             return False
         if action == '@modify-affiliation-actions':
-            return user.is_vendor_manager
+            return user.check_acl('@vendor-manager')
         if action == '@view-exports':
-            return user.is_qa or user.is_vendor_manager
+            return user.check_acl('@qa') or user.check_acl('@vendor-manager')
         if action == '@modify-exports':
-            return user.is_vendor_manager
+            return user.check_acl('@vendor-manager')
         raise NotImplementedError('unknown security check action: %s:%s' % (self, action))
 
     def __repr__(self):
@@ -807,7 +822,7 @@ class Certificate(db.Model):
         # fall back
         if not user:
             user = g.user
-        if user.is_admin:
+        if user.check_acl('@admin'):
             return True
 
         # depends on the action requested
@@ -1028,18 +1043,18 @@ class Test(db.Model):
         # fall back
         if not user:
             user = g.user
-        if user.is_admin:
+        if user.check_acl('@admin'):
             return True
 
         # depends on the action requested
         if action == '@retry':
-            if user.is_qa and self.fw._is_permitted_action(action, user):
+            if user.check_acl('@qa') and self.fw._is_permitted_action(action, user):
                 return True
             if self.fw._is_owner(user):
                 return True
             return False
         if action == '@waive':
-            if user.is_qa and self.fw._is_permitted_action(action, user):
+            if user.check_acl('@qa') and self.fw._is_permitted_action(action, user):
                 return True
             return False
         raise NotImplementedError('unknown security check action: %s:%s' % (self, action))
@@ -1819,19 +1834,19 @@ class Component(db.Model):
         # fall back
         if not user:
             user = g.user
-        if user.is_admin:
+        if user.check_acl('@admin'):
             return True
 
         # depends on the action requested
         if action == '@modify-updateinfo':
             if not self.fw.remote.is_public:
-                if user.is_qa and self.fw._is_permitted_action(action, user):
+                if user.check_acl('@qa') and self.fw._is_permitted_action(action, user):
                     return True
                 if self.fw._is_owner(user):
                     return True
             return False
         if action in ('@modify-keywords', '@modify-requirements', '@modify-checksums'):
-            if user.is_qa and self.fw._is_permitted_action(action, user):
+            if user.check_acl('@qa') and self.fw._is_permitted_action(action, user):
                 return True
             if self.fw._is_owner(user):
                 return True
@@ -2050,13 +2065,13 @@ class Firmware(db.Model):
 
         # vendor that owns the firmware
         for u in self.vendor.users:
-            if u.is_qa or u.is_vendor_manager:
+            if u.check_acl('@qa') or u.check_acl('@vendor-manager'):
                 users.append(u)
 
         # odm that uploaded the firmware
         if self.vendor != self.vendor_odm:
             for u in self.vendor_odm.users:
-                if u.is_qa or u.is_vendor_manager:
+                if u.check_acl('@qa') or u.check_acl('@vendor-manager'):
                     users.append(u)
         return users
 
@@ -2253,14 +2268,14 @@ class Firmware(db.Model):
         # fall back
         if not user:
             user = g.user
-        if user.is_admin:
+        if user.check_acl('@admin'):
             return True
 
         # depends on the action requested
         if action == '@delete':
             if self.is_deleted:
                 return False
-            if user.is_qa and self._is_permitted_action(action, user):
+            if user.check_acl('@qa') and self._is_permitted_action(action, user):
                 return True
             return False
         if action == '@nuke':
@@ -2268,9 +2283,9 @@ class Firmware(db.Model):
                 return False
             return False
         if action == '@view':
-            if user.is_qa and self._is_permitted_action(action, user):
+            if user.check_acl('@qa') and self._is_permitted_action(action, user):
                 return True
-            if user.is_analyst and self._is_permitted_action(action, user):
+            if user.check_acl('@analyst') and self._is_permitted_action(action, user):
                 return True
             if self._is_owner(user):
                 return True
@@ -2278,21 +2293,21 @@ class Firmware(db.Model):
         if action == '@view-analytics':
             if not self.check_acl('@view', user):
                 return False
-            if user.is_qa or user.is_analyst:
+            if user.check_acl('@qa') or user.check_acl('@analyst'):
                 return True
             return False
         if action == '@undelete':
-            if user.is_qa and self._is_permitted_action(action, user):
+            if user.check_acl('@qa') and self._is_permitted_action(action, user):
                 return True
             if self._is_owner(user):
                 return True
             return False
         if action in ('@promote-stable', '@promote-testing'):
-            if user.is_approved_public and self._is_permitted_action(action, user):
+            if user.check_acl('@approved-public') and self._is_permitted_action(action, user):
                 return True
             return False
         if action.startswith('@promote-'):
-            if user.is_qa and self._is_vendor(user):
+            if user.check_acl('@qa') and self._is_vendor(user):
                 return True
             # ODM vendor can always move private<->embargo
             if self._is_odm(user):
@@ -2306,17 +2321,17 @@ class Firmware(db.Model):
                     return True
             return False
         if action == '@modify':
-            if user.is_qa and self._is_permitted_action(action, user):
+            if user.check_acl('@qa') and self._is_permitted_action(action, user):
                 return True
             if self._is_owner(user):
                 return True
             return False
         if action == '@modify-limit':
-            if user.is_qa and self._is_permitted_action(action, user):
+            if user.check_acl('@qa') and self._is_permitted_action(action, user):
                 return True
             return False
         if action == '@modify-affiliation':
-            if user.is_qa and self._is_permitted_action(action, user):
+            if user.check_acl('@qa') and self._is_permitted_action(action, user):
                 return True
             return False
         raise NotImplementedError('unknown security check action: %s:%s' % (self, action))
@@ -2450,21 +2465,21 @@ class Issue(db.Model):
         # fall back
         if not user:
             user = g.user
-        if user.is_admin:
+        if user.check_acl('@admin'):
             return True
 
         # depends on the action requested
         if action == '@create':
-            return user.is_qa
+            return user.check_acl('@qa')
         if action == '@modify':
-            if user.is_qa and user.vendor_id == self.vendor_id:
+            if user.check_acl('@qa') and user.vendor_id == self.vendor_id:
                 return True
             return False
         if action == '@view':
-            if user.is_qa and user.vendor_id == self.vendor_id:
+            if user.check_acl('@qa') and user.vendor_id == self.vendor_id:
                 return True
             # any issues owned by admin can be viewed by a QA user
-            if user.is_qa and self.vendor_id == 1:
+            if user.check_acl('@qa') and self.vendor_id == 1:
                 return True
             return False
         raise NotImplementedError('unknown security check action: %s:%s' % (self, action))
@@ -2572,7 +2587,7 @@ class Report(db.Model):
         # fall back
         if not user:
             user = g.user
-        if user.is_admin:
+        if user.check_acl('@admin'):
             return True
 
         # depends on the action requested
@@ -2581,7 +2596,7 @@ class Report(db.Model):
             return False
         if action == '@view':
             # QA user can modify any issues matching vendor_id
-            if user.is_qa and self.fw._is_vendor(user):
+            if user.check_acl('@qa') and self.fw._is_vendor(user):
                 return True
             return False
         raise NotImplementedError('unknown security check action: %s:%s' % (self, action))

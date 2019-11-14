@@ -348,21 +348,21 @@
         </ul>
         <ul class="navbar-nav align-items-center ml-auto">
           <li class="nav-item dropdown"><a class="nav-link pr-0" id="navbarDropdownUser" href="#" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-{% if g.user.is_admin and 1 %}
+{% if g.user.check_acl('@admin') %}
             <span class="badge badge-danger text-uppercase">Admin</span>
 {% endif %}
-{% if g.user.is_qa and 1 %}
+{% if g.user.check_acl('@qa') %}
             <span class="badge badge-warning text-uppercase">QA</span>
 {% else %}
             <span class="badge badge-info text-uppercase">Limited</span>
 {% endif %}
-{% if g.user.is_analyst and 1 %}
+{% if g.user.check_acl('@analyst') %}
             <span class="badge badge-info text-uppercase">Analyst</span>
 {% endif %}
-{% if g.user.vendor_manager %}
+{% if g.user.check_acl('@vendor-manager') %}
             <span class="badge badge-info text-uppercase">Manager</span>
 {% endif %}
-{% if g.user.is_approved_public and 1 %}
+{% if g.user.check_acl('@approved-public') %}
             <span class="badge badge-success text-uppercase">Trusted</span>
 {% else %}
             <span class="badge badge-info text-uppercase">Untrusted</span>

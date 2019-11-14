@@ -189,7 +189,7 @@ def init_db(db):
     db.metadata.create_all(bind=db.engine)
 
     # ensure admin user exists
-    from .models import User, Vendor, Remote
+    from .models import User, UserAction, Vendor, Remote
     if not db.session.query(Remote).filter(Remote.name == 'stable').first():
         db.session.add(Remote(name='stable', is_public=True))
         db.session.add(Remote(name='testing', is_public=True))
@@ -209,10 +209,11 @@ def init_db(db):
         u = User(username='sign-test@fwupd.org',
                  auth_type='local',
                  display_name='Admin User',
-                 vendor_id=vendor.vendor_id,
-                 is_admin=True,
-                 is_qa=True,
-                 is_analyst=True)
+                 vendor_id=vendor.vendor_id)
+        u.actions.append(UserAction(value='admin'))
+        u.actions.append(UserAction(value='qa'))
+        u.actions.append(UserAction(value='analyst'))
+        u.actions.append(UserAction(value='notify-server-error'))
         u.password = "Pa$$w0rd"
         db.session.add(u)
         db.session.commit()

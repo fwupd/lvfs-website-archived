@@ -98,9 +98,12 @@ class LocalTestCase(LvfsTestCase):
 
         # enable emails
         rv = self.app.post('/lvfs/users/1/modify_by_admin',
-                           data={'notify_demote_failures': '1',
-                                 'is_qa': '1',
-                                 'is_approved_public': '1'},
+                           data={'qa': '1',
+                                 'approved-public': '1'},
+                           follow_redirects=True)
+        assert b'Updated profile' in rv.data, rv.data
+        rv = self.app.post('/lvfs/users/1/modify',
+                           data={'notify-demote-failures': '1'},
                            follow_redirects=True)
         assert b'Updated profile' in rv.data, rv.data
 

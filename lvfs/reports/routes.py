@@ -177,7 +177,7 @@ def route_report():
             continue
 
         # update the device checksums if there is only one component
-        if crt and crt.user.is_qa and 'ChecksumDevice' in data and len(fw.mds) == 1:
+        if crt and crt.user.check_acl('@qa') and 'ChecksumDevice' in data and len(fw.mds) == 1:
             md = fw.md_prio
             found = False
 
