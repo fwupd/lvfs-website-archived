@@ -31,11 +31,10 @@
 {% endfor %}
 </table>
 <p class="card-text">
-  To override the default of <code>triplet</code> vendors can ship extra metadata
+  To override the default of <code>unknown</code> vendors should ship extra metadata
   in the <code>metainfo.xml</code> file:
 </p>
 <pre>
-  &lt;!-- most devices do not need to do this... --&gt;
   &lt;requires&gt;
     &lt;id compare="ge" version="1.2.0"&gt;org.freedesktop.fwupd&lt;/id&gt;
   &lt;/requires&gt;
@@ -43,6 +42,11 @@
     &lt;value key="LVFS::VersionFormat"&gt;intel-me&lt;/value&gt;
   &lt;/custom&gt;
 </pre>
+<p class="card-text">
+  If the version format is unspecified, and cannot be derived from the
+  <code>LVFS::UpdateProtocol</code> then a warning will be shown during upload
+  and the firmware cannot be moved to stable until this is resolved.
+</p>
 <p class="card-text">
   Various security teams also want us to always show the device firmware version
   with the correct format, even if an update is not available.
