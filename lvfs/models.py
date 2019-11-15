@@ -1679,7 +1679,9 @@ class Component(db.Model):
                 problems.append(problem)
 
         # check the version matches the expected section count
-        if self.verfmt_with_fallback and self.verfmt_with_fallback.sections:
+        if self.verfmt_with_fallback and \
+           self.verfmt_with_fallback.value != 'plain' and \
+           self.verfmt_with_fallback.sections:
             if self.version_sections != self.verfmt_with_fallback.sections:
                 problem = Problem('invalid-version-for-format',
                                   'Version number {} incompatible with {}'.\
