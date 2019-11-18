@@ -162,13 +162,6 @@ class User(db.Model):
     vendor_id = Column(Integer, ForeignKey('vendors.vendor_id'), nullable=False)
     auth_type = Column(Text, default='disabled')
     auth_warning = Column(Text, default=None)
-    unused_is_qa = Column('is_qa', Boolean, default=False)
-    unused_is_robot = Column('is_robot', Boolean, default=False)
-    unused_is_analyst = Column('is_analyst', Boolean, default=False)
-    unused_is_vendor_manager = Column('is_vendor_manager', Boolean, default=False)
-    unused_is_approved_public = Column('is_approved_public', Boolean, default=False)
-    unused_is_admin = Column('is_admin', Boolean, default=False)
-    unused_is_researcher = Column('is_researcher', Boolean, default=False)
     is_otp_enabled = Column(Boolean, default=False)
     is_otp_working = Column(Boolean, default=False)
     agreement_id = Column(Integer, ForeignKey('agreements.agreement_id'))
@@ -177,11 +170,6 @@ class User(db.Model):
     atime = Column(DateTime, default=None)
     dtime = Column(DateTime, default=None)
     human_user_id = Column(Integer, ForeignKey('users.user_id'), nullable=True)
-    unused_notify_demote_failures = Column('notify_demote_failures', Boolean, default=False)
-    unused_notify_server_error = Column('notify_server_error', Boolean, default=False)
-    unused_notify_upload_vendor = Column('notify_upload_vendor', Boolean, default=False)
-    unused_notify_upload_affiliate = Column('notify_upload_affiliate', Boolean, default=False)
-    unused_notify_promote = Column('notify_promote', Boolean, default=False)
 
     # link using foreign keys
     vendor = relationship('Vendor', foreign_keys=[vendor_id])
@@ -571,7 +559,6 @@ class Vendor(db.Model):
     oauth_domain_glob = Column(Text, default=None)
     remote_id = Column(Integer, ForeignKey('remotes.remote_id'), nullable=False)
     username_glob = Column(Text, default=None)
-    unused_version_format = Column('version_format', String(10), default=None) # usually 'triplet' or 'quad'
     verfmt_id = Column(Integer, ForeignKey('verfmts.verfmt_id'))
     url = Column(Text, default=None)
     banned_country_codes = Column(Text, default=None) # ISO 3166, delimiter ','
@@ -1463,7 +1450,6 @@ class Component(db.Model):
     screenshot_url = Column(Text, default=None)
     screenshot_caption = Column(Text, default=None)
     inhibit_download = Column(Boolean, default=False)
-    unused_version_format = Column('version_format', String(10), default=None) # usually 'triplet' or 'quad'
     verfmt_id = Column(Integer, ForeignKey('verfmts.verfmt_id'))
     priority = Column(Integer, default=0)
     install_duration = Column(Integer, default=0)
