@@ -432,6 +432,9 @@ def _pkcs7_signature_verify(certificate, payload, signature):
 def admin_login_required(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
+        if not hasattr(g, 'user'):
+            flash('No logged in user', 'danger')
+            return redirect(url_for('main.route_index'))
         if not g.user.check_acl('@admin'):
             flash('Only the admin team can access this resource', 'danger')
             return redirect(url_for('main.route_dashboard'))
