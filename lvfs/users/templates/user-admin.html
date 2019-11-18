@@ -168,6 +168,10 @@
   <input type="submit" class="btn btn-primary btn-large" value="Modify">
   <div class="float-right">
     <a class="btn btn-warning" href="{{url_for('users.route_reset_by_admin', user_id=u.user_id)}}">Reset Password</a>
+{% if g.user.check_acl('@admin') %}
+    <a class="btn btn-warning"
+      href="{{url_for('main.route_login_as_user', user_id=u.user_id)}}">Become User</a>
+{% endif %}
 {% if g.user.check_acl('@admin') and u.group_id != 'admin' %}
     <button type="button" class="btn btn-danger" data-toggle="modal" data-target="#deleteModal">Delete</button>
 {% endif %}

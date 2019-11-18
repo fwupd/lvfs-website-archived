@@ -32,7 +32,7 @@ from lvfs.models import User, Client, Event, AnalyticVendor, Remote
 from lvfs.models import _get_datestr_from_datetime
 from lvfs.hash import _addr_hash
 from lvfs.util import _get_client_address, _get_settings, _xml_from_markdown, _get_chart_labels_days
-from lvfs.util import _event_log, _error_internal
+from lvfs.util import _event_log, _error_internal, admin_login_required
 
 bp_main = Blueprint('main', __name__, template_folder='templates')
 
@@ -375,6 +375,21 @@ def route_login():
     user.atime = datetime.datetime.utcnow()
     db.session.commit()
 
+    return redirect(url_for('main.route_dashboard'))
+
+@bp_main.route('/lvfs/login/as/<user_id>')
+@login_required
+@admin_login_required
+def route_login_as_user(user_id):
+
+    # auth check
+    user = db.session.query(User).filter(User.user_id == user_id).first()
+    if not user:
+        flash('Failed to log in: No user ID {}'.format(user_id), 'danger')
+        return redirect(url_for('main.route_index'))
+    login_user(user, remember=False, force=True)
+    flash('Logged in as {} by {}'.format(user.username, g.user.username), 'info')
+    g.user = user
     return redirect(url_for('main.route_dashboard'))
 
 @bp_main.route('/lvfs/login/<plugin_id>')
