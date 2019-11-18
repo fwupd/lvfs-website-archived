@@ -432,6 +432,8 @@ def route_modify_by_admin(vendor_id):
                 'plugins',
                 'quote_text',
                 'quote_author',
+                'consulting_text',
+                'consulting_link',
                 'description',
                 'oauth_unknown_user',
                 'oauth_domain_glob',

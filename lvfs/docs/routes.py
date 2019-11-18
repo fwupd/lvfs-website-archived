@@ -11,7 +11,7 @@ from flask import Blueprint, flash, url_for, redirect, render_template
 
 from lvfs import app, db
 
-from lvfs.models import Firmware, Component, Protocol, Category, Agreement, Verfmt
+from lvfs.models import Firmware, Component, Protocol, Category, Agreement, Verfmt, Vendor
 
 bp_docs = Blueprint('docs', __name__, template_folder='templates')
 
@@ -81,6 +81,15 @@ def route_introduction():
     return render_template('docs-introduction.html',
                            firmware_cnt=db.session.query(Firmware).count(),
                            devices_cnt=db.session.query(Component.appstream_id).distinct().count())
+
+@bp_docs.route('/consulting')
+def route_consulting():
+    vendors = db.session.query(Vendor).\
+                    filter(Vendor.consulting_text != None).\
+                    order_by(Vendor.display_name.desc()).all()
+    return render_template('docs-consulting.html',
+                           category='documentation',
+                           vendors=vendors)
 
 @bp_docs.route('/affiliates')
 def route_affiliates():

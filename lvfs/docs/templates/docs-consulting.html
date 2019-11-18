@@ -1,0 +1,68 @@
+{% extends "default.html" %}
+
+{% block title %}Consulting Services{% endblock %}
+
+{% block content %}
+
+<div class="card">
+  <div class="card-body">
+    <div class="card-title">Consulting Services for fwupd and the LVFS</div>
+    <p class="card-text">
+      Most hardware vendors use standarized firmware update protocols and so
+      employees can read the <a href="{{url_for('docs.route_introduction')}}">introduction</a>
+      and easily follow the official <a href="{{url_for('docs.route_vendors')}}">documentation</a>
+      to begin uploading firmware.
+      Some hardware vendors, OEMs, ODMs and silicon suppliers have to work with
+      the upstream <a href="https://github.com/fwupd/fwupd">fwupd</a> and
+      <a href="https://github.com/fwupd/lvfs-website">lvfs-website</a> projects,
+      merging custom plugins and supporting custom firmware at no cost.
+    </p>
+    <p class="card-text">
+      If a device uses a custom or non-standard update protocol, then some
+      vendors may find aspects of working upstream <em>hard</em>, having never worked
+      with an open source project or with open source licencing before.
+      Below we have some companies that offer consulting services for fwupd and
+      the LVFS, that can either be used for training or to port legacy firmware
+      update code to a new plugin.
+    </p>
+    <p class="card-text">
+      All companies listed here are familiar to the fwupd project team,
+      <strong>although we have done no checks on them ourselves</strong>.
+      Please contact the consulting companies directly if you would like to know
+      more about the services that they provide.
+    </p>
+  </div>
+</div>
+
+{% if not vendors %}
+<div class="card mt-3">
+  <div class="card-body">
+    <p class="card-text">
+      No vendors found&hellip;
+    </p>
+  </div>
+</div>
+{% endif %}
+
+{% for v in vendors %}
+<div class="card mt-3">
+  <div class="card-body">
+    <div class="card-title">
+      {{v.display_name_with_team}}
+{% if v.icon %}
+      <img class="img-thumbnail float-right" src="/uploads/{{v.icon}}" width="96"/>
+{% else %}
+      <img class="img-thumbnail float-right" src="/uploads/vendor-unknown.png" width="96"/>
+{% endif %}
+    </div>
+    <p class="card-text">
+      {{v.consulting_text}}
+    </p>
+{% if v.consulting_link %}
+    <a class="card-link btn btn-info" href="{{v.consulting_link}}">More details</a>
+{% endif %}
+  </div>
+</div>
+{% endfor %}
+
+{% endblock %}

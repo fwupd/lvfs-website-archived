@@ -548,6 +548,8 @@ class Vendor(db.Model):
     description = Column(Text, default=None)
     quote_text = Column(Text, default=None)
     quote_author = Column(Text, default=None)
+    consulting_text = Column(Text, default=None)
+    consulting_link = Column(Text, default=None)
     visible = Column(Boolean, default=False)
     visible_for_search = Column(Boolean, default=False)
     visible_on_landing = Column(Boolean, default=False)

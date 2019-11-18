@@ -318,6 +318,9 @@
             <li class="nav-item {{'active' if request.url_rule.endpoint == 'docs_affiliates'}}">
               <a class="nav-link" href="{{url_for('docs.route_affiliates')}}">Affiliates</a>
             </li>
+            <li class="nav-item {{'active' if request.url_rule.endpoint == 'route_consulting'}}">
+              <a class="nav-link" href="{{url_for('docs.route_consulting')}}">Consulting</a>
+            </li>
           </ul>
         </li>
       </ul>
