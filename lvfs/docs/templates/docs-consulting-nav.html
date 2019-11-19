@@ -1,0 +1,20 @@
+<nav class="row">
+{% if request.url_rule.endpoint != 'docs.route_consulting' %}
+  <div class="col col-sm-1 btn-group mb-3">
+    <a class="btn btn-falcon-default mr-sm-3"
+      href="{{url_for('docs.route_consulting')}}">
+      <span class="fas fa-arrow-left"></span>
+    </a>
+  </div>
+  <div class="col col-sm-10 text-center mb-3">
+{% else %}
+  <div class="col col-sm-12 text-center mb-3">
+{% endif %}
+    <div class="btn-group" role="group">
+      <a class="btn btn-falcon-{{'primary' if request.url_rule.endpoint == 'docs.route_consulting' else 'default'}}"
+        href="{{url_for('docs.route_consulting')}}">List of Consultants</a>
+      <a class="btn btn-falcon-{{'primary' if request.url_rule.endpoint == 'docs.route_consulting_info' else 'default'}}"
+        href="{{url_for('docs.route_consulting_info')}}">Questions To Ask</a>
+    </div>
+  </div>
+</nav>

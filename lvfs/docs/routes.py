@@ -91,6 +91,11 @@ def route_consulting():
                            category='documentation',
                            vendors=vendors)
 
+@bp_docs.route('/consulting/info')
+def route_consulting_info():
+    return render_template('docs-consulting-info.html',
+                           category='documentation')
+
 @bp_docs.route('/affiliates')
 def route_affiliates():
     return render_template('docs-affiliates.html', category='documentation')

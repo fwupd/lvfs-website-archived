@@ -2,13 +2,15 @@
 
 {% block title %}Consulting Services{% endblock %}
 
+{% block nav %}{% include 'docs-consulting-nav.html' %}{% endblock %}
+
 {% block content %}
 
 <div class="card">
   <div class="card-body">
     <div class="card-title">Consulting Services for fwupd and the LVFS</div>
     <p class="card-text">
-      Most hardware vendors use standarized firmware update protocols and so
+      Most hardware vendors use standardized firmware update protocols and so
       employees can read the <a href="{{url_for('docs.route_introduction')}}">introduction</a>
       and easily follow the official <a href="{{url_for('docs.route_vendors')}}">documentation</a>
       to begin uploading firmware.
@@ -26,7 +28,7 @@
       update code to a new plugin.
     </p>
     <p class="card-text">
-      All companies listed here are familiar to the fwupd project team,
+      All companies listed below are familiar to the fwupd project team,
       <strong>although we have done no checks on them ourselves</strong>.
       Please contact the consulting companies directly if you would like to know
       more about the services that they provide.

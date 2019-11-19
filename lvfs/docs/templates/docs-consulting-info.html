@@ -1,0 +1,121 @@
+{% extends "default.html" %}
+
+{% block title %}Consulting Services: Questions to Ask{% endblock %}
+
+{% block nav %}{% include 'docs-consulting-nav.html' %}{% endblock %}
+
+{% block content %}
+
+<div class="card">
+  <div class="card-body">
+    <div class="card-title">Information to supply to the consulting company</div>
+    <p class="card-text">
+      If you are using a standard protocol like ATA, NVMe, DFU, Thunderbolt,
+      CSR, RMI4, UEFI UpdateCapsule (and <a href="https://github.com/fwupd/fwupd/tree/master/plugins">many more</a>)
+      then the consultant will be able to advise you on what metadata is required
+      and how end-to-end validation testing can be performed.
+      Consulting companies might also offer a service where they upload firmware
+      on your behalf, perhaps also verifying the firmware before it gets pushed
+      to millions of users.
+    </p>
+    <p class="card-text">
+      In the case where the device uses a custom protocol, the consulting company
+      will need to know lots of details about the hardware to accurately quote
+      for building a new fwupd plugin:
+    </p>
+    <ul class="list-group">
+      <li class="list-group-item">
+        The deadline for works to be completed.
+        It takes a significant amount of time before code written actually filters
+        down to users that use stable Linux distributions, and so plenty of time
+        will be required even after the work has been completed.
+      </li>
+      <li class="list-group-item">
+        Complete specifications on the update protocol, including error states.
+        If an NDA is required to view this, then it will take much longer.
+        You should talk to your legal team about relicensing the existing
+        codebase to LGPLv2+ if no formal specification exists.
+      </li>
+      <li class="list-group-item">
+        Upstream will only accept new plugins merged against the fwupd development branch.
+        Consulting companies should be able to get this code upstream so it is
+        included in future releases, but it is much more difficult to build
+        packages for older Linux distributions like Debian or Ubuntu LTS.
+      </li>
+      <li class="list-group-item">
+        It is very unlikely that your existing codebase can easily be converted
+        to a fwupd plugin.
+        New plugins have to follow the existing object-oriented
+        <a href="https://developer.gnome.org/gobject/stable/">GObject</a> style,
+        where custom device classes subclass <code>FuDevice</code> and custom firmware
+        classes subclass <code>FuFirmware</code>.
+        If your composite device has three logical children with different
+        version numbers or firmware formats, upstream will want to see three
+        devices in <code>fwupdmgr</code>, possibly with a parent device.
+        You can specify in the metadata if child devices should be restricted to
+        a parent vendor.
+      </li>
+      <li class="list-group-item">
+        If you are using an nonstandard firmware format (as in, not DFU, Intel HEX
+        or Motorola SREC) then someone will need to write a firmware parser that
+        is memory safe.
+        The consulting company will need all the header and/or footer documentation
+        so they can verify the parser and add some small redistributable fuzz targets.
+        If the file blob is being passed to the hardware without parsing, they
+        still might need to know the format of the header.
+        This is to check that the plugin can check that the firmware is suitable
+        for the hardware, and that any internal checksum is actually correct.
+      </li>
+      <li class="list-group-item">
+        Anyone doing plugin development is probably going to ask for test hardware,
+        along with two different versions of the firmware that can actually be
+        flashed to the device.
+        A bare PCB is usually fine.
+        If you send hardware to someone, ensure you also include a power supply.
+      </li>
+      <li class="list-group-item">
+        You need to think how to present your device version number. e.g. is
+        <code>0x12345678</code> meant to be presented as “<code>12.34.5678</code>”
+        or “<code>18.52.86.120</code>” &mdash;
+        the <a href="{{url_for('docs.route_metainfo', page='version')}}">LVFS really cares</a>
+        if this is correct, and users want to see the “same” version numbers as
+        on the OEM support web-page.
+      </li>
+      <li class="list-group-item">
+        You also need to find out if the device is fully functional during the update,
+        or if it operates in a degraded or bootloader mode.
+        The plugin needs to know what happens if flashing fails, e.g. is the
+        device a brick, or is there some kind of A/B partition that makes a flash
+        failure harmless?
+      </li>
+      <li class="list-group-item">
+        After the update is complete fwupd needs to “restart” the device so that
+        the new firmware version can be verified, so there needs to be some kind
+        of command the device understands.
+        The fwupd client can ask the user to reboot or re-plug the device if this
+        is the only way to do this, although it is much better to operate without
+        user interaction.
+      </li>
+      <li class="list-group-item">
+        If you’re sending a huge archive of legacy code, the person reading it
+        will need access to someone who actually understands it, preferably the
+        person that wrote it in the first place.
+      </li>
+      <li class="list-group-item">
+        Once a plugin exists in fwupd and is upstream, it is usually considered
+        further work to create pull requests to add either more VID/PIDs,
+        <code>#define</code>s or to add variations to the protocol for new
+        versions of the hardware.
+      </li>
+      <li class="list-group-item">
+        Most consultants are typically unable to directly modify existing
+        distribution stable releases, but they may be able to work with maintainers
+        in those distributions to make these requests.
+        Some distributions such as Fedora update their software stack regularly,
+        so the newest hardware support will typically be available there first.
+      </li>
+    </ul>
+  </div>
+</div>
+
+{% endblock %}
