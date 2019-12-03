@@ -1098,7 +1098,7 @@ class Verfmt(db.Model):
     __table_args__ = {'mysql_character_set': 'utf8mb4'}
 
     verfmt_id = Column(Integer, primary_key=True, nullable=False, unique=True)
-    value = Column(Text, nullable=False)        # 'quad'
+    value = Column(Text, nullable=False)        # 'dell-bios'
     name = Column(Text, default=None)           # 'Dell Style'
     example = Column(Text, default=None)        # '12.34.56.78'
     fwupd_version = Column(Text, default=None)  # '1.3.3'
@@ -1144,6 +1144,10 @@ class Verfmt(db.Model):
                                  v & 0xff)
         if self.value == 'bcd':
             return '%i.%i' % ((v & 0xf0) >> 4, v & 0x0f)
+        if self.value == 'dell-bios':
+            return '%i.%i.%i' % ((v & 0x00ff0000) >> 16,
+                                 (v & 0x0000ff00) >> 8,
+                                 v & 0x000000ff)
         return None
 
     def __repr__(self):
