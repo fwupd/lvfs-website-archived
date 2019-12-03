@@ -57,6 +57,22 @@
 {% endif %}
   </tr>
   <tr class="row">
+    <th class="col-3">Tag, e.g. <code>N1CET75W</code> (optional)</th>
+{% if md.check_acl('@modify-keywords') %}
+    <form class="form-inline" action="{{url_for('components.route_modify', component_id=md.component_id)}}" method="POST">
+    <input type="hidden" name="csrf_token" value="{{csrf_token()}}"/>
+    <td class="col-7">
+      <textarea class="form-control fixed-width" name="release_tag" cols="100" rows="1">{{md.release_tag if md.release_tag}}</textarea>
+    </td>
+    <td class="col">
+      <input type="submit" class="btn btn-warning btn-block" value="Set"/>
+    </td>
+    </form>
+{% else %}
+    <td class="col"><code>{{md.release_tag}}</code></td>
+{% endif %}
+  </tr>
+  <tr class="row">
     <th class="col-3">Summary</th>
     <td class="col"><code>{{md.summary}}</code></td>
   </tr>

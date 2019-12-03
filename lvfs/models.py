@@ -1449,6 +1449,7 @@ class Component(db.Model):
     release_installed_size = Column(Integer, default=0)
     release_download_size = Column(Integer, default=0)
     release_urgency = Column(Text, default=None)
+    release_tag = Column(Text, default=None)
     screenshot_url = Column(Text, default=None)
     screenshot_caption = Column(Text, default=None)
     inhibit_download = Column(Boolean, default=False)
@@ -1606,6 +1607,12 @@ class Component(db.Model):
         if self.project_license.find('GPL') != -1:
             return True
         return False
+
+    @property
+    def version_with_tag(self):
+        if self.release_tag:
+            return '{} ({})'.format(self.release_tag, self.version_display)
+        return self.version_display
 
     @property
     def version_display(self):
