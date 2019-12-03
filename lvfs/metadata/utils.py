@@ -240,25 +240,28 @@ def _generate_metadata_kind(filename, fws, firmware_baseuri='', local=False):
                 parent.append(elements[key])
 
         # metadata shared by all releases
-        elements = {}
+        elements = []
         for md in mds:
             if md.inhibit_download:
-                if 'LVFS::InhibitDownload' in elements:
-                    continue
                 child = ET.Element('value')
                 child.set('key', 'LVFS::InhibitDownload')
-                elements['LVFS::InhibitDownload'] = child
-            if md.verfmt_with_fallback:
-                if 'LVFS::VersionFormat' in elements:
-                    continue
-                child = ET.Element('value')
-                child.set('key', 'LVFS::VersionFormat')
-                child.text = md.verfmt_with_fallback.value
-                elements['LVFS::VersionFormat'] = child
+                elements.append(('LVFS::InhibitDownload', None))
+                break
+        for md in mds:
+            verfmt = md.verfmt_with_fallback
+            if verfmt:
+                if verfmt.fallbacks:
+                    for fallback in verfmt.fallbacks.split(','):
+                        elements.append(('LVFS::VersionFormat', fallback))
+                elements.append(('LVFS::VersionFormat', verfmt.value))
+                break
         if elements:
             parent = ET.SubElement(component, 'custom')
-            for key in elements:
-                parent.append(elements[key])
+            for key, value in elements:
+                child = ET.Element('value')
+                child.set('key', key)
+                child.text = value
+                parent.append(child)
 
     # dump to file
     et = ET.ElementTree(root)

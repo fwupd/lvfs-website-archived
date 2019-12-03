@@ -1102,6 +1102,7 @@ class Verfmt(db.Model):
     name = Column(Text, default=None)           # 'Dell Style'
     example = Column(Text, default=None)        # '12.34.56.78'
     fwupd_version = Column(Text, default=None)  # '1.3.3'
+    fallbacks = Column(Text, default=None)      # 'quad,intelme'
 
     @property
     def sections(self):

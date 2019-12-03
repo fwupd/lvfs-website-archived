@@ -23,6 +23,10 @@
     <label for="fwupd_version">Lowest fwupd version (e.g. <code>1.3.3</code>):</label>
     <input type="text" class="form-control" name="fwupd_version" value="{{verfmt.fwupd_version}}" />
   </div>
+  <div class="form-group">
+    <label for="fallbacks">Legacy fallback (e.g. <code>quad,intelme</code>):</label>
+    <input type="text" class="form-control" name="fallbacks" value="{{verfmt.fallbacks if verfmt.fallbacks}}" />
+  </div>
   <input type="submit" class="btn btn-primary btn-large" value="Modify">
   <button type="button" class="btn btn-danger" data-toggle="modal" data-target="#deleteModal">Delete</button>
 </form>

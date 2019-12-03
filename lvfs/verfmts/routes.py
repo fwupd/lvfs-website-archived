@@ -80,7 +80,7 @@ def route_modify(verfmt_id):
         return redirect(url_for('verfmts.route_list'))
 
     # modify verfmt
-    for key in ['name', 'example', 'value', 'fwupd_version']:
+    for key in ['name', 'example', 'value', 'fwupd_version', 'fallbacks']:
         if key in request.form:
             setattr(verfmt, key, request.form[key])
     db.session.commit()
