@@ -81,6 +81,16 @@ def route_show(appstream_id):
                            fws=fws,
                            fw_previous=fw_previous)
 
+@bp_devices.route('/<appstream_id>/atom')
+def route_show_atom(appstream_id):
+    """
+    Show information for one device, which can be seen without a valid login
+    """
+    fws = _get_fws_for_appstream_id(appstream_id)
+    return render_template('device-atom.xml',
+                           appstream_id=appstream_id,
+                           fws=fws)
+
 @bp_devices.route('/component/<int:component_id>')
 def route_shards(component_id):
     """

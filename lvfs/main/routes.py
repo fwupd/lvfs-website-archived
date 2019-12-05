@@ -8,6 +8,7 @@
 # pylint: disable=wrong-import-position,singleton-comparison
 
 import os
+import html
 import datetime
 import fnmatch
 import humanize
@@ -195,12 +196,12 @@ def utility_processor():
         txt = ''
         for n in root:
             if n.tag == 'p':
-                txt += '<p>' + n.text + '</p>'
+                txt += '<p>' + html.escape(n.text) + '</p>'
             elif n.tag == 'ul' or n.tag == 'ol':
                 txt += '<ul>'
                 for c in n:
                     if c.tag == 'li':
-                        txt += '<li>' + c.text + '</li>'
+                        txt += '<li>' + html.escape(c.text) + '</li>'
                 txt += '</ul>'
         return txt
 

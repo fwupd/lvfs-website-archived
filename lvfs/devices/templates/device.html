@@ -1,6 +1,14 @@
 {% extends "default.html" %}
 {% block title %}{{fws[0].md_prio.name if fws else 'No firmware for device found'}}{% endblock %}
 
+{% block head %}
+{% if fws|length > 0 %}
+    <link rel="alternate" type="application/atom+xml"
+      title="LVFS: {{fws[0].md_prio.name}}"
+      href="{{url_for('devices.route_show_atom', appstream_id=appstream_id)}}" />
+{% endif %}
+{% endblock %}
+
 {% block nav %}{% include 'device-nav.html' %}{% endblock %}
 
 {% block content %}
