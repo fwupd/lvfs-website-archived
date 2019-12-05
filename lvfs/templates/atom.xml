@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+
+  <title>LVFS: {% block title %}{% endblock %}</title>
+  <link rel="self" href="{% block url %}{% endblock %}"/>
+  <updated>{% block updated %}{% endblock %}</updated>
+  <author>
+    <name>{% block author %}{% endblock %}</name>
+  </author>
+  <id>{% block url %}{% endblock %}</id>
+  <icon>/favicon.ico</icon>
+  
+  {% block entries %}{% endblock %}
+
+</feed>

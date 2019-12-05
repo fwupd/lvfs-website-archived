@@ -1,0 +1,132 @@
+{% extends "atom.xml" %}
+
+{% block title %}{{fws[0].md_prio.name if fws else 'No firmware for device found'}}{% endblock %}
+
+{% block url %}{{url_for('devices.route_show_atom', appstream_id=appstream_id)}}{% endblock %}
+
+{% block updated %}{{fws[0].timestamp if fws else '1970-01-01T00:00:00Z'}}{% endblock %}
+
+{% block author %}{{fws[0].md_prio.developer_name if fws else 'No firmware for device found'}}{% endblock %}
+
+
+{% block entries %}
+
+{% if fws|length == 0 %}
+
+<subtitle>No firmware is available for this device.</subtitle>
+
+{% else %}
+
+<subtitle>{{fws[0].md_prio.description}}</subtitle>
+
+{% for fw in fws %}
+
+<entry>
+    <title>Version {{fw.version_display}}</title>
+    <link href="{{url_for('devices.route_show', appstream_id=appstream_id)}}"/>
+    <id>{{appstream_id}}</id>
+    <updated>{{fw.timestamp}}</updated>
+    <author>
+        <name>{{fw.md_prio.developer_name}}</name>
+    </author>
+    <content type="xhtml">
+{% if fw.remote.name == 'testing' %}
+<p>
+  <b>Warning:</b> This firmware is in the testing state and may not be suitable for
+  production systems.
+</p>
+{% endif %}
+<table>
+  <tr>
+    <th>Version</th>
+    <td>{{fw.version_display}}</td>
+  </tr>
+  <tr>
+    <th>Uploaded</th>
+    <td>{{fw.timestamp}}</td>
+  </tr>
+  <tr>
+    <th>State</th>
+    <td>{{fw.remote.name}}</td>
+  </tr>
+  <tr>
+    <th>Urgency</th>
+    <td>{{fw.md_prio.release_urgency}}</td>
+  </tr>
+  <tr>
+    <th>License</th>
+    <td>{{fw.md_prio.project_license}}</td>
+  </tr>
+{% if fw.md_prio.requires_source_url %}
+  <tr>
+    <th>Source</th>
+    <td>
+      <a href="{{fw.md_prio.source_url}}">{{fw.md_prio.source_url}}</a>
+    </td>
+  </tr>
+{% endif %}
+  <tr>
+    <th>Filename</th>
+    <td>
+{% if fw.inhibit_download %}
+      <p>
+        The OEM that uploaded this firmware has chosen to disable downloads of
+        the firmware when using a web browser.
+        End users should use a client such as fwupdmgr to download and deploy
+        the firmware.
+      </p>
+{% else %}
+      <a href="{{fw.filename_absolute}}">{{fw.filename[41:]}}</a>
+{% endif %}
+    </td>
+  </tr>
+  <tr>
+    <th>Description</th>
+    <td>
+      {{format_html_from_markdown(fw.md_prio.release_description)|safe}}
+{% if fw.md_prio.details_url %}
+      <a href="{{fw.md_prio.details_url}}">More details</a>
+{% endif %}
+    </td>
+  </tr>
+{% if fw.md_prio.issues %}
+  <tr>
+    <th>Fixed issues:</th>
+    <td>
+      <ul>
+{% for issue in fw.md_prio.issues %}
+        <li><a href="{{issue.url}}">{{issue.value}}</a></li>
+{% endfor %}
+      </ul>
+    </td>
+  </tr>
+{% endif %}
+  <tr>
+    <th>Security</th>
+    <td>
+      <ul>
+{% for attr in fw.security_claim.attrs|sort() %}
+        <li>
+          {{fw.security_claim.attrs[attr]}}
+        </li>
+{% endfor %}
+      </ul>
+    </td>
+  </tr>
+</table>
+{% if fw.md_prio.shards %}
+    <a href="{{url_for('devices.route_shards', component_id=fw.md_prio.component_id)}}">Firmware Details</a>
+{% if fw_previous[fw] %}
+    <a href="{{url_for('devices.route_shards_diff',
+                                                      component_id_old=fw_previous[fw].md_prio.component_id,
+                                                      component_id_new=fw.md_prio.component_id)}}">Compare with previous</a>
+{% endif %}
+{% endif %}
+    </content>
+</entry>
+
+{% endfor %}
+
+{% endif %}
+
+{% endblock %}
