@@ -655,6 +655,13 @@ class Vendor(db.Model):
         return self.users
 
     @property
+    def is_unrestricted(self):
+        for res in self.restrictions:
+            if res.value == '*':
+                return True
+        return False
+
+    @property
     def display_name_with_team(self):
         if self.internal_team:
             return '{} ({})'.format(self.display_name, self.internal_team)

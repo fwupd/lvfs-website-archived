@@ -15,7 +15,7 @@ from lxml import etree as ET
 
 from lvfs import app, db
 
-from lvfs.models import Firmware, Vendor, Remote
+from lvfs.models import Firmware, Remote
 from lvfs.util import _get_settings, _xml_from_markdown
 
 def _generate_metadata_kind(filename, fws, firmware_baseuri='', local=False):
@@ -61,10 +61,19 @@ def _generate_metadata_kind(filename, fws, firmware_baseuri='', local=False):
         for md in mds:
             if local:
                 break
-            vendor = db.session.query(Vendor).filter(Vendor.vendor_id == md.fw.vendor_id).first()
-            if not vendor:
+
+            # the vendor can upload to any hardware
+            vendor = md.fw.vendor
+            if vendor.is_unrestricted:
                 continue
+
+            # no restrictions in place!
             if not vendor.restrictions:
+                child = ET.Element('firmware')
+                child.text = 'vendor-id'
+                child.set('compare', 'eq')
+                child.set('version', 'XXX:NEVER_GOING_TO_MATCH')
+                elements['vendor-id'] = child
                 continue
 
             # allow specifying more than one ID

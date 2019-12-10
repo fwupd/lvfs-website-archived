@@ -151,6 +151,21 @@ def route_list_admin():
                            vendors=vendors,
                            page='overview')
 
+@bp_vendors.route('/<int:vendor_id>')
+def route_show_public(vendor_id):
+    vendor = db.session.query(Vendor).\
+                filter(Vendor.visible).\
+                filter(Vendor.vendor_id == vendor_id).\
+                    options(joinedload(Vendor.users),
+                            joinedload(Vendor.affiliations)).first()
+    if not vendor:
+        flash('Failed to show vendor: No visible vendor with that group ID', 'warning')
+        return redirect(url_for('vendors.route_list'), 302)
+    return render_template('vendor-show.html',
+                           category='vendors',
+                           v=vendor,
+                           page='overview')
+
 @bp_vendors.route('/create', methods=['GET', 'POST'])
 @login_required
 @admin_login_required

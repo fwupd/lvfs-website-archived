@@ -61,6 +61,15 @@
       Is not uploading firmware to the LVFS
     </li>
 {% endif %}
+{% if not vendor.is_unrestricted and vendor.restrictions %}
+    <li class="list-group-item">
+      <span class="fas fa-info-circle fs-2 text-info"></span>
+      Restricted to upload firmware for any hardware with vendor ID:
+{% for restriction in vendor.restrictions %}
+        <code>{{restriction.value}}</code>
+{% endfor %}
+    </li>
+{% endif %}
       </ul>
     </td>
   </tr>

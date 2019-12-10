@@ -8,7 +8,7 @@
   <div class="card-body">
     <div class="card-title">Vendor accounts</div>
     <table class="table">
-      <tr class="row">
+      <tr class="row table-borderless">
         <th class="col-3">Group ID</th>
         <th class="col-5">Display Name</th>
         <th class="col-3">Attributes</th>
@@ -20,15 +20,35 @@
         <td class="col-5">{{v.display_name_with_team}}</td>
         <td class="col-3">
           <code>
-{% if not v.visible %}hidden{% endif %}
-{% if v.quote_text %}quoted{% endif %}
-{% if v.consulting_text %}consulting{% endif %}
-{% if v.oauth_domain_glob %}oauth{% endif %}
-{% if v.banned_country_codes %}embargoed{% endif %}
-{% if v.do_not_track %}do-not-track{% endif %}
-{% if v.restrictions %}restricted{% endif %}
-{% if v.visible_for_search %}search{% endif %}
-{% if v.visible_on_landing %}landing{% endif %}
+{% if not v.visible %}
+          <span class="fas fa-eye-slash fs-2 text-info" title="hidden"></span>
+{% endif %}
+{% if v.visible_for_search %}
+          <span class="fas fa-search fs-2 text-info" title="visible-for-search"></span>
+{% endif %}
+{% if v.consulting_text %}
+          <span class="fas fa-user-tie fs-2 text-info" title="consulting"></span>
+{% endif %}
+{% if v.oauth_domain_glob %}
+          <span class="fas fa-sign-in-alt fs-2 text-info" title="oauth"></span>
+{% endif %}
+{% if v.banned_country_codes %}
+          <span class="fas fa-globe-europe fs-2 text-warning" title="banned-country-codes"></span>
+{% endif %}
+{% if v.do_not_track %}
+          <span class="fas fa-user-secret fs-2 text-info" title="do-not-track"></span>
+{% endif %}
+{% if v.is_unrestricted %}
+          <span class="fas fa-lock-open fs-2 text-danger" title="unrestricted"></span>
+{% elif v.restrictions %}
+          <span class="fas fa-lock fs-2 text-success" title="restricted"></span>
+{% endif %}
+{% if v.visible_on_landing %}
+          <span class="fas fa-home fs-2 text-info" title="visible-on-landing"></span>
+{% endif %}
+{% if v.quote_text %}
+          <span class="fas fa-quote-right fs-2 text-info" title="quoted"></span>
+{% endif %}
           </code>
         </td>
         <td class="col-1">

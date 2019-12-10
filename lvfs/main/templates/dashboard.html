@@ -24,6 +24,14 @@
 </div>
 {% endif %}
 
+{% if not g.user.vendor.restrictions %}
+<div class="alert alert-warning mb-3" role="alert">
+  This account has no vendor restrictions defined and firmware will not be
+  deployed onto hardware.
+  Please contact the <a href="mailto:info@fwupd.org">LVFS administrator</a>.
+</div>
+{% endif %}
+
 {% if not g.user.vendor.do_not_track and download_cnt > 0 %}
 <div class="card">
   <div class="card-body rounded-soft bg-gradient">

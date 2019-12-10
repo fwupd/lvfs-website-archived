@@ -21,12 +21,21 @@
 {% else %}
 <table class="table">
   <tr class="row table-borderless">
-    <th class="col col-sm-10">Value</th>
+    <th class="col col-sm-5">Value</th>
+    <th class="col col-sm-5">Note</th>
     <th class="col col-sm-2">&nbsp;</th>
   </tr>
 {% for r in v.restrictions %}
   <tr class="row">
-    <td class="col col-sm-10"><code>{{r.value}}</code></td>
+    <td class="col col-sm-5"><code>{{r.value}}</code></td>
+    <td class="col col-sm-5">
+{% if r.value == '*' %}
+      <span class="fas fa-exclamation-triangle fs-1 text-warning"></span>
+      <strong>Vendor can update firmware on any device!</strong>
+{% else %}
+      &mdash;
+{% endif %}
+    </td>
     <td class="col col-sm-2">
       <a class="btn btn-block btn-danger"
         href="{{url_for('vendors.route_restriction_delete', vendor_id=v.vendor_id, restriction_id=r.restriction_id)}}"
@@ -46,6 +55,9 @@
     <div class="card-title">Add a new restriction</div>
     <p class="card-text">
       <input type="text" class="form-control" name="value" value="" placeholder="Restriction..." required>
+    </p>
+    <p class="card-text text-secondary">
+      Use <code>*</code> to unrestrict the vendor for all hardware.
     </p>
     <input type="submit" class="card-link btn btn-primary" value="Add">
   </div>
