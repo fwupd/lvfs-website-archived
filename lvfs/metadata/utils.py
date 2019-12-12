@@ -63,7 +63,7 @@ def _generate_metadata_kind(filename, fws, firmware_baseuri='', local=False):
                 break
 
             # the vendor can upload to any hardware
-            vendor = md.fw.vendor
+            vendor = md.fw.vendor_odm
             if vendor.is_unrestricted:
                 continue
 
