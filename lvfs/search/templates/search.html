@@ -19,22 +19,6 @@
   <div class="card-body">
 {% if search_size < 0 %}
 <p class="text-muted">Search for firmware or hardware vendors&hellip;</p>
-
-<div class="card mt-3">
-  <div class="card-header card-title list-group-item-warning">
-    Privacy warning!
-  </div>
-  <div class="card-body">
-    <p class="card-text">
-      We're still working on making the search functionality return better
-      quality results for the given search terms.
-      To do that we are logging the search terms and the number of results to
-      make the algorithm better.
-      Don't search for anything you don't want the LVFS admin team to see!
-    </p>
-  </div>
-</div>
-
 {% elif mds|length == 0 and vendors|length == 0 %}
     <div class="card-title">No results found for <i>{{keywords_bad|join(',')}}</i>.</div>
 {% else %}
