@@ -7,6 +7,11 @@
 <div class="alert alert-warning mt-1" role="alert">
   Due to the sensitive nature of providing firmware only vendors can install
   firmware on their own devices.
+{% if not g.user.check_acl('@admin') %}
+  Please contact the <a href="mailto:info@fwupd.org">LVFS administrator</a>
+  if you would like to add new <code>DMI:</code>, <code>PCI:0x</code> or
+  <code>USB:0x</code> vendor IDs to your account.
+{% endif %}
 </div>
 <div class="card mt-3">
   <div class="card-body">
@@ -37,9 +42,11 @@
 {% endif %}
     </td>
     <td class="col col-sm-2">
+{% if g.user.check_acl('@admin') %}
       <a class="btn btn-block btn-danger"
         href="{{url_for('vendors.route_restriction_delete', vendor_id=v.vendor_id, restriction_id=r.restriction_id)}}"
         role="button">Delete</a>
+{% endif %}
     </td>
   </tr>
 {% endfor %}
@@ -48,6 +55,7 @@
 </div>
 {% endif %}
 
+{% if g.user.check_acl('@admin') %}
 <form method="post" action="{{url_for('vendors.route_restriction_create', vendor_id=v.vendor_id)}}">
 <input type="hidden" name="csrf_token" value="{{csrf_token()}}"/>
 <div class="card mt-3">
@@ -63,5 +71,6 @@
   </div>
 </div>
 </form>
+{% endif %}
 
 {% endblock %}

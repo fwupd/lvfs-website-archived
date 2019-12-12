@@ -744,6 +744,10 @@ class Vendor(db.Model):
             if user.vendor_id != self.vendor_id:
                 return False
             return user.check_acl('@vendor-manager')
+        if action == '@view-restrictions':
+            if user.vendor_id != self.vendor_id:
+                return False
+            return user.check_acl('@vendor-manager')
         if action == '@modify-affiliations':
             return False
         if action == '@modify-affiliation-actions':

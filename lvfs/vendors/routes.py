@@ -225,13 +225,17 @@ def route_show(vendor_id):
 
 @bp_vendors.route('/<int:vendor_id>/restrictions')
 @login_required
-@admin_login_required
 def route_restrictions(vendor_id):
     """ Allows changing a vendor [ADMIN ONLY] """
+
+    # security check
     vendor = db.session.query(Vendor).filter(Vendor.vendor_id == vendor_id).first()
     if not vendor:
-        flash('Failed to get vendor details: No a vendor with that group ID', 'warning')
-        return redirect(url_for('vendors.route_list_admin'), 302)
+        flash('Failed to get vendor details: No a vendor with that ID', 'warning')
+        return redirect(url_for('vendors.route_list'), 302)
+    if not vendor.check_acl('@view-restrictions'):
+        flash('Permission denied: Unable to view restrictions', 'danger')
+        return redirect(url_for('vendors.route_list'), 302)
     return render_template('vendor-restrictions.html',
                            category='vendors',
                            v=vendor)
