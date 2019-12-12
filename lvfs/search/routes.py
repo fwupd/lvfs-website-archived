@@ -130,6 +130,7 @@ def route_search(max_results=150):
                            subquery()
     mds = []
     appstream_ids = []
+    vendors = []
     for md in db.session.query(Component).join(ids).\
                     join(Firmware).join(Remote).filter(Remote.is_public).\
                     order_by(Component.version.desc()).\
@@ -138,35 +139,41 @@ def route_search(max_results=150):
             continue
         mds.append(md)
         appstream_ids.append(md.appstream_id)
+        if md.fw.vendor not in vendors:
+            vendors.append(md.fw.vendor)
 
     # get any vendor information as a fallback
-    vendors = []
+    keywords_good = []
+    keywords_bad = []
     if mds:
-        search_method = 'AND'
+        keywords_good.extend(keywords)
+        search_method = 'FW'
         show_vendor_nag = False
-        keywords_good = keywords
-        keywords_bad = []
     else:
-        search_method = 'OR'
+        search_method = 'AND'
         show_vendor_nag = True
-        keywords_good = []
-        keywords_bad = []
-        for vendor in db.session.query(Vendor).\
-                            filter(Vendor.visible_for_search):
-            for kw in keywords:
-                if vendor.keywords:
-                    if kw in vendor.keywords:
-                        vendors.append(vendor)
-                        keywords_good.append(kw)
-                        break
-                if vendor.display_name:
-                    if kw in _split_search_string(vendor.display_name):
-                        vendors.append(vendor)
-                        keywords_good.append(kw)
-                        break
+
+    # always add vendor results
+    for vendor in db.session.query(Vendor).\
+                        filter(Vendor.visible_for_search):
         for kw in keywords:
-            if not kw in keywords_good:
-                keywords_bad.append(kw)
+            if vendor.keywords:
+                if kw in vendor.keywords:
+                    if vendor not in vendors:
+                        vendors.append(vendor)
+                    if kw not in keywords_good:
+                        keywords_good.append(kw)
+                    break
+            if vendor.display_name:
+                if kw in _split_search_string(vendor.display_name):
+                    if vendor not in vendors:
+                        vendors.append(vendor)
+                    if kw not in keywords_good:
+                        keywords_good.append(kw)
+                    break
+    for kw in keywords:
+        if not kw in keywords_good:
+            keywords_bad.append(kw)
 
     # this seems like we're over-logging but I'd like to see how people are
     # searching so we can tweak the algorithm used
