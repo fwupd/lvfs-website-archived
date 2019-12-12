@@ -132,9 +132,10 @@ def route_list_analytics(page):
 def route_list():
     vendors = db.session.query(Vendor).\
                     filter(Vendor.visible).\
-                    options(joinedload(Vendor.users),
-                            joinedload(Vendor.affiliations)).\
-                    order_by(Vendor.display_name).all()
+                    join(User, Vendor.vendor_id == User.vendor_id).\
+                    options(joinedload(Vendor.affiliations)).\
+                    order_by(Vendor.display_name).\
+                    all()
     return render_template('vendorlist.html',
                            vendors=vendors)
 
