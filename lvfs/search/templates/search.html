@@ -26,10 +26,42 @@
 {% endif %}
     </td>
     <td class="col col-sm-11">
-      <a href="{{url_for('vendors.route_list')}}#{{vendor.group_id}}">Hardware Vendor: {{vendor.display_name}}</a><br/>
-      Uses the LVFS: {{ 'Yes' if vendor.is_account_holder else 'No' }}<br/>
-      Uploading Firmware: {{ 'Yes' if vendor.fw_stable else 'No' }}<br/>
-      Official Statement: {{vendor.description}}
+      <h4><a href="{{url_for('vendors.route_list')}}#{{vendor.group_id}}">{{vendor.display_name}}</a></h4>
+      <p><strong>Official Statement: </strong>{{vendor.description}}</p>
+      <ul class="list-group card-text">
+{% if vendor.fws_stable %}
+    <li class="list-group-item">
+      <span class="fas fa-check-circle fs-2 text-success"></span>
+      Responsible for {{vendor.fws_stable}} firmware files,
+{% if vendor.fws_stable_recent %}
+      {{vendor.fws_stable_recent}} uploaded recently
+{% else %}
+      none uploaded recently
+{% endif %}
+    </li>
+{% elif vendor.fws and not vendor.is_odm %}
+    <li class="list-group-item">
+      <span class="fas fa-check-circle fs-2 text-success"></span>
+      Has uploaded test firmware
+    </li>
+{% endif %}
+{% if vendor.is_odm %}
+    <li class="list-group-item">
+      <span class="fas fa-check-circle fs-2 text-success"></span>
+      Is uploading firmware on behalf of other vendors
+    </li>
+{% elif vendor.is_account_holder %}
+    <li class="list-group-item">
+      <span class="fas fa-check-circle fs-2 text-success"></span>
+      Has account on the LVFS
+    </li>
+{% else %}
+    <li class="list-group-item">
+      <span class="fas fa-times-circle fs-2 text-danger"></span>
+      Is not uploading firmware to the LVFS
+    </li>
+{% endif %}
+      </ul>
     </td>
   </tr>
 {% endfor %}
