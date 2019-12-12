@@ -148,10 +148,8 @@ def route_search(max_results=150):
     if mds:
         keywords_good.extend(keywords)
         search_method = 'FW'
-        show_vendor_nag = False
     else:
         search_method = 'AND'
-        show_vendor_nag = True
 
     # always add vendor results
     for vendor in db.session.query(Vendor).\
@@ -183,7 +181,6 @@ def route_search(max_results=150):
                                   method=search_method))
 
     return render_template('search.html',
-                           show_vendor_nag=show_vendor_nag,
                            mds=mds[:max_results],
                            search_size=len(mds),
                            vendors=vendors,
