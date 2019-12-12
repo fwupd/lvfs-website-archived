@@ -26,16 +26,6 @@ from lvfs.util import _generate_password
 
 bp_vendors = Blueprint('vendors', __name__, template_folder='templates')
 
-# sort by awesomeness
-def _sort_vendor_func(a, b):
-    a_val = a.get_sort_key()
-    b_val = b.get_sort_key()
-    if a_val > b_val:
-        return -1
-    if a_val < b_val:
-        return 1
-    return 0
-
 def _count_vendor_fws_public(vendor, remote_name):
     dedupe_csum = {}
     for fw in vendor.fws:
@@ -138,32 +128,12 @@ def route_list_analytics(page):
                                data_testing=data_testing)
     return _error_internal('Vendorlist kind invalid')
 
-def cmp_to_key(mycmp):
-    'Convert a cmp= function into a key= function'
-    class K:
-        def __init__(self, obj, *_args):
-            self.obj = obj
-        def __lt__(self, other):
-            return mycmp(self.obj, other.obj) < 0
-        def __gt__(self, other):
-            return mycmp(self.obj, other.obj) > 0
-        def __eq__(self, other):
-            return mycmp(self.obj, other.obj) == 0
-        def __le__(self, other):
-            return mycmp(self.obj, other.obj) <= 0
-        def __ge__(self, other):
-            return mycmp(self.obj, other.obj) >= 0
-        def __ne__(self, other):
-            return mycmp(self.obj, other.obj) != 0
-    return K
-
 @bp_vendors.route('/')
 def route_list():
     vendors = db.session.query(Vendor).\
-                    order_by(Vendor.display_name).\
                     options(joinedload(Vendor.users),
-                            joinedload(Vendor.affiliations)).all()
-    vendors.sort(key=cmp_to_key(_sort_vendor_func))
+                            joinedload(Vendor.affiliations)).\
+                    order_by(Vendor.display_name).all()
     return render_template('vendorlist.html',
                            category='vendors',
                            vendors=vendors,

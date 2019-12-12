@@ -615,16 +615,6 @@ class Vendor(db.Model):
         self.quote_author = None
         self.remote_id = remote_id
 
-    def get_sort_key(self):
-        val = 0
-        if self.fws_stable_recent:
-            val += 0x100
-        if self.fws_stable:
-            val += 0x20
-        if self.is_account_holder:
-            val += 0x10
-        return val
-
     @property
     @functools.lru_cache()
     def fws_stable_recent(self):
