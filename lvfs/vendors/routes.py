@@ -131,10 +131,21 @@ def route_list_analytics(page):
 @bp_vendors.route('/')
 def route_list():
     vendors = db.session.query(Vendor).\
+                    filter(Vendor.visible).\
                     options(joinedload(Vendor.users),
                             joinedload(Vendor.affiliations)).\
                     order_by(Vendor.display_name).all()
     return render_template('vendorlist.html',
+                           vendors=vendors)
+
+@bp_vendors.route('/admin')
+@login_required
+@admin_login_required
+def route_list_admin():
+    vendors = db.session.query(Vendor).\
+                    options(joinedload(Vendor.restrictions)).\
+                    order_by(Vendor.group_id).all()
+    return render_template('vendorlist-admin.html',
                            category='vendors',
                            vendors=vendors,
                            page='overview')
@@ -147,16 +158,16 @@ def route_create():
 
     # only accept form data
     if request.method != 'POST':
-        return redirect(url_for('vendors.route_list'))
+        return redirect(url_for('vendors.route_list_admin'))
 
     if not 'group_id' in request.form:
         return _error_internal('Unable to add vendor as no data')
     if db.session.query(Vendor).filter(Vendor.group_id == request.form['group_id']).first():
         flash('Failed to add vendor: Group ID already exists', 'warning')
-        return redirect(url_for('vendors.route_list'), 302)
+        return redirect(url_for('vendors.route_list_admin'), 302)
     if len(request.form['group_id']) > 80:
         flash('Failed to add vendor: Group ID is too long', 'warning')
-        return redirect(url_for('vendors.route_list'), 302)
+        return redirect(url_for('vendors.route_list_admin'), 302)
     r = Remote(name='embargo-%s' % request.form['group_id'])
     db.session.add(r)
     db.session.commit()
@@ -174,11 +185,11 @@ def route_delete(vendor_id):
     vendor = db.session.query(Vendor).filter(Vendor.vendor_id == vendor_id).first()
     if not vendor:
         flash('Failed to delete vendor: No a vendor with that group ID', 'warning')
-        return redirect(url_for('vendors.route_list'), 302)
+        return redirect(url_for('vendors.route_list_admin'), 302)
     db.session.delete(vendor)
     db.session.commit()
     flash('Removed vendor', 'info')
-    return redirect(url_for('vendors.route_list'), 302)
+    return redirect(url_for('vendors.route_list_admin'), 302)
 
 @bp_vendors.route('/<int:vendor_id>')
 @bp_vendors.route('/<int:vendor_id>/details')
@@ -189,7 +200,7 @@ def route_show(vendor_id):
     vendor = db.session.query(Vendor).filter(Vendor.vendor_id == vendor_id).first()
     if not vendor:
         flash('Failed to get vendor details: No a vendor with that group ID', 'warning')
-        return redirect(url_for('vendors.route_list'), 302)
+        return redirect(url_for('vendors.route_list_admin'), 302)
     verfmts = db.session.query(Verfmt).all()
     return render_template('vendor-details.html',
                            category='vendors',
@@ -204,7 +215,7 @@ def route_restrictions(vendor_id):
     vendor = db.session.query(Vendor).filter(Vendor.vendor_id == vendor_id).first()
     if not vendor:
         flash('Failed to get vendor details: No a vendor with that group ID', 'warning')
-        return redirect(url_for('vendors.route_list'), 302)
+        return redirect(url_for('vendors.route_list_admin'), 302)
     return render_template('vendor-restrictions.html',
                            category='vendors',
                            v=vendor)
@@ -217,7 +228,7 @@ def route_namespaces(vendor_id):
     vendor = db.session.query(Vendor).filter(Vendor.vendor_id == vendor_id).first()
     if not vendor:
         flash('Failed to get vendor details: No a vendor with that group ID', 'warning')
-        return redirect(url_for('vendors.route_list'), 302)
+        return redirect(url_for('vendors.route_list_admin'), 302)
 
     # get prefixes from existing firmware
     appstream_ids = defaultdict(int)
@@ -310,7 +321,7 @@ def route_restriction_create(vendor_id):
     vendor = db.session.query(Vendor).filter(Vendor.vendor_id == vendor_id).first()
     if not vendor:
         flash('Failed to get vendor details: No a vendor with that group ID', 'warning')
-        return redirect(url_for('vendors.route_list'), 302)
+        return redirect(url_for('vendors.route_list_admin'), 302)
     if not 'value' in request.form:
         return _error_internal('No value')
     vendor.restrictions.append(Restriction(request.form['value']))
@@ -328,7 +339,7 @@ def route_restriction_delete(vendor_id, restriction_id):
     vendor = db.session.query(Vendor).filter(Vendor.vendor_id == vendor_id).first()
     if not vendor:
         flash('Failed to get vendor details: No a vendor with that group ID', 'warning')
-        return redirect(url_for('vendors.route_list'), 302)
+        return redirect(url_for('vendors.route_list_admin'), 302)
     for res in vendor.restrictions:
         if res.restriction_id == restriction_id:
             db.session.delete(res)
@@ -347,7 +358,7 @@ def route_namespace_create(vendor_id):
     vendor = db.session.query(Vendor).filter(Vendor.vendor_id == vendor_id).first()
     if not vendor:
         flash('Failed to get vendor details: No a vendor with that group ID', 'warning')
-        return redirect(url_for('vendors.route_list'), 302)
+        return redirect(url_for('vendors.route_list_admin'), 302)
     if 'value' in request.form:
         ns = Namespace(value=request.form['value'], user=g.user)
     elif 'value' in request.args:
@@ -372,7 +383,7 @@ def route_namespace_delete(vendor_id, namespace_id):
     vendor = db.session.query(Vendor).filter(Vendor.vendor_id == vendor_id).first()
     if not vendor:
         flash('Failed to get vendor details: No a vendor with that group ID', 'warning')
-        return redirect(url_for('vendors.route_list'), 302)
+        return redirect(url_for('vendors.route_list_admin'), 302)
     for res in vendor.namespaces:
         if res.namespace_id == namespace_id:
             db.session.delete(res)
@@ -389,13 +400,13 @@ def route_modify_by_admin(vendor_id):
 
     # only accept form data
     if request.method != 'POST':
-        return redirect(url_for('vendors.route_list'))
+        return redirect(url_for('vendors.route_list_admin'))
 
     # save to database
     vendor = db.session.query(Vendor).filter(Vendor.vendor_id == vendor_id).first()
     if not vendor:
         flash('Failed to modify vendor: No a vendor with that group ID', 'warning')
-        return redirect(url_for('vendors.route_list'), 302)
+        return redirect(url_for('vendors.route_list_admin'), 302)
     for key in ['display_name',
                 'internal_team',
                 'group_id',
@@ -426,7 +437,7 @@ def route_modify_by_admin(vendor_id):
             setattr(vendor, key, bool(request.form[key] == '1'))
     db.session.commit()
     flash('Updated vendor', 'info')
-    return redirect(url_for('vendors.route_list'))
+    return redirect(url_for('vendors.route_show', vendor_id=vendor_id), 302)
 
 @bp_vendors.route('/<int:vendor_id>/upload', methods=['POST'])
 @login_required
@@ -437,7 +448,7 @@ def route_upload(vendor_id):
     vendor = db.session.query(Vendor).filter(Vendor.vendor_id == vendor_id).first()
     if not vendor:
         flash('Failed to modify vendor: No a vendor with that group ID', 'warning')
-        return redirect(url_for('vendors.route_list'), 302)
+        return redirect(url_for('vendors.route_list_admin'), 302)
 
     # not correct parameters
     if not 'file' in request.files:

@@ -5,18 +5,13 @@
 {% block content %}
 
 {% for v in vendors %}
-{% if v.visible or (g.user is defined and g.user.check_acl('@admin')) %}
 <div class="card mb-3" id="{{v.group_id}}">
   <div class="card-body">
     <div class="card-title">
-{% if v.visible %}
 {% if v.url %}
       <a href="{{v.url}}">{{v.display_name_with_team}}</a>
 {% else %}
       {{v.display_name}}
-{% endif %}
-{% else %}
-      <em>{{v.display_name_with_team}} [private]</em>
 {% endif %}
 {% if v.icon %}
       <img class="img-thumbnail float-right" src="/uploads/{{v.icon}}" width="96"/>
@@ -68,24 +63,8 @@
 {% endif %}
 {% endif %}
     </ul>
-{% if g.user is defined and g.user.check_acl('@admin') %}
-    <a class="card-link btn btn-secondary mt-3" href="{{url_for('vendors.route_show', vendor_id=v.vendor_id)}}">Edit</a>
-{% endif %}
   </div>
 </div>
-{% endif %}
 {% endfor %}
 
-{% if g.user is defined and g.user.check_acl('@admin') %}
-<div class="card mt-3">
-  <div class="card-body">
-    <div class="card-title">Create a new vendor</div>
-<form method="post" action="{{url_for('vendors.route_create')}}" class="form-inline">
-  <input type="hidden" name="csrf_token" value="{{csrf_token()}}"/>
-  <input class="form-control" type="text" size="20" name="group_id" placeholder="Group ID" required>
-  <input class="btn btn-primary" type="submit" value="Add">
-</form>
-{% endif %}
-  </div>
-</div>
 {% endblock %}

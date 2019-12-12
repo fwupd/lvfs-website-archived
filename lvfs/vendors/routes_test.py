@@ -20,19 +20,19 @@ class LocalTestCase(LvfsTestCase):
     def test_vendorlist(self):
 
         # check users can't modify the list
-        rv = self.app.get('/lvfs/vendors/')
-        assert b'Create a new vendor' not in rv.data, rv.data
+        rv = self.app.get('/lvfs/vendors/admin')
+        assert b'Create a new vendor' not in rv.data, rv.data.decode()
 
         # check admin can
         self.login()
-        rv = self.app.get('/lvfs/vendors/')
-        assert b'Create a new vendor' in rv.data, rv.data
+        rv = self.app.get('/lvfs/vendors/admin')
+        assert b'Create a new vendor' in rv.data, rv.data.decode()
 
         # create new vendor
         rv = self.app.post('/lvfs/vendors/create', data=dict(group_id='testvendor'),
                            follow_redirects=True)
         assert b'Added vendor' in rv.data, rv.data
-        rv = self.app.get('/lvfs/vendors/')
+        rv = self.app.get('/lvfs/vendors/admin')
         assert b'testvendor' in rv.data, rv.data
 
         # create duplicate
@@ -87,17 +87,15 @@ class LocalTestCase(LvfsTestCase):
             comments='Emailed Dave on 2018-01-14 to follow up.',
         ), follow_redirects=True)
         assert b'Updated vendor' in rv.data, rv.data
-        rv = self.app.get('/lvfs/vendors/')
+        rv = self.app.get('/lvfs/vendors/admin')
         assert b'testvendor' in rv.data, rv.data
-        assert b'Everything supported' in rv.data, rv.data
-        assert b'Emailed Dave' not in rv.data, rv.data
 
         # delete
         rv = self.app.get('/lvfs/vendors/999/delete', follow_redirects=True)
         assert b'No a vendor with that group ID' in rv.data, rv.data
         rv = self.app.get('/lvfs/vendors/2/delete', follow_redirects=True)
         assert b'Removed vendor' in rv.data, rv.data
-        rv = self.app.get('/lvfs/vendors/')
+        rv = self.app.get('/lvfs/vendors/admin')
         assert b'testvendor' not in rv.data, rv.data
 
     def test_affiliation_change_as_admin(self):

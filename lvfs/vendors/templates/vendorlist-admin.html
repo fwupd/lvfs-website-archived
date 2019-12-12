@@ -1,0 +1,54 @@
+{% extends "default.html" %}
+
+{% block title %}Vendor Status{% endblock %}
+
+{% block content %}
+
+<div class="card mb-3">
+  <div class="card-body">
+    <div class="card-title">Vendor accounts</div>
+    <table class="table">
+      <tr class="row">
+        <th class="col-3">Group ID</th>
+        <th class="col-5">Display Name</th>
+        <th class="col-3">Attributes</th>
+        <th class="col-1">&nbsp;</th>
+      </tr>
+{% for v in vendors %}
+      <tr class="row" id="{{v.group_id}}">
+        <td class="col-3"><code>{{v.group_id}}</code></td>
+        <td class="col-5">{{v.display_name_with_team}}</td>
+        <td class="col-3">
+          <code>
+{% if not v.visible %}hidden{% endif %}
+{% if v.quote_text %}quoted{% endif %}
+{% if v.consulting_text %}consulting{% endif %}
+{% if v.oauth_domain_glob %}oauth{% endif %}
+{% if v.banned_country_codes %}embargoed{% endif %}
+{% if v.do_not_track %}do-not-track{% endif %}
+{% if v.restrictions %}restricted{% endif %}
+{% if v.visible_for_search %}search{% endif %}
+{% if v.visible_on_landing %}landing{% endif %}
+          </code>
+        </td>
+        <td class="col-1">
+          <a class="card-link btn btn-info"
+             href="{{url_for('vendors.route_show', vendor_id=v.vendor_id)}}">Edit</a>
+        </td>
+      </tr>
+{% endfor %}
+    </table>
+  </div>
+</div>
+
+<div class="card mt-3">
+  <div class="card-body">
+    <div class="card-title">Create a new vendor</div>
+    <form method="post" action="{{url_for('vendors.route_create')}}" class="form-inline">
+      <input type="hidden" name="csrf_token" value="{{csrf_token()}}"/>
+      <input class="form-control" type="text" size="20" name="group_id" placeholder="Group ID" required>
+      <input class="btn btn-primary" type="submit" value="Add">
+    </form>
+  </div>
+</div>
+{% endblock %}

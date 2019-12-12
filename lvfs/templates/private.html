@@ -185,7 +185,7 @@
           </a>
           <ul class="nav collapse {{'show' if category == 'vendors'}}" id="vendors" data-parent="#navbarVerticalCollapse">
             <li class="nav-item {{'active' if request.url_rule.endpoint == 'vendor_list'}}">
-              <a class="nav-link" href="{{url_for('vendors.route_list')}}">Overview</a>
+              <a class="nav-link" href="{{url_for('vendors.route_list_admin')}}">Overview</a>
             </li>
             <li class="nav-item {{'active' if request.url_rule.endpoint == 'vendor_list_analytics' and page=='publicfw'}}">
               <a class="nav-link" href="{{url_for('vendors.route_list_analytics', page='publicfw')}}">Total Firmware</a>

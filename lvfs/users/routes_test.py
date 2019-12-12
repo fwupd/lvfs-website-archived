@@ -35,7 +35,7 @@ class LocalTestCase(LvfsTestCase):
         assert b'testuser' in rv.data, rv.data
         rv = self.app.get('/lvfs/users/3/admin')
         assert b'testuser@fwupd.org' in rv.data, rv.data
-        rv = self.app.get('/lvfs/vendors/')
+        rv = self.app.get('/lvfs/vendors/admin')
         assert b'testgroup' in rv.data, rv.data
 
         # modify an existing user as the admin
