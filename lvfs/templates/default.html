@@ -1,4 +1,4 @@
-{% if g.user is defined %}
+{% if g.user is defined and g.user %}
 {% extends "private.html" %}
 {% else %}
 {% extends "public.html" %}
