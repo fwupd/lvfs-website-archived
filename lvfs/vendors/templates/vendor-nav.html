@@ -27,6 +27,10 @@
       <a class="btn btn-falcon-{{'primary' if request.url_rule.endpoint == 'vendors.route_exports' else 'default'}}"
         href="{{url_for('vendors.route_exports', vendor_id=v.vendor_id)}}">Export</a>
 {% endif %}
+{% if g.user.check_acl('@admin') %}
+      <a class="btn btn-falcon-{{'primary' if request.url_rule.endpoint == 'vendors.route_firmware' else 'default'}}"
+        href="{{url_for('vendors.route_firmware', vendor_id=v.vendor_id)}}">Firmware</a>
+{% endif %}
       <a class="btn btn-falcon-{{'primary' if request.url_rule.endpoint == 'vendors.route_event' else 'default'}}"
         href="{{url_for('vendors.route_event', vendor_id=v.vendor_id)}}">Event Log</a>
     </div>

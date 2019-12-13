@@ -21,7 +21,7 @@ from lvfs import app, db
 from lvfs.emails import send_email
 from lvfs.util import admin_login_required
 from lvfs.util import _error_internal, _email_check
-from lvfs.models import Vendor, Restriction, Namespace, User, Remote, Affiliation, AffiliationAction, Verfmt
+from lvfs.models import Vendor, Restriction, Namespace, User, Remote, Affiliation, AffiliationAction, Verfmt, Firmware
 from lvfs.util import _generate_password
 
 bp_vendors = Blueprint('vendors', __name__, template_folder='templates')
@@ -221,6 +221,31 @@ def route_show(vendor_id):
     return render_template('vendor-details.html',
                            category='vendors',
                            verfmts=verfmts,
+                           v=vendor)
+
+@bp_vendors.route('/<int:vendor_id>/firmware')
+@login_required
+@admin_login_required
+def route_firmware(vendor_id):
+    """ Allows changing a vendor [ADMIN ONLY] """
+    vendor = db.session.query(Vendor).filter(Vendor.vendor_id == vendor_id).first()
+    if not vendor:
+        flash('Failed to get vendor details: No vendor with that ID', 'warning')
+        return redirect(url_for('vendors.route_list_admin'), 302)
+
+    # get all user IDs for this vendor
+    stmt = db.session.query(User.user_id).\
+                            filter(User.vendor_id == vendor_id).\
+                            subquery()
+
+    # get all firmware that were uploaded by these user IDs
+    fws = db.session.query(Firmware).\
+                           join(stmt, Firmware.user_id == stmt.c.user_id).\
+                           order_by(Firmware.timestamp.desc()).limit(101).all()
+
+    return render_template('vendor-firmware.html',
+                           category='vendors',
+                           fws=fws,
                            v=vendor)
 
 @bp_vendors.route('/<int:vendor_id>/restrictions')
