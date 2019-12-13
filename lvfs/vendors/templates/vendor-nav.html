@@ -2,32 +2,32 @@
   <div class="text-center mb-3">
     <div class="btn-group" role="group">
 {% if g.user.check_acl('@admin') %}
-      <a class="btn btn-falcon-{{'primary' if request.url_rule.endpoint == 'vendor_details' else 'default'}}"
+      <a class="btn btn-falcon-{{'primary' if request.url_rule.endpoint == 'vendors.route_show' else 'default'}}"
         href="{{url_for('vendors.route_show', vendor_id=v.vendor_id)}}">Details</a>
 {% endif %}
-      <a class="btn btn-falcon-{{'primary' if request.url_rule.endpoint == 'vendor_users' else 'default'}}"
+      <a class="btn btn-falcon-{{'primary' if request.url_rule.endpoint == 'vendors.route_users' else 'default'}}"
         href="{{url_for('vendors.route_users', vendor_id=v.vendor_id)}}">Users</a>
 {% if v.check_acl('@modify-oauth') %}
-      <a class="btn btn-falcon-{{'primary' if request.url_rule.endpoint == 'vendor_oauth' else 'default'}}"
+      <a class="btn btn-falcon-{{'primary' if request.url_rule.endpoint == 'vendors.route_oauth' else 'default'}}"
         href="{{url_for('vendors.route_oauth', vendor_id=v.vendor_id)}}">OAuth</a>
 {% endif %}
 {% if v.check_acl('@view-restrictions') %}
-      <a class="btn btn-falcon-{{'primary' if request.url_rule.endpoint == 'vendor_restrictions' else 'default'}}"
+      <a class="btn btn-falcon-{{'primary' if request.url_rule.endpoint == 'vendors.route_restrictions' else 'default'}}"
         href="{{url_for('vendors.route_restrictions', vendor_id=v.vendor_id)}}">Restrictions</a>
 {% endif %}
 {% if g.user.check_acl('@admin') %}
-      <a class="btn btn-falcon-{{'primary' if request.url_rule.endpoint == 'vendor_namespaces' else 'default'}}"
+      <a class="btn btn-falcon-{{'primary' if request.url_rule.endpoint == 'vendors.route_namespaces' else 'default'}}"
         href="{{url_for('vendors.route_namespaces', vendor_id=v.vendor_id)}}">Namespaces</a>
 {% endif %}
 {% if v.check_acl('@view-affiliations') %}
-      <a class="btn btn-falcon-{{'primary' if request.url_rule.endpoint == 'vendor_affiliations' else 'default'}}"
+      <a class="btn btn-falcon-{{'primary' if request.url_rule.endpoint == 'vendors.route_affiliations' else 'default'}}"
         href="{{url_for('vendors.route_affiliations', vendor_id=v.vendor_id)}}">Affiliates</a>
 {% endif %}
 {% if v.check_acl('@view-exports') %}
-      <a class="btn btn-falcon-{{'primary' if request.url_rule.endpoint == 'vendor_exports' else 'default'}}"
+      <a class="btn btn-falcon-{{'primary' if request.url_rule.endpoint == 'vendors.route_exports' else 'default'}}"
         href="{{url_for('vendors.route_exports', vendor_id=v.vendor_id)}}">Export</a>
 {% endif %}
-      <a class="btn btn-falcon-{{'primary' if request.url_rule.endpoint == 'vendor_event' else 'default'}}"
+      <a class="btn btn-falcon-{{'primary' if request.url_rule.endpoint == 'vendors.route_event' else 'default'}}"
         href="{{url_for('vendors.route_event', vendor_id=v.vendor_id)}}">Event Log</a>
     </div>
   </div>
