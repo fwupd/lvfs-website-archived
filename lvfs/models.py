@@ -122,7 +122,7 @@ class Agreement(db.Model):
     __tablename__ = 'agreements'
     __table_args__ = {'mysql_character_set': 'utf8mb4'}
 
-    agreement_id = Column(Integer, primary_key=True, unique=True, nullable=False)
+    agreement_id = Column(Integer, primary_key=True)
     created = Column(DateTime, nullable=False, default=datetime.datetime.utcnow)
     version = Column(Integer, nullable=False)
     text = Column(Text, default=None)
@@ -133,7 +133,7 @@ class UserAction(db.Model):
     __tablename__ = 'user_actions'
     __table_args__ = {'mysql_character_set': 'utf8mb4'}
 
-    user_action_id = Column(Integer, primary_key=True, unique=True, nullable=False)
+    user_action_id = Column(Integer, primary_key=True)
     user_id = Column(Integer, ForeignKey('users.user_id'), nullable=False)
     ctime = Column(DateTime, nullable=False, default=datetime.datetime.utcnow)
     value = Column(Text, default=None)
@@ -151,7 +151,7 @@ class User(db.Model):
                       {'mysql_character_set': 'utf8mb4'}
                      )
 
-    user_id = Column(Integer, primary_key=True, unique=True, nullable=False)
+    user_id = Column(Integer, primary_key=True)
     username = Column(String(80), nullable=False, index=True)
     password_hash = Column('password', String(128), default=None)
     password_ts = Column(DateTime, default=None)
@@ -355,7 +355,7 @@ class YaraQueryResult(db.Model):
     __tablename__ = 'yara_query_result'
     __table_args__ = {'mysql_character_set': 'utf8mb4'}
 
-    yara_query_result_id = Column(Integer, primary_key=True, unique=True, nullable=False)
+    yara_query_result_id = Column(Integer, primary_key=True)
     yara_query_id = Column(Integer, ForeignKey('yara_query.yara_query_id'), nullable=False)
     component_shard_id = Column(Integer, ForeignKey('component_shards.component_shard_id'), nullable=True)
     component_id = Column(Integer, ForeignKey('components.component_id'), nullable=False)
@@ -374,7 +374,7 @@ class YaraQuery(db.Model):
     __tablename__ = 'yara_query'
     __table_args__ = {'mysql_character_set': 'utf8mb4'}
 
-    yara_query_id = Column(Integer, primary_key=True, nullable=False, unique=True)
+    yara_query_id = Column(Integer, primary_key=True)
     user_id = Column(Integer, ForeignKey('users.user_id'), nullable=False)
     value = Column(Text, default=None)
     error = Column(Text, default=None)
@@ -448,7 +448,7 @@ class Restriction(db.Model):
     __tablename__ = 'restrictions'
     __table_args__ = {'mysql_character_set': 'utf8mb4'}
 
-    restriction_id = Column(Integer, primary_key=True, unique=True, nullable=False)
+    restriction_id = Column(Integer, primary_key=True)
     vendor_id = Column(Integer, ForeignKey('vendors.vendor_id'), nullable=False)
     value = Column(Text, nullable=False)
 
@@ -468,7 +468,7 @@ class Namespace(db.Model):
     __tablename__ = 'namespaces'
     __table_args__ = {'mysql_character_set': 'utf8mb4'}
 
-    namespace_id = Column(Integer, primary_key=True, unique=True, nullable=False)
+    namespace_id = Column(Integer, primary_key=True)
     vendor_id = Column(Integer, ForeignKey('vendors.vendor_id'), nullable=False)
     value = Column(Text, nullable=False)
     ctime = Column(DateTime, nullable=False, default=datetime.datetime.utcnow)
@@ -495,7 +495,7 @@ class AffiliationAction(db.Model):
     __tablename__ = 'affiliation_actions'
     __table_args__ = {'mysql_character_set': 'utf8mb4'}
 
-    affiliation_action_id = Column(Integer, primary_key=True, unique=True, nullable=False)
+    affiliation_action_id = Column(Integer, primary_key=True)
     affiliation_id = Column(Integer, ForeignKey('affiliations.affiliation_id'), nullable=False)
     ctime = Column(DateTime, nullable=False, default=datetime.datetime.utcnow)
     user_id = Column(Integer, ForeignKey('users.user_id'), nullable=False)
@@ -513,7 +513,7 @@ class Affiliation(db.Model):
     __tablename__ = 'affiliations'
     __table_args__ = {'mysql_character_set': 'utf8mb4'}
 
-    affiliation_id = Column(Integer, primary_key=True, unique=True, nullable=False)
+    affiliation_id = Column(Integer, primary_key=True)
     timestamp = Column(DateTime, nullable=False, default=datetime.datetime.utcnow)
     vendor_id = Column(Integer, ForeignKey('vendors.vendor_id'), nullable=False)
     vendor_id_odm = Column(Integer, ForeignKey('vendors.vendor_id'), nullable=False)
@@ -542,7 +542,7 @@ class Vendor(db.Model):
     __tablename__ = 'vendors'
     __table_args__ = {'mysql_character_set': 'utf8mb4'}
 
-    vendor_id = Column(Integer, primary_key=True, unique=True)
+    vendor_id = Column(Integer, primary_key=True)
     group_id = Column(String(80), nullable=False, index=True)
     display_name = Column(Text, default=None)
     internal_team = Column(Text, default=None)
@@ -771,7 +771,7 @@ class Event(db.Model):
     __tablename__ = 'event_log'
     __table_args__ = {'mysql_character_set': 'utf8mb4'}
 
-    id = Column(Integer, primary_key=True, nullable=False, unique=True)
+    id = Column(Integer, primary_key=True)
     timestamp = Column(DateTime, nullable=False, default=datetime.datetime.utcnow)
     user_id = Column(Integer, ForeignKey('users.user_id'), nullable=False)
     vendor_id = Column(Integer, ForeignKey('vendors.vendor_id'), nullable=False)
@@ -803,7 +803,7 @@ class Certificate(db.Model):
     __tablename__ = 'certificates'
     __table_args__ = {'mysql_character_set': 'utf8mb4'}
 
-    certificate_id = Column(Integer, primary_key=True, nullable=False, unique=True)
+    certificate_id = Column(Integer, primary_key=True)
     user_id = Column(Integer, ForeignKey('users.user_id'), nullable=False)
     ctime = Column(DateTime, nullable=False, default=datetime.datetime.utcnow)
     serial = Column(String(40), nullable=False)
@@ -843,7 +843,7 @@ class Requirement(db.Model):
     __tablename__ = 'requirements'
     __table_args__ = {'mysql_character_set': 'utf8mb4'}
 
-    requirement_id = Column(Integer, primary_key=True, unique=True)
+    requirement_id = Column(Integer, primary_key=True)
     component_id = Column(Integer, ForeignKey('components.component_id'), nullable=False)
     kind = Column(Text, nullable=False)
     value = Column(Text, default=None)
@@ -861,7 +861,7 @@ class Guid(db.Model):
 
     # sqlalchemy metadata
     __tablename__ = 'guids'
-    guid_id = Column(Integer, primary_key=True, unique=True, nullable=False)
+    guid_id = Column(Integer, primary_key=True)
     component_id = Column(Integer, ForeignKey('components.component_id'), nullable=False)
     value = Column(Text, nullable=False)
 
@@ -883,7 +883,7 @@ class Keyword(db.Model):
     __tablename__ = 'keywords'
     __table_args__ = {'mysql_character_set': 'utf8mb4'}
 
-    keyword_id = Column(Integer, primary_key=True, unique=True, nullable=False)
+    keyword_id = Column(Integer, primary_key=True)
     component_id = Column(Integer, ForeignKey('components.component_id'), nullable=False)
     priority = Column(Integer, default=0)
     value = Column(Text, nullable=False)
@@ -944,7 +944,7 @@ class Checksum(db.Model):
     __tablename__ = 'checksums'
     __table_args__ = {'mysql_character_set': 'utf8mb4'}
 
-    checksum_id = Column(Integer, primary_key=True, unique=True)
+    checksum_id = Column(Integer, primary_key=True)
     component_id = Column(Integer, ForeignKey('components.component_id'), nullable=False)
     kind = Column(Text, nullable=False, default=None)
     value = Column(Text, nullable=False, default=None)
@@ -964,7 +964,7 @@ class TestAttribute(db.Model):
     __tablename__ = 'test_attributes'
     __table_args__ = {'mysql_character_set': 'utf8mb4'}
 
-    test_attribute_id = Column(Integer, primary_key=True, nullable=False, unique=True)
+    test_attribute_id = Column(Integer, primary_key=True)
     test_id = Column(Integer, ForeignKey('tests.test_id'), nullable=False)
     title = Column(Text, nullable=False)
     message = Column(Text, default=None)
@@ -989,7 +989,7 @@ class Test(db.Model):
     __tablename__ = 'tests'
     __table_args__ = {'mysql_character_set': 'utf8mb4'}
 
-    test_id = Column(Integer, primary_key=True, unique=True, nullable=False)
+    test_id = Column(Integer, primary_key=True)
     firmware_id = Column(Integer, ForeignKey('firmware.firmware_id'), nullable=False)
     plugin_id = Column(Text, default=None)
     waivable = Column(Boolean, default=False)
@@ -1110,7 +1110,7 @@ class Verfmt(db.Model):
     __tablename__ = 'verfmts'
     __table_args__ = {'mysql_character_set': 'utf8mb4'}
 
-    verfmt_id = Column(Integer, primary_key=True, nullable=False, unique=True)
+    verfmt_id = Column(Integer, primary_key=True)
     value = Column(Text, nullable=False)        # 'dell-bios'
     name = Column(Text, default=None)           # 'Dell Style'
     example = Column(Text, default=None)        # '12.34.56.78'
@@ -1172,7 +1172,7 @@ class Category(db.Model):
     __tablename__ = 'categories'
     __table_args__ = {'mysql_character_set': 'utf8mb4'}
 
-    category_id = Column(Integer, primary_key=True, nullable=False, unique=True)
+    category_id = Column(Integer, primary_key=True)
     value = Column(Text, nullable=False)        # 'X-System'
     name = Column(Text, default=None)           # 'System Update'
     fallbacks = Column(Text, default=None)
@@ -1204,7 +1204,7 @@ class ComponentShardInfo(db.Model):
     __tablename__ = 'component_shard_infos'
     __table_args__ = {'mysql_character_set': 'utf8mb4'}
 
-    component_shard_info_id = Column(Integer, primary_key=True, unique=True, nullable=False)
+    component_shard_info_id = Column(Integer, primary_key=True)
     guid = Column(String(36), default=None, index=True)
     description = Column(Text, default=None)
     cnt = Column(Integer, default=0)
@@ -1221,7 +1221,7 @@ class ComponentShardChecksum(db.Model):
     __tablename__ = 'component_shard_checksums'
     __table_args__ = {'mysql_character_set': 'utf8mb4'}
 
-    checksum_id = Column(Integer, primary_key=True, unique=True)
+    checksum_id = Column(Integer, primary_key=True)
     component_shard_id = Column(Integer, ForeignKey('component_shards.component_shard_id'), nullable=False)
     kind = Column(Text, nullable=False, default=None)
     value = Column(Text, nullable=False, default=None)
@@ -1243,7 +1243,7 @@ class ComponentShardCertificate(db.Model):
     __tablename__ = 'component_shard_certificates'
     __table_args__ = {'mysql_character_set': 'utf8mb4'}
 
-    component_shard_certificate_id = Column(Integer, primary_key=True, unique=True, nullable=False)
+    component_shard_certificate_id = Column(Integer, primary_key=True)
     component_shard_id = Column(Integer, ForeignKey('component_shards.component_shard_id'), nullable=False)
     kind = Column(Text, default=None)
     plugin_id = Column(Text, default=None)
@@ -1295,7 +1295,7 @@ class ComponentShard(db.Model):
     __tablename__ = 'component_shards'
     __table_args__ = {'mysql_character_set': 'utf8mb4'}
 
-    component_shard_id = Column(Integer, primary_key=True, unique=True, nullable=False)
+    component_shard_id = Column(Integer, primary_key=True)
     component_id = Column(Integer, ForeignKey('components.component_id'), nullable=False)
     component_shard_info_id = Column(Integer,
                                      ForeignKey('component_shard_infos.component_shard_info_id'),
@@ -1388,7 +1388,7 @@ class ComponentIssue(db.Model):
     __tablename__ = 'component_issues'
     __table_args__ = {'mysql_character_set': 'utf8mb4'}
 
-    component_issue_id = Column(Integer, primary_key=True, unique=True, nullable=False, index=True)
+    component_issue_id = Column(Integer, primary_key=True)
     component_id = Column(Integer, ForeignKey('components.component_id'), nullable=False)
     kind = Column(Text, nullable=False)
     value = Column(Text, nullable=False)
@@ -1427,7 +1427,7 @@ class ComponentClaim(db.Model):
     __tablename__ = 'component_claims'
     __table_args__ = {'mysql_character_set': 'utf8mb4'}
 
-    component_claim_id = Column(Integer, primary_key=True, unique=True, nullable=False, index=True)
+    component_claim_id = Column(Integer, primary_key=True)
     component_id = Column(Integer, ForeignKey('components.component_id'), nullable=False)
     kind = Column(Text, nullable=False)
     value = Column(Text, nullable=False)
@@ -1444,7 +1444,7 @@ class ComponentRef(db.Model):
     __tablename__ = 'component_refs'
     __table_args__ = {'mysql_character_set': 'utf8mb4'}
 
-    component_ref_id = Column(Integer, primary_key=True, unique=True, nullable=False, index=True)
+    component_ref_id = Column(Integer, primary_key=True)
     component_id = Column(Integer, ForeignKey('components.component_id'))
     vendor_id = Column(Integer, ForeignKey('vendors.vendor_id'), nullable=False)
     protocol_id = Column(Integer, ForeignKey('protocol.protocol_id'))
@@ -1482,7 +1482,7 @@ class Component(db.Model):
     __tablename__ = 'components'
     __table_args__ = {'mysql_character_set': 'utf8mb4'}
 
-    component_id = Column(Integer, primary_key=True, unique=True, nullable=False, index=True)
+    component_id = Column(Integer, primary_key=True)
     firmware_id = Column(Integer, ForeignKey('firmware.firmware_id'), nullable=False, index=True)
     protocol_id = Column(Integer, ForeignKey('protocol.protocol_id'))
     category_id = Column(Integer, ForeignKey('categories.category_id'))
@@ -1910,7 +1910,7 @@ class Remote(db.Model):
     __tablename__ = 'remotes'
     __table_args__ = {'mysql_character_set': 'utf8mb4'}
 
-    remote_id = Column(Integer, primary_key=True, unique=True, nullable=False)
+    remote_id = Column(Integer, primary_key=True)
     name = Column(Text, nullable=False)
     is_public = Column(Boolean, default=False)
     is_dirty = Column(Boolean, default=False)
@@ -1986,7 +1986,7 @@ class FirmwareEvent(db.Model):
     __tablename__ = 'firmware_events'
     __table_args__ = {'mysql_character_set': 'utf8mb4'}
 
-    firmware_event_id = Column(Integer, primary_key=True, unique=True, nullable=False)
+    firmware_event_id = Column(Integer, primary_key=True)
     firmware_id = Column(Integer, ForeignKey('firmware.firmware_id'), nullable=False)
     user_id = Column(Integer, ForeignKey('users.user_id'), nullable=False)
     timestamp = Column(DateTime, nullable=False, default=datetime.datetime.utcnow)
@@ -2014,7 +2014,7 @@ class FirmwareLimit(db.Model):
     __tablename__ = 'firmware_limits'
     __table_args__ = {'mysql_character_set': 'utf8mb4'}
 
-    firmware_limit_id = Column(Integer, primary_key=True, unique=True, nullable=False)
+    firmware_limit_id = Column(Integer, primary_key=True)
     firmware_id = Column(Integer, ForeignKey('firmware.firmware_id'), nullable=False)
     value = Column(Integer, nullable=False)
     user_agent_glob = Column(Text, default=None)
@@ -2029,7 +2029,7 @@ class Firmware(db.Model):
     __tablename__ = 'firmware'
     __table_args__ = {'mysql_character_set': 'utf8mb4'}
 
-    firmware_id = Column(Integer, primary_key=True, unique=True, nullable=False, index=True)
+    firmware_id = Column(Integer, primary_key=True)
     vendor_id = Column(Integer, ForeignKey('vendors.vendor_id'), nullable=False)
     addr = Column(String(40), nullable=False)
     timestamp = Column(DateTime, nullable=False, default=datetime.datetime.utcnow)
@@ -2393,7 +2393,7 @@ class Client(db.Model):
     __tablename__ = 'clients'
     __table_args__ = {'mysql_character_set': 'utf8mb4'}
 
-    id = Column(Integer, primary_key=True, nullable=False, unique=True)
+    id = Column(Integer, primary_key=True)
     timestamp = Column(DateTime, nullable=False, default=datetime.datetime.utcnow, index=True)
     datestr = Column(Integer, default=0, index=True)
     addr = Column(String(40), nullable=False)
@@ -2420,7 +2420,7 @@ class Condition(db.Model):
     __tablename__ = 'conditions'
     __table_args__ = {'mysql_character_set': 'utf8mb4'}
 
-    condition_id = Column(Integer, primary_key=True, nullable=False, unique=True)
+    condition_id = Column(Integer, primary_key=True)
     issue_id = Column(Integer, ForeignKey('issues.issue_id'), nullable=False)
     key = Column(Text, nullable=False)
     value = Column(Text, nullable=False)
@@ -2474,7 +2474,7 @@ class Issue(db.Model):
     __tablename__ = 'issues'
     __table_args__ = {'mysql_character_set': 'utf8mb4'}
 
-    issue_id = Column(Integer, primary_key=True, nullable=False, unique=True)
+    issue_id = Column(Integer, primary_key=True)
     priority = Column(Integer, default=0)
     enabled = Column(Boolean, default=False)
     vendor_id = Column(Integer, ForeignKey('vendors.vendor_id'), nullable=False)
@@ -2539,7 +2539,7 @@ class ReportAttribute(db.Model):
     __tablename__ = 'report_attributes'
     __table_args__ = {'mysql_character_set': 'utf8mb4'}
 
-    report_attribute_id = Column(Integer, primary_key=True, nullable=False, unique=True)
+    report_attribute_id = Column(Integer, primary_key=True)
     report_id = Column(Integer, ForeignKey('reports.report_id'), nullable=False)
     key = Column(Text, nullable=False)
     value = Column(Text, default=None)
@@ -2562,7 +2562,7 @@ class Report(db.Model):
     __tablename__ = 'reports'
     __table_args__ = {'mysql_character_set': 'utf8mb4'}
 
-    report_id = Column(Integer, primary_key=True, nullable=False, unique=True)
+    report_id = Column(Integer, primary_key=True)
     timestamp = Column(DateTime, nullable=False, default=datetime.datetime.utcnow)
     state = Column(Integer, default=0)
     machine_id = Column(String(64), nullable=False)
@@ -2658,7 +2658,7 @@ class Setting(db.Model):
     __tablename__ = 'settings'
     __table_args__ = {'mysql_character_set': 'utf8mb4'}
 
-    setting_id = Column(Integer, primary_key=True, nullable=False, unique=True)
+    setting_id = Column(Integer, primary_key=True)
     key = Column('config_key', Text)
     value = Column('config_value', Text)
 
@@ -2678,7 +2678,7 @@ class Analytic(db.Model):
     __tablename__ = 'analytics'
     __table_args__ = {'mysql_character_set': 'utf8mb4'}
 
-    datestr = Column(Integer, primary_key=True, unique=True, default=0, index=True)
+    datestr = Column(Integer, primary_key=True)
     cnt = Column(Integer, default=1)
 
     def __init__(self, datestr=0, cnt=1):
@@ -2695,7 +2695,7 @@ class AnalyticVendor(db.Model):
     __tablename__ = 'analytics_vendor'
     __table_args__ = {'mysql_character_set': 'utf8mb4'}
 
-    analytic_id = Column(Integer, primary_key=True, nullable=False, unique=True)
+    analytic_id = Column(Integer, primary_key=True)
     datestr = Column(Integer, default=0, index=True)
     vendor_id = Column(Integer, ForeignKey('vendors.vendor_id'), nullable=False, index=True)
     cnt = Column(Integer, default=0)
@@ -2718,7 +2718,7 @@ class AnalyticFirmware(db.Model):
     __tablename__ = 'analytics_firmware'
     __table_args__ = {'mysql_character_set': 'utf8mb4'}
 
-    analytic_id = Column(Integer, primary_key=True, nullable=False, unique=True)
+    analytic_id = Column(Integer, primary_key=True)
     datestr = Column(Integer, default=0, index=True)
     firmware_id = Column(Integer, ForeignKey('firmware.firmware_id'), nullable=False, index=True)
     cnt = Column(Integer, default=0)
@@ -2747,7 +2747,7 @@ class Useragent(db.Model):
     __tablename__ = 'useragents'
     __table_args__ = {'mysql_character_set': 'utf8mb4'}
 
-    useragent_id = Column(Integer, primary_key=True, nullable=False, unique=True)
+    useragent_id = Column(Integer, primary_key=True)
     kind = Column(Integer, default=0, index=True)
     datestr = Column(Integer, default=0)
     value = Column(Text, default=None)
@@ -2769,7 +2769,7 @@ class Protocol(db.Model):
     __tablename__ = 'protocol'
     __table_args__ = {'mysql_character_set': 'utf8mb4'}
 
-    protocol_id = Column(Integer, primary_key=True, nullable=False, unique=True)
+    protocol_id = Column(Integer, primary_key=True)
     value = Column(Text, nullable=False)
     name = Column(Text, default=None)
     is_signed = Column(Boolean, default=False)
@@ -2811,7 +2811,7 @@ class SearchEvent(db.Model):
     __tablename__ = 'search_events'
     __table_args__ = {'mysql_character_set': 'utf8mb4'}
 
-    search_event_id = Column(Integer, primary_key=True, unique=True, nullable=False)
+    search_event_id = Column(Integer, primary_key=True)
     timestamp = Column(DateTime, nullable=False, default=datetime.datetime.utcnow)
     addr = Column(String(40), nullable=False)
     value = Column(Text, nullable=False)
