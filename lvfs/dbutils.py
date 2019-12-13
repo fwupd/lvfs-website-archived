@@ -189,12 +189,25 @@ def init_db(db):
     db.metadata.create_all(bind=db.engine)
 
     # ensure admin user exists
-    from .models import User, UserAction, Vendor, Remote
+    from .models import User, UserAction, Vendor, Remote, Verfmt, Protocol, Category
     if not db.session.query(Remote).filter(Remote.name == 'stable').first():
         db.session.add(Remote(name='stable', is_public=True))
         db.session.add(Remote(name='testing', is_public=True))
         db.session.add(Remote(name='private'))
         db.session.add(Remote(name='deleted'))
+        db.session.commit()
+    if not db.session.query(Verfmt).filter(Verfmt.value == 'triplet').first():
+        db.session.add(Verfmt(value='quad'))
+        db.session.add(Verfmt(value='triplet'))
+        db.session.commit()
+    if not db.session.query(Protocol).filter(Protocol.value == 'com.hughski.colorhug').first():
+        db.session.add(Protocol(value='com.hughski.colorhug'))
+        db.session.add(Protocol(value='org.usb.dfu'))
+        db.session.add(Protocol(value='org.uefi.capsule'))
+        db.session.commit()
+    if not db.session.query(Category).filter(Category.value == 'triplet').first():
+        db.session.add(Category(value='X-Device'))
+        db.session.add(Category(value='X-ManagementEngine'))
         db.session.commit()
     if not db.session.query(User).filter(User.username == 'sign-test@fwupd.org').first():
         remote = Remote(name='embargo-admin')

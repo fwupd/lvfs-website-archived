@@ -64,21 +64,6 @@ class LvfsTestCase(unittest.TestCase):
         self.app.get('/lvfs/settings/create')
         self.app.get('/lvfs/agreements/create')
         self.app.get('/lvfs/agreements/1/accept')
-        for value in ['com.hughski.colorhug', 'org.usb.dfu', 'org.uefi.capsule']:
-            rv = self.app.post('/lvfs/protocols/create', data=dict(
-                value=value,
-            ), follow_redirects=True)
-            assert b'Added protocol' in rv.data, rv.data
-        for value in ['X-Device', 'X-ManagementEngine']:
-            rv = self.app.post('/lvfs/categories/create', data=dict(
-                value=value,
-            ), follow_redirects=True)
-            assert b'Added category' in rv.data, rv.data
-        for value in ['quad', 'triplet']:
-            rv = self.app.post('/lvfs/verfmts/create', data=dict(
-                value=value,
-            ), follow_redirects=True)
-            assert b'Added version format' in rv.data, rv.data
         rv = self.app.post('/lvfs/settings/modify', data=dict(
             clamav_enable='disabled',
             virustotal_enable='disabled',
