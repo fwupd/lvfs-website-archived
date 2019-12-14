@@ -777,7 +777,7 @@ class Event(db.Model):
     vendor_id = Column(Integer, ForeignKey('vendors.vendor_id'), nullable=False)
     address = Column('addr', String(40), nullable=False)
     message = Column(Text, default=None)
-    is_important = Column(Boolean, default=0)
+    is_important = Column(Boolean, default=False)
     request = Column(Text, default=None)
 
     # link using foreign keys
