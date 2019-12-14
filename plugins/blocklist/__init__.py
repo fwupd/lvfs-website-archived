@@ -20,6 +20,11 @@ def _run_on_blob(self, test, md, title, blob):
     matches = self.rules.match(data=blob)
     for match in matches:
 
+        # do what we can
+        description = None
+        if 'description' in match.meta:
+            description = match.meta['description'].replace('\0', '')
+
         if 'fail' not in match.meta or match.meta['fail']:
             msg = '{} YARA test failed'.format(match.rule)
             for string in match.strings:
@@ -28,11 +33,11 @@ def _run_on_blob(self, test, md, title, blob):
                         msg += ': found {}'.format(string[2].decode())
                     except UnicodeDecodeError as _:
                         pass
-            if 'description' in match.meta:
-                msg += ': {}'.format(match.meta['description'])
+            if description:
+                msg += ': {}'.format(description)
             test.add_fail(title, msg)
-        elif 'claim' in match.meta and 'description' in match.meta:
-            md.add_claim(match.meta['claim'], match.meta['description'])
+        elif 'claim' in match.meta and description:
+            md.add_claim(match.meta['claim'], description)
 
 class Plugin(PluginBase):
     def __init__(self, plugin_id=None):
