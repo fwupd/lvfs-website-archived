@@ -4,7 +4,7 @@
 
 {% block url %}{{url_for('devices.route_show_atom', appstream_id=appstream_id)}}{% endblock %}
 
-{% block updated %}{{fws[0].timestamp if fws else '1970-01-01T00:00:00Z'}}{% endblock %}
+{% block updated %}{{fws[0].timestamp.isoformat() if fws else '1970-01-01T00:00:00Z'}}{% endblock %}
 
 {% block author %}{{fws[0].md_prio.developer_name if fws else 'No firmware for device found'}}{% endblock %}
 
@@ -25,7 +25,7 @@
     <title>Version {{fw.version_display}}</title>
     <link href="{{url_for('devices.route_show', appstream_id=appstream_id)}}"/>
     <id>{{appstream_id}}</id>
-    <updated>{{fw.timestamp}}</updated>
+    <updated>{{fw.timestamp.isoformat()}}</updated>
     <author>
         <name>{{fw.md_prio.developer_name}}</name>
     </author>
