@@ -154,14 +154,15 @@ def route_import():
     db.session.commit()
 
     # parse blob
-    try:
-        if 'metadata' not in obj:
-            return _json_error('metadata object missing')
-        metadata = obj['metadata']
-        if metadata['version'] != 0:
-            return _json_error('metadata schema version unsupported: ' + str(e))
-        for obj_dev in obj['devices']:
-
+    if 'metadata' not in obj:
+        return _json_error('metadata object missing')
+    metadata = obj['metadata']
+    if metadata['version'] != 0:
+        return _json_error('metadata schema version unsupported: ' + str(e))
+    if 'devices' not in obj:
+        return _json_error('devices object missing')
+    for obj_dev in obj['devices']:
+        try:
             # required, but may be junk for devices not in LVFS
             appstream_id = obj_dev['appstream_id']
 
@@ -227,8 +228,8 @@ def route_import():
                                      vendor_partner=g.user.vendor,
                                      protocol=protocol)
                 db.session.add(mdref)
-    except KeyError as e:
-        return _json_error('JSON invalid: ' + str(e))
+        except KeyError as e:
+            return _json_error('JSON {} invalid: {}'.format(obj_dev, str(e)))
 
     # commit new mdrefs
     db.session.commit()
