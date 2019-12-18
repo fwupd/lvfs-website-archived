@@ -63,7 +63,9 @@
 {% else %}
       {{mdrefs[0].name or 'Unknown'}}
 {% endif %}
+{% if appstream_id != mdrefs[0].name %}
       <code class="float-right">{{appstream_id}}</code>
+{% endif %}
     </div>
 {% for mdref in mdrefs|sort %}
     <h3>

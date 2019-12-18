@@ -163,8 +163,8 @@ def route_import():
         return _json_error('devices object missing')
     for obj_dev in obj['devices']:
         try:
-            # required, but may be junk for devices not in LVFS
-            appstream_id = obj_dev['appstream_id']
+            # may be missing for devices not (yet) in LVFS
+            appstream_id = obj_dev.get('appstream_id', None)
 
             # has to match something specified on the LVFS if specified
             if 'protocol' in obj_dev:
@@ -184,17 +184,11 @@ def route_import():
                 if 'component_id' in obj_ver:
                     md = mds_by_id.get(obj_ver['component_id'], None)
 
-                # try getting the md using the appstream-id and the version
-                if not md:
-                    md = mds_by_ver.get('{}/{}'.format(appstream_id, version), None)
-
-                # try getting the md using the release tag
+                # release_tag uniquely identifies the firmware download
                 release_tag = obj_ver.get('release_tag', None)
                 if release_tag and release_tag.find('_') != -1:
                     # this will be fixed by the importer...
                     release_tag = None
-                if not md and release_tag:
-                    md = mds_by_tag.get('{}/{}'.format(appstream_id, release_tag.casefold()), None)
 
                 # date has to be in ISO8601 format
                 date = None
@@ -208,6 +202,13 @@ def route_import():
                 url = obj_ver.get('changelog_url', None)
                 if not url:
                     url = obj_ver.get('file_url', None)
+
+                # try getting the md using the appstream-id and the version/tag
+                if appstream_id:
+                    if not md:
+                        md = mds_by_ver.get('{}/{}'.format(appstream_id, version), None)
+                    if not md and release_tag:
+                        md = mds_by_tag.get('{}/{}'.format(appstream_id, release_tag.casefold()), None)
 
                 # prefer the vendor from the component but fallback to the vendor ID
                 vendor = None
@@ -294,7 +295,7 @@ def route_show(vendor_id):
         if mdref.appstream_id:
             mdrefs_by_id[mdref.appstream_id].append(mdref)
         else:
-            mdrefs_by_id['unknown'].append(mdref)
+            mdrefs_by_id[mdref.name].append(mdref)
         if mdref.md and mdref.appstream_id:
             md_by_id[mdref.appstream_id] = mdref.md
 
