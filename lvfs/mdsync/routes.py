@@ -199,7 +199,10 @@ def route_import():
                 # date has to be in ISO8601 format
                 date = None
                 if 'date' in obj_ver:
-                    date = dateutil.parser.parse(obj_ver['date'])
+                    try:
+                        date = dateutil.parser.parse(obj_ver['date'])
+                    except dateutil.parser.ParserError as _:
+                        pass
 
                 # prefer the changelog url
                 url = obj_ver.get('changelog_url', None)
