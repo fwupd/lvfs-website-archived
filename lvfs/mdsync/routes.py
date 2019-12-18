@@ -267,30 +267,32 @@ def route_list():
                            category='telemetry',
                            vendors=vendors)
 
-@bp_mdsync.route('/<int:vendor_id>')
+@bp_mdsync.route('/<int:vendor_id_partner>/<int:vendor_id>')
 @login_required
-def route_show(vendor_id):
+def route_show(vendor_id_partner, vendor_id):
 
     # security check
     if not g.user.check_acl('@vendor-manager') and not g.user.check_acl('@partner'):
         return redirect(url_for('main.route_dashboard'), 302)
-
-    # another security check
+    vendor_partner = db.session.query(Vendor).filter(Vendor.vendor_id == vendor_id_partner).first()
+    if not vendor_partner or not vendor_partner.visible:
+        flash('Failed to get vendor details: No vendor partner with that ID', 'warning')
+        return redirect(url_for('mdsync.route_list'), 302)
     vendor = db.session.query(Vendor).filter(Vendor.vendor_id == vendor_id).first()
     if not vendor or not vendor.visible:
         flash('Failed to get vendor details: No vendor with that ID', 'warning')
         return redirect(url_for('mdsync.route_list'), 302)
+    if not g.user.check_acl('@admin') and not g.user.check_acl('@partner'):
+        if vendor.vendor_id != g.user.vendor.vendor_id:
+            flash('Failed to get vendor details: Not allowed', 'warning')
+            return redirect(url_for('mdsync.route_list'), 302)
 
-    # create filtered list using the namespace
+    # create filtered list
     mdrefs_by_id = defaultdict(list)
     md_by_id = {}
-    if g.user.check_acl('@admin') or g.user.check_acl('@partner'):
-        mdrefs = db.session.query(ComponentRef).\
-                        filter(ComponentRef.vendor_id_partner == vendor_id)
-    else:
-        mdrefs = db.session.query(ComponentRef).\
-                        filter(ComponentRef.vendor_id == g.user.vendor_id).\
-                        filter(ComponentRef.vendor_id_partner == vendor_id)
+    mdrefs = db.session.query(ComponentRef).\
+                    filter(ComponentRef.vendor_id == vendor_id).\
+                    filter(ComponentRef.vendor_id_partner == vendor_id_partner)
     for mdref in mdrefs:
         if mdref.appstream_id:
             mdrefs_by_id[mdref.appstream_id].append(mdref)
@@ -301,6 +303,39 @@ def route_show(vendor_id):
 
     return render_template('mdsync-show.html',
                            category='telemetry',
-                           v=vendor,
+                           vendor=vendor,
+                           vendor_partner=vendor_partner,
                            md_by_id=md_by_id,
                            mdrefs_by_id=mdrefs_by_id)
+
+@bp_mdsync.route('/<int:vendor_id_partner>')
+@login_required
+def route_vendors(vendor_id_partner):
+
+    # security check
+    if not g.user.check_acl('@vendor-manager') and not g.user.check_acl('@partner'):
+        return redirect(url_for('main.route_dashboard'), 302)
+
+    # another security check
+    vendor_partner = db.session.query(Vendor).filter(Vendor.vendor_id == vendor_id_partner).first()
+    if not vendor_partner or not vendor_partner.visible:
+        flash('Failed to get vendor details: No vendor partner with that ID', 'warning')
+        return redirect(url_for('mdsync.route_list'), 302)
+
+    # non partner accounts can only see one vendor anyway, so redirect
+    if not g.user.check_acl('@admin') and not g.user.check_acl('@partner'):
+        return redirect(url_for('mdsync.route_show',
+                                vendor_id_partner=vendor_id_partner,
+                                vendor_id=g.user.vendor_id))
+
+    # get all the different OEMs we have data on from this partner
+    stmt = db.session.query(ComponentRef.vendor_id).\
+                            filter(ComponentRef.vendor_id_partner == vendor_id_partner).\
+                            distinct().subquery()
+    vendors = db.session.query(Vendor).\
+                               join(stmt, Vendor.vendor_id == stmt.c.vendor_id).\
+                               all()
+    return render_template('mdsync-vendors.html',
+                           category='telemetry',
+                           vendor_partner=vendor_partner,
+                           vendors=vendors)

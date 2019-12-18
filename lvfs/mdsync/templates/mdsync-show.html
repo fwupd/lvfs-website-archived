@@ -1,14 +1,15 @@
 {% extends "default.html" %}
 
-{% block title %}Partner Metadata collected by {{v.display_name}}{% endblock %}
+{% block title %}Partner Metadata collected by {vendor_partner.display_name}}{% endblock %}
 
 {% block nav %}{% include 'mdsync-nav.html' %}{% endblock %}
 
 {% block content %}
 
 <div class="alert alert-info" role="alert">
-  All metadata on this page has been contributed by {{v.display_name}} and the
-  LVFS team has not validated if the information here is correct.
+  All metadata on this page about {{vendor.display_name_with_team}} hardware
+  has been contributed by {{vendor_partner.display_name}} and the LVFS team has
+  not checked if the information here is at all correct.
 </div>
 
 {% if not mdrefs_by_id %}

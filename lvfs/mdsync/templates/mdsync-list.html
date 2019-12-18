@@ -30,7 +30,7 @@
 {% endif %}
     </div>
     <p class="card-text">{{v.description}}</p>
-    <a class="card-link btn btn-primary mt-3" href="{{url_for('mdsync.route_show', vendor_id=v.vendor_id)}}">Show devices</a>
+    <a class="card-link btn btn-primary mt-3" href="{{url_for('mdsync.route_vendors', vendor_id_partner=v.vendor_id)}}">Show devices</a>
   </div>
 </div>
 {% endfor %}

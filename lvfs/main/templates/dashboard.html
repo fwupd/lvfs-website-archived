@@ -160,7 +160,8 @@ new Chart(ctx, {
     <div class="card-body position-relative">
       <div class="card-title">Howdy partner!</div>
       <p class="card-text">You can help us by uploading and downloading metadata from the LVFS.</p>
-      <a class="card-link text-nowrap" href="{{url_for('mdsync.route_show', vendor_id=g.user.vendor.vendor_id)}}">
+      <a class="card-link text-nowrap"
+        href="{{url_for('mdsync.route_vendors', vendor_id_partner=g.user.vendor.vendor_id)}}">
         Show metadata <span class="font-weight-bold">›</span>
       </a>
     </div>

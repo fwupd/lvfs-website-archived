@@ -1,0 +1,28 @@
+{% extends "default.html" %}
+
+{% block title %}Partner metadata collected by {{vendor_partner.display_name}}{% endblock %}
+
+{% block nav %}{% include 'mdsync-nav.html' %}{% endblock %}
+
+{% block content %}
+
+{% for v in vendors %}
+<div class="card mt-3" id="{{v.group_id}}">
+  <div class="card-body">
+    <div class="card-title">
+      {{v.display_name_with_team}}
+{% if v.icon %}
+      <img class="img-thumbnail float-right" src="/uploads/{{v.icon}}" width="96"/>
+{% else %}
+      <img class="img-thumbnail float-right" src="/uploads/vendor-unknown.png" width="96"/>
+{% endif %}
+    </div>
+    <p class="card-text">{{v.description}}</p>
+    <a class="card-link btn btn-primary mt-3"
+      href="{{url_for('mdsync.route_show', vendor_id_partner=vendor_partner.vendor_id, vendor_id=v.vendor_id)}}">
+      Show devices</a>
+  </div>
+</div>
+{% endfor %}
+
+{% endblock %}

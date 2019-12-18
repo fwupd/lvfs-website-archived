@@ -105,8 +105,12 @@ class LocalTestCase(LvfsTestCase):
         rv = self.app.get('/lvfs/mdsync/', follow_redirects=True)
         assert b'Acme Corp' in rv.data, rv.data.decode()
 
-        # all firmware known by Acme Corp.
+        # all OEMs scanned by Acme Corp.
         rv = self.app.get('/lvfs/mdsync/1', follow_redirects=True)
+        assert b'Acme Corp.' in rv.data, rv.data.decode()
+
+        # all ColorHug firmware known by Acme Corp.
+        rv = self.app.get('/lvfs/mdsync/1/1', follow_redirects=True)
         assert b'com.hughski.ColorHug2.firmware' in rv.data, rv.data.decode()
         assert b'com.hughski.ColorHug3.firmware' in rv.data, rv.data.decode()
         assert b'com.hughski.ColorHug4.firmware' in rv.data, rv.data.decode()
