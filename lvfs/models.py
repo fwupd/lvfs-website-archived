@@ -225,6 +225,9 @@ class User(db.Model):
         self.password_hash = password_hash
 
     def verify_password(self, password):
+        # never set, or disabled
+        if not self.password_hash:
+            return False
         # on success, upgrade the old hashing function to the new secure one
         if len(self.password_hash) == 40:
             if self.password_hash != _password_hash(password):
