@@ -17,10 +17,11 @@
 </div>
 {% endif %}
 
+{% if md_by_id %}
 <div class="card mb-3" id="{appsteam_id}}">
   <div class="card-body">
     <div class="card-title">
-      Summary for all models
+      Summary for all models ({{md_by_id|length}})
     </div>
     <ul class="list-group">
 {% for appstream_id in mdrefs_by_id|sort %}
@@ -47,6 +48,7 @@
     </ul>
   </div>
 </div>
+{% endif %}
 
 {% for appstream_id in mdrefs_by_id %}
 {% set mdrefs = mdrefs_by_id[appstream_id] %}
