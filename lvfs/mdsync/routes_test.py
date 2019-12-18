@@ -74,6 +74,7 @@ class LocalTestCase(LvfsTestCase):
                 "ColorHug3"
             ],
             "protocol": "org.usb.dfu",
+            "vendor_id": 1,
             "versions": {
                 "1.0.0": {
                     "changelog_url": "https://download.hughski.com/pccbbs/mobiles/r0suj04w.txt",
@@ -85,6 +86,7 @@ class LocalTestCase(LvfsTestCase):
         },
         {
             "appstream_id": "com.hughski.ColorHug4.firmware",
+            "vendor_id": 1,
             "versions": {
                 "1.2.3": {
                 }

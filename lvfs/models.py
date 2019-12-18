@@ -587,8 +587,10 @@ class Vendor(db.Model):
                                     back_populates="vendor")
     fws = relationship("Firmware",
                        cascade='all,delete-orphan')
-    mdrefs = relationship("ComponentRef",
-                          cascade='all,delete-orphan')
+    mdrefs = relationship('ComponentRef',
+                          foreign_keys='[ComponentRef.vendor_id_partner]',
+                          cascade='all,delete-orphan',
+                          back_populates='vendor_partner')
     events = relationship("Event",
                           order_by="desc(Event.timestamp)",
                           lazy='dynamic',
@@ -1447,6 +1449,7 @@ class ComponentRef(db.Model):
     component_ref_id = Column(Integer, primary_key=True)
     component_id = Column(Integer, ForeignKey('components.component_id'))
     vendor_id = Column(Integer, ForeignKey('vendors.vendor_id'), nullable=False)
+    vendor_id_partner = Column(Integer, ForeignKey('vendors.vendor_id'), nullable=False)
     protocol_id = Column(Integer, ForeignKey('protocol.protocol_id'))
     appstream_id = Column(Text, default=None)
     version = Column(Text, nullable=False)
@@ -1458,7 +1461,8 @@ class ComponentRef(db.Model):
 
     # link back to parent
     md = relationship('Component')
-    vendor = relationship('Vendor')
+    vendor = relationship('Vendor', foreign_keys=[vendor_id])
+    vendor_partner = relationship('Vendor', foreign_keys=[vendor_id_partner], back_populates='mdrefs')
     protocol = relationship('Protocol')
 
     def __lt__(self, other):

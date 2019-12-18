@@ -80,6 +80,7 @@ def route_export():
         md_first = mds[0]
         obj_dev['appstream_id'] = md_first.appstream_id
         obj_dev['names'] = md_first.names
+        obj_dev['vendor_id'] = md_first.fw.vendor.vendor_id
         if md_first.protocol:
             obj_dev['protocol'] = md_first.protocol.value
 
@@ -141,8 +142,18 @@ def route_import():
         if md.release_tag:
             mds_by_tag['{}/{}'.format(md.appstream_id, md.release_tag.casefold())] = md
 
+    # get available vendors
+    vendors = {}
+    for vendor in db.session.query(Vendor).filter(Vendor.visible):
+        vendors[vendor.vendor_id] = vendor
+
+    # delete all old mdrefs from this vendor, and force a commit
+    for mdref in db.session.query(ComponentRef).\
+                    filter(ComponentRef.vendor_id_partner == g.user.vendor_id):
+        db.session.delete(mdref)
+    db.session.commit()
+
     # parse blob
-    mdrefs = []
     try:
         if 'metadata' not in obj:
             return _json_error('metadata object missing')
@@ -193,6 +204,17 @@ def route_import():
                 url = obj_ver.get('changelog_url', None)
                 if not url:
                     url = obj_ver.get('file_url', None)
+
+                # prefer the vendor from the component but fallback to the vendor ID
+                vendor = None
+                if md:
+                    vendor = md.fw.vendor
+                elif 'vendor_id' in obj_dev:
+                    vendor = vendors.get(int(obj_dev['vendor_id']), None)
+                if not vendor:
+                    continue
+
+                # add to database
                 mdref = ComponentRef(appstream_id=appstream_id,
                                      version=version,
                                      date=date,
@@ -201,21 +223,14 @@ def route_import():
                                      release_tag=release_tag,
                                      url=url,
                                      name=name,
-                                     vendor=g.user.vendor,
+                                     vendor=vendor,
+                                     vendor_partner=g.user.vendor,
                                      protocol=protocol)
-                mdrefs.append(mdref)
+                db.session.add(mdref)
     except KeyError as e:
         return _json_error('JSON invalid: ' + str(e))
 
-    # delete all old mdrefs from this vendor
-    for mdref in db.session.query(ComponentRef).\
-                    filter(ComponentRef.vendor_id == g.user.vendor_id):
-        db.session.delete(mdref)
-    db.session.commit()
-
-    # add all new mdrefs
-    for mdref in mdrefs:
-        db.session.add(mdref)
+    # commit new mdrefs
     db.session.commit()
 
     return _json_success()
@@ -231,23 +246,21 @@ def route_list():
     # we're just showing public vendors on the LVFS
     # and firmware scraped from other public sources
     if g.user.check_acl('@admin'):
+        stmt = db.session.query(ComponentRef.vendor_id_partner).\
+                                distinct().subquery()
         vendors = db.session.query(Vendor).\
-                        join(ComponentRef).\
-                        filter(ComponentRef.vendor_id).all()
+                                   join(stmt, Vendor.vendor_id == stmt.c.vendor_id_partner).\
+                                   all()
     else:
+        stmt = db.session.query(ComponentRef.vendor_id_partner).\
+                                distinct().subquery()
         vendors = db.session.query(Vendor).\
-                        filter(Vendor.visible).\
-                        join(ComponentRef).\
-                        filter(ComponentRef.vendor_id).all()
+                                   filter(Vendor.visible).\
+                                   join(stmt, Vendor.vendor_id == stmt.c.vendor_id_partner).\
+                                   all()
     return render_template('mdsync-list.html',
                            category='telemetry',
                            vendors=vendors)
-
-def _has_any_prefix(items, text):
-    for item in items:
-        if text.startswith(item):
-            return True
-    return False
 
 @bp_mdsync.route('/<int:vendor_id>')
 @login_required
@@ -266,11 +279,14 @@ def route_show(vendor_id):
     # create filtered list using the namespace
     mdrefs_by_id = defaultdict(list)
     md_by_id = {}
-    namespaces = [ns.value for ns in g.user.vendor.namespaces]
-    for mdref in vendor.mdrefs:
-        if not g.user.check_acl('@admin') and not g.user.check_acl('@partner'):
-            if not _has_any_prefix(namespaces, mdref.appstream_id):
-                continue
+    if g.user.check_acl('@admin') or g.user.check_acl('@partner'):
+        mdrefs = db.session.query(ComponentRef).\
+                        filter(ComponentRef.vendor_id_partner == vendor_id)
+    else:
+        mdrefs = db.session.query(ComponentRef).\
+                        filter(ComponentRef.vendor_id == g.user.vendor_id).\
+                        filter(ComponentRef.vendor_id_partner == vendor_id)
+    for mdref in mdrefs:
         if mdref.appstream_id:
             mdrefs_by_id[mdref.appstream_id].append(mdref)
         else:
@@ -281,6 +297,5 @@ def route_show(vendor_id):
     return render_template('mdsync-show.html',
                            category='telemetry',
                            v=vendor,
-                           namespaces=namespaces,
                            md_by_id=md_by_id,
                            mdrefs_by_id=mdrefs_by_id)
