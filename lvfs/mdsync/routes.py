@@ -6,6 +6,7 @@
 # SPDX-License-Identifier: GPL-2.0+
 
 import json
+import gzip
 
 from collections import defaultdict
 import dateutil.parser
@@ -110,9 +111,12 @@ def route_import():
     if not g.user.check_acl('@partner'):
         return _json_error('Permission denied: Unable to import data')
 
-    # parse JSON data
+    # parse JSON data, which can be optionally compressed
     try:
+        payload = gzip.decompress(request.data)
+    except OSError as e:
         payload = request.data.decode('utf8')
+    try:
         obj = json.loads(payload)
     except ValueError as e:
         return _json_error('No JSON object could be decoded: ' + str(e))

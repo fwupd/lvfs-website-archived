@@ -39,7 +39,7 @@ def _mdsync_import(session, filename):
 
     # import
     try:
-        with open(filename, 'r') as f:
+        with open(filename, 'rb') as f:
             payload = f.read()
     except IOError as e:
         print('Failed to load file', str(e))
