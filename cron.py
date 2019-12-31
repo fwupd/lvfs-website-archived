@@ -250,9 +250,12 @@ def _yara_query_all():
     if not pending:
         return
 
-    # get all stable firmware
-    firmware = db.session.query(Firmware).\
-                    join(Remote).filter(Remote.name == 'stable').all()
+    # get list of component IDs (as integers)
+    component_ids = [x[0] for x in db.session.query(Component.component_id)\
+                                             .join(Firmware)\
+                                             .join(Remote)\
+                                             .filter(Remote.name == 'stable').all()]
+
     for query in pending:
         print('processing query {}: {}...'.format(query.yara_query_id, query.title))
         try:
@@ -263,12 +266,14 @@ def _yara_query_all():
             continue
         query.started_ts = datetime.datetime.utcnow()
         db.session.commit()
-        for fw in firmware:
-            for md in fw.mds:
-                for shard in md.shards:
-                    _yara_query_shard(query, md, shard)
-                _yara_query_component(query, md)
-                query.total += len(md.shards)
+        for component_id in component_ids:
+            md = db.session.query(Component)\
+                           .filter(Component.component_id == component_id)\
+                           .one()
+            for shard in md.shards:
+                _yara_query_shard(query, md, shard)
+            _yara_query_component(query, md)
+            query.total += len(md.shards)
         query.found = len(query.results)
         query.ended_ts = datetime.datetime.utcnow()
         db.session.commit()
