@@ -109,8 +109,8 @@ def _sign_fw(fw):
         md.release_download_size = len(cab_data)
 
     # update the database
-    fw.checksum_signed = hashlib.sha1(cab_data).hexdigest()
-    fw.checksum_pulp = hashlib.sha256(cab_data).hexdigest()
+    fw.checksum_signed_sha1 = hashlib.sha1(cab_data).hexdigest()
+    fw.checksum_signed_sha256 = hashlib.sha256(cab_data).hexdigest()
     fw.signed_timestamp = datetime.datetime.utcnow()
     db.session.commit()
 
@@ -142,11 +142,17 @@ def _repair():
     for fw in db.session.query(Firmware):
         try:
             with open(fw.filename_absolute, 'rb') as f:
-                checksum_pulp = hashlib.sha256(f.read()).hexdigest()
-                if checksum_pulp != fw.checksum_pulp:
-                    print('repairing checksum from {} to {}'.format(fw.checksum_pulp,
-                                                                    checksum_pulp))
-                    fw.checksum_pulp = checksum_pulp
+                checksum_signed_sha1 = hashlib.sha1(f.read()).hexdigest()
+                if checksum_signed_sha1 != fw.checksum_signed_sha1:
+                    print('repairing checksum from {} to {}'.format(fw.checksum_signed_sha1,
+                                                                    checksum_signed_sha1))
+                    fw.checksum_signed_sha1 = checksum_signed_sha1
+                    fw.mark_dirty()
+                checksum_signed_sha256 = hashlib.sha256(f.read()).hexdigest()
+                if checksum_signed_sha256 != fw.checksum_signed_sha256:
+                    print('repairing checksum from {} to {}'.format(fw.checksum_signed_sha256,
+                                                                    checksum_signed_sha256))
+                    fw.checksum_signed_sha256 = checksum_signed_sha256
                     fw.mark_dirty()
             for md in fw.mds:
                 sz = os.path.getsize(fw.filename_absolute)

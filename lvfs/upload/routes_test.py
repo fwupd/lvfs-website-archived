@@ -32,7 +32,7 @@ class LocalTestCase(LvfsTestCase):
         self.login()
         rv = self._upload('contrib/hughski-colorhug2-2.0.3.cab', 'private')
         self._ensure_checksums_from_upload()
-        assert self.checksum_upload in rv.data.decode('utf-8'), rv.data
+        assert self.checksum_upload_sha256 in rv.data.decode('utf-8'), rv.data
         rv = self.app.get('/lvfs/firmware/1/components')
         assert b'com.hughski.ColorHug2.firmware' in rv.data, rv.data
 

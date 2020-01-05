@@ -615,9 +615,10 @@ class UploadedFile:
             raise FileTooSmall('File too small, minimum is 1k')
 
         # get new filename
-        self.fw.checksum_upload = hashlib.sha1(data).hexdigest()
+        self.fw.checksum_upload_sha1 = hashlib.sha1(data).hexdigest()
+        self.fw.checksum_upload_sha256 = hashlib.sha256(data).hexdigest()
         if use_hashed_prefix:
-            self.fw.filename = self.fw.checksum_upload + '-' + filename.replace('.zip', '.cab')
+            self.fw.filename = self.fw.checksum_upload_sha256 + '-' + filename.replace('.zip', '.cab')
         else:
             self.fw.filename = filename.replace('.zip', '.cab')
 

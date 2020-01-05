@@ -38,7 +38,7 @@ class LocalTestCase(LvfsTestCase):
         self.login()
         rv = self._upload('contrib/hughski-colorhug2-2.0.3.cab', 'private')
         self._ensure_checksums_from_upload()
-        assert self.checksum_upload in rv.data.decode('utf-8'), rv.data
+        assert self.checksum_upload_sha256 in rv.data.decode('utf-8'), rv.data
         rv = self.app.get('/lvfs/firmware/1')
         assert '>☠ Nuke ☠<' not in rv.data.decode('utf-8'), rv.data
         rv = self.app.get('/lvfs/firmware/1/nuke', follow_redirects=True)
@@ -180,7 +180,7 @@ class LocalTestCase(LvfsTestCase):
             self._download_firmware(useragent='fwupd/1.1.1')
 
         # download, fail
-        rv = self.app.get('/downloads/' + self.checksum_upload + '-hughski-colorhug2-2.0.3.cab',
+        rv = self.app.get('/downloads/' + self.checksum_upload_sha256 + '-hughski-colorhug2-2.0.3.cab',
                           environ_base={'HTTP_USER_AGENT': 'fwupd/1.1.1'})
         assert rv.status_code == 429, rv.status_code
         assert rv.data == b'ETOOSLOW', rv.data
@@ -237,7 +237,7 @@ class LocalTestCase(LvfsTestCase):
         self.login('alice@fwupd.org')
         self.upload('embargo')
         rv = self.app.get('/lvfs/firmware/1')
-        assert '/downloads/' + self.checksum_upload in rv.data.decode('utf-8'), rv.data
+        assert '/downloads/' + self.checksum_upload_sha256 in rv.data.decode('utf-8'), rv.data
         rv = self.app.get('/lvfs/firmware/')
         assert b'/lvfs/firmware/1' in rv.data, rv.data
         rv = self.app.get('/lvfs/firmware/1/analytics/clients', follow_redirects=True)
@@ -259,7 +259,7 @@ class LocalTestCase(LvfsTestCase):
         # clara can see all firmwares, but can't promote them
         self.login('clara@fwupd.org')
         rv = self.app.get('/lvfs/firmware/1')
-        assert '/downloads/' + self.checksum_upload in rv.data.decode('utf-8'), rv.data
+        assert '/downloads/' + self.checksum_upload_sha256 in rv.data.decode('utf-8'), rv.data
         rv = self.app.get('/lvfs/firmware/')
         assert b'/lvfs/firmware/1' in rv.data, rv.data
         rv = self.app.get('/lvfs/firmware/1/promote/testing',
@@ -270,7 +270,7 @@ class LocalTestCase(LvfsTestCase):
         # mario can see things from both users and promote
         self.login('mario@fwupd.org')
         rv = self.app.get('/lvfs/firmware/1')
-        assert '/downloads/' + self.checksum_upload in rv.data.decode('utf-8'), rv.data
+        assert '/downloads/' + self.checksum_upload_sha256 in rv.data.decode('utf-8'), rv.data
         rv = self.app.get('/lvfs/firmware/')
         assert b'/lvfs/firmware/1' in rv.data, rv.data
         self.run_cron_firmware()
@@ -414,7 +414,7 @@ class LocalTestCase(LvfsTestCase):
         self._download_firmware(useragent='gnome-software/3.20.5 fwupd/1.0.5')
 
         # download with an old version of fwupd
-        rv = self.app.get('/downloads/' + self.checksum_upload + '-hughski-colorhug2-2.0.3.cab',
+        rv = self.app.get('/downloads/' + self.checksum_upload_sha256 + '-hughski-colorhug2-2.0.3.cab',
                           environ_base={'HTTP_USER_AGENT': 'fwupd/0.7.9999'})
         assert rv.status_code == 412, rv.status_code
         #assert b'fwupd version too old' in rv.data, rv.data

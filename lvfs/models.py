@@ -2042,11 +2042,12 @@ class Firmware(db.Model):
     timestamp = Column(DateTime, nullable=False, default=datetime.datetime.utcnow)
     filename = Column(Text, nullable=False)
     download_cnt = Column(Integer, default=0)
-    checksum_upload = Column(String(40), nullable=False, index=True)
+    checksum_upload_sha1 = Column(String(40), nullable=False, index=True)
+    checksum_upload_sha256 = Column(String(64), nullable=False)
     _version_display = Column('version_display', Text, nullable=True, default=None)
     remote_id = Column(Integer, ForeignKey('remotes.remote_id'), nullable=False)
-    checksum_signed = Column(String(40), nullable=False)
-    checksum_pulp = Column(String(64), nullable=False)
+    checksum_signed_sha1 = Column(String(40), nullable=False)
+    checksum_signed_sha256 = Column(String(64), nullable=False)
     user_id = Column(Integer, ForeignKey('users.user_id'), nullable=False)
     signed_timestamp = Column(DateTime, default=None)
     is_dirty = Column(Boolean, default=False)           # waiting to be included in metadata
@@ -2270,10 +2271,10 @@ class Firmware(db.Model):
         self.addr = None
         self.timestamp = None
         self.filename = None        # filename of the original .cab file
-        self.checksum_upload = None # SHA1 of the original .cab file
+        self.checksum_upload_sha1 = None # SHA1 of the original .cab file
         self._version_display = None # from the firmware.inf file
         self.download_cnt = 0       # generated from the client database
-        self.checksum_signed = None # SHA1 of the signed .cab
+        self.checksum_signed_sha1 = None # SHA1 of the signed .cab
         self.user_id = None         # user_id of the uploader
         self.mds = []
 
@@ -2392,7 +2393,7 @@ class Firmware(db.Model):
         raise NotImplementedError('unknown security check action: %s:%s' % (self, action))
 
     def __repr__(self):
-        return "Firmware object %s" % self.checksum_upload
+        return "Firmware object %s" % self.checksum_upload_sha1
 
 class Client(db.Model):
 

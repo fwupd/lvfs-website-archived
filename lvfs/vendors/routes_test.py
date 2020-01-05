@@ -227,7 +227,7 @@ class LocalTestCase(LvfsTestCase):
 
         # check bob can see the firmware he uploaded
         rv = self.app.get('/lvfs/firmware/1')
-        assert '/downloads/' + self.checksum_upload in rv.data.decode('utf-8'), rv.data
+        assert '/downloads/' + self.checksum_upload_sha256 in rv.data.decode('utf-8'), rv.data
         rv = self.app.get('/lvfs/firmware/')
         assert b'ColorHug2' in rv.data, rv.data.decode()
 

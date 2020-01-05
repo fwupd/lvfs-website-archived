@@ -169,10 +169,11 @@ def anonymize_db(db):
 
         # components now changed
         fw.addr = _make_fake_ip_address()
-        fw.checksum_upload = hashlib.sha1(os.urandom(32)).hexdigest()
-        fw.checksum_signed = hashlib.sha1(os.urandom(32)).hexdigest()
-        fw.checksum_pulp = hashlib.sha1(os.urandom(64)).hexdigest()
-        fw.filename = fw.checksum_upload + '-' + fw.vendor.group_id + '-' + \
+        fw.checksum_upload_sha1 = hashlib.sha1(os.urandom(4096)).hexdigest()
+        fw.checksum_upload_sha256 = hashlib.sha256(os.urandom(4096)).hexdigest()
+        fw.checksum_signed_sha1 = hashlib.sha1(os.urandom(4096)).hexdigest()
+        fw.checksum_signed_sha256 = hashlib.sha256(os.urandom(4096)).hexdigest()
+        fw.filename = fw.checksum_upload_sha256 + '-' + fw.vendor.group_id + '-' + \
                       _make_boring(fw.md_prio.name) + '-' + fw.version_display + '.cab'
 
     # anonymize clients -- only do this on beefy hardware...

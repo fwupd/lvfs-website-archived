@@ -158,14 +158,23 @@ def _generate_metadata_kind(filename, fws, firmware_baseuri='', local=False):
             ET.SubElement(rel, 'location').text = firmware_baseuri + md.fw.filename
 
             # add container checksum
-            if md.fw.checksum_signed or local:
+            if md.fw.checksum_signed_sha1 or local:
                 csum = ET.SubElement(rel, 'checksum')
                 #metadata intended to be used locally won't be signed
                 if local:
-                    csum.text = md.fw.checksum_upload
+                    csum.text = md.fw.checksum_upload_sha1
                 else:
-                    csum.text = md.fw.checksum_signed
+                    csum.text = md.fw.checksum_signed_sha1
                 csum.set('type', 'sha1')
+                csum.set('filename', md.fw.filename)
+                csum.set('target', 'container')
+            if md.fw.checksum_signed_sha256 or local:
+                csum = ET.SubElement(rel, 'checksum')
+                if local:
+                    csum.text = md.fw.checksum_upload_sha256
+                else:
+                    csum.text = md.fw.checksum_signed_sha256
+                csum.set('type', 'sha256')
                 csum.set('filename', md.fw.filename)
                 csum.set('target', 'container')
 
@@ -319,11 +328,11 @@ def _metadata_update_pulp():
             fn = os.path.join(download_dir, basename)
             if os.path.exists(fn):
                 with open(fn, 'rb') as f:
-                    checksum_pulp = hashlib.sha256(f.read()).hexdigest()
-                manifest.write('%s,%s,%i\n' % (basename, checksum_pulp, os.path.getsize(fn)))
+                    checksum_signed_sha256 = hashlib.sha256(f.read()).hexdigest()
+                manifest.write('%s,%s,%i\n' % (basename, checksum_signed_sha256, os.path.getsize(fn)))
 
         # add firmware in stable
         for fw in db.session.query(Firmware).join(Remote).filter(Remote.is_public):
             manifest.write('{},{},{}\n'.format(fw.filename,
-                                               fw.checksum_pulp,
+                                               fw.checksum_signed_sha256,
                                                fw.mds[0].release_download_size))

@@ -13,6 +13,7 @@ import hashlib
 
 from flask import Blueprint, request, flash, url_for, redirect, render_template, g
 from flask_login import login_required
+from sqlalchemy import or_
 
 from lvfs import app, db, ploader, csrf
 
@@ -131,10 +132,14 @@ def _upload_firmware():
         return redirect(request.url)
 
     # check the file does not already exist
-    fw = db.session.query(Firmware).filter(Firmware.checksum_upload == ufile.fw.checksum_upload).first()
+    fw = db.session.query(Firmware)\
+                   .filter(or_(Firmware.checksum_upload_sha1 == ufile.fw.checksum_upload_sha1,
+                               Firmware.checksum_upload_sha256 == ufile.fw.checksum_upload_sha256)).first()
+    if not fw:
+        fw = db.session.query(Firmware).filter().first()
     if fw:
         if fw.check_acl('@view'):
-            flash('Failed to upload file: A file with hash %s already exists' % fw.checksum_upload, 'warning')
+            flash('Failed to upload file: A file with hash %s already exists' % fw.checksum_upload_sha1, 'warning')
             return redirect('/lvfs/firmware/%s' % fw.firmware_id)
         flash('Failed to upload file: Another user has already uploaded this firmware', 'warning')
         return redirect(url_for('upload.route_firmware'))
@@ -219,8 +224,8 @@ def _upload_firmware():
     fw.user = g.user
     fw.addr = _get_client_address()
     fw.remote = remote
-    fw.checksum_signed = hashlib.sha1(cab_data).hexdigest()
-    fw.checksum_pulp = hashlib.sha256(cab_data).hexdigest()
+    fw.checksum_signed_sha1 = hashlib.sha1(cab_data).hexdigest()
+    fw.checksum_signed_sha256 = hashlib.sha256(cab_data).hexdigest()
     fw.is_dirty = True
     fw.failure_minimum = settings['default_failure_minimum']
     fw.failure_percentage = settings['default_failure_percentage']

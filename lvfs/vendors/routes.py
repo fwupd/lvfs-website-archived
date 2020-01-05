@@ -30,7 +30,7 @@ def _count_vendor_fws_public(vendor, remote_name):
     dedupe_csum = {}
     for fw in vendor.fws:
         if fw.remote.name == remote_name:
-            dedupe_csum[fw.checksum_upload] = True
+            dedupe_csum[fw.checksum_upload_sha256] = True
     return len(dedupe_csum)
 
 def _count_vendor_fws_downloads(vendor, remote_name):

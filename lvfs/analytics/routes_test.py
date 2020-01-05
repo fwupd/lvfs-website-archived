@@ -24,7 +24,8 @@ class LocalTestCase(LvfsTestCase):
         self.add_namespace()
         self.upload()
         self._download_firmware()
-        self._report(signed=True)
+        rv = self._report(signed=True)
+        assert b'Signature invalid' not in rv.data, rv.data.decode()
 
         # get all global analytics pages
         for uri in ['/lvfs/analytics/month',

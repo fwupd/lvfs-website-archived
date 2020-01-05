@@ -26,8 +26,10 @@ class LvfsTestCase(unittest.TestCase):
     def setUp(self):
 
         # global checksums
-        self.checksum_upload = None
-        self.checksum_signed = None
+        self.checksum_signed_sha1 = None
+        self.checksum_signed_sha256 = None
+        self.checksum_upload_sha1 = None
+        self.checksum_upload_sha256 = None
 
         # create new database
         self.db_fd, self.db_filename = tempfile.mkstemp()
@@ -156,19 +158,21 @@ class LvfsTestCase(unittest.TestCase):
         from lvfs import db
         from lvfs.models import Firmware
         fw = db.session.query(Firmware).first()
-        self.checksum_upload = fw.checksum_upload
-        self.checksum_signed = fw.checksum_signed
+        self.checksum_signed_sha1 = fw.checksum_signed_sha1
+        self.checksum_signed_sha256 = fw.checksum_signed_sha256
+        self.checksum_upload_sha1 = fw.checksum_upload_sha1
+        self.checksum_upload_sha256 = fw.checksum_upload_sha256
 
     def upload(self, target='private', vendor_id=None, filename='contrib/hughski-colorhug2-2.0.3.cab', fwchecks=True):
         rv = self._upload(filename, target, vendor_id)
         assert b'Uploaded file' in rv.data, rv.data.decode()
         self._ensure_checksums_from_upload()
-        assert self.checksum_upload.encode('utf-8') in rv.data, rv.data
+        assert self.checksum_upload_sha256.encode('utf-8') in rv.data, rv.data
         if fwchecks:
             self.run_cron_fwchecks()
 
     def _download_firmware(self, useragent='fwupd/1.1.1'):
-        rv = self.app.get('/downloads/' + self.checksum_upload + '-hughski-colorhug2-2.0.3.cab',
+        rv = self.app.get('/downloads/' + self.checksum_upload_sha256 + '-hughski-colorhug2-2.0.3.cab',
                           environ_base={'HTTP_USER_AGENT': useragent})
         assert rv.status_code == 200, rv.status_code
         assert len(rv.data) > 10000, len(rv.data)
@@ -232,7 +236,7 @@ class LvfsTestCase(unittest.TestCase):
 
     def _report(self, updatestate=2, distro_id='fedora', checksum=None, signed=False, signature_valid=True):
         if not checksum:
-            checksum = self.checksum_signed
+            checksum = self.checksum_signed_sha1
         payload = """
 {
   "ReportVersion" : 2,

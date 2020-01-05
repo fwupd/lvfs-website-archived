@@ -165,8 +165,10 @@ def route_report():
             else:
                 data[key] = report[key]
 
-        # try to find the checksum_upload (which might not exist on this server)
-        fw = db.session.query(Firmware).filter(Firmware.checksum_signed == report['Checksum']).first()
+        # try to find the checksum (which might not exist on this server)
+        fw = db.session.query(Firmware).filter(Firmware.checksum_signed_sha1 == report['Checksum']).first()
+        if not fw:
+            fw = db.session.query(Firmware).filter(Firmware.checksum_signed_sha256 == report['Checksum']).first()
         if not fw:
             msgs.append('%s did not match any known firmware archive' % report['Checksum'])
             continue
@@ -194,7 +196,7 @@ def route_report():
                         break
                 if found:
                     continue
-                _event_log('added device checksum %s to firmware %s' % (checksum, md.fw.checksum_upload))
+                _event_log('added device checksum %s to firmware %s' % (checksum, md.fw.checksum_upload_sha1))
                 if _is_sha1(checksum):
                     md.device_checksums.append(Checksum(checksum, 'SHA1'))
                 elif _is_sha256(checksum):
