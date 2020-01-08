@@ -162,7 +162,7 @@ def utility_processor():
     def format_humanize_naturaltime(tmp):
         if not tmp:
             return 'n/a'
-        return humanize.naturaltime(tmp)
+        return humanize.naturaltime(tmp.replace(tzinfo=None))
 
     def format_humanize_intchar(tmp):
         if tmp > 1000000:
