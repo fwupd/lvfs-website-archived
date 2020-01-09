@@ -290,7 +290,7 @@ def route_dashboard():
 @bp_main.route('/lvfs/newaccount')
 def route_new_account():
     """ New account page for prospective vendors """
-    return render_template('new-account.html')
+    return redirect('https://lvfs.readthedocs.io/en/latest/apply.html', code=302)
 
 def _create_user_for_oauth_username(username):
     """ If any oauth wildcard match, create a *un-committed* User object """

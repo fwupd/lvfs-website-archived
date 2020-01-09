@@ -24,11 +24,6 @@
           </a>
           <div class="dropdown-menu dropdown-menu-card" aria-labelledby="navbarDropdownPages">
             <div class="bg-white rounded-soft py-2">
-              <a class="dropdown-item" href="{{url_for('docs.route_introduction')}}">Introduction</a>
-              <a class="dropdown-item" href="{{url_for('docs.route_vendors')}}">Hardware Vendors</a>
-              <a class="dropdown-item" href="{{url_for('docs.route_users')}}">End Users</a>
-              <a class="dropdown-item" href="{{url_for('docs.route_developers')}}">Developers</a>
-              <div class="dropdown-divider"></div>
               <a class="dropdown-item" href="{{url_for('firmware.route_new')}}">New Firmware</a>
               <a class="dropdown-item" href="{{url_for('devices.route_list')}}">Supported Devices</a>
               <a class="dropdown-item" href="{{url_for('vendors.route_list')}}">Vendor List</a>
@@ -42,19 +37,12 @@
           </a>
           <div class="dropdown-menu dropdown-menu-card" aria-labelledby="navbarDropdownDocumentation">
             <div class="bg-white rounded-soft py-2">
-              <a class="dropdown-item" href="{{url_for('docs.route_agreement')}}">Vendor Agreement</a>
-              <a class="dropdown-item" href="{{url_for('docs.route_archive')}}">Archive Formats</a>
-              <a class="dropdown-item" href="{{url_for('docs.route_metainfo')}}">MetaInfo Files</a>
-              <a class="dropdown-item" href="{{url_for('docs.route_metainfo', page='restrict')}}">Adding Restrictions</a>
-              <a class="dropdown-item" href="{{url_for('docs.route_metainfo', page='protocol')}}">Update Protocol</a>
-              <a class="dropdown-item" href="{{url_for('docs.route_metainfo', page='version')}}">Version Format</a>
-              <a class="dropdown-item" href="{{url_for('docs.route_metainfo', page='category')}}">Update Category</a>
-              <a class="dropdown-item" href="{{url_for('docs.route_metainfo', page='urls')}}">Source URLs</a>
-              <a class="dropdown-item" href="{{url_for('docs.route_metainfo', page='style')}}">Style Guide</a>
-              <a class="dropdown-item" href="{{url_for('docs.route_composite')}}">Composite Devices</a>
-              <a class="dropdown-item" href="{{url_for('docs.route_telemetry')}}">Telemetry</a>
-              <a class="dropdown-item" href="{{url_for('docs.route_affiliates')}}">Affiliates</a>
+              <a class="dropdown-item" href="{{url_for('docs.route_vendors')}}">Hardware Vendors</a>
+              <a class="dropdown-item" href="{{url_for('docs.route_users')}}">End Users</a>
+              <a class="dropdown-item" href="{{url_for('docs.route_developers')}}">Developers</a>
+              <a class="dropdown-item" href="{{url_for('docs.route_introduction')}}">External Documentation</a>
               <div class="dropdown-divider"></div>
+              <a class="dropdown-item" href="{{url_for('docs.route_agreement')}}">Vendor Agreement</a>
               <a class="dropdown-item" href="{{url_for('docs.route_consulting')}}">Consulting</a>
             </div>
           </div>

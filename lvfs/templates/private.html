@@ -290,38 +290,8 @@
             <li class="nav-item {{'active' if request.url_rule.endpoint == 'docs_agreement'}}">
               <a class="nav-link" href="{{url_for('docs.route_agreement')}}">Vendor Agreement</a>
             </li>
-            <li class="nav-item {{'active' if request.url_rule.endpoint == 'docs_archive'}}">
-              <a class="nav-link" href="{{url_for('docs.route_archive')}}">Archive Formats</a>
-            </li>
             <li class="nav-item {{'active' if request.url_rule.endpoint == 'docs_metainfo' and page=='intro'}}">
-              <a class="nav-link" href="{{url_for('docs.route_metainfo')}}">MetaInfo Files</a>
-            </li>
-            <li class="nav-item {{'active' if request.url_rule.endpoint == 'docs_metainfo' and page=='restrict'}}">
-              <a class="nav-link" href="{{url_for('docs.route_metainfo', page='restrict')}}">Adding Restrictions</a>
-            </li>
-            <li class="nav-item {{'active' if request.url_rule.endpoint == 'docs_metainfo' and page=='protocol'}}">
-              <a class="nav-link" href="{{url_for('docs.route_metainfo', page='protocol')}}">Update Protocol</a>
-            </li>
-            <li class="nav-item {{'active' if request.url_rule.endpoint == 'docs_metainfo' and page=='version'}}">
-              <a class="nav-link" href="{{url_for('docs.route_metainfo', page='version')}}">Version Format</a>
-            </li>
-            <li class="nav-item {{'active' if request.url_rule.endpoint == 'docs_metainfo' and page=='category'}}">
-              <a class="nav-link" href="{{url_for('docs.route_metainfo', page='category')}}">Update Category</a>
-            </li>
-            <li class="nav-item {{'active' if request.url_rule.endpoint == 'docs_metainfo' and page=='urls'}}">
-              <a class="nav-link" href="{{url_for('docs.route_metainfo', page='urls')}}">Source URLs</a>
-            </li>
-            <li class="nav-item {{'active' if request.url_rule.endpoint == 'docs_metainfo' and page=='style'}}">
-              <a class="nav-link" href="{{url_for('docs.route_metainfo', page='style')}}">Style Guide</a>
-            </li>
-            <li class="nav-item {{'active' if request.url_rule.endpoint == 'docs_composite'}}">
-              <a class="nav-link" href="{{url_for('docs.route_composite')}}">Composite Devices</a>
-            </li>
-            <li class="nav-item {{'active' if request.url_rule.endpoint == 'docs_telemetry'}}">
-              <a class="nav-link" href="{{url_for('docs.route_telemetry')}}">Telemetry</a>
-            </li>
-            <li class="nav-item {{'active' if request.url_rule.endpoint == 'docs_affiliates'}}">
-              <a class="nav-link" href="{{url_for('docs.route_affiliates')}}">Affiliates</a>
+              <a class="nav-link" href="{{url_for('docs.route_metainfo')}}">External Documentation</a>
             </li>
             <li class="nav-item {{'active' if request.url_rule.endpoint == 'route_consulting'}}">
               <a class="nav-link" href="{{url_for('docs.route_consulting')}}">Consulting</a>

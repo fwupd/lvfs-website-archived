@@ -44,46 +44,6 @@
   You can create a cabinet archives using <code>makecab.exe</code> on Windows and <code>gcab</code>
   on Linux.
 </p>
-<p class="card-text">
-  It is recommended you name the archive with the vendor, device and version
-  number, e.g. <code>hughski-colorhug-als-1.2.3.cab</code> and is suggested that
-  the files inside the <code>cab</code> file have the
-  same basename, for example:
-</p>
-<figure class="text-center">
-  <img src="/img/archive-basename.png" class="p-3 border border-info rounded figure-img img-fluid rounded" alt="cabinet archive example">
-  <figcaption class="figure-caption">Files inside a typical archive</figcaption>
-</figure>
-  </div>
-</div>
-
-<div class="card mt-3">
-  <div class="card-header card-title list-group-item-info">Why does the LVFS project sign the archive?</div>
-  <div class="card-body">
-    <p class="card-text">
-      The upload process repacks the uploaded archive into a new cabinet file
-      and signs the firmware image using a detached GPG or PKCS#7 signature
-      so client tools can be sure the firmware actually originated from the LVFS.
-      Any existing Windows Update signatures are also copied into the new
-      archive although are not used on Linux.
-      The signed archive is prefixed with the hash of the uploaded file to avoid
-      clashes with other uploaded files and to make the download location non-predictable.
-    </p>
-  </div>
-</div>
-
-<div class="card mt-3">
-  <div class="card-header card-title list-group-item-info">Can I restrict downloads from embargoed and sanctioned countries?</div>
-  <div class="card-body">
-    <p class="card-text">
-      The LVFS administrator can configure the policy for all firmware owned by
-      the vendor to be blocked from download in embargoed or otherwise
-      sanctioned countries.
-    </p>
-    <p class="card-text">
-      The blocked ISO 3166 country codes can also be specified in the firmware
-      itself, using the <code>LVFS::BannedCountryCodes</code> metadata key.
-    </p>
   </div>
 </div>
 

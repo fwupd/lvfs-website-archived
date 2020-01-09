@@ -7,12 +7,7 @@
   <div class="card-body">
     <div class="card-title">Version Format</div>
 <p class="card-text">
-  Some hardware returns the version number as a string such as
-  <code>1.23.4567</code>, and this is easily handled as a <a href="https://semver.org/">semantic version</a>.
-  In other cases we are not so lucky, and the hardware returns a <code>uint16_t</code> or <code>uint32_t</code>
-  with no extra metadata about how it should be formatted.
-  This lack of specification precision means that different vendors have chosen
-  to convert the large integer number to various different forms:
+  Allowed values for <code>LVFS::VersionFormat</code> are currently:
 </p>
 <table class="table">
   <tr class="row table-borderless">
@@ -30,42 +25,6 @@
   </tr>
 {% endfor %}
 </table>
-<p class="card-text">
-  To override the default of <code>unknown</code> vendors should ship extra metadata
-  in the <code>metainfo.xml</code> file:
-</p>
-<pre>
-  &lt;requires&gt;
-    &lt;id compare="ge" version="1.2.0"&gt;org.freedesktop.fwupd&lt;/id&gt;
-  &lt;/requires&gt;
-  &lt;custom&gt;
-    &lt;value key="LVFS::VersionFormat"&gt;intel-me&lt;/value&gt;
-  &lt;/custom&gt;
-</pre>
-<p class="card-text">
-  If the version format is unspecified, and cannot be derived from the
-  <code>LVFS::UpdateProtocol</code> then a warning will be shown during upload
-  and the firmware cannot be moved to stable until this is resolved.
-</p>
-<p class="card-text">
-  Various security teams also want us to always show the device firmware version
-  with the correct format, even if an update is not available.
-  This may be for audit reasons, or just so customers know the version of the
-  firmware compared to release notes written for another operating system.
-  For instance, if the vendor release notes says the firmware should be any
-  version above <code>39.0.45.x</code> (formatted as a quad) and the user is running
-  <code>39.0.11522</code> (formatted as a triplet) it is not clear to the user what to do.
-</p>
-<p class="card-text">
-  To change from the default <code>triplet</code> version format we can set
-  a fwupd <em>quirk </em>on the hardware device.
-  For instance, changing the UEFI
-  <a href="https://github.com/hughsie/fwupd/blob/master/plugins/uefi/uefi.quirk">Lenovo ME device</a>
-  to use the <code>intel-me</code> format.
-  Quirk files can be added upstream for future fwupd versions, or simply copied to
-  <code>/usr/share/fwupd/quirks.d</code>.
-  The fwupd daemon will detect the new file and refresh devices as required.
-</p>
   </div>
 </div>
 
