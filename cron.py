@@ -191,6 +191,16 @@ def _regenerate_and_sign_firmware():
     # drop caches in other sessions
     db.session.expire_all()
 
+def _ensure_tests():
+
+    # ensure the test has been added for the firmware type
+    for fw in db.session.query(Firmware).order_by(Firmware.timestamp):
+        if not fw.is_deleted:
+            ploader.ensure_test_for_fw(fw)
+
+    # all done
+    db.session.commit()
+
 def _purge_old_deleted_firmware():
 
     # find all unsigned firmware
@@ -572,79 +582,42 @@ def _generate_stats_for_datestr(datestr, kinds=None):
     # for the log
     print('generated for %s: %s' % (datestr, ','.join(kinds)))
 
+def _main_with_app_context():
+    if 'repair' in sys.argv:
+        _repair()
+    if 'ensure' in sys.argv:
+        _ensure_tests()
+    if 'firmware' in sys.argv:
+        _regenerate_and_sign_firmware()
+    if 'metadata' in sys.argv:
+        _regenerate_and_sign_metadata()
+    if 'metadata-embargo' in sys.argv:
+        _regenerate_and_sign_metadata(only_embargo=True)
+    if 'purgedelete' in sys.argv:
+        _purge_old_deleted_firmware()
+    if 'fwchecks' in sys.argv:
+        _check_firmware()
+        _yara_query_all()
+    if 'stats' in sys.argv:
+        val = _get_datestr_from_datetime(datetime.date.today() - datetime.timedelta(days=1))
+        _generate_stats_for_datestr(val)
+        _generate_stats()
+    if 'statsmigrate' in sys.argv:
+        for days in range(1, 720):
+            val = _get_datestr_from_datetime(datetime.date.today() - datetime.timedelta(days=days))
+            _generate_stats_for_datestr(val)
+
 if __name__ == '__main__':
 
     if len(sys.argv) < 2:
         print('Usage: %s [metadata] [firmware]' % sys.argv[0])
         sys.exit(1)
-
-    # regenerate and sign firmware then metadata
-    if 'repair' in sys.argv:
-        try:
-            with app.test_request_context():
-                _repair()
-        except NotImplementedError as e:
-            print(str(e))
-            sys.exit(1)
-    if 'firmware' in sys.argv:
-        try:
-            with app.test_request_context():
-                _regenerate_and_sign_firmware()
-        except NotImplementedError as e:
-            print(str(e))
-            sys.exit(1)
-    if 'metadata' in sys.argv:
-        _only_embargo = False
-        if len(sys.argv) > 2:
-            for kind in sys.argv[2:]:
-                if kind == 'embargo':
-                    _only_embargo = True
-        try:
-            with app.test_request_context():
-                _regenerate_and_sign_metadata(only_embargo=_only_embargo)
-        except NotImplementedError as e:
-            print(str(e))
-            sys.exit(1)
-    if 'purgedelete' in sys.argv:
-        try:
-            with app.test_request_context():
-                _purge_old_deleted_firmware()
-        except NotImplementedError as e:
-            print(str(e))
-            sys.exit(1)
-    if 'fwchecks' in sys.argv:
-        try:
-            with app.test_request_context():
-                _check_firmware()
-                _yara_query_all()
-        except NotImplementedError as e:
-            print(str(e))
-            sys.exit(1)
-    if 'stats' in sys.argv:
-        try:
-            with app.test_request_context():
-                # default to yesterday, but also allow specifying the offset
-                days = 1
-                if len(sys.argv) > 2:
-                    days = int(sys.argv[2])
-                val = _get_datestr_from_datetime(datetime.date.today() - datetime.timedelta(days=days))
-                _generate_stats_for_datestr(val)
-                _generate_stats()
-        except NotImplementedError as e:
-            print(str(e))
-            sys.exit(1)
-    if 'statsmigrate' in sys.argv:
-        try:
-            update_kinds = None
-            if len(sys.argv) > 2:
-                update_kinds = sys.argv[2:]
-            with app.test_request_context():
-                for days in range(1, 720):
-                    val = _get_datestr_from_datetime(datetime.date.today() - datetime.timedelta(days=days))
-                    _generate_stats_for_datestr(val, kinds=update_kinds)
-        except NotImplementedError as e:
-            print(str(e))
-            sys.exit(1)
+    try:
+        with app.test_request_context():
+            _main_with_app_context()
+    except NotImplementedError as e:
+        print(str(e))
+        sys.exit(1)
 
     # success
     sys.exit(0)
