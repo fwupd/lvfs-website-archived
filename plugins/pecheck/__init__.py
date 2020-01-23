@@ -91,7 +91,7 @@ class Plugin(PluginBase):
         self.summary = 'Check the portable executable file (.efi) for common problems'
 
     def order_after(self):
-        return ['chipsec', 'intelme']
+        return ['uefi-extract', 'intelme']
 
     def settings(self):
         s = []

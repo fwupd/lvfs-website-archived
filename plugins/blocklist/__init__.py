@@ -47,7 +47,7 @@ class Plugin(PluginBase):
         self.summary = 'Use YARA to check firmware for problems'
 
     def order_after(self):
-        return ['chipsec', 'intelme']
+        return ['uefi-extract', 'intelme']
 
     def settings(self):
         s = []

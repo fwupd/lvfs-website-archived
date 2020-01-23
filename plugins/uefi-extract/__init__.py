@@ -107,58 +107,149 @@ class PfsFile:
             else:
                 shard.name = 'com.dell.' + shard.guid
 
+def _read_info_txt(fn):
+    data = {}
+    with open(fn, 'rb') as f:
+        for line in f.read().decode().split('\n'):
+            try:
+                k, v = line.split(': ', maxsplit=1)
+                data[k] = v
+            except ValueError as _:
+                pass
+    return data
+
 class Plugin(PluginBase):
     def __init__(self, plugin_id=None):
         PluginBase.__init__(self, plugin_id)
-        self.name = 'CHIPSEC'
+        self.name = 'UEFI Extract'
         self.summary = 'Add firmware shards for UEFI capsules'
 
     def settings(self):
         s = []
-        s.append(PluginSettingBool('chipsec_enabled', 'Enabled', True))
-        s.append(PluginSettingBool('chipsec_write_shards', 'Write shards to disk', True))
-        s.append(PluginSettingText('chipsec_binary', 'CHIPSEC executable', 'chipsec_util'))
-        s.append(PluginSettingInteger('chipsec_size_min', 'Minimum size of shards', 0x80000))   # 512kb
-        s.append(PluginSettingInteger('chipsec_size_max', 'Maximum size of shards', 0x4000000)) # 64Mb
+        s.append(PluginSettingBool('uefi_extract_enabled', 'Enabled', True))
+        s.append(PluginSettingBool('uefi_extract_write_shards', 'Write shards to disk', True))
+        s.append(PluginSettingText('uefi_extract_binary', 'UEFIExtract executable', 'UEFIExtract'))
+        s.append(PluginSettingInteger('uefi_extract_size_min', 'Minimum size of shards', 0x80000))   # 512kb
+        s.append(PluginSettingInteger('uefi_extract_size_max', 'Maximum size of shards', 0x4000000)) # 64Mb
         return s
 
     def _convert_files_to_shards(self, files):
 
         # parse each EFI binary as a shard
         shards = []
+        shard_by_checksum = {}
         for fn in files:
-            sections = fn.rsplit('/')
-            name = sections[-1].split('.')[0]
-            kind = None
-            guid = None
-            for section in reversed(sections[:-1]):
-                if section.find('GUID_DEFINED') != -1:
-                    continue
-                if section.find('COMPRESSION') != -1:
-                    continue
-                dirname_sections = section.split('.')
-                guid = dirname_sections[0].split('_')[1].lower()
-                kind = dirname_sections[1]
-                break
-            if not guid:
+            dirname = os.path.dirname(fn)
+            try:
+                with open(os.path.join(dirname, 'body.bin'), 'rb') as f:
+                    payload = f.read()
+            except FileNotFoundError as _:
                 continue
+            if len(payload) < 0x100:
+                #print('ignoring payload of {} bytes'.format(len(payload)))
+                continue
+
+            # read in child data
+            data = _read_info_txt(fn)
+            if data.get('Subtype') in ['PE32 image', 'TE image']:
+                data = _read_info_txt(os.path.join(dirname, '..', 'info.txt'))
+            name = data.get('Text')
+            if not name:
+                name = data.get('CPU signature')
+            if name:
+                for src in [' ', '(', ')']:
+                    name = name.replace(src, '_')
+            kind = data.get('Type')
+            subkind = data.get('Subtype')
+            guid = data.get('File GUID')
+            if guid:
+                guid = guid.lower()
+            if subkind:
+                kind += '::' + subkind
+
+            # generate something plausible
+            if kind == 'Microcode::Intel':
+                guid = '3f0229ad-0a00-5269-90cf-0a45d8781b72'
+            if kind == 'Padding::Non-empty':
+                guid = '9f1d3aff-5169-57f2-8877-0ec168de2898'
+            if not guid:
+                #print('No GUID for', kind, fn)
+                continue
+
+            # ignore some kinds
             appstream_kinds = {
-                'FV_APPLICATION': 'Application',
-                'FV_DRIVER': 'Driver',
-                'FV_DXE_CORE': 'Dxe',
-                'FV_PEI_CORE': 'Pei',
-                'FV_PEIM': 'Peim',
-                'FV_RAW': 'Raw',
-                'FV_SECURITY_CORE': 'Security',
-                'FV_COMBINED_PEIM_DRIVER': 'PeimDriver',
+                '00h::Unknown 0': None,
+                '01h::Compressed': None,
+                '01h::Raw': None,
+                '02h::Freeform': 'com.intel.Uefi.Raw',
+                '02h::GUID defined': 'com.intel.Uefi.Raw',
+                '03h::SEC core': 'com.intel.Uefi.Security',
+                '04h::PEI core': 'com.intel.Uefi.Pei',
+                '05h::DXE core': 'com.intel.Uefi.Dxe',
+                '06h::PEI module': 'com.intel.Uefi.Peim',
+                '07h::DXE driver': 'com.intel.Uefi.Driver',
+                '09h::Application': 'com.intel.Uefi.Application',
+                '0Ah::SMM module': 'com.intel.Uefi',
+                '0Bh::Volume image': None,
+                '0Ch::Combined SMM/DXE': 'com.intel.Uefi.SmmDxe',
+                '0Dh::SMM core': 'com.intel.Uefi',
+                '12h::TE image': None,
+                '13h::DXE dependency': None,
+                '14h::Version': None,
+                '15h::UI': None,
+                '17h::Volume image': None,
+                '18h::Freeform subtype GUID': None,
+                '19h::Raw': None,
+                '1Bh::PEI dependency': None,
+                '1Ch::MM dependency': None,
+                'BPDT store': None,
+                'CPD entry': None,
+                'CPD partition::Code': None,
+                'CPD partition::Key': None,
+                'CPD partition::Manifest': None,
+                'CPD partition::Metadata': None,
+                'CPD store': None,  # ??
+                'ECh': None,
+                'EDh::GUID': None,
+                'EEh::Name': None,
+                'EFh::Data': None,
+                'F0h::Pad': None,
+                'Free space': None,
+                'FTW store': None,
+                'Image::Intel': None,
+                'Image::UEFI': None,
+                'Microcode::Intel': 'com.intel.Microcode',
+                'NVAR entry::Full': None,
+                'Padding::Empty (0xFF)': None,
+                'Padding::Non-empty': 'com.intel.Uefi.Raw',
+                'Region::BIOS': None,
+                'Region::Descriptor': None,
+                'Region::DevExp1': None,
+                'Volume::FFSv2': None,
+                'Volume::NVRAM': 'com.intel.Uefi.NVRAM',
+                'VSS2 store': None,
             }
-            if kind in appstream_kinds:
-                appstream_id = 'com.intel.Uefi.{}.{}'.format(appstream_kinds[kind], name)
-            else:
-                appstream_id = 'com.intel.Uefi.{}'.format(name)
+            if kind not in appstream_kinds:
+                if len(kind) > 3:
+                    print('No appstream_kinds for', kind, fn)
+                continue
+            if not appstream_kinds[kind]:
+                #print('Ignoring appstream kind', kind)
+                continue
+
+            # something plausible
+            appstream_id = appstream_kinds[kind]
+            if name:
+                appstream_id += '.{}'.format(name)
             shard = ComponentShard(plugin_id=self.id, name=appstream_id, guid=guid)
-            with open(fn, 'rb') as f:
-                shard.set_blob(f.read())
+            shard.set_blob(payload)
+
+            # do not add duplicates!
+            if shard.checksum in shard_by_checksum:
+                #print('skipping duplicate {}'.format(guid))
+                continue
+            shard_by_checksum[shard.checksum] = shard
+
             shards.append(shard)
         return shards
 
@@ -174,20 +265,18 @@ class Plugin(PluginBase):
         src.write(blob)
         src.flush()
 
-        # run chipsec
-        cmd = self.get_setting('chipsec_binary', required=True)
+        # run UEFIExtract
+        cmd = self.get_setting('uefi_extract_binary', required=True)
         try:
             # pylint: disable=unexpected-keyword-arg
-            subprocess.check_output([cmd, '--no_driver', 'uefi', 'decode', src.name],
+            subprocess.check_output([cmd, src.name],
                                     stderr=subprocess.PIPE,
                                     cwd=cwd.name)
         except subprocess.CalledProcessError as e:
             raise PluginError('Failed to decode file: {}'.format(e.output))
 
         # look for shards
-        outdir = src.name + '.dir'
-        files = glob.glob(outdir + '/FV/**/*.efi', recursive=True)
-        files.extend(glob.glob(outdir + '/FV/**/*.pe32', recursive=True))
+        files = glob.glob(src.name + '.dump' + '/**/info.txt', recursive=True)
         return self._convert_files_to_shards(files)
 
     def _find_zlib_sections(self, blob):
@@ -209,12 +298,12 @@ class Plugin(PluginBase):
                 offset += 2
             else:
                 # only include blobs of a sane size
-                if len(blob_decompressed) > self.get_setting_int('chipsec_size_min') and \
-                   len(blob_decompressed) < self.get_setting_int('chipsec_size_max'):
+                if len(blob_decompressed) > self.get_setting_int('uefi_extract_size_min') and \
+                   len(blob_decompressed) < self.get_setting_int('uefi_extract_size_max'):
                     sections.append(blob_decompressed)
         return sections
 
-    def _run_chipsec_on_md(self, test, md):
+    def _run_uefi_extract_on_md(self, test, md):
 
         # remove any old shards we added
         for shard in md.shards:
@@ -251,7 +340,7 @@ class Plugin(PluginBase):
         for shard in shards:
             shard.plugin_id = self.id
             shard.component_id = md.component_id
-            if self.get_setting_bool('chipsec_write_shards'):
+            if self.get_setting_bool('uefi_extract_write_shards'):
                 shard.save()
             md.shards.append(shard)
 
@@ -272,16 +361,41 @@ class Plugin(PluginBase):
         if self._require_test_for_fw(fw):
             test = fw.find_test_by_plugin_id(self.id)
             if not test:
+                test = fw.find_test_by_plugin_id('chipsec') # old name
+            if not test:
                 test = Test(self.id, waivable=True)
                 fw.tests.append(test)
 
     def run_test_on_fw(self, test, fw):
 
-        # run chipsec on the capsule data
+        # extract the capsule data
         for md in fw.mds:
             if not self._require_test_for_md(md):
                 continue
             if not md.blob:
                 continue
-            self._run_chipsec_on_md(test, md)
+            self._run_uefi_extract_on_md(test, md)
         db.session.commit()
+
+# run with PYTHONPATH=. ./env/bin/python3 plugins/uefi-extract/__init__.py
+if __name__ == '__main__':
+    import sys
+    from lvfs.models import Firmware, Component, Protocol
+
+    plugin = Plugin('uefi-extract')
+    for _argv in sys.argv[1:]:
+        print('Processing', _argv)
+        _test = Test(plugin.id)
+        _fw = Firmware()
+        _md = Component()
+        _md.component_id = 999999
+        _md.filename_contents = 'filename.bin'
+        _md.protocol = Protocol('org.uefi.capsule')
+        with open(_argv, 'rb') as _f:
+            _md.blob = _f.read()
+        _fw.mds.append(_md)
+        plugin.run_test_on_fw(_test, _fw)
+        for attribute in _test.attributes:
+            print(attribute)
+        for _shard in _md.shards:
+            print(_shard.guid, _shard.name, _shard.checksum)

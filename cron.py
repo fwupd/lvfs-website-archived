@@ -223,6 +223,8 @@ def _purge_old_deleted_firmware():
 
 def _test_priority_sort_func(test):
     plugin = ploader.get_by_id(test.plugin_id)
+    if not plugin:
+        return 0
     return plugin.priority
 
 def _yara_query_shard(query, md, shard):

@@ -21,7 +21,7 @@ class Plugin(PluginBase):
         self.summary = 'Add component claims based on shard GUIDs'
 
     def order_after(self):
-        return ['chipsec']
+        return ['uefi-extract']
 
     def ensure_test_for_fw(self, fw):
 

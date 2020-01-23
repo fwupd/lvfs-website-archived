@@ -17,7 +17,7 @@ from lvfs.testcase import LvfsTestCase
 
 class LocalTestCase(LvfsTestCase):
 
-    def test_plugin_chipsec(self):
+    def test_plugin_uefi_extract(self):
 
         self.login()
         self.upload(filename='contrib/chipsec.cab', target='private')
@@ -28,7 +28,7 @@ class LocalTestCase(LvfsTestCase):
         assert 'GUID: cc4cbfa9-bf9d-540b-b92b-172ce31013c1' in rv.data.decode(), rv.data
 
         # does not always exist
-        if not os.path.exists('/usr/bin/chipsec_util'):
+        if not os.path.exists('/usr/bin/UEFIExtract'):
             return
 
         # CHIPSEC -> Blocklist
