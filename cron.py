@@ -288,8 +288,11 @@ def _yara_query_all():
 
 def _check_firmware():
 
-    # make a list of all the tests that need running
-    tests = db.session.query(Test).filter(Test.started_ts == None).all()
+    # make a list of the first few tests that need running
+    tests = db.session.query(Test)\
+                      .filter(Test.started_ts == None)\
+                      .order_by(Test.scheduled_ts)\
+                      .limit(50).all()
 
     # mark all the tests as started
     for test in tests:
