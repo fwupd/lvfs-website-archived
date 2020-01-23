@@ -55,12 +55,8 @@ class PluginBase:
         self.id = plugin_id
         self.priority = 0
         self._setting_kvs = {}
-
-    def name(self):
-        return 'Noname Plugin'
-
-    def summary(self):
-        return 'Plugin did not set summary()'
+        self.name = 'Noname Plugin'
+        self.summary = 'Plugin did not set summary'
 
     def settings(self):
         return []
@@ -95,12 +91,8 @@ class PluginBase:
 class PluginGeneral(PluginBase):
     def __init__(self):
         PluginBase.__init__(self, 'general')
-
-    def name(self):
-        return 'General'
-
-    def summary(self):
-        return 'General server settings.'
+        self.name = 'General'
+        self.summary = 'General server settings'
 
     def settings(self):
         s = []

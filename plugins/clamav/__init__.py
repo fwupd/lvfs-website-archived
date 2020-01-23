@@ -17,12 +17,8 @@ from lvfs.models import Test
 class Plugin(PluginBase):
     def __init__(self):
         PluginBase.__init__(self)
-
-    def name(self):
-        return 'ClamAV'
-
-    def summary(self):
-        return 'Check the firmware for trojans, viruses, malware and other malicious threats'
+        self.name = 'ClamAV'
+        self.summary = 'Check the firmware for trojans, viruses, malware and other malicious threats'
 
     def settings(self):
         s = []

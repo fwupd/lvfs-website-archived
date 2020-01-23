@@ -161,12 +161,8 @@ def _run_intelme_on_blob(self, test, md):
 class Plugin(PluginBase):
     def __init__(self, plugin_id=None):
         PluginBase.__init__(self, plugin_id)
-
-    def name(self):
-        return 'Intel ME'
-
-    def summary(self):
-        return 'Analyse modules in Intel ME firmware'
+        self.name = 'Intel ME'
+        self.summary = 'Analyse modules in Intel ME firmware'
 
     def settings(self):
         s = []

@@ -20,12 +20,12 @@
 {% for test in fw.tests %}
 <div class="card mb-3">
   <div class="card-header card-title list-group-item-{{test.color}}">
-    {{format_plugin_id(test.plugin_id).name()}}
+    {{format_plugin_id(test.plugin_id).name}}
     <span class="float-right">{{format_humanize_naturaltime(test.timestamp)}}</span>
   </div>
   <div class="card-body">
     <p class="card-text">
-      {{format_plugin_id(test.plugin_id).summary()}}
+      {{format_plugin_id(test.plugin_id).summary}}
     </p>
 {% if test.waived_ts %}
     <p class="card-text">

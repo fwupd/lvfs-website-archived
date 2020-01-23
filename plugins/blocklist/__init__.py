@@ -43,12 +43,8 @@ class Plugin(PluginBase):
     def __init__(self, plugin_id=None):
         PluginBase.__init__(self, plugin_id)
         self.rules = None
-
-    def name(self):
-        return 'Blocklist'
-
-    def summary(self):
-        return 'Use YARA to check firmware for problems'
+        self.name = 'Blocklist'
+        self.summary = 'Use YARA to check firmware for problems'
 
     def order_after(self):
         return ['chipsec', 'intelme']

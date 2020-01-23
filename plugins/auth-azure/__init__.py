@@ -37,12 +37,8 @@ if 'auth_azure_consumer_key' in settings and settings['auth_azure_consumer_key']
 class Plugin(PluginBase):
     def __init__(self):
         PluginBase.__init__(self)
-
-    def name(self):
-        return 'Azure AD'
-
-    def summary(self):
-        return 'Authenticate against Microsoft Azure Active Directory.'
+        self.name = 'Azure AD'
+        self.summary = 'Authenticate against Microsoft Azure Active Directory'
 
     def settings(self):
         s = []

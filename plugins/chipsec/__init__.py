@@ -110,12 +110,8 @@ class PfsFile:
 class Plugin(PluginBase):
     def __init__(self, plugin_id=None):
         PluginBase.__init__(self, plugin_id)
-
-    def name(self):
-        return 'CHIPSEC'
-
-    def summary(self):
-        return 'Add firmware shards for UEFI capsules'
+        self.name = 'CHIPSEC'
+        self.summary = 'Add firmware shards for UEFI capsules'
 
     def settings(self):
         s = []

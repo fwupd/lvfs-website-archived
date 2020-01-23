@@ -16,12 +16,8 @@ from lvfs.models import Test
 class Plugin(PluginBase):
     def __init__(self):
         PluginBase.__init__(self)
-
-    def name(self):
-        return 'DFU'
-
-    def summary(self):
-        return 'Check the DFU firmware footer'
+        self.name = 'DFU'
+        self.summary = 'Check the DFU firmware footer'
 
     def settings(self):
         s = []

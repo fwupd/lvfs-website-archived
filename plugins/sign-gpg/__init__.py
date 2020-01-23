@@ -64,12 +64,8 @@ class Affidavit:
 class Plugin(PluginBase):
     def __init__(self):
         PluginBase.__init__(self)
-
-    def name(self):
-        return 'GPG Signing'
-
-    def summary(self):
-        return 'Sign files using GnuPG, a free implementation of the OpenPGP standard.'
+        self.name = 'GPG Signing'
+        self.summary = 'Sign files using GnuPG, a free implementation of the OpenPGP standard'
 
     def settings(self):
         s = []

@@ -12,12 +12,8 @@ from lvfs.pluginloader import PluginBase, PluginSettingBool
 class Plugin(PluginBase):
     def __init__(self):
         PluginBase.__init__(self)
-
-    def name(self):
-        return 'Windows Update'
-
-    def summary(self):
-        return 'Copy files generated using Windows Update.'
+        self.name = 'Windows Update'
+        self.summary = 'Copy files generated using Windows Update'
 
     def settings(self):
         s = []

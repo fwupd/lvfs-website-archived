@@ -24,12 +24,8 @@ def _basename_matches_globs(basename, globs):
 class Plugin(PluginBase):
     def __init__(self):
         PluginBase.__init__(self)
-
-    def name(self):
-        return 'CDN Purge'
-
-    def summary(self):
-        return 'Manually purge files from a content delivery network.'
+        self.name = 'CDN Purge'
+        self.summary = 'Manually purge files from a content delivery network'
 
     def settings(self):
         s = []

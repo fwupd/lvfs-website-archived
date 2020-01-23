@@ -51,12 +51,8 @@ def _sigul_detached_sign_data(contents, config, key):
 class Plugin(PluginBase):
     def __init__(self):
         PluginBase.__init__(self)
-
-    def name(self):
-        return 'Sigul Signing'
-
-    def summary(self):
-        return 'GPG sign files using Sigul, a secure signing server.'
+        self.name = 'Sigul Signing'
+        self.summary = 'GPG sign files using Sigul, a secure signing server'
 
     def settings(self):
         s = []

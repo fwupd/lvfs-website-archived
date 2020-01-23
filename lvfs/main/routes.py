@@ -214,7 +214,7 @@ def utility_processor():
                 format_timestamp=format_timestamp,
                 format_iso3166=format_iso3166,
                 format_plugin_id=format_plugin_id,
-                loader_plugins=sorted(ploader.get_all(), key=lambda x: x.name()))
+                loader_plugins=sorted(ploader.get_all(), key=lambda x: x.name))
 
 @lm.unauthorized_handler
 def unauthorized():

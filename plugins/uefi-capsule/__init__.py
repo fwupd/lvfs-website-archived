@@ -16,12 +16,8 @@ from lvfs.models import Test
 class Plugin(PluginBase):
     def __init__(self):
         PluginBase.__init__(self)
-
-    def name(self):
-        return 'UEFI Capsule'
-
-    def summary(self):
-        return 'Check the UEFI capsule header and file structure'
+        self.name = 'UEFI Capsule'
+        self.summary = 'Check the UEFI capsule header and file structure'
 
     def settings(self):
         s = []

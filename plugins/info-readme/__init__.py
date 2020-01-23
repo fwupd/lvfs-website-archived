@@ -13,12 +13,8 @@ from lvfs.pluginloader import PluginBase, PluginError, PluginSettingText, Plugin
 class Plugin(PluginBase):
     def __init__(self):
         PluginBase.__init__(self)
-
-    def name(self):
-        return 'Readme'
-
-    def summary(self):
-        return 'Add a README file to the archive.'
+        self.name = 'Readme'
+        self.summary = 'Add a README file to the archive'
 
     def settings(self):
         s = []

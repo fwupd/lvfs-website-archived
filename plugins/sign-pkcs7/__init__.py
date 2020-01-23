@@ -17,12 +17,8 @@ from lvfs import ploader, app
 class Plugin(PluginBase):
     def __init__(self):
         PluginBase.__init__(self)
-
-    def name(self):
-        return 'PKCS#7 Signing'
-
-    def summary(self):
-        return 'Sign files using the GnuTLS public key infrastructure.'
+        self.name = 'PKCS#7 Signing'
+        self.summary = 'Sign files using the GnuTLS public key infrastructure'
 
     def settings(self):
         s = []

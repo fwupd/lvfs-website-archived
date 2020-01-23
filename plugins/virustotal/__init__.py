@@ -16,12 +16,8 @@ from lvfs.models import Test
 class Plugin(PluginBase):
     def __init__(self):
         PluginBase.__init__(self)
-
-    def name(self):
-        return 'VirusTotal Monitor'
-
-    def summary(self):
-        return 'Upload firmware to VirusTotal for false-positive detection'
+        self.name = 'VirusTotal Monitor'
+        self.summary = 'Upload firmware to VirusTotal for false-positive detection'
 
     def settings(self):
         s = []

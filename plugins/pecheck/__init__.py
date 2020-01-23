@@ -87,12 +87,8 @@ def _extract_certs_from_authenticode_blob(buf):
 class Plugin(PluginBase):
     def __init__(self, plugin_id=None):
         PluginBase.__init__(self, plugin_id)
-
-    def name(self):
-        return 'PE Check'
-
-    def summary(self):
-        return 'Check the portable executable file (.efi) for common problems'
+        self.name = 'PE Check'
+        self.summary = 'Check the portable executable file (.efi) for common problems'
 
     def order_after(self):
         return ['chipsec', 'intelme']

@@ -69,12 +69,8 @@ def _run_psptool_on_blob(self, test, md):
 class Plugin(PluginBase):
     def __init__(self, plugin_id=None):
         PluginBase.__init__(self, plugin_id)
-
-    def name(self):
-        return 'AMD PSP'
-
-    def summary(self):
-        return 'Analyse modules in AMD PSP firmware'
+        self.name = 'AMD PSP'
+        self.summary = 'Analyse modules in AMD PSP firmware'
 
     def settings(self):
         s = []

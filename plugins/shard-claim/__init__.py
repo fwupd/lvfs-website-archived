@@ -15,12 +15,8 @@ class Plugin(PluginBase):
     def __init__(self, plugin_id=None):
         PluginBase.__init__(self, plugin_id)
         self.infos_by_guid = {}
-
-    def name(self):
-        return 'Shard Claim'
-
-    def summary(self):
-        return 'Add component claims based on shard GUIDs'
+        self.name = 'Shard Claim'
+        self.summary = 'Add component claims based on shard GUIDs'
 
     def order_after(self):
         return ['chipsec']
