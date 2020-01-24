@@ -1,0 +1,21 @@
+{% extends "default.html" %}
+{% block title %}Component Shard Components{% endblock %}
+
+{% block nav %}{% include 'shard-nav.html' %}{% endblock %}
+
+{% block content %}
+
+{% for appstream_id in unique_mds %}
+<div class="card mt-3">
+  <div class="card-body">
+    <div class="card-title"><code>{{appstream_id}}</code></div>
+    <ul class="list-group">
+{% for md in unique_mds[appstream_id]|sort(attribute='name_with_vendor') %}
+      <li class="list-group-item">{{md.name_with_vendor}}</code></li>
+{% endfor %}
+    </ul>
+  </div>
+</div>
+{% endfor %}
+
+{% endblock %}

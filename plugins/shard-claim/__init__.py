@@ -9,12 +9,14 @@
 
 from lvfs import db
 from lvfs.pluginloader import PluginBase
-from lvfs.models import Test, ComponentShard, ComponentShardInfo
+from lvfs.models import Test, ComponentShard, ComponentShardInfo, \
+                        ComponentShardClaim, ComponentShardChecksum
 
 class Plugin(PluginBase):
     def __init__(self, plugin_id=None):
         PluginBase.__init__(self, plugin_id)
         self.infos_by_guid = {}
+        self.claims_by_csum = {}
         self.name = 'Shard Claim'
         self.summary = 'Add component claims based on shard GUIDs'
 
@@ -36,6 +38,10 @@ class Plugin(PluginBase):
             for info in db.session.query(ComponentShardInfo)\
                                   .filter(ComponentShardInfo.claim_kind != None):
                 self.infos_by_guid[info.guid] = info
+        if not self.claims_by_csum:
+            for claim in db.session.query(ComponentShardClaim)\
+                                   .filter(ComponentShardClaim.checksum != None):
+                self.claims_by_csum[claim.checksum] = claim
 
         # run analysis on the component and any shards
         for md in fw.mds:
@@ -43,6 +49,9 @@ class Plugin(PluginBase):
                 if shard.guid in self.infos_by_guid:
                     info = self.infos_by_guid[shard.guid]
                     md.add_claim(info.claim_kind, info.claim_value)
+                if shard.checksum in self.claims_by_csum:
+                    claim = self.claims_by_csum[shard.checksum]
+                    md.add_claim(claim.kind, claim.value)
 
 # run with PYTHONPATH=. ./env/bin/python3 plugins/shard-claim/__init__.py
 if __name__ == '__main__':
@@ -53,8 +62,12 @@ if __name__ == '__main__':
     _test = Test(plugin.id)
     _fw = Firmware()
     _md = Component()
-    _md.shards.append(ComponentShard(guid='f114faa8-4fd5-4b95-8bc3-bc5cb5454966'))
+    _shard = ComponentShard(guid='f114faa8-4fd5-4b95-8bc3-bc5cb5454966')
+    _shard.checksums.append(ComponentShardChecksum(kind='SHA256',
+                                                   value='fd14d82dd6f4f6fdc3263c25c681b11ef8'\
+                                                         'daccd169efcab451cbb32c5f45ef8a'))
+    _md.shards.append(_shard)
     _fw.mds.append(_md)
     plugin.run_test_on_fw(_test, _fw)
-    for claim in _md.claims:
-        print(claim)
+    for _claim in _md.claims:
+        print(_claim)

@@ -1,6 +1,8 @@
 {% extends "default.html" %}
 {% block title %}Component Shard Details{% endblock %}
 
+{% block nav %}{% include 'shard-nav.html' %}{% endblock %}
+
 {% block content %}
 <div class="card">
   <div class="card-body">
@@ -12,26 +14,15 @@
     <textarea type="text" class="form-control" name="description" rows="10">{{shard.description if shard.description}}</textarea>
   </div>
   <div class="form-group">
-    <label for="display_name">Claim Kind:</label>
+    <label for="display_name">GUID Claim Kind:</label>
     <input class="form-control" id="claim_kind" type="text" name="claim_kind" value="{{shard.claim_kind if shard.claim_kind}}">
   </div>
   <div class="form-group">
-    <label for="display_name">Claim Description:</label>
+    <label for="display_name">GUID Claim Description:</label>
     <input class="form-control" id="claim_value" type="text" name="claim_value" value="{{shard.claim_value if shard.claim_value}}">
   </div>
   <input type="submit" class="btn btn-primary btn-large" value="Modify">
 </form>
-  </div>
-</div>
-
-<div class="card mt-3">
-  <div class="card-body">
-    <div class="card-title">Shards</div>
-    <ul class="list-group">
-{% for shd in shard.shards %}
-      <li class="list-group-item">{{shd.md.fw.vendor.display_name}} {{shd.md.name}} &mdash; <code>{{shd.name}}</code></li>
-{% endfor %}
-    </ul>
   </div>
 </div>
 

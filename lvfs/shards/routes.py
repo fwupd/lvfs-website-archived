@@ -5,12 +5,14 @@
 #
 # SPDX-License-Identifier: GPL-2.0+
 
+from collections import defaultdict
+
 from flask import Blueprint, request, url_for, redirect, flash, render_template, make_response
 from flask_login import login_required
 
 from lvfs import db
 
-from lvfs.models import ComponentShard, ComponentShardInfo
+from lvfs.models import ComponentShard, ComponentShardInfo, Component, ComponentShardClaim
 from lvfs.util import admin_login_required
 
 bp_shards = Blueprint('shards', __name__, template_folder='templates')
@@ -64,6 +66,138 @@ def route_show(component_shard_info_id):
     return render_template('shard-details.html',
                            category='admin',
                            shard=shard)
+
+@bp_shards.route('/<int:component_shard_info_id>/components')
+@login_required
+@admin_login_required
+def route_components(component_shard_info_id):
+
+    # find shard
+    shard_info = db.session.query(ComponentShardInfo).\
+            filter(ComponentShardInfo.component_shard_info_id == component_shard_info_id).first()
+    if not shard_info:
+        flash('No shard found', 'info')
+        return redirect(url_for('shards.route_list'))
+
+    # get shards with a unique component appstream ID
+    shards = db.session.query(ComponentShard)\
+                       .join(ComponentShardInfo)\
+                       .filter(ComponentShardInfo.component_shard_info_id == component_shard_info_id)\
+                       .join(Component)\
+                       .distinct(Component.appstream_id)\
+                       .order_by(Component.appstream_id, ComponentShard.name.desc())\
+                       .all()
+    unique_mds = defaultdict(list)
+    for shard in shards:
+        if shard.md not in unique_mds[shard.name]:
+            unique_mds[shard.name].append(shard.md)
+
+    # show details
+    return render_template('shard-components.html',
+                           category='admin',
+                           unique_mds=unique_mds,
+                           shard=shard_info)
+
+@bp_shards.route('/<int:component_shard_info_id>/checksums')
+@login_required
+@admin_login_required
+def route_checksums(component_shard_info_id):
+
+    # find shard
+    shard_info = db.session.query(ComponentShardInfo).\
+            filter(ComponentShardInfo.component_shard_info_id == component_shard_info_id).first()
+    if not shard_info:
+        flash('No shard found', 'info')
+        return redirect(url_for('shards.route_list'))
+
+    # get shards with a unique component appstream ID
+    shards = db.session.query(ComponentShard)\
+                       .join(ComponentShardInfo)\
+                       .filter(ComponentShardInfo.component_shard_info_id == component_shard_info_id)\
+                       .all()
+    unique_mds = defaultdict(list)
+    for shard in shards:
+        if shard.md not in unique_mds[shard.checksum]:
+            unique_mds[shard.checksum].append(shard.md)
+
+    # show details
+    return render_template('shard-checksums.html',
+                           category='admin',
+                           unique_mds=unique_mds,
+                           shard=shard_info)
+
+@bp_shards.route('/<int:component_shard_info_id>/claims')
+@login_required
+@admin_login_required
+def route_claims(component_shard_info_id):
+
+    # find shard
+    shard = db.session.query(ComponentShardInfo).\
+            filter(ComponentShardInfo.component_shard_info_id == component_shard_info_id).first()
+    if not shard:
+        flash('No shard found', 'info')
+        return redirect(url_for('shards.route_list'))
+
+    # get shards with a unique component appstream ID
+    claims = db.session.query(ComponentShardClaim)\
+                       .filter(ComponentShardClaim.component_shard_info_id == component_shard_info_id)\
+                       .all()
+
+    # show details
+    return render_template('shard-claims.html',
+                           category='admin',
+                           claims=claims,
+                           shard=shard)
+
+@bp_shards.route('/<int:component_shard_info_id>/claim/<int:component_shard_claim_id>/delete')
+@login_required
+@admin_login_required
+def route_shard_claim_delete(component_shard_info_id, component_shard_claim_id):
+
+    # find shard
+    shard_claim = db.session.query(ComponentShardClaim)\
+                            .filter(ComponentShardClaim.component_shard_info_id == component_shard_info_id)\
+                            .filter(ComponentShardClaim.component_shard_claim_id == component_shard_claim_id)\
+                            .first()
+    if not shard_claim:
+        flash('No shard claim found', 'info')
+        return redirect(url_for('shards.route_list'))
+    db.session.delete(shard_claim)
+    db.session.commit()
+    flash('Deleted shard claim', 'info')
+    return redirect(url_for('shards.route_claims',
+                            component_shard_info_id=component_shard_info_id))
+
+@bp_shards.route('/<int:component_shard_info_id>/claim/create', methods=['POST'])
+@login_required
+@admin_login_required
+def route_shard_claim_create(component_shard_info_id):
+
+    # ensure has enough data
+    for key in ['checksum', 'kind', 'value']:
+        if key not in request.form:
+            flash('No {} form data found!'.format(key), 'warning')
+            return redirect(url_for('shards.route_list'))
+
+    # already exists
+    if db.session.query(ComponentShardClaim)\
+                 .filter(ComponentShardClaim.component_shard_info_id == component_shard_info_id)\
+                 .filter(ComponentShardClaim.checksum == request.form['checksum'])\
+                 .first():
+        flash('Failed to add component shard claim: The checksum already exists', 'info')
+        return redirect(url_for('issues.route_list'))
+
+    # add issue
+    claim = ComponentShardClaim(component_shard_info_id=component_shard_info_id,
+                                checksum=request.form['checksum'],
+                                kind=request.form['kind'],
+                                value=request.form['value'])
+    db.session.add(claim)
+    db.session.commit()
+    flash('Added claim', 'info')
+    return redirect(url_for('shards.route_claims',
+                            component_shard_info_id=component_shard_info_id))
+
 
 @bp_shards.route('/<int:component_shard_id>/download')
 @login_required

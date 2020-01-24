@@ -1,0 +1,14 @@
+<nav>
+  <div class="text-center mb-3">
+    <div class="btn-group" role="group">
+      <a class="btn btn-falcon-{{'primary' if request.url_rule.endpoint == 'shards.route_show' else 'default'}}"
+        href="{{url_for('shards.route_show', component_shard_info_id=shard.component_shard_info_id)}}">Details</a>
+      <a class="btn btn-falcon-{{'primary' if request.url_rule.endpoint == 'shards.route_components' else 'default'}}"
+        href="{{url_for('shards.route_components', component_shard_info_id=shard.component_shard_info_id)}}">Components</a>
+      <a class="btn btn-falcon-{{'primary' if request.url_rule.endpoint == 'shards.route_checksums' else 'default'}}"
+        href="{{url_for('shards.route_checksums', component_shard_info_id=shard.component_shard_info_id)}}">Variants</a>
+      <a class="btn btn-falcon-{{'primary' if request.url_rule.endpoint == 'shards.route_claims' else 'default'}}"
+        href="{{url_for('shards.route_claims', component_shard_info_id=shard.component_shard_info_id)}}">Checksum Claims</a>
+    </div>
+  </div>
+</nav>

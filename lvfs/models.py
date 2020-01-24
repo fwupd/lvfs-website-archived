@@ -1296,6 +1296,24 @@ def _calculate_entropy(s):
     e_x = [- p_x * math.log(p_x, 2) for p_x in probabilities]
     return sum(e_x)
 
+class ComponentShardClaim(db.Model):
+
+    # sqlalchemy metadata
+    __tablename__ = 'component_shard_claims'
+    __table_args__ = {'mysql_character_set': 'utf8mb4'}
+
+    component_shard_claim_id = Column(Integer, primary_key=True)
+    component_shard_info_id = Column(Integer, ForeignKey('component_shard_infos.component_shard_info_id'))
+    checksum = Column(Text, nullable=False, default=None)
+    kind = Column(Text, default=None)                   # enum type
+    value = Column(Text, default=None)                  # summary
+
+    info = relationship('ComponentShardInfo')
+
+    def __repr__(self):
+        return "ComponentShardClaim object {},{} -> {}({})"\
+                    .format(self.info.guid, self.checksum, self.kind, self.value)
+
 class ComponentShard(db.Model):
 
     # sqlalchemy metadata
@@ -1625,6 +1643,13 @@ class Component(db.Model):
                 name += ' ' + self.category.name
             else:
                 name += ' ' + self.category.value
+        return name
+
+    @property
+    def name_with_vendor(self):
+        name = self.fw.vendor.display_name + ' ' + self.name
+        if self.name_variant_suffix:
+            name += ' (' + self.name_variant_suffix + ')'
         return name
 
     @property
