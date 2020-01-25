@@ -6,7 +6,8 @@
 # SPDX-License-Identifier: GPL-2.0+
 #
 # pylint: disable=too-few-public-methods,too-many-instance-attributes
-# pylint: disable=too-many-arguments,too-many-lines,protected-access,wrong-import-position
+# pylint: disable=too-many-arguments,too-many-lines,protected-access
+# pylint: wrong-import-position,too-many-public-methods
 
 import os
 import datetime
@@ -38,28 +39,6 @@ from lvfs.dbutils import _execute_count_star
 from lvfs.hash import _qa_hash, _password_hash, _otp_hash
 from lvfs.util import _generate_password, _xml_from_markdown, _get_update_description_problems
 from lvfs.util import _get_absolute_path, _get_shard_path, _validate_guid
-
-class SecurityClaim:
-
-    def __init__(self):
-        self.attrs = {}
-
-    def add_attr(self, attr, detail=None):
-
-        # append the attribute if it does not exist
-        if attr not in self.attrs:
-            self.attrs[attr] = detail
-
-    @property
-    def rating(self):
-        if 'success-signed-firmware' in self.attrs and 'success-device-checksum' in self.attrs:
-            return 2
-        if 'success-signed-firmware' in self.attrs:
-            return 1
-        return 0
-
-    def __repr__(self):
-        return "SecurityClaim object %s" % self.attrs
 
 class Problem:
     def __init__(self, kind, description=None, url=None, md=None):
@@ -1203,6 +1182,40 @@ class Category(db.Model):
     def __repr__(self):
         return "Category object %s:%s" % (self.category_id, self.value)
 
+class Claim(db.Model):
+
+    # sqlalchemy metadata
+    __tablename__ = 'claims'
+    __table_args__ = {'mysql_character_set': 'utf8mb4'}
+
+    claim_id = Column(Integer, primary_key=True)
+    kind = Column(Text, nullable=False, index=True)
+    icon = Column(Text)     # e.g. 'success'
+    summary = Column(Text)
+    url = Column(Text)
+
+    def __lt__(self, other):
+        if self.icon != other.icon:
+            return self.icon < other.icon
+        return self.kind < other.kind
+
+    def __eq__(self, other):
+        return self.kind == other.kind
+
+    @property
+    def icon_css(self):
+        val = ['fas']
+        if self.icon in ['danger', 'warning']:
+            val += ['fa-times-circle', 'text-' + self.icon]
+        elif self.icon == 'info':
+            val += ['fa-info-circle', 'text-' + self.icon]
+        elif self.icon == 'success':
+            val += ['fa-check-circle', 'text-' + self.icon]
+        return val
+
+    def __repr__(self):
+        return 'Claim object {}:{}->{}'.format(self.claim_id, self.kind, self.icon)
+
 class ComponentShardInfo(db.Model):
 
     # sqlalchemy metadata
@@ -1213,11 +1226,13 @@ class ComponentShardInfo(db.Model):
     guid = Column(String(36), default=None, index=True)
     description = Column(Text, default=None)
     cnt = Column(Integer, default=0)
-    claim_kind = Column(Text, default=None)
-    claim_value = Column(Text, default=None)
+    _unused_claim_kind = Column('claim_kind', Text, default=None)
+    _unused_claim_value = Column('claim_value', Text, default=None)
+    claim_id = Column(Integer, ForeignKey('claims.claim_id'), nullable=True, index=True)
 
     # link using foreign keys
     shards = relationship("ComponentShard", cascade='all,delete-orphan')
+    claim = relationship('Claim')
 
     def __repr__(self):
         return "ComponentShardInfo object %s" % self.component_shard_info_id
@@ -1305,10 +1320,12 @@ class ComponentShardClaim(db.Model):
     component_shard_claim_id = Column(Integer, primary_key=True)
     component_shard_info_id = Column(Integer, ForeignKey('component_shard_infos.component_shard_info_id'))
     checksum = Column(Text, nullable=False, default=None)
-    kind = Column(Text, default=None)                   # enum type
-    value = Column(Text, default=None)                  # summary
+    _unused_kind = Column('kind', Text, default=None)
+    _unused_value = Column('value', Text, default=None)
+    claim_id = Column(Integer, ForeignKey('claims.claim_id'), nullable=True)
 
     info = relationship('ComponentShardInfo')
+    claim = relationship('Claim')
 
     def __repr__(self):
         return "ComponentShardClaim object {},{} -> {}({})"\
@@ -1454,14 +1471,16 @@ class ComponentClaim(db.Model):
 
     component_claim_id = Column(Integer, primary_key=True)
     component_id = Column(Integer, ForeignKey('components.component_id'), nullable=False, index=True)
-    kind = Column(Text, nullable=False)
-    value = Column(Text, nullable=False)
+    claim_id = Column(Integer, ForeignKey('claims.claim_id'), nullable=True, index=True) # only until migrated
+    _unused_kind = Column('kind', Text, nullable=False)
+    _unused_value = Column('value', Text, nullable=False)
 
-    # link back to parent
-    md = relationship("Component", back_populates="claims")
+    # link back to objects
+    md = relationship('Component', back_populates='component_claims')
+    claim = relationship('Claim')
 
     def __repr__(self):
-        return '<ComponentClaim {}>'.format(self.value)
+        return '<ComponentClaim {}>'.format(self.component_claim_id)
 
 class ComponentRef(db.Model):
 
@@ -1550,9 +1569,9 @@ class Component(db.Model):
     issues = relationship('ComponentIssue',
                           back_populates='md',
                           cascade='all,delete-orphan')
-    claims = relationship('ComponentClaim',
-                          back_populates='md',
-                          cascade='all,delete-orphan')
+    component_claims = relationship('ComponentClaim',
+                                    back_populates='md',
+                                    cascade='all,delete-orphan')
     issue_values = association_proxy('issues', 'value')
     device_checksums = relationship("Checksum",
                                     back_populates="md",
@@ -1673,24 +1692,56 @@ class Component(db.Model):
         return tmp
 
     @property
-    def security_claim(self):
-        sc = None
+    def claims(self):
+        return [component_claim.claim for component_claim in self.component_claims]
+
+    @property
+    def autoclaims(self):
+        claims = []
         if self.protocol:
-            sc = self.protocol.security_claim
-            if self.protocol.can_verify and self.category and self.category.expect_device_checksum:
-                if self.device_checksums:
-                    sc.add_attr('success-device-checksum', 'Firmware has attestation checksums')
-                else:
-                    sc.add_attr('warning-device-checksum', 'Firmware has no attestation checksums')
-        if not sc:
-            sc = SecurityClaim()
-        for claim in self.claims:
-            sc.add_attr(claim.kind, claim.value)
+            if self.protocol.is_signed:
+                claims.append(Claim(kind='signed-firmware',
+                                    icon='success',
+                                    summary='Update is cryptographically signed'))
+            else:
+                claims.append(Claim(kind='no-signed-firmware',
+                                    icon='warning',
+                                    summary='Update is not cryptographically signed'))
+            if self.protocol.can_verify:
+                claims.append(Claim(kind='verify-firmware',
+                                    icon='success',
+                                    summary='Firmware can be verified after flashing'))
+                if self.category and self.category.expect_device_checksum:
+                    if self.device_checksums:
+                        claims.append(Claim(kind='device-checksum',
+                                            icon='success',
+                                            summary='Firmware has attestation checksums'))
+                    else:
+                        claims.append(Claim(kind='no-device-checksum',
+                                            icon='warning',
+                                            summary='Firmware has no attestation checksums'))
+            else:
+                claims.append(Claim(kind='no-verify-firmware',
+                                    icon='warning',
+                                    summary='Firmware cannot be verified after flashing'))
         if self.checksum_contents:
-            sc.add_attr('success-contents-checksum', 'Added to the LVFS by %s' % self.fw.vendor.display_name)
+            claims.append(Claim(kind='contents-checksum',
+                                icon='success',
+                                summary='Added to the LVFS by {}'.format(self.fw.vendor.display_name)))
         if self.source_url:
-            sc.add_attr('success-source-url', 'Source code available')
-        return sc
+            claims.append(Claim(kind='source-url',
+                                icon='success',
+                                summary='Source code available'))
+        return claims
+
+    @property
+    def security_level(self):
+        if self._find_autoclaim('signed-firmware', 'success') and \
+           self._find_autoclaim('device-checksum', 'success'):
+            return 2
+        if self._find_autoclaim('signed-firmware', 'success'):
+            return 1
+        return 0
 
     @property
     def requires_source_url(self):
@@ -1905,11 +1956,11 @@ class Component(db.Model):
             return rq
         return None
 
-    def add_claim(self, kind, value):
-        for claim in self.claims:
-            if claim.kind == kind:
+    def add_claim(self, claim):
+        for component_claim in self.claims:
+            if component_claim.claim.kind == claim.kind:
                 return
-        self.claims.append(ComponentClaim(kind=kind, value=value))
+        self.claims.append(ComponentClaim(claim=claim))
 
     def check_acl(self, action, user=None):
 
@@ -2214,24 +2265,31 @@ class Firmware(db.Model):
         return None
 
     @property
-    def security_claim(self):
+    def autoclaims(self):
         # return the smallest of all the components, i.e. the least secure
-        sc_lowest = None
+        md_lowest = None
+        claims = []
         for md in self.mds:
-            if not sc_lowest or md.security_claim.rating < sc_lowest.rating:
-                sc_lowest = md.security_claim
-        if not sc_lowest:
-            sc_lowest = SecurityClaim()
+            if not md_lowest or md.security_level < md_lowest.security_level:
+                md_lowest = md
+                claims = md.autoclaims
 
         # been virus checked
         test = self.find_test_by_plugin_id('clamav')
-        if test and test.ended_ts:
-            if test.success:
-                sc_lowest.add_attr('success-virus-safe', 'Virus checked using ClamAV')
-            else:
-                sc_lowest.add_attr('danger-virus-safe', 'Virus check using ClamAV failed')
+        if test and test.ended_ts and test.success:
+            claims.append(Claim(kind='virus-safe',
+                                icon='success',
+                                summary='Virus checked using ClamAV'))
+        return claims
 
-        return sc_lowest
+    @property
+    def claims(self):
+        claims = []
+        for md in self.mds:
+            for claim in md.claims:
+                if claim not in claims:
+                    claims.append(claim)
+        return claims
 
     @property
     def scheduled_signing(self):
@@ -2814,19 +2872,6 @@ class Protocol(db.Model):
     verfmt_id = Column(Integer, ForeignKey('verfmts.verfmt_id'))
 
     verfmt = relationship('Verfmt', foreign_keys=[verfmt_id])
-
-    @property
-    def security_claim(self):
-        sc = SecurityClaim()
-        if self.is_signed:
-            sc.add_attr('success-signed-firmware', 'Update is cryptographically signed')
-        else:
-            sc.add_attr('warning-signed-firmware', 'Update is not cryptographically signed')
-        if self.can_verify:
-            sc.add_attr('success-verify-firmware', 'Firmware can be verified after flashing')
-        else:
-            sc.add_attr('warning-verify-firmware', 'Firmware cannot be verified after flashing')
-        return sc
 
     def __init__(self, value, name=None, is_signed=False, can_verify=False, is_public=True, has_header=False):
         """ Constructor for object """

@@ -14,12 +14,13 @@
     <textarea type="text" class="form-control" name="description" rows="10">{{shard.description if shard.description}}</textarea>
   </div>
   <div class="form-group">
-    <label for="display_name">GUID Claim Kind:</label>
-    <input class="form-control" id="claim_kind" type="text" name="claim_kind" value="{{shard.claim_kind if shard.claim_kind}}">
-  </div>
-  <div class="form-group">
-    <label for="display_name">GUID Claim Description:</label>
-    <input class="form-control" id="claim_value" type="text" name="claim_value" value="{{shard.claim_value if shard.claim_value}}">
+    <label for="display_name">GUID Claim:</label>
+    <select class="form-control" name="claim_id">
+      <option value="" {{ 'selected' if shard.claim_id == 0 }}>None</option>
+{% for claim in claims %}
+      <option value="{{claim.claim_id}}" {{ 'selected' if shard.claim_id == claim.claim_id }}>{{claim.summary}}</option>
+{% endfor %}
+    </select>
   </div>
   <input type="submit" class="btn btn-primary btn-large" value="Modify">
 </form>

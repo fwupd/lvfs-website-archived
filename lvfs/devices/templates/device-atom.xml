@@ -51,9 +51,9 @@
 {% endif %}
         <h2>Security</h2>
         <ul>
-{% for attr in fw.security_claim.attrs|sort() %}
+{% for claim in fw.autoclaims|sort() %}
           <li>
-            {{fw.security_claim.attrs[attr]}}
+            {{claim.summary}}
           </li>
 {% endfor %}
         </ul>

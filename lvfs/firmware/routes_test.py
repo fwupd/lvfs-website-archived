@@ -276,7 +276,7 @@ class LocalTestCase(LvfsTestCase):
         self.run_cron_firmware()
         rv = self.app.get('/lvfs/firmware/1/promote/testing',
                           follow_redirects=True)
-        assert b'>testing<' in rv.data, rv.data
+        assert b'>testing<' in rv.data, rv.data.decode()
         self.logout()
 
     def test_vendor_split_with_reparent(self):

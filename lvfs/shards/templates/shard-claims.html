@@ -10,9 +10,8 @@
     <div class="card-title">Component Shard Claims</div>
 <table class="table">
   <tr class="row">
-    <th class="col col-sm-3">Checksum</th>
-    <th class="col col-sm-2">Compare</th>
-    <th class="col col-sm-5">Value</th>
+    <th class="col col-sm-6">Checksum</th>
+    <th class="col col-sm-4">Claim</th>
     <th class="col col-sm-2">&nbsp;</th>
   </tr>
 {% if claims|length == 0 %}
@@ -23,9 +22,8 @@
 {% else %}
 {% for claim in claims|sort(attribute='checksum') %}
   <tr class="row">
-    <td class="col col-sm-3"><code>{{claim.checksum|truncate(32, False, '…')}}</code></td>
-    <td class="col col-sm-2"><code>{{claim.kind}}</code></td>
-    <td class="col col-sm-5">{{claim.value|truncate(50, False, '…')}}</td>
+    <td class="col col-sm-6"><code>{{claim.checksum|truncate(64, False, '…')}}</code></td>
+    <td class="col col-sm-4"><code>{{claim.claim.summary}}</code></td>
     <td class="col col-sm-2">
       <a class="btn btn-block btn-danger"
         href="{{url_for('shards.route_shard_claim_delete',
@@ -40,14 +38,15 @@
     <form method="post" action="{{url_for('shards.route_shard_claim_create',
                                           component_shard_info_id=shard.component_shard_info_id)}}">
     <input type="hidden" name="csrf_token" value="{{csrf_token()}}"/>
-    <td class="col col-sm-3">
+    <td class="col col-sm-6">
       <input type="text" class="form-control" name="checksum" value="" placeholder="Checksum..." required>
     </td>
-    <td class="col col-sm-2">
-      <input type="text" class="form-control" name="kind" value="" placeholder="Key..." required>
-    </td>
-    <td class="col col-sm-5">
-      <input type="text" class="form-control" name="value" value="" placeholder="Value..." required>
+    <td class="col col-sm-4">
+    <select class="form-control" name="claim_id">
+{% for claim in claims_all %}
+      <option value="{{claim.claim_id}}">{{claim.summary}}</option>
+{% endfor %}
+    </select>
     </td>
     <td class="col col-sm-2">
       <input type="submit" class="btn btn-block btn-primary" value="Add">

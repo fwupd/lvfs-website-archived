@@ -10,7 +10,7 @@
 from lvfs import db
 from lvfs.pluginloader import PluginBase
 from lvfs.models import Test, ComponentShard, ComponentShardInfo, \
-                        ComponentShardClaim, ComponentShardChecksum
+                        ComponentShardClaim, ComponentShardChecksum, Claim
 
 class Plugin(PluginBase):
     def __init__(self, plugin_id=None):
@@ -36,22 +36,27 @@ class Plugin(PluginBase):
         # find any infos that indicate a claim
         if not self.infos_by_guid:
             for info in db.session.query(ComponentShardInfo)\
-                                  .filter(ComponentShardInfo.claim_kind != None):
+                                  .filter(ComponentShardInfo.claim_id != None):
                 self.infos_by_guid[info.guid] = info
         if not self.claims_by_csum:
             for claim in db.session.query(ComponentShardClaim)\
                                    .filter(ComponentShardClaim.checksum != None):
                 self.claims_by_csum[claim.checksum] = claim
 
+        # get cache of all known claims
+        claims = {}
+        for claim in db.session.query(Claim).all():
+            claims[claim.kind] = claim
+
         # run analysis on the component and any shards
         for md in fw.mds:
             for shard in md.shards:
                 if shard.guid in self.infos_by_guid:
                     info = self.infos_by_guid[shard.guid]
-                    md.add_claim(info.claim_kind, info.claim_value)
+                    md.add_claim(info.claim)
                 if shard.checksum in self.claims_by_csum:
-                    claim = self.claims_by_csum[shard.checksum]
-                    md.add_claim(claim.kind, claim.value)
+                    shard_claim = self.claims_by_csum[shard.checksum]
+                    md.add_claim(shard_claim.claim)
 
 # run with PYTHONPATH=. ./env/bin/python3 plugins/shard-claim/__init__.py
 if __name__ == '__main__':

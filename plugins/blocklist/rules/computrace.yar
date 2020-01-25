@@ -4,7 +4,7 @@ rule ComputraceAgent
         license = "GPL-2.0+"
         description = "Contains Absolute Computrace Agent"
         fail = false
-        claim = "info-computrace"
+        claim = "computrace"
 
     strings:
         $a = {D1 E0 F5 8B 4D 0C 83 D1 00 8B EC FF 33 83 C3 04}

@@ -68,26 +68,28 @@ class LocalTestCase(LvfsTestCase):
         assert 'No claims exist yet' in rv.data.decode(), rv.data.decode()
 
         # add claim
+        rv = self.app.post('/lvfs/claims/create', data=dict(
+            kind='foobarbaz',
+            summary='foobarbaz',
+        ), follow_redirects=True)
+        assert b'Added claim' in rv.data, rv.data.decode()
         rv = self.app.post('/lvfs/shards/1/claim/create', data=dict(
             checksum='DEADBEEF',
-            kind='info-dave',
-            value='Dave',
+            claim_id=1,
         ), follow_redirects=True)
         assert b'Added claim' in rv.data, rv.data.decode()
 
         # add claim again
         rv = self.app.post('/lvfs/shards/1/claim/create', data=dict(
             checksum='DEADBEEF',
-            kind='info-bar',
-            value='Baz',
+            claim_id=1,
         ), follow_redirects=True)
         assert b'checksum already exists' in rv.data, rv.data.decode()
 
         # verify it exists
         rv = self.app.get('/lvfs/shards/1/claims')
         assert 'DEADBEEF' in rv.data.decode(), rv.data.decode()
-        assert 'info-dave' in rv.data.decode(), rv.data.decode()
-        assert 'Dave' in rv.data.decode(), rv.data.decode()
+        assert 'foobarbaz' in rv.data.decode(), rv.data.decode()
 
         # delete it
         rv = self.app.get('/lvfs/shards/1/claim/1/delete', follow_redirects=True)

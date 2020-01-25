@@ -14,7 +14,7 @@ import yara
 from lvfs import db
 from lvfs.pluginloader import PluginBase, PluginError
 from lvfs.pluginloader import PluginSettingBool, PluginSettingTextList
-from lvfs.models import Test
+from lvfs.models import Test, Claim
 
 def _run_on_blob(self, test, md, title, blob):
     matches = self.rules.match(data=blob)
@@ -36,8 +36,14 @@ def _run_on_blob(self, test, md, title, blob):
             if description:
                 msg += ': {}'.format(description)
             test.add_fail(title, msg)
-        elif 'claim' in match.meta and description:
-            md.add_claim(match.meta['claim'], description)
+        elif 'claim' in match.meta:
+            claim = db.session.query(Claim)\
+                              .filter(Claim.key == match.meta['claim'])\
+                              .first()
+            if not claim:
+                test.add_fail('YARA', 'Failed to find claim: {}'.format(match.meta['claim']))
+                continue
+            md.add_claim(claim)
 
 class Plugin(PluginBase):
     def __init__(self, plugin_id=None):

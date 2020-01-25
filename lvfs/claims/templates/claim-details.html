@@ -1,0 +1,65 @@
+{% extends "default.html" %}
+{% block title %}Claim Details{% endblock %}
+
+{% block content %}
+
+<nav class="row">
+  <div class="col col-sm-1 btn-group mb-3">
+    <a class="btn btn-falcon-default mr-sm-3"
+      href="{{url_for('claims.route_list')}}">
+      <span class="fas fa-arrow-left"></span>
+    </a>
+  </div>
+</nav>
+
+<div class="card">
+  <div class="card-body">
+    <div class="card-title">Claim Details</div>
+<form method="post" action="{{url_for('claims.route_modify', claim_id=claim.claim_id)}}">
+  <input type="hidden" name="csrf_token" value="{{csrf_token()}}"/>
+  <div class="form-group">
+    <label for="group_id">Kind:</label>
+    <input type="text" class="form-control" name="kind" value="{{claim.kind}}" required />
+  </div>
+  <div class="form-group">
+    <label for="group_id">Icon:</label>
+    <input type="text" class="form-control" name="icon" value="{{claim.icon if claim.icon}}" required />
+  </div>
+  <div class="form-group">
+    <label for="display_name">Summary:</label>
+    <input type="text" class="form-control" name="summary" value="{{claim.summary if claim.summary}}" required />
+  </div>
+  <div class="form-group">
+    <label for="display_name">URL:</label>
+    <input type="text" class="form-control" name="url" value="{{claim.url if claim.url}}" required />
+  </div>
+  <input type="submit" class="card-link btn btn-primary" value="Modify">
+  <button type="button" class="card-link btn btn-danger" data-toggle="modal" data-target="#deleteModal">Delete</button>
+</form>
+  </div>
+</div>
+
+<!-- modal dialog -->
+<div class="modal" id="deleteModal" tabindex="-1" role="dialog" aria-labelledby="deleteModalLabel" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="deleteModalLabel">Really Delete Claim?</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        Once deleted, claims can not be recovered.
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+        <a class="btn btn-danger"
+          href="{{url_for('claims.route_delete', claim_id=claim.claim_id)}}"
+          role="button">Delete</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock %}

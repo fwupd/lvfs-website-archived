@@ -12,7 +12,7 @@ from flask_login import login_required
 
 from lvfs import db
 
-from lvfs.models import ComponentShard, ComponentShardInfo, Component, ComponentShardClaim
+from lvfs.models import ComponentShard, ComponentShardInfo, Component, ComponentShardClaim, Claim
 from lvfs.util import admin_login_required
 
 bp_shards = Blueprint('shards', __name__, template_folder='templates')
@@ -41,9 +41,9 @@ def route_modify(component_shard_info_id):
         return redirect(url_for('shards.route_list'))
 
     # modify shard
-    for key in ['description', 'claim_kind', 'claim_value']:
+    for key in ['description', 'claim_id']:
         if key in request.form:
-            setattr(shard, key, request.form[key])
+            setattr(shard, key, request.form[key] or None)
     db.session.commit()
 
     # success
@@ -63,8 +63,10 @@ def route_show(component_shard_info_id):
         return redirect(url_for('shards.route_list'))
 
     # show details
+    claims = db.session.query(Claim).order_by(Claim.summary).all()
     return render_template('shard-details.html',
                            category='admin',
+                           claims=claims,
                            shard=shard)
 
 @bp_shards.route('/<int:component_shard_info_id>/components')
@@ -138,15 +140,17 @@ def route_claims(component_shard_info_id):
         flash('No shard found', 'info')
         return redirect(url_for('shards.route_list'))
 
-    # get shards with a unique component appstream ID
+    # get claims for this ComponentShardInfo
     claims = db.session.query(ComponentShardClaim)\
                        .filter(ComponentShardClaim.component_shard_info_id == component_shard_info_id)\
                        .all()
 
     # show details
+    claims_all = db.session.query(Claim).order_by(Claim.summary).all()
     return render_template('shard-claims.html',
                            category='admin',
                            claims=claims,
+                           claims_all=claims_all,
                            shard=shard)
 
 @bp_shards.route('/<int:component_shard_info_id>/claim/<int:component_shard_claim_id>/delete')
@@ -174,7 +178,7 @@ def route_shard_claim_delete(component_shard_info_id, component_shard_claim_id):
 def route_shard_claim_create(component_shard_info_id):
 
     # ensure has enough data
-    for key in ['checksum', 'kind', 'value']:
+    for key in ['checksum', 'claim_id']:
         if key not in request.form:
             flash('No {} form data found!'.format(key), 'warning')
             return redirect(url_for('shards.route_list'))
@@ -190,8 +194,7 @@ def route_shard_claim_create(component_shard_info_id):
     # add issue
     claim = ComponentShardClaim(component_shard_info_id=component_shard_info_id,
                                 checksum=request.form['checksum'],
-                                kind=request.form['kind'],
-                                value=request.form['value'])
+                                claim_id=request.form['claim_id'])
     db.session.add(claim)
     db.session.commit()
     flash('Added claim', 'info')

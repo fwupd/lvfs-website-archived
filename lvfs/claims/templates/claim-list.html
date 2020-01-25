@@ -1,0 +1,46 @@
+{% extends "default.html" %}
+{% block title %}Claims{% endblock %}
+
+{% block content %}
+
+<form method="post" action="{{url_for('claims.route_create')}}" class="form">
+<input type="hidden" name="csrf_token" value="{{csrf_token()}}"/>
+<div class="card mt-3">
+  <div class="card-body">
+    <div class="card-title">Claims</div>
+<table class="table">
+  <tr class="row table-borderless">
+    <th class="col col-sm-2">Kind</th>
+    <th class="col col-sm-8">Summary</th>
+    <th class="col col-sm-2">&nbsp;</th>
+  </tr>
+{% if claims|length == 0 %}
+  <tr class="row">
+    <th class="col col-sm-12 text-muted">No claims have been created</th>
+  </tr>
+{% endif %}
+{% for claim in claims %}
+  <tr class="row">
+    <td class="col col-sm-2"><code>{{claim.kind}}</code></td>
+    <td class="col col-sm-8">{{claim.summary}}</td>
+    <td class="col col-sm-2">
+      <a class="btn btn-info btn-block"
+         href="{{url_for('claims.route_show', claim_id=claim.claim_id)}}"
+         role="button">Details</a>
+    </td>
+  </tr>
+{% endfor %}
+  <tr class="row">
+    <td class="col col-sm-10">
+      <input class="form-control" type="text" name="kind" placeholder="kind" required>
+    </td>
+    <td class="col col-sm-2">
+      <input class="btn btn-primary btn-block" type="submit" value="Add">
+    </td>
+  </tr>
+</table>
+  </div>
+</div>
+</form>
+
+{% endblock %}

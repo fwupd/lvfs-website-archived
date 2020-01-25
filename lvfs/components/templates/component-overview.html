@@ -195,18 +195,10 @@
     </div>
     <div class="card-text">
       <ul class="list-group">
-{% for attr in md.security_claim.attrs|sort() %}
+{% for claim in (md.autoclaims+md.claims)|sort() %}
         <li class="list-group-item">
-{% if attr.startswith('danger-') %}
-          <span class="fas fa-times-circle fs-2 text-danger"></span>
-{% elif attr.startswith('warning-') %}
-          <span class="fas fa-times-circle fs-2 text-warning"></span>
-{% elif attr.startswith('info-') %}
-          <span class="fas fa-info-circle fs-2 text-info"></span>
-{% else %}
-          <span class="fas fa-check-circle fs-2 text-success"></span>
-{% endif %}
-          {{md.security_claim.attrs[attr]}}
+          <span class="fs-2 {{claim.icon_css|join(' ')}}"></span>
+          {{claim.summary}}
         </li>
 {% endfor %}
       </ul>

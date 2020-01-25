@@ -7,7 +7,7 @@ unsafe-load-any-extension=yes
 [MESSAGES CONTROL]
 
 # Disable the message, report, category or checker with the given id(s)
-disable=invalid-name,len-as-condition,missing-docstring,too-many-return-statements,too-many-branches,import-outside-toplevel
+disable=invalid-name,len-as-condition,missing-docstring,too-many-return-statements,too-many-branches,import-outside-toplevel,too-many-public-methods
 
 [REPORTS]
 

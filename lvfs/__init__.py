@@ -53,6 +53,7 @@ ploader = Pluginloader('plugins')
 from lvfs.agreements.routes import bp_agreements
 from lvfs.analytics.routes import bp_analytics
 from lvfs.categories.routes import bp_categories
+from lvfs.claims.routes import bp_claims
 from lvfs.components.routes import bp_components
 from lvfs.devices.routes import bp_devices
 from lvfs.mdsync.routes import bp_mdsync
@@ -77,6 +78,7 @@ from lvfs.verfmts.routes import bp_verfmts
 app.register_blueprint(bp_agreements, url_prefix='/lvfs/agreements')
 app.register_blueprint(bp_analytics, url_prefix='/lvfs/analytics')
 app.register_blueprint(bp_categories, url_prefix='/lvfs/categories')
+app.register_blueprint(bp_claims, url_prefix='/lvfs/claims')
 app.register_blueprint(bp_components, url_prefix='/lvfs/components')
 app.register_blueprint(bp_devices, url_prefix='/lvfs/devices')
 app.register_blueprint(bp_mdsync, url_prefix='/lvfs/mdsync')
