@@ -1471,7 +1471,7 @@ class ComponentClaim(db.Model):
 
     component_claim_id = Column(Integer, primary_key=True)
     component_id = Column(Integer, ForeignKey('components.component_id'), nullable=False, index=True)
-    claim_id = Column(Integer, ForeignKey('claims.claim_id'), nullable=True, index=True) # only until migrated
+    claim_id = Column(Integer, ForeignKey('claims.claim_id'), nullable=False, index=True)
     _unused_kind = Column('kind', Text, nullable=False)
     _unused_value = Column('value', Text, nullable=False)
 
