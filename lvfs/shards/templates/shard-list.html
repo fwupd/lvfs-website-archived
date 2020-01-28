@@ -39,4 +39,18 @@
 
 {% endif %}
 
+<div class="card mt-3">
+  <div class="card-body">
+    <div class="card-title">Create a new shard</div>
+    <form method="post" action="{{url_for('shards.route_create')}}" class="form">
+      <input type="hidden" name="csrf_token" value="{{csrf_token()}}"/>
+      <div class="form-group card-text">
+        <label>GUID</label>
+        <input class="form-control" type="text" name="guid" placeholder="9b3ada4f-ae56-4c24-8dea-f03b7558ae50" required />
+      </div>
+      <input class="card-link btn btn-primary" type="submit" value="Add"/>
+    </form>
+  </div>
+</div>
+
 {% endblock %}

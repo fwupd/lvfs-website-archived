@@ -103,5 +103,39 @@ class LocalTestCase(LvfsTestCase):
         rv = self.app.get('/lvfs/shards/1/claims')
         assert 'No claims exist yet' in rv.data.decode(), rv.data.decode()
 
+    def test_shard_create(self):
+
+        self.login()
+        rv = self.app.get('/lvfs/shards/')
+        assert 'd9d114ef-f40b-4d48-aaa0-a3dc99c9f5bd' not in rv.data.decode('utf-8'), rv.data
+
+        # create
+        rv = self.app.post('/lvfs/shards/create', data=dict(
+            guid='NOT-A-GUID',
+        ), follow_redirects=True)
+        assert b'Not a GUID' in rv.data, rv.data.decode()
+        rv = self.app.post('/lvfs/shards/create', data=dict(
+            guid='D9D114EF-F40B-4d48-AAA0-A3DC99C9F5BD',
+        ), follow_redirects=True)
+        assert b'Added shard' in rv.data, rv.data.decode()
+        rv = self.app.get('/lvfs/shards/')
+        assert 'd9d114ef-f40b-4d48-aaa0-a3dc99c9f5bd' in rv.data.decode('utf-8'), rv.data.decode()
+        rv = self.app.post('/lvfs/shards/create', data=dict(
+            guid='d9d114ef-f40b-4d48-aaa0-a3dc99c9f5bd',
+        ), follow_redirects=True)
+        assert b'Already exists' in rv.data, rv.data.decode()
+
+        # modify
+        rv = self.app.post('/lvfs/shards/1/modify', data=dict(
+            description='ACME',
+        ), follow_redirects=True)
+        assert b'Modified shard' in rv.data, rv.data.decode()
+        rv = self.app.get('/lvfs/shards/')
+        assert 'ACME' in rv.data.decode('utf-8'), rv.data.decode()
+
+        # show
+        rv = self.app.get('/lvfs/shards/', follow_redirects=True)
+        assert b'ACME' in rv.data, rv.data.decode()
+
 if __name__ == '__main__':
     unittest.main()

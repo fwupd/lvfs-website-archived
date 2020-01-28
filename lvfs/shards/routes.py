@@ -7,6 +7,8 @@
 
 from collections import defaultdict
 
+from uuid import UUID
+
 from flask import Blueprint, request, url_for, redirect, flash, render_template, make_response
 from flask_login import login_required
 
@@ -27,6 +29,34 @@ def route_list():
     return render_template('shard-list.html',
                            category='admin',
                            shards=shards)
+
+@bp_shards.route('/create', methods=['POST'])
+@login_required
+@admin_login_required
+def route_create():
+    # ensure has enough data
+    if 'guid' not in request.form:
+        flash('No form data found', 'warning')
+        return redirect(url_for('shards.route_list'))
+    guid = request.form['guid'].lower()
+    try:
+        _ = UUID(guid)
+    except ValueError:
+        flash('Failed to add shard: Not a GUID', 'warning')
+        return redirect(url_for('shards.route_list'))
+
+    # already exists
+    if db.session.query(ComponentShardInfo).filter(ComponentShardInfo.guid == guid).first():
+        flash('Failed to add shard: Already exists', 'info')
+        return redirect(url_for('shards.route_list'))
+
+    # add ComponentShardInfo
+    shard = ComponentShardInfo(guid=guid)
+    db.session.add(shard)
+    db.session.commit()
+    flash('Added shard', 'info')
+    return redirect(url_for('shards.route_show',
+                            component_shard_info_id=shard.component_shard_info_id))
 
 @bp_shards.route('/<int:component_shard_info_id>/modify', methods=['POST'])
 @login_required
