@@ -19,7 +19,7 @@ from collections import namedtuple
 
 from lvfs import db
 from lvfs.pluginloader import PluginBase, PluginError, PluginSettingBool, PluginSettingText, PluginSettingInteger
-from lvfs.models import Test, ComponentShard
+from lvfs.models import Test, ComponentShard, ComponentShardAttribute
 
 class PfsFile:
 
@@ -107,16 +107,33 @@ class PfsFile:
             else:
                 shard.name = 'com.dell.' + shard.guid
 
-def _read_info_txt(fn):
-    data = {}
-    with open(fn, 'rb') as f:
-        for line in f.read().decode().split('\n'):
+class InfoTxtFile:
+
+    def __init__(self, blob=None):
+        self._data = {}
+        if blob:
+            self.parse(blob)
+
+    def parse(self, blob):
+        for line in blob.decode().split('\n'):
             try:
                 k, v = line.split(': ', maxsplit=1)
-                data[k] = v
+                self._data[k] = v
             except ValueError as _:
                 pass
-    return data
+
+    def get(self, key):
+        return self._data.get(key)
+
+    def get_int(self, key):
+        value = self.get(key)
+        if not value:
+            return None
+        for split in [',', ' ']:
+            value = value.split(split)[0]
+        if value.endswith('h'):
+            return int(value[:-1], 16)
+        return int(value)
 
 class Plugin(PluginBase):
     def __init__(self, plugin_id=None):
@@ -150,12 +167,16 @@ class Plugin(PluginBase):
                 continue
 
             # read in child data
-            data = _read_info_txt(fn)
+            with open(fn, 'rb') as f:
+                data = InfoTxtFile(f.read())
             if data.get('Subtype') in ['PE32 image', 'TE image']:
-                data = _read_info_txt(os.path.join(dirname, '..', 'info.txt'))
+                with open(os.path.join(dirname, '..', 'info.txt'), 'rb') as f:
+                    data = InfoTxtFile(f.read())
             name = data.get('Text')
             if not name:
-                name = data.get('CPU signature')
+                if data.get('CPU signature') and data.get('CPU flags'):
+                    name = '{:08X}.{:08X}'.format(data.get_int('CPU signature'),
+                                                  data.get_int('CPU flags'))
             if name:
                 for src in [' ', '(', ')']:
                     name = name.replace(src, '_')
@@ -246,8 +267,50 @@ class Plugin(PluginBase):
             if shard.checksum in shard_by_checksum:
                 #print('skipping duplicate {}'.format(guid))
                 continue
-            shard_by_checksum[shard.checksum] = shard
 
+            # add attributes
+            if kind == 'Microcode::Intel':
+
+                # e.g. 000806E9
+                value = data.get_int('CPU signature')
+                if value:
+                    shard.attributes.append(ComponentShardAttribute(key='cpuid',
+                                                                    value='{:08X}'.format(value)))
+
+                # e.g. C0
+                value = data.get_int('CPU flags')
+                if value:
+                    shard.attributes.append(ComponentShardAttribute(key='platform',
+                                                                    value='{:08X}'.format(value)))
+
+                # e.g. C6
+                value = data.get_int('Revision')
+                if value:
+                    shard.attributes.append(ComponentShardAttribute(key='version',
+                                                                    value='{:08X}'.format(value)))
+
+                # convert dd.mm.yyyy to yyyymmdd
+                value = data.get('Date')
+                if value:
+                    split = value.split('.')
+                    date_iso = '{}{}{}'.format(split[2], split[1], split[0])
+                    shard.attributes.append(ComponentShardAttribute(key='yyyymmdd', value=date_iso))
+
+                # combined size of header and body
+                sz_bdy = data.get_int('Full size')
+                sz_hdr = data.get_int('Header size')
+                if sz_bdy and sz_hdr:
+                    value = sz_bdy + sz_hdr
+                    shard.attributes.append(ComponentShardAttribute(key='size',
+                                                                    value='{:08X}'.format(value)))
+
+                # e.g. 98458A98
+                value = data.get_int('Checksum')
+                if value:
+                    shard.attributes.append(ComponentShardAttribute(key='checksum',
+                                                                    value='{:08X}'.format(value)))
+
+            shard_by_checksum[shard.checksum] = shard
             shards.append(shard)
         return shards
 
@@ -397,3 +460,5 @@ if __name__ == '__main__':
             print(attribute)
         for _shard in _md.shards:
             print(_shard.guid, _shard.name, _shard.checksum)
+            for _attr in _shard.attributes:
+                print(_attr.key, _attr.value)
