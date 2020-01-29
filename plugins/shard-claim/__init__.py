@@ -19,9 +19,7 @@ class Plugin(PluginBase):
         self.claims_by_csum = {}
         self.name = 'Shard Claim'
         self.summary = 'Add component claims based on shard GUIDs'
-
-    def order_after(self):
-        return ['uefi-extract']
+        self.order_after = ['uefi-extract']
 
     def ensure_test_for_fw(self, fw):
 

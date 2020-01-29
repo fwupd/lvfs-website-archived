@@ -51,9 +51,7 @@ class Plugin(PluginBase):
         self.rules = None
         self.name = 'Blocklist'
         self.summary = 'Use YARA to check firmware for problems'
-
-    def order_after(self):
-        return ['uefi-extract', 'intelme']
+        self.order_after = ['uefi-extract', 'intelme']
 
     def settings(self):
         s = []

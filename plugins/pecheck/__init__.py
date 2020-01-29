@@ -89,9 +89,7 @@ class Plugin(PluginBase):
         PluginBase.__init__(self, plugin_id)
         self.name = 'PE Check'
         self.summary = 'Check the portable executable file (.efi) for common problems'
-
-    def order_after(self):
-        return ['uefi-extract', 'intelme']
+        self.order_after = ['uefi-extract', 'intelme']
 
     def settings(self):
         s = []

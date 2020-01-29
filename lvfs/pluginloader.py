@@ -57,6 +57,7 @@ class PluginBase:
         self._setting_kvs = {}
         self.name = 'Noname Plugin'
         self.summary = 'Plugin did not set summary'
+        self.order_after = []
 
     def settings(self):
         return []
@@ -134,12 +135,7 @@ class Pluginloader:
         # depsolve
         for plugin_name in plugins:
             plugin = plugins[plugin_name]
-            if not hasattr(plugin, 'order_after'):
-                continue
-            names = plugin.order_after()
-            if not names:
-                continue
-            for name in names:
+            for name in plugin.order_after:
                 if name not in plugins:
                     continue
                 plugin2 = plugins[name]
