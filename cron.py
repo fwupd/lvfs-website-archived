@@ -5,7 +5,7 @@
 #
 # SPDX-License-Identifier: GPL-2.0+
 #
-# pylint: disable=singleton-comparison,wrong-import-position
+# pylint: disable=singleton-comparison,wrong-import-position,too-many-nested-blocks
 
 import os
 import sys
@@ -322,9 +322,15 @@ def _check_firmware():
         try:
             print('Running test {} for firmware {}'.format(test.plugin_id, test.fw.firmware_id))
             if hasattr(plugin, 'run_test_on_fw'):
+                if hasattr(plugin, 'require_test_for_fw'):
+                    if not plugin.require_test_for_fw(test.fw):
+                        continue
                 plugin.run_test_on_fw(test, test.fw)
             if hasattr(plugin, 'run_test_on_md'):
                 for md in test.fw.mds:
+                    if hasattr(plugin, 'require_test_for_md'):
+                        if not plugin.require_test_for_md(md):
+                            continue
                     plugin.run_test_on_md(test, md)
             test.ended_ts = datetime.datetime.utcnow()
             # don't leave a failed task running

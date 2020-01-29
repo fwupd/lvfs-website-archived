@@ -169,41 +169,30 @@ class Plugin(PluginBase):
         s.append(PluginSettingBool('intelme_enabled', 'Enabled', True))
         return s
 
-    def _require_test_for_md(self, md):
+    def require_test_for_md(self, md):
 
         # match on protocol
         if not md.protocol:
-            # only until required
-            return True
+            return False
         if md.protocol.value != 'org.uefi.capsule':
+            return False
+        if not md.blob:
             return False
 
         # match on category
         if not md.category:
-            # only until required
             return True
         return md.category.matches(['X-System', 'X-ManagementEngine'])
-
-    def _require_test_for_fw(self, fw):
-        for md in fw.mds:
-            if self._require_test_for_md(md):
-                return True
-        return False
 
     def ensure_test_for_fw(self, fw):
 
         # add if not already exists
-        if self._require_test_for_fw(fw):
-            test = fw.find_test_by_plugin_id(self.id)
-            if not test:
-                test = Test(self.id, waivable=True)
-                fw.tests.append(test)
+        test = fw.find_test_by_plugin_id(self.id)
+        if not test:
+            test = Test(self.id, waivable=True)
+            fw.tests.append(test)
 
     def run_test_on_md(self, test, md):
 
         # run intelme on the capsule data
-        if not md.blob:
-            return
-        if self._require_test_for_md(md):
-            _run_intelme_on_blob(self, test, md)
-        db.session.commit()
+        _run_intelme_on_blob(self, test, md)

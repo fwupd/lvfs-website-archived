@@ -97,25 +97,18 @@ class Plugin(PluginBase):
         s.append(PluginSettingInteger('pecheck_allowable', 'Number of years to relax failure', 3))
         return s
 
-    def _require_test_for_md(self, md):
+    def require_test_for_md(self, md):
         if not md.protocol:
             return False
         return md.protocol.value == 'org.uefi.capsule'
 
-    def _require_test_for_fw(self, fw):
-        for md in fw.mds:
-            if self._require_test_for_md(md):
-                return True
-        return False
-
     def ensure_test_for_fw(self, fw):
 
         # add if not already exists
-        if self._require_test_for_fw(fw):
-            test = fw.find_test_by_plugin_id(self.id)
-            if not test:
-                test = Test(self.id, waivable=True)
-                fw.tests.append(test)
+        test = fw.find_test_by_plugin_id(self.id)
+        if not test:
+            test = Test(self.id, waivable=True)
+            fw.tests.append(test)
 
     def _run_test_on_shard(self, test, shard):
 
@@ -166,8 +159,6 @@ class Plugin(PluginBase):
     def run_test_on_md(self, test, md):
 
         # run analysis on each shard
-        if not self._require_test_for_md(md):
-            return
         for cert in md.certificates:
             if cert.plugin_id == self.id:
                 db.session.delete(cert)

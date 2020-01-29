@@ -405,37 +405,27 @@ class Plugin(PluginBase):
                 shard.save()
             md.shards.append(shard)
 
-    def _require_test_for_md(self, md):
+    def require_test_for_md(self, md):
         if not md.protocol:
             return False
+        if not md.blob:
+            return False
         return md.protocol.value == 'org.uefi.capsule'
-
-    def _require_test_for_fw(self, fw):
-        for md in fw.mds:
-            if self._require_test_for_md(md):
-                return True
-        return False
 
     def ensure_test_for_fw(self, fw):
 
         # add if not already exists
-        if self._require_test_for_fw(fw):
-            test = fw.find_test_by_plugin_id(self.id)
-            if not test:
-                test = fw.find_test_by_plugin_id('chipsec') # old name
-            if not test:
-                test = Test(self.id, waivable=True)
-                fw.tests.append(test)
+        test = fw.find_test_by_plugin_id(self.id)
+        if not test:
+            test = fw.find_test_by_plugin_id('chipsec') # old name
+        if not test:
+            test = Test(self.id, waivable=True)
+            fw.tests.append(test)
 
     def run_test_on_md(self, test, md):
 
         # extract the capsule data
-        if not self._require_test_for_md(md):
-            return
-        if not md.blob:
-            return
         self._run_uefi_extract_on_md(test, md)
-        db.session.commit()
 
 # run with PYTHONPATH=. ./env/bin/python3 plugins/uefi-extract/__init__.py
 if __name__ == '__main__':

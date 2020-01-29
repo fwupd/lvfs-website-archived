@@ -24,30 +24,23 @@ class Plugin(PluginBase):
         s.append(PluginSettingBool('dfu_check_footer', 'Enabled', True))
         return s
 
+    def require_test_for_md(self, md):
+
+        if not md.protocol:
+            return True
+        if not md.blob:
+            return False
+        return md.protocol.value == 'org.usb.dfu'
+
     def ensure_test_for_fw(self, fw):
 
-        # only run for specific protocol
-        require_test = False
-        for md in fw.mds:
-            if not md.protocol:
-                continue
-            if md.protocol.value == 'org.usb.dfu':
-                require_test = True
-
         # add if not already exists
-        if require_test:
-            test = fw.find_test_by_plugin_id(self.id)
-            if not test:
-                test = Test(self.id, waivable=True)
-                fw.tests.append(test)
+        test = fw.find_test_by_plugin_id(self.id)
+        if not test:
+            test = Test(self.id, waivable=True)
+            fw.tests.append(test)
 
     def run_test_on_md(self, test, md):
-
-        # check each file
-        if md.protocol.value != 'org.usb.dfu':
-            return
-        if not md.blob:
-            return
 
         # unpack the footer
         sz = len(md.blob)

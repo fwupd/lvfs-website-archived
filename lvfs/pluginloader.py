@@ -227,9 +227,26 @@ class Pluginloader:
         if not self.loaded:
             self.load_plugins()
         for plugin in self._plugins:
+            if not plugin.enabled:
+                continue
+
+            # allow plugins to set conditionals on ensuring
+            ensure_test = False
+            if hasattr(plugin, 'require_test_for_fw') or hasattr(plugin, 'require_test_for_md'):
+                if hasattr(plugin, 'require_test_for_fw'):
+                    if plugin.require_test_for_fw(fw):
+                        ensure_test = True
+                if hasattr(plugin, 'require_test_for_md'):
+                    for md in fw.mds:
+                        if plugin.require_test_for_md(md):
+                            ensure_test = True
+                            break
+            else:
+                # any tests without either vfunc are assumed to always run
+                ensure_test = True
+            if not ensure_test:
+                continue
             if hasattr(plugin, 'ensure_test_for_fw'):
-                if not plugin.enabled:
-                    continue
                 try:
                     plugin.ensure_test_for_fw(fw)
                 except PluginError as e:

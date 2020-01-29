@@ -24,30 +24,24 @@ class Plugin(PluginBase):
         s.append(PluginSettingBool('uefi_capsule_check_header', 'Enabled', True))
         return s
 
-    def ensure_test_for_fw(self, fw):
+    def require_test_for_md(self, md):
 
         # only run for capsule updates
-        require_test = False
-        for md in fw.mds:
-            if not md.protocol:
-                continue
-            if md.protocol.value == 'org.uefi.capsule':
-                require_test = True
+        if not md.protocol:
+            return False
+        if not md.blob:
+            return False
+        return md.protocol.value == 'org.uefi.capsule'
+
+    def ensure_test_for_fw(self, fw):
 
         # add if not already exists
-        if require_test:
-            test = fw.find_test_by_plugin_id(self.id)
-            if not test:
-                test = Test(self.id, waivable=True)
-                fw.tests.append(test)
+        test = fw.find_test_by_plugin_id(self.id)
+        if not test:
+            test = Test(self.id, waivable=True)
+            fw.tests.append(test)
 
     def run_test_on_md(self, test, md):
-
-        # check each capsule
-        if md.protocol.value != 'org.uefi.capsule':
-            return
-        if not md.blob:
-            return
 
         # unpack the header
         try:
