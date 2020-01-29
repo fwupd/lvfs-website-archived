@@ -1642,7 +1642,7 @@ class Component(db.Model):
 
     @property
     def blob(self):
-        if not hasattr(self, '_blob'):
+        if not hasattr(self, '_blob') or not self._blob:
             self._blob = None
             self.fw._ensure_blobs()
         return self._blob
