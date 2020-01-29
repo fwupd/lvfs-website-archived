@@ -48,6 +48,12 @@
           <td class="col text-truncate"><code>{{csum.value}}</code></td>
         </tr>
 {% endfor %}
+{% for attr in shard.attributes %}
+        <tr class="row">
+          <th class="col-2">Attribute::{{attr.key}}</th>
+          <td class="col text-truncate"><code>{{attr.value}}</code></td>
+        </tr>
+{% endfor %}
       </table>
     </p>
 {% if shard.checksum %}

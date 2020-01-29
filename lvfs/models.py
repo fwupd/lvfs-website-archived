@@ -1327,6 +1327,21 @@ class ComponentShardClaim(db.Model):
         return "ComponentShardClaim object {},{} -> {}({})"\
                     .format(self.info.guid, self.checksum, self.kind, self.value)
 
+class ComponentShardAttribute(db.Model):
+    __tablename__ = 'component_shard_attributes'
+    __table_args__ = {'mysql_character_set': 'utf8mb4'}
+
+    component_shard_attribute_id = Column(Integer, primary_key=True)
+    component_shard_id = Column(Integer, ForeignKey('component_shards.component_shard_id'), nullable=False, index=True)
+    key = Column(Text, nullable=False)
+    value = Column(Text, default=None)
+
+    # link back to parent
+    component_shard = relationship("ComponentShard", back_populates="attributes")
+
+    def __repr__(self):
+        return "ComponentShardAttribute object %s=%s" % (self.key, self.value)
+
 class ComponentShard(db.Model):
 
     # sqlalchemy metadata
@@ -1356,6 +1371,15 @@ class ComponentShard(db.Model):
 
     # link back to parent
     md = relationship('Component', back_populates="shards")
+    attributes = relationship("ComponentShardAttribute",
+                              back_populates="component_shard",
+                              cascade='all,delete-orphan')
+
+    def get_attr_value(self, key):
+        for attr in self.attributes:
+            if attr.key == key:
+                return attr.value
+        return None
 
     @property
     def description(self):
