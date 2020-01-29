@@ -107,12 +107,11 @@ class Plugin(PluginBase):
                 test = Test(self.id, waivable=True)
                 fw.tests.append(test)
 
-    def run_test_on_fw(self, test, fw):
+    def run_test_on_md(self, test, md):
 
         # run psptool on the capsule data
-        for md in fw.mds:
-            if not md.blob:
-                continue
-            if self._require_test_for_md(md):
-                _run_psptool_on_blob(self, test, md)
+        if not md.blob:
+            return
+        if self._require_test_for_md(md):
+            _run_psptool_on_blob(self, test, md)
         db.session.commit()

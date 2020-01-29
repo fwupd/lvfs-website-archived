@@ -434,7 +434,7 @@ class LocalTestCase(LvfsTestCase):
         self.login()
         self.upload(filename='contrib/blocklist.cab', target='private')
         rv = self.app.get('/lvfs/firmware/1/tests')
-        assert 'CRC: 0x85f035a8' in rv.data.decode('utf-8'), rv.data
+        assert 'CRC: 0x85f035a8' in rv.data.decode('utf-8'), rv.data.decode()
         assert 'DFU Length: 0x10' in rv.data.decode('utf-8'), rv.data
         assert 'DFU Version: 0x0100' in rv.data.decode('utf-8'), rv.data
         assert 'IbvExampleCertificate' in rv.data.decode('utf-8'), rv.data.decode()

@@ -163,16 +163,15 @@ class Plugin(PluginBase):
             cert.component_shard_id = shard.component_shard_id
             shard.certificates.append(cert)
 
-    def run_test_on_fw(self, test, fw):
+    def run_test_on_md(self, test, md):
 
         # run analysis on each shard
-        for md in fw.mds:
-            if not self._require_test_for_md(md):
-                continue
-            for cert in md.certificates:
-                if cert.plugin_id == self.id:
-                    db.session.delete(cert)
-            db.session.commit()
-            for shard in md.shards:
-                if shard.blob:
-                    self._run_test_on_shard(test, shard)
+        if not self._require_test_for_md(md):
+            return
+        for cert in md.certificates:
+            if cert.plugin_id == self.id:
+                db.session.delete(cert)
+        db.session.commit()
+        for shard in md.shards:
+            if shard.blob:
+                self._run_test_on_shard(test, shard)

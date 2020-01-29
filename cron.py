@@ -319,13 +319,13 @@ def _check_firmware():
             _event_log('No plugin %s' % test.plugin_id)
             test.ended_ts = datetime.datetime.utcnow()
             continue
-        if not hasattr(plugin, 'run_test_on_fw'):
-            _event_log('No run_test_on_fw in %s' % test.plugin_id)
-            test.ended_ts = datetime.datetime.utcnow()
-            continue
         try:
             print('Running test {} for firmware {}'.format(test.plugin_id, test.fw.firmware_id))
-            plugin.run_test_on_fw(test, test.fw)
+            if hasattr(plugin, 'run_test_on_fw'):
+                plugin.run_test_on_fw(test, test.fw)
+            if hasattr(plugin, 'run_test_on_md'):
+                for md in test.fw.mds:
+                    plugin.run_test_on_md(test, md)
             test.ended_ts = datetime.datetime.utcnow()
             # don't leave a failed task running
             db.session.commit()

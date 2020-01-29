@@ -427,15 +427,14 @@ class Plugin(PluginBase):
                 test = Test(self.id, waivable=True)
                 fw.tests.append(test)
 
-    def run_test_on_fw(self, test, fw):
+    def run_test_on_md(self, test, md):
 
         # extract the capsule data
-        for md in fw.mds:
-            if not self._require_test_for_md(md):
-                continue
-            if not md.blob:
-                continue
-            self._run_uefi_extract_on_md(test, md)
+        if not self._require_test_for_md(md):
+            return
+        if not md.blob:
+            return
+        self._run_uefi_extract_on_md(test, md)
         db.session.commit()
 
 # run with PYTHONPATH=. ./env/bin/python3 plugins/uefi-extract/__init__.py
@@ -455,7 +454,8 @@ if __name__ == '__main__':
         with open(_argv, 'rb') as _f:
             _md.blob = _f.read()
         _fw.mds.append(_md)
-        plugin.run_test_on_fw(_test, _fw)
+        for _md in _fw.mds:
+            plugin.run_test_on_md(_test, _md)
         for attribute in _test.attributes:
             print(attribute)
         for _shard in _md.shards:

@@ -46,15 +46,16 @@ class Plugin(PluginBase):
         for claim in db.session.query(Claim).all():
             claims[claim.kind] = claim
 
+    def run_test_on_md(self, test, md):
+
         # run analysis on the component and any shards
-        for md in fw.mds:
-            for shard in md.shards:
-                if shard.guid in self.infos_by_guid:
-                    info = self.infos_by_guid[shard.guid]
-                    md.add_claim(info.claim)
-                if shard.checksum in self.claims_by_csum:
-                    shard_claim = self.claims_by_csum[shard.checksum]
-                    md.add_claim(shard_claim.claim)
+        for shard in md.shards:
+            if shard.guid in self.infos_by_guid:
+                info = self.infos_by_guid[shard.guid]
+                md.add_claim(info.claim)
+            if shard.checksum in self.claims_by_csum:
+                shard_claim = self.claims_by_csum[shard.checksum]
+                md.add_claim(shard_claim.claim)
 
 # run with PYTHONPATH=. ./env/bin/python3 plugins/shard-claim/__init__.py
 if __name__ == '__main__':
@@ -72,5 +73,6 @@ if __name__ == '__main__':
     _md.shards.append(_shard)
     _fw.mds.append(_md)
     plugin.run_test_on_fw(_test, _fw)
+    plugin.run_test_on_md(_test, _md)
     for _claim in _md.claims:
         print(_claim)

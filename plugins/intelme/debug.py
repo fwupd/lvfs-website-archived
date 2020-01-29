@@ -29,8 +29,7 @@ if __name__ == '__main__':
         _md.protocol = Protocol('org.uefi.capsule')
         with open(_argv, 'rb') as _f:
             _md.blob = _f.read()
-        _fw.mds.append(_md)
-        plugin.run_test_on_fw(_test, _fw)
+        plugin.run_test_on_md(_test, _md)
         for attribute in _test.attributes:
             print(attribute)
         for shard in _md.shards:

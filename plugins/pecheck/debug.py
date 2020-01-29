@@ -33,8 +33,7 @@ if __name__ == '__main__':
         except IsADirectoryError as _:
             continue
         _md.shards.append(_shard)
-        _fw.mds.append(_md)
-        plugin.run_test_on_fw(_test, _fw)
+        plugin.run_test_on_md(_test, _md)
         for attribute in _test.attributes:
             print(attribute)
         for cert in _shard.certificates:

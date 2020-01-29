@@ -68,7 +68,7 @@ class Plugin(PluginBase):
             test = Test(self.id, waivable=True)
             fw.tests.append(test)
 
-    def run_test_on_fw(self, test, fw):
+    def run_test_on_md(self, test, md):
 
         # compile the list of rules
         if not self.rules:
@@ -88,12 +88,11 @@ class Plugin(PluginBase):
                 return
 
         # run analysis on the component and any shards
-        for md in fw.mds:
-            if md.blob:
-                _run_on_blob(self, test, md, md.filename_contents, md.blob)
-            for shard in md.shards:
-                if shard.blob:
-                    _run_on_blob(self, test, md, shard.name, shard.blob)
+        if md.blob:
+            _run_on_blob(self, test, md, md.filename_contents, md.blob)
+        for shard in md.shards:
+            if shard.blob:
+                _run_on_blob(self, test, md, shard.name, shard.blob)
 
 # run with PYTHONPATH=. ./env/bin/python3 plugins/blocklist/__init__.py
 if __name__ == '__main__':
@@ -107,5 +106,6 @@ if __name__ == '__main__':
     _md.blob = b'CN=DO NOT TRUST - AMI Test PK'
     _fw.mds.append(_md)
     plugin.run_test_on_fw(_test, _fw)
+    plugin.run_test_on_md(_test, _md)
     for attribute in _test.attributes:
         print(attribute)

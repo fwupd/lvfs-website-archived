@@ -41,7 +41,11 @@ class Plugin(PluginBase):
             test = Test(self.id)
             fw.tests.append(test)
 
-    def _run_test_on_md(self, test, md):
+    def run_test_on_md(self, test, md):
+
+        # sanity check
+        if not md.blob:
+            return
 
         # build the remote name
         remote_path = '/' + md.fw.vendor.group_id + '/' + str(md.component_id) + '/' + md.filename_contents
@@ -60,11 +64,3 @@ class Plugin(PluginBase):
                 return
         except IOError as e:
             raise PluginError(e)
-
-    def run_test_on_fw(self, test, fw):
-
-        # upload each decompressed blob
-        for md in fw.mds:
-            if not md.blob:
-                continue
-            self._run_test_on_md(test, md)
