@@ -99,7 +99,6 @@ class Agreement(db.Model):
 
     # database
     __tablename__ = 'agreements'
-    __table_args__ = {'mysql_character_set': 'utf8mb4'}
 
     agreement_id = Column(Integer, primary_key=True)
     created = Column(DateTime, nullable=False, default=datetime.datetime.utcnow)
@@ -110,7 +109,6 @@ class UserAction(db.Model):
 
     # database
     __tablename__ = 'user_actions'
-    __table_args__ = {'mysql_character_set': 'utf8mb4'}
 
     user_action_id = Column(Integer, primary_key=True)
     user_id = Column(Integer, ForeignKey('users.user_id'), nullable=False, index=True)
@@ -127,7 +125,6 @@ class User(db.Model):
     # database
     __tablename__ = 'users'
     __table_args__ = (Index('idx_users_username_password', 'username', 'password'),
-                      {'mysql_character_set': 'utf8mb4'}
                      )
 
     user_id = Column(Integer, primary_key=True)
@@ -321,7 +318,6 @@ class YaraQueryResult(db.Model):
 
     # database
     __tablename__ = 'yara_query_result'
-    __table_args__ = {'mysql_character_set': 'utf8mb4'}
 
     yara_query_result_id = Column(Integer, primary_key=True)
     yara_query_id = Column(Integer, ForeignKey('yara_query.yara_query_id'), nullable=False)
@@ -340,7 +336,6 @@ class YaraQuery(db.Model):
 
     # sqlalchemy metadata
     __tablename__ = 'yara_query'
-    __table_args__ = {'mysql_character_set': 'utf8mb4'}
 
     yara_query_id = Column(Integer, primary_key=True)
     user_id = Column(Integer, ForeignKey('users.user_id'), nullable=False, index=True)
@@ -414,7 +409,6 @@ class Restriction(db.Model):
 
     # sqlalchemy metadata
     __tablename__ = 'restrictions'
-    __table_args__ = {'mysql_character_set': 'utf8mb4'}
 
     restriction_id = Column(Integer, primary_key=True)
     vendor_id = Column(Integer, ForeignKey('vendors.vendor_id'), nullable=False, index=True)
@@ -430,7 +424,6 @@ class Namespace(db.Model):
 
     # sqlalchemy metadata
     __tablename__ = 'namespaces'
-    __table_args__ = {'mysql_character_set': 'utf8mb4'}
 
     namespace_id = Column(Integer, primary_key=True)
     vendor_id = Column(Integer, ForeignKey('vendors.vendor_id'), nullable=False, index=True)
@@ -457,7 +450,6 @@ class AffiliationAction(db.Model):
 
     # database
     __tablename__ = 'affiliation_actions'
-    __table_args__ = {'mysql_character_set': 'utf8mb4'}
 
     affiliation_action_id = Column(Integer, primary_key=True)
     affiliation_id = Column(Integer, ForeignKey('affiliations.affiliation_id'), nullable=False, index=True)
@@ -475,7 +467,6 @@ class Affiliation(db.Model):
 
     # database
     __tablename__ = 'affiliations'
-    __table_args__ = {'mysql_character_set': 'utf8mb4'}
 
     affiliation_id = Column(Integer, primary_key=True)
     timestamp = Column(DateTime, nullable=False, default=datetime.datetime.utcnow)
@@ -500,7 +491,6 @@ class Vendor(db.Model):
 
     # sqlalchemy metadata
     __tablename__ = 'vendors'
-    __table_args__ = {'mysql_character_set': 'utf8mb4'}
 
     vendor_id = Column(Integer, primary_key=True)
     group_id = Column(String(80), nullable=False, index=True)
@@ -717,7 +707,6 @@ class Event(db.Model):
 
     # sqlalchemy metadata
     __tablename__ = 'event_log'
-    __table_args__ = {'mysql_character_set': 'utf8mb4'}
 
     id = Column(Integer, primary_key=True)
     timestamp = Column(DateTime, nullable=False, default=datetime.datetime.utcnow)
@@ -739,7 +728,6 @@ class Certificate(db.Model):
 
     # sqlalchemy metadata
     __tablename__ = 'certificates'
-    __table_args__ = {'mysql_character_set': 'utf8mb4'}
 
     certificate_id = Column(Integer, primary_key=True)
     user_id = Column(Integer, ForeignKey('users.user_id'), nullable=False, index=True)
@@ -772,7 +760,6 @@ class Requirement(db.Model):
 
     # sqlalchemy metadata
     __tablename__ = 'requirements'
-    __table_args__ = {'mysql_character_set': 'utf8mb4'}
 
     requirement_id = Column(Integer, primary_key=True)
     component_id = Column(Integer, ForeignKey('components.component_id'), nullable=False, index=True)
@@ -806,7 +793,6 @@ class Keyword(db.Model):
 
     # sqlalchemy metadata
     __tablename__ = 'keywords'
-    __table_args__ = {'mysql_character_set': 'utf8mb4'}
 
     keyword_id = Column(Integer, primary_key=True)
     component_id = Column(Integer, ForeignKey('components.component_id'), nullable=False, index=True)
@@ -861,7 +847,6 @@ class Checksum(db.Model):
 
     # sqlalchemy metadata
     __tablename__ = 'checksums'
-    __table_args__ = {'mysql_character_set': 'utf8mb4'}
 
     checksum_id = Column(Integer, primary_key=True)
     component_id = Column(Integer, ForeignKey('components.component_id'), nullable=False, index=True)
@@ -876,7 +861,6 @@ class Checksum(db.Model):
 
 class TestAttribute(db.Model):
     __tablename__ = 'test_attributes'
-    __table_args__ = {'mysql_character_set': 'utf8mb4'}
 
     test_attribute_id = Column(Integer, primary_key=True)
     test_id = Column(Integer, ForeignKey('tests.test_id'), nullable=False, index=True)
@@ -894,7 +878,6 @@ class Test(db.Model):
 
     # sqlalchemy metadata
     __tablename__ = 'tests'
-    __table_args__ = {'mysql_character_set': 'utf8mb4'}
 
     test_id = Column(Integer, primary_key=True)
     firmware_id = Column(Integer, ForeignKey('firmware.firmware_id'), nullable=False, index=True)
@@ -1010,7 +993,6 @@ class Verfmt(db.Model):
 
     # sqlalchemy metadata
     __tablename__ = 'verfmts'
-    __table_args__ = {'mysql_character_set': 'utf8mb4'}
 
     verfmt_id = Column(Integer, primary_key=True)
     value = Column(Text, nullable=False)        # 'dell-bios'
@@ -1072,7 +1054,6 @@ class Category(db.Model):
 
     # sqlalchemy metadata
     __tablename__ = 'categories'
-    __table_args__ = {'mysql_character_set': 'utf8mb4'}
 
     category_id = Column(Integer, primary_key=True)
     value = Column(Text, nullable=False)        # 'X-System'
@@ -1097,7 +1078,6 @@ class Claim(db.Model):
 
     # sqlalchemy metadata
     __tablename__ = 'claims'
-    __table_args__ = {'mysql_character_set': 'utf8mb4'}
 
     claim_id = Column(Integer, primary_key=True)
     kind = Column(Text, nullable=False, index=True)
@@ -1131,7 +1111,6 @@ class ComponentShardInfo(db.Model):
 
     # sqlalchemy metadata
     __tablename__ = 'component_shard_infos'
-    __table_args__ = {'mysql_character_set': 'utf8mb4'}
 
     component_shard_info_id = Column(Integer, primary_key=True)
     guid = Column(String(36), default=None, index=True)
@@ -1150,7 +1129,6 @@ class ComponentShardChecksum(db.Model):
 
     # sqlalchemy metadata
     __tablename__ = 'component_shard_checksums'
-    __table_args__ = {'mysql_character_set': 'utf8mb4'}
 
     checksum_id = Column(Integer, primary_key=True)
     component_shard_id = Column(Integer, ForeignKey('component_shards.component_shard_id'), nullable=False, index=True)
@@ -1167,7 +1145,6 @@ class ComponentShardCertificate(db.Model):
 
     # sqlalchemy metadata
     __tablename__ = 'component_shard_certificates'
-    __table_args__ = {'mysql_character_set': 'utf8mb4'}
 
     component_shard_certificate_id = Column(Integer, primary_key=True)
     component_shard_id = Column(Integer, ForeignKey('component_shards.component_shard_id'), nullable=False, index=True)
@@ -1210,7 +1187,6 @@ class ComponentShardClaim(db.Model):
 
     # sqlalchemy metadata
     __tablename__ = 'component_shard_claims'
-    __table_args__ = {'mysql_character_set': 'utf8mb4'}
 
     component_shard_claim_id = Column(Integer, primary_key=True)
     component_shard_info_id = Column(Integer, ForeignKey('component_shard_infos.component_shard_info_id'))
@@ -1226,7 +1202,6 @@ class ComponentShardClaim(db.Model):
 
 class ComponentShardAttribute(db.Model):
     __tablename__ = 'component_shard_attributes'
-    __table_args__ = {'mysql_character_set': 'utf8mb4'}
 
     component_shard_attribute_id = Column(Integer, primary_key=True)
     component_shard_id = Column(Integer, ForeignKey('component_shards.component_shard_id'), nullable=False, index=True)
@@ -1243,7 +1218,6 @@ class ComponentShard(db.Model):
 
     # sqlalchemy metadata
     __tablename__ = 'component_shards'
-    __table_args__ = {'mysql_character_set': 'utf8mb4'}
 
     component_shard_id = Column(Integer, primary_key=True)
     component_id = Column(Integer, ForeignKey('components.component_id'), nullable=False, index=True)
@@ -1344,7 +1318,6 @@ class ComponentIssue(db.Model):
 
     # sqlalchemy metadata
     __tablename__ = 'component_issues'
-    __table_args__ = {'mysql_character_set': 'utf8mb4'}
 
     component_issue_id = Column(Integer, primary_key=True)
     component_id = Column(Integer, ForeignKey('components.component_id'), nullable=False, index=True)
@@ -1383,7 +1356,6 @@ class ComponentClaim(db.Model):
 
     # sqlalchemy metadata
     __tablename__ = 'component_claims'
-    __table_args__ = {'mysql_character_set': 'utf8mb4'}
 
     component_claim_id = Column(Integer, primary_key=True)
     component_id = Column(Integer, ForeignKey('components.component_id'), nullable=False, index=True)
@@ -1400,7 +1372,6 @@ class ComponentRef(db.Model):
 
     # sqlalchemy metadata
     __tablename__ = 'component_refs'
-    __table_args__ = {'mysql_character_set': 'utf8mb4'}
 
     component_ref_id = Column(Integer, primary_key=True)
     component_id = Column(Integer, ForeignKey('components.component_id'), index=True)
@@ -1440,7 +1411,6 @@ class Component(db.Model):
 
     # sqlalchemy metadata
     __tablename__ = 'components'
-    __table_args__ = {'mysql_character_set': 'utf8mb4'}
 
     component_id = Column(Integer, primary_key=True)
     firmware_id = Column(Integer, ForeignKey('firmware.firmware_id'), nullable=False, index=True)
@@ -1883,7 +1853,6 @@ class Remote(db.Model):
 
     # sqlalchemy metadata
     __tablename__ = 'remotes'
-    __table_args__ = {'mysql_character_set': 'utf8mb4'}
 
     remote_id = Column(Integer, primary_key=True)
     name = Column(Text, nullable=False)
@@ -1959,7 +1928,6 @@ class FirmwareEvent(db.Model):
 
     # sqlalchemy metadata
     __tablename__ = 'firmware_events'
-    __table_args__ = {'mysql_character_set': 'utf8mb4'}
 
     firmware_event_id = Column(Integer, primary_key=True)
     firmware_id = Column(Integer, ForeignKey('firmware.firmware_id'), nullable=False, index=True)
@@ -1981,7 +1949,6 @@ class FirmwareLimit(db.Model):
 
     # sqlalchemy metadata
     __tablename__ = 'firmware_limits'
-    __table_args__ = {'mysql_character_set': 'utf8mb4'}
 
     firmware_limit_id = Column(Integer, primary_key=True)
     firmware_id = Column(Integer, ForeignKey('firmware.firmware_id'), nullable=False, index=True)
@@ -1996,7 +1963,6 @@ class Firmware(db.Model):
 
     # sqlalchemy metadata
     __tablename__ = 'firmware'
-    __table_args__ = {'mysql_character_set': 'utf8mb4'}
 
     firmware_id = Column(Integer, primary_key=True)
     vendor_id = Column(Integer, ForeignKey('vendors.vendor_id'), nullable=False, index=True)
@@ -2356,7 +2322,6 @@ class Client(db.Model):
 
     # sqlalchemy metadata
     __tablename__ = 'clients'
-    __table_args__ = {'mysql_character_set': 'utf8mb4'}
 
     id = Column(Integer, primary_key=True)
     timestamp = Column(DateTime, nullable=False, default=datetime.datetime.utcnow, index=True)
@@ -2375,7 +2340,6 @@ class Condition(db.Model):
 
     # sqlalchemy metadata
     __tablename__ = 'conditions'
-    __table_args__ = {'mysql_character_set': 'utf8mb4'}
 
     condition_id = Column(Integer, primary_key=True)
     issue_id = Column(Integer, ForeignKey('issues.issue_id'), nullable=False, index=True)
@@ -2422,7 +2386,6 @@ class Issue(db.Model):
 
     # sqlalchemy metadata
     __tablename__ = 'issues'
-    __table_args__ = {'mysql_character_set': 'utf8mb4'}
 
     issue_id = Column(Integer, primary_key=True)
     priority = Column(Integer, default=0)
@@ -2476,7 +2439,6 @@ class Issue(db.Model):
 
 class ReportAttribute(db.Model):
     __tablename__ = 'report_attributes'
-    __table_args__ = {'mysql_character_set': 'utf8mb4'}
 
     report_attribute_id = Column(Integer, primary_key=True)
     report_id = Column(Integer, ForeignKey('reports.report_id'), nullable=False, index=True)
@@ -2493,7 +2455,6 @@ class Report(db.Model):
 
     # sqlalchemy metadata
     __tablename__ = 'reports'
-    __table_args__ = {'mysql_character_set': 'utf8mb4'}
 
     report_id = Column(Integer, primary_key=True)
     timestamp = Column(DateTime, nullable=False, default=datetime.datetime.utcnow)
@@ -2579,7 +2540,6 @@ class Setting(db.Model):
 
     # sqlalchemy metadata
     __tablename__ = 'settings'
-    __table_args__ = {'mysql_character_set': 'utf8mb4'}
 
     setting_id = Column(Integer, primary_key=True)
     key = Column('config_key', Text)
@@ -2595,7 +2555,6 @@ class Analytic(db.Model):
 
     # sqlalchemy metadata
     __tablename__ = 'analytics'
-    __table_args__ = {'mysql_character_set': 'utf8mb4'}
 
     datestr = Column(Integer, primary_key=True)
     cnt = Column(Integer, default=1)
@@ -2607,7 +2566,6 @@ class AnalyticVendor(db.Model):
 
     # sqlalchemy metadata
     __tablename__ = 'analytics_vendor'
-    __table_args__ = {'mysql_character_set': 'utf8mb4'}
 
     analytic_id = Column(Integer, primary_key=True)
     datestr = Column(Integer, default=0, index=True)
@@ -2624,7 +2582,6 @@ class AnalyticFirmware(db.Model):
 
     # sqlalchemy metadata
     __tablename__ = 'analytics_firmware'
-    __table_args__ = {'mysql_character_set': 'utf8mb4'}
 
     analytic_id = Column(Integer, primary_key=True)
     datestr = Column(Integer, default=0, index=True)
@@ -2647,7 +2604,6 @@ class Useragent(db.Model):
 
     # sqlalchemy metadata
     __tablename__ = 'useragents'
-    __table_args__ = {'mysql_character_set': 'utf8mb4'}
 
     useragent_id = Column(Integer, primary_key=True)
     kind = Column(Integer, default=0, index=True)
@@ -2662,7 +2618,6 @@ class Protocol(db.Model):
 
     # sqlalchemy metadata
     __tablename__ = 'protocol'
-    __table_args__ = {'mysql_character_set': 'utf8mb4'}
 
     protocol_id = Column(Integer, primary_key=True)
     value = Column(Text, nullable=False)
@@ -2682,7 +2637,6 @@ class SearchEvent(db.Model):
 
     # sqlalchemy metadata
     __tablename__ = 'search_events'
-    __table_args__ = {'mysql_character_set': 'utf8mb4'}
 
     search_event_id = Column(Integer, primary_key=True)
     timestamp = Column(DateTime, nullable=False, default=datetime.datetime.utcnow)
