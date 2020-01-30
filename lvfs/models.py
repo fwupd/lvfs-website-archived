@@ -97,7 +97,6 @@ class Problem:
 
 class Agreement(db.Model):
 
-    # database
     __tablename__ = 'agreements'
 
     agreement_id = Column(Integer, primary_key=True)
@@ -107,7 +106,6 @@ class Agreement(db.Model):
 
 class UserAction(db.Model):
 
-    # database
     __tablename__ = 'user_actions'
 
     user_action_id = Column(Integer, primary_key=True)
@@ -122,7 +120,6 @@ class UserAction(db.Model):
 
 class User(db.Model):
 
-    # database
     __tablename__ = 'users'
     __table_args__ = (Index('idx_users_username_password', 'username', 'password'),
                      )
@@ -147,7 +144,6 @@ class User(db.Model):
     dtime = Column(DateTime, default=None)
     human_user_id = Column(Integer, ForeignKey('users.user_id'), nullable=True)
 
-    # link using foreign keys
     vendor = relationship('Vendor', foreign_keys=[vendor_id])
     agreement = relationship('Agreement', foreign_keys=[agreement_id])
     human_user = relationship('User', remote_side=[user_id])
@@ -316,7 +312,6 @@ class User(db.Model):
 
 class YaraQueryResult(db.Model):
 
-    # database
     __tablename__ = 'yara_query_result'
 
     yara_query_result_id = Column(Integer, primary_key=True)
@@ -334,7 +329,6 @@ class YaraQueryResult(db.Model):
 
 class YaraQuery(db.Model):
 
-    # sqlalchemy metadata
     __tablename__ = 'yara_query'
 
     yara_query_id = Column(Integer, primary_key=True)
@@ -407,14 +401,12 @@ class YaraQuery(db.Model):
 
 class Restriction(db.Model):
 
-    # sqlalchemy metadata
     __tablename__ = 'restrictions'
 
     restriction_id = Column(Integer, primary_key=True)
     vendor_id = Column(Integer, ForeignKey('vendors.vendor_id'), nullable=False, index=True)
     value = Column(Text, nullable=False)
 
-    # link back to parent
     vendor = relationship("Vendor", back_populates="restrictions")
 
     def __repr__(self):
@@ -422,7 +414,6 @@ class Restriction(db.Model):
 
 class Namespace(db.Model):
 
-    # sqlalchemy metadata
     __tablename__ = 'namespaces'
 
     namespace_id = Column(Integer, primary_key=True)
@@ -431,7 +422,6 @@ class Namespace(db.Model):
     ctime = Column(DateTime, nullable=False, default=datetime.datetime.utcnow)
     user_id = Column(Integer, ForeignKey('users.user_id'), nullable=False)
 
-    # link back to parent
     vendor = relationship("Vendor", back_populates="namespaces")
     user = relationship('User', foreign_keys=[user_id])
 
@@ -448,7 +438,6 @@ class Namespace(db.Model):
 
 class AffiliationAction(db.Model):
 
-    # database
     __tablename__ = 'affiliation_actions'
 
     affiliation_action_id = Column(Integer, primary_key=True)
@@ -465,7 +454,6 @@ class AffiliationAction(db.Model):
 
 class Affiliation(db.Model):
 
-    # database
     __tablename__ = 'affiliations'
 
     affiliation_id = Column(Integer, primary_key=True)
@@ -473,7 +461,6 @@ class Affiliation(db.Model):
     vendor_id = Column(Integer, ForeignKey('vendors.vendor_id'), nullable=False, index=True)
     vendor_id_odm = Column(Integer, ForeignKey('vendors.vendor_id'), nullable=False, index=True)
 
-    # link using foreign keys
     vendor = relationship("Vendor", foreign_keys=[vendor_id], back_populates="affiliations")
     vendor_odm = relationship("Vendor", foreign_keys=[vendor_id_odm])
     actions = relationship("AffiliationAction", cascade='all,delete-orphan')
@@ -489,7 +476,6 @@ class Affiliation(db.Model):
 
 class Vendor(db.Model):
 
-    # sqlalchemy metadata
     __tablename__ = 'vendors'
 
     vendor_id = Column(Integer, primary_key=True)
@@ -518,7 +504,6 @@ class Vendor(db.Model):
     banned_country_codes = Column(Text, default=None) # ISO 3166, delimiter ','
     do_not_track = Column(Boolean, default=False)
 
-    # magically get the users in this vendor group
     users = relationship("User",
                          back_populates="vendor",
                          cascade='all,delete-orphan')
@@ -546,7 +531,6 @@ class Vendor(db.Model):
                           lazy='dynamic',
                           cascade='all,delete-orphan')
 
-    # link using foreign keys
     verfmt = relationship('Verfmt', foreign_keys=[verfmt_id])
     remote = relationship('Remote',
                           foreign_keys=[remote_id],
@@ -705,7 +689,6 @@ class Vendor(db.Model):
 
 class Event(db.Model):
 
-    # sqlalchemy metadata
     __tablename__ = 'event_log'
 
     id = Column(Integer, primary_key=True)
@@ -717,7 +700,6 @@ class Event(db.Model):
     is_important = Column(Boolean, default=False)
     request = Column(Text, default=None)
 
-    # link using foreign keys
     vendor = relationship('Vendor', foreign_keys=[vendor_id])
     user = relationship('User', foreign_keys=[user_id])
 
@@ -726,7 +708,6 @@ class Event(db.Model):
 
 class Certificate(db.Model):
 
-    # sqlalchemy metadata
     __tablename__ = 'certificates'
 
     certificate_id = Column(Integer, primary_key=True)
@@ -735,7 +716,6 @@ class Certificate(db.Model):
     serial = Column(String(40), nullable=False)
     text = Column(Text, default=None)
 
-    # link using foreign keys
     user = relationship('User', foreign_keys=[user_id])
 
     def check_acl(self, action, user=None):
@@ -758,7 +738,6 @@ class Certificate(db.Model):
 
 class Requirement(db.Model):
 
-    # sqlalchemy metadata
     __tablename__ = 'requirements'
 
     requirement_id = Column(Integer, primary_key=True)
@@ -769,7 +748,6 @@ class Requirement(db.Model):
     version = Column(Text, default=None)
     depth = Column(Integer, default=None)
 
-    # link back to parent
     md = relationship("Component", back_populates="requirements")
 
     def __repr__(self):
@@ -777,13 +755,11 @@ class Requirement(db.Model):
 
 class Guid(db.Model):
 
-    # sqlalchemy metadata
     __tablename__ = 'guids'
     guid_id = Column(Integer, primary_key=True)
     component_id = Column(Integer, ForeignKey('components.component_id'), nullable=False, index=True)
     value = Column(Text, nullable=False)
 
-    # link back to parent
     md = relationship("Component", back_populates="guids")
 
     def __repr__(self):
@@ -791,7 +767,6 @@ class Guid(db.Model):
 
 class Keyword(db.Model):
 
-    # sqlalchemy metadata
     __tablename__ = 'keywords'
 
     keyword_id = Column(Integer, primary_key=True)
@@ -799,7 +774,6 @@ class Keyword(db.Model):
     priority = Column(Integer, default=0)
     value = Column(Text, nullable=False)
 
-    # link back to parent
     md = relationship("Component", back_populates="keywords")
 
     def __repr__(self):
@@ -845,7 +819,6 @@ def _split_search_string(value):
 
 class Checksum(db.Model):
 
-    # sqlalchemy metadata
     __tablename__ = 'checksums'
 
     checksum_id = Column(Integer, primary_key=True)
@@ -853,7 +826,6 @@ class Checksum(db.Model):
     kind = Column(Text, nullable=False, default=None)
     value = Column(Text, nullable=False, default=None)
 
-    # link back to parent
     md = relationship("Component")
 
     def __repr__(self):
@@ -868,7 +840,6 @@ class TestAttribute(db.Model):
     message = Column(Text, default=None)
     success = Column(Boolean, default=False)
 
-    # link back to parent
     test = relationship("Test", back_populates="attributes")
 
     def __repr__(self):
@@ -876,7 +847,6 @@ class TestAttribute(db.Model):
 
 class Test(db.Model):
 
-    # sqlalchemy metadata
     __tablename__ = 'tests'
 
     test_id = Column(Integer, primary_key=True)
@@ -890,14 +860,12 @@ class Test(db.Model):
     waived_user_id = Column(Integer, ForeignKey('users.user_id'), nullable=True)
     max_age = Column(Integer, default=0)
 
-    # link using foreign keys
     waived_user = relationship('User', foreign_keys=[waived_user_id])
     attributes = relationship("TestAttribute",
                               lazy='joined',
                               back_populates="test",
                               cascade='all,delete-orphan')
 
-    # link back to parent
     fw = relationship("Firmware", back_populates="tests")
 
     def add_pass(self, title, message=None):
@@ -991,7 +959,6 @@ class Test(db.Model):
 
 class Verfmt(db.Model):
 
-    # sqlalchemy metadata
     __tablename__ = 'verfmts'
 
     verfmt_id = Column(Integer, primary_key=True)
@@ -1052,7 +1019,6 @@ class Verfmt(db.Model):
 
 class Category(db.Model):
 
-    # sqlalchemy metadata
     __tablename__ = 'categories'
 
     category_id = Column(Integer, primary_key=True)
@@ -1076,7 +1042,6 @@ class Category(db.Model):
 
 class Claim(db.Model):
 
-    # sqlalchemy metadata
     __tablename__ = 'claims'
 
     claim_id = Column(Integer, primary_key=True)
@@ -1109,7 +1074,6 @@ class Claim(db.Model):
 
 class ComponentShardInfo(db.Model):
 
-    # sqlalchemy metadata
     __tablename__ = 'component_shard_infos'
 
     component_shard_info_id = Column(Integer, primary_key=True)
@@ -1118,7 +1082,6 @@ class ComponentShardInfo(db.Model):
     cnt = Column(Integer, default=0)
     claim_id = Column(Integer, ForeignKey('claims.claim_id'), nullable=True, index=True)
 
-    # link using foreign keys
     shards = relationship("ComponentShard", cascade='all,delete-orphan')
     claim = relationship('Claim')
 
@@ -1127,7 +1090,6 @@ class ComponentShardInfo(db.Model):
 
 class ComponentShardChecksum(db.Model):
 
-    # sqlalchemy metadata
     __tablename__ = 'component_shard_checksums'
 
     checksum_id = Column(Integer, primary_key=True)
@@ -1135,7 +1097,6 @@ class ComponentShardChecksum(db.Model):
     kind = Column(Text, nullable=False, default=None)
     value = Column(Text, nullable=False, default=None)
 
-    # link back to parent
     shard = relationship("ComponentShard")
 
     def __repr__(self):
@@ -1143,7 +1104,6 @@ class ComponentShardChecksum(db.Model):
 
 class ComponentShardCertificate(db.Model):
 
-    # sqlalchemy metadata
     __tablename__ = 'component_shard_certificates'
 
     component_shard_certificate_id = Column(Integer, primary_key=True)
@@ -1155,7 +1115,6 @@ class ComponentShardCertificate(db.Model):
     not_before = Column(DateTime, default=None)
     not_after = Column(DateTime, default=None)
 
-    # link back to parent
     shard = relationship('ComponentShard', back_populates="certificates")
 
     @property
@@ -1185,7 +1144,6 @@ def _calculate_entropy(s):
 
 class ComponentShardClaim(db.Model):
 
-    # sqlalchemy metadata
     __tablename__ = 'component_shard_claims'
 
     component_shard_claim_id = Column(Integer, primary_key=True)
@@ -1208,7 +1166,6 @@ class ComponentShardAttribute(db.Model):
     key = Column(Text, nullable=False)
     value = Column(Text, default=None)
 
-    # link back to parent
     component_shard = relationship("ComponentShard", back_populates="attributes")
 
     def __repr__(self):
@@ -1216,7 +1173,6 @@ class ComponentShardAttribute(db.Model):
 
 class ComponentShard(db.Model):
 
-    # sqlalchemy metadata
     __tablename__ = 'component_shards'
 
     component_shard_id = Column(Integer, primary_key=True)
@@ -1240,7 +1196,6 @@ class ComponentShard(db.Model):
     info = relationship('ComponentShardInfo')
     yara_query_results = relationship('YaraQueryResult')
 
-    # link back to parent
     md = relationship('Component', back_populates="shards")
     attributes = relationship("ComponentShardAttribute",
                               back_populates="component_shard",
@@ -1316,7 +1271,6 @@ class ComponentShard(db.Model):
 
 class ComponentIssue(db.Model):
 
-    # sqlalchemy metadata
     __tablename__ = 'component_issues'
 
     component_issue_id = Column(Integer, primary_key=True)
@@ -1324,7 +1278,6 @@ class ComponentIssue(db.Model):
     kind = Column(Text, nullable=False)
     value = Column(Text, nullable=False)
 
-    # link back to parent
     md = relationship("Component", back_populates="issues")
 
     @property
@@ -1354,14 +1307,12 @@ def _is_valid_url(url):
 
 class ComponentClaim(db.Model):
 
-    # sqlalchemy metadata
     __tablename__ = 'component_claims'
 
     component_claim_id = Column(Integer, primary_key=True)
     component_id = Column(Integer, ForeignKey('components.component_id'), nullable=False, index=True)
     claim_id = Column(Integer, ForeignKey('claims.claim_id'), nullable=False, index=True)
 
-    # link back to objects
     md = relationship('Component', back_populates='component_claims')
     claim = relationship('Claim')
 
@@ -1370,7 +1321,6 @@ class ComponentClaim(db.Model):
 
 class ComponentRef(db.Model):
 
-    # sqlalchemy metadata
     __tablename__ = 'component_refs'
 
     component_ref_id = Column(Integer, primary_key=True)
@@ -1386,7 +1336,6 @@ class ComponentRef(db.Model):
     url = Column(Text, default=None)
     status = Column(Text)
 
-    # link back to parent
     md = relationship('Component')
     vendor = relationship('Vendor', foreign_keys=[vendor_id])
     vendor_partner = relationship('Vendor', foreign_keys=[vendor_id_partner], back_populates='mdrefs')
@@ -1409,7 +1358,6 @@ class ComponentRef(db.Model):
 
 class Component(db.Model):
 
-    # sqlalchemy metadata
     __tablename__ = 'components'
 
     component_id = Column(Integer, primary_key=True)
@@ -1443,10 +1391,7 @@ class Component(db.Model):
     priority = Column(Integer, default=0)
     install_duration = Column(Integer, default=0)
 
-    # link back to parent
     fw = relationship("Firmware", back_populates="mds", lazy='joined')
-
-    # include all Component objects
     requirements = relationship("Requirement",
                                 back_populates="md",
                                 cascade='all,delete-orphan')
@@ -1851,7 +1796,6 @@ class Component(db.Model):
 
 class Remote(db.Model):
 
-    # sqlalchemy metadata
     __tablename__ = 'remotes'
 
     remote_id = Column(Integer, primary_key=True)
@@ -1859,7 +1803,6 @@ class Remote(db.Model):
     is_public = Column(Boolean, default=False)
     is_dirty = Column(Boolean, default=False)
 
-    # link using foreign keys
     vendors = relationship("Vendor", back_populates="remote")
     fws = relationship("Firmware")
 
@@ -1926,7 +1869,6 @@ class Remote(db.Model):
 
 class FirmwareEvent(db.Model):
 
-    # sqlalchemy metadata
     __tablename__ = 'firmware_events'
 
     firmware_event_id = Column(Integer, primary_key=True)
@@ -1935,10 +1877,8 @@ class FirmwareEvent(db.Model):
     timestamp = Column(DateTime, nullable=False, default=datetime.datetime.utcnow)
     remote_id = Column(Integer, ForeignKey('remotes.remote_id'), nullable=False)
 
-    # link back to parent
     fw = relationship("Firmware", back_populates="events")
 
-    # link using foreign keys
     user = relationship('User', foreign_keys=[user_id])
     remote = relationship('Remote', foreign_keys=[remote_id], lazy='joined')
 
@@ -1947,7 +1887,6 @@ class FirmwareEvent(db.Model):
 
 class FirmwareLimit(db.Model):
 
-    # sqlalchemy metadata
     __tablename__ = 'firmware_limits'
 
     firmware_limit_id = Column(Integer, primary_key=True)
@@ -1956,12 +1895,10 @@ class FirmwareLimit(db.Model):
     user_agent_glob = Column(Text, default=None)
     response = Column(Text, default=None)
 
-    # link back to parent
     fw = relationship("Firmware", back_populates="limits")
 
 class Firmware(db.Model):
 
-    # sqlalchemy metadata
     __tablename__ = 'firmware'
 
     firmware_id = Column(Integer, primary_key=True)
@@ -1987,7 +1924,6 @@ class Firmware(db.Model):
     failure_percentage = Column(Integer, default=0)
     _do_not_track = Column('do_not_track', Boolean, default=False)
 
-    # include all Component objects
     mds = relationship("Component",
                        back_populates="fw",
                        lazy='joined',
@@ -2012,7 +1948,6 @@ class Firmware(db.Model):
                              back_populates="firmware",
                              cascade='all,delete-orphan')
 
-    # link using foreign keys
     vendor = relationship('Vendor', foreign_keys=[vendor_id])
     user = relationship('User', foreign_keys=[user_id])
     remote = relationship('Remote', foreign_keys=[remote_id], lazy='joined')
@@ -2320,7 +2255,6 @@ class Firmware(db.Model):
 
 class Client(db.Model):
 
-    # sqlalchemy metadata
     __tablename__ = 'clients'
 
     id = Column(Integer, primary_key=True)
@@ -2330,7 +2264,6 @@ class Client(db.Model):
     firmware_id = Column(Integer, ForeignKey('firmware.firmware_id'), nullable=False, index=True)
     user_agent = Column(Text, default=None)
 
-    # link using foreign keys
     fw = relationship('Firmware', foreign_keys=[firmware_id])
 
     def __repr__(self):
@@ -2338,7 +2271,6 @@ class Client(db.Model):
 
 class Condition(db.Model):
 
-    # sqlalchemy metadata
     __tablename__ = 'conditions'
 
     condition_id = Column(Integer, primary_key=True)
@@ -2347,7 +2279,6 @@ class Condition(db.Model):
     value = Column(Text, nullable=False)
     compare = Column(Text, default='eq', nullable=False)
 
-    # link back to parent
     issue = relationship("Issue", back_populates="conditions")
 
     def matches(self, value):
@@ -2384,7 +2315,6 @@ class Condition(db.Model):
 
 class Issue(db.Model):
 
-    # sqlalchemy metadata
     __tablename__ = 'issues'
 
     issue_id = Column(Integer, primary_key=True)
@@ -2398,7 +2328,6 @@ class Issue(db.Model):
                               back_populates="issue",
                               cascade='all,delete-orphan')
 
-    # link using foreign keys
     vendor = relationship('Vendor', foreign_keys=[vendor_id])
 
     def matches(self, data):
@@ -2445,7 +2374,6 @@ class ReportAttribute(db.Model):
     key = Column(Text, nullable=False)
     value = Column(Text, default=None)
 
-    # link back to parent
     report = relationship("Report", back_populates="attributes")
 
     def __repr__(self):
@@ -2453,7 +2381,6 @@ class ReportAttribute(db.Model):
 
 class Report(db.Model):
 
-    # sqlalchemy metadata
     __tablename__ = 'reports'
 
     report_id = Column(Integer, primary_key=True)
@@ -2465,7 +2392,6 @@ class Report(db.Model):
     issue_id = Column(Integer, default=0)
     user_id = Column(Integer, ForeignKey('users.user_id'), default=None)
 
-    # link using foreign keys
     fw = relationship('Firmware', foreign_keys=[firmware_id])
     user = relationship('User', foreign_keys=[user_id])
     attributes = relationship("ReportAttribute",
@@ -2538,7 +2464,6 @@ class Report(db.Model):
 
 class Setting(db.Model):
 
-    # sqlalchemy metadata
     __tablename__ = 'settings'
 
     setting_id = Column(Integer, primary_key=True)
@@ -2553,7 +2478,6 @@ def _get_datestr_from_datetime(when):
 
 class Analytic(db.Model):
 
-    # sqlalchemy metadata
     __tablename__ = 'analytics'
 
     datestr = Column(Integer, primary_key=True)
@@ -2564,7 +2488,6 @@ class Analytic(db.Model):
 
 class AnalyticVendor(db.Model):
 
-    # sqlalchemy metadata
     __tablename__ = 'analytics_vendor'
 
     analytic_id = Column(Integer, primary_key=True)
@@ -2572,7 +2495,6 @@ class AnalyticVendor(db.Model):
     vendor_id = Column(Integer, ForeignKey('vendors.vendor_id'), nullable=False, index=True)
     cnt = Column(Integer, default=0)
 
-    # link using foreign keys
     vendor = relationship('Vendor', foreign_keys=[vendor_id])
 
     def __repr__(self):
@@ -2580,7 +2502,6 @@ class AnalyticVendor(db.Model):
 
 class AnalyticFirmware(db.Model):
 
-    # sqlalchemy metadata
     __tablename__ = 'analytics_firmware'
 
     analytic_id = Column(Integer, primary_key=True)
@@ -2588,7 +2509,6 @@ class AnalyticFirmware(db.Model):
     firmware_id = Column(Integer, ForeignKey('firmware.firmware_id'), nullable=False, index=True)
     cnt = Column(Integer, default=0)
 
-    # link using foreign keys
     firmware = relationship('Firmware', foreign_keys=[firmware_id])
 
     def __repr__(self):
@@ -2602,7 +2522,6 @@ class UseragentKind(IntEnum):
 
 class Useragent(db.Model):
 
-    # sqlalchemy metadata
     __tablename__ = 'useragents'
 
     useragent_id = Column(Integer, primary_key=True)
@@ -2616,7 +2535,6 @@ class Useragent(db.Model):
 
 class Protocol(db.Model):
 
-    # sqlalchemy metadata
     __tablename__ = 'protocol'
 
     protocol_id = Column(Integer, primary_key=True)
@@ -2635,7 +2553,6 @@ class Protocol(db.Model):
 
 class SearchEvent(db.Model):
 
-    # sqlalchemy metadata
     __tablename__ = 'search_events'
 
     search_event_id = Column(Integer, primary_key=True)
