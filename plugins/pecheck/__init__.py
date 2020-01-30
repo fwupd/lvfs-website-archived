@@ -107,7 +107,7 @@ class Plugin(PluginBase):
         # add if not already exists
         test = fw.find_test_by_plugin_id(self.id)
         if not test:
-            test = Test(self.id, waivable=True)
+            test = Test(plugin_id=self.id, waivable=True)
             fw.tests.append(test)
 
     def _run_test_on_shard(self, test, shard):

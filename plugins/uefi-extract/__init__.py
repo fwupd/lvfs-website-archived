@@ -419,7 +419,7 @@ class Plugin(PluginBase):
         if not test:
             test = fw.find_test_by_plugin_id('chipsec') # old name
         if not test:
-            test = Test(self.id, waivable=True)
+            test = Test(plugin_id=self.id, waivable=True)
             fw.tests.append(test)
 
     def run_test_on_md(self, test, md):
@@ -435,12 +435,12 @@ if __name__ == '__main__':
     plugin = Plugin('uefi-extract')
     for _argv in sys.argv[1:]:
         print('Processing', _argv)
-        _test = Test(plugin.id)
+        _test = Test(plugin_id=plugin.id)
         _fw = Firmware()
         _md = Component()
         _md.component_id = 999999
         _md.filename_contents = 'filename.bin'
-        _md.protocol = Protocol('org.uefi.capsule')
+        _md.protocol = Protocol(value='org.uefi.capsule')
         with open(_argv, 'rb') as _f:
             _md.blob = _f.read()
         _fw.mds.append(_md)

@@ -191,6 +191,7 @@ def init_db(db):
 
     # ensure admin user exists
     from .models import User, UserAction, Vendor, Remote, Verfmt, Protocol, Category
+    from .hash import _otp_hash
     if not db.session.query(Remote).filter(Remote.name == 'stable').first():
         db.session.add(Remote(name='stable', is_public=True))
         db.session.add(Remote(name='testing', is_public=True))
@@ -202,9 +203,9 @@ def init_db(db):
         db.session.add(Verfmt(value='triplet'))
         db.session.commit()
     if not db.session.query(Protocol).filter(Protocol.value == 'com.hughski.colorhug').first():
-        db.session.add(Protocol(value='com.hughski.colorhug'))
-        db.session.add(Protocol(value='org.usb.dfu'))
-        db.session.add(Protocol(value='org.uefi.capsule'))
+        db.session.add(Protocol(value='com.hughski.colorhug', is_public=True))
+        db.session.add(Protocol(value='org.usb.dfu', is_public=True))
+        db.session.add(Protocol(value='org.uefi.capsule', is_public=True))
         db.session.commit()
     if not db.session.query(Category).filter(Category.value == 'triplet').first():
         db.session.add(Category(value='X-Device'))
@@ -214,7 +215,7 @@ def init_db(db):
         remote = Remote(name='embargo-admin')
         db.session.add(remote)
         db.session.commit()
-        vendor = Vendor('admin')
+        vendor = Vendor(group_id='admin')
         vendor.display_name = 'Acme Corp.'
         vendor.description = 'A fake vendor used for testing firmware'
         vendor.remote_id = remote.remote_id
@@ -222,6 +223,7 @@ def init_db(db):
         db.session.commit()
         u = User(username='sign-test@fwupd.org',
                  auth_type='local',
+                 otp_secret=_otp_hash(),
                  display_name='Admin User',
                  vendor_id=vendor.vendor_id)
         u.actions.append(UserAction(value='admin'))

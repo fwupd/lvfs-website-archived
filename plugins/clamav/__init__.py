@@ -32,7 +32,7 @@ class Plugin(PluginBase):
         # add if not already exists on any component in the firmware
         test = fw.find_test_by_plugin_id(self.id)
         if not test:
-            test = Test(self.id, max_age=2592000) # one month
+            test = Test(plugin_id=self.id, max_age=2592000) # one month
             fw.tests.append(test)
 
     def run_test_on_fw(self, test, fw):

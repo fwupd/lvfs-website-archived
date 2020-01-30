@@ -65,7 +65,7 @@ class Plugin(PluginBase):
         # add if not already exists
         test = fw.find_test_by_plugin_id(self.id)
         if not test:
-            test = Test(self.id, waivable=True)
+            test = Test(plugin_id=self.id, waivable=True)
             fw.tests.append(test)
 
     def run_test_on_md(self, test, md):
@@ -100,7 +100,7 @@ if __name__ == '__main__':
     from lvfs.models import Firmware, Component
 
     plugin = Plugin('blocklist')
-    _test = Test(plugin.id)
+    _test = Test(plugin_id=plugin.id)
     _fw = Firmware()
     _md = Component()
     _md.blob = b'CN=DO NOT TRUST - AMI Test PK'

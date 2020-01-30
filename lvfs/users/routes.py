@@ -16,6 +16,7 @@ from flask_login import login_required
 from lvfs import db
 
 from lvfs.emails import send_email
+from lvfs.hash import _otp_hash
 from lvfs.util import admin_login_required
 from lvfs.util import _error_internal, _email_check, _generate_password
 from lvfs.util import _pkcs7_certificate_info
@@ -573,7 +574,7 @@ def route_certificate_create():
         return redirect(url_for('main.route_profile'), code=302)
 
     # success
-    crt = Certificate(g.user.user_id, info['serial'], text)
+    crt = Certificate(user_id=g.user.user_id, serial=info['serial'], text=text)
     db.session.add(crt)
     db.session.commit()
     flash('Added client certificate with serial %s' % info['serial'], 'success')
@@ -634,11 +635,12 @@ def route_create():
         remote = Remote(name='embargo-%s' % group_id)
         db.session.add(remote)
         db.session.commit()
-        vendor = Vendor(group_id, remote_id=remote.remote_id)
+        vendor = Vendor(group_id=group_id, remote_id=remote.remote_id)
         db.session.add(vendor)
         db.session.commit()
     user = User(username=username,
                 auth_type='local',
+                otp_secret=_otp_hash(),
                 display_name=display_name,
                 vendor_id=vendor.vendor_id)
     user.password = password

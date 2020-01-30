@@ -198,9 +198,9 @@ def route_report():
                     continue
                 _event_log('added device checksum %s to firmware %s' % (checksum, md.fw.checksum_upload_sha1))
                 if _is_sha1(checksum):
-                    md.device_checksums.append(Checksum(checksum, 'SHA1'))
+                    md.device_checksums.append(Checksum(value=checksum, kind='SHA1'))
                 elif _is_sha256(checksum):
-                    md.device_checksums.append(Checksum(checksum, 'SHA256'))
+                    md.device_checksums.append(Checksum(value=checksum, kind='SHA256'))
 
         # find any matching report
         issue_id = 0

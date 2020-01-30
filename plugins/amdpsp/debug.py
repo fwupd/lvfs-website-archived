@@ -20,13 +20,13 @@ if __name__ == '__main__':
     for _argv in sys.argv[1:]:
         print('Processing', _argv)
         plugin = Plugin('amdpsp')
-        _test = Test(plugin.id)
+        _test = Test(plugin_id=plugin.id)
         _fw = Firmware()
         _md = Component()
         _md.component_id = 999999
-        _md.category = Category('X-PlatformSecurityProcessor')
+        _md.category = Category(value='X-PlatformSecurityProcessor')
         _md.filename_contents = 'filename.bin'
-        _md.protocol = Protocol('org.uefi.capsule')
+        _md.protocol = Protocol(value='org.uefi.capsule')
         with open(_argv, 'rb') as _f:
             _md.blob = _f.read()
         plugin.run_test_on_md(_test, _md)

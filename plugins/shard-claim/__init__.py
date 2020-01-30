@@ -26,7 +26,7 @@ class Plugin(PluginBase):
         # add if not already exists
         test = fw.find_test_by_plugin_id(self.id)
         if not test:
-            test = Test(self.id, waivable=True)
+            test = Test(plugin_id=self.id, waivable=True)
             fw.tests.append(test)
 
     def run_test_on_fw(self, test, fw):
@@ -63,7 +63,7 @@ if __name__ == '__main__':
     from lvfs.models import Firmware, Component
 
     plugin = Plugin('shard-claim')
-    _test = Test(plugin.id)
+    _test = Test(plugin_id=plugin.id)
     _fw = Firmware()
     _md = Component()
     _shard = ComponentShard(guid='f114faa8-4fd5-4b95-8bc3-bc5cb5454966')

@@ -19,7 +19,7 @@ import math
 import hashlib
 import collections
 
-from enum import Enum
+from enum import IntEnum
 
 import onetimepass
 
@@ -36,7 +36,7 @@ from pkgversion import vercmp
 from lvfs import db
 
 from lvfs.dbutils import _execute_count_star
-from lvfs.hash import _qa_hash, _password_hash, _otp_hash
+from lvfs.hash import _qa_hash, _password_hash
 from lvfs.util import _generate_password, _xml_from_markdown, _get_update_description_problems
 from lvfs.util import _get_absolute_path, _get_shard_path, _validate_guid
 
@@ -171,20 +171,6 @@ class User(db.Model):
     actions = relationship("UserAction",
                            lazy='joined',
                            cascade='all,delete-orphan')
-
-    def __init__(self, username, password_hash=None, display_name=None,
-                 vendor_id=None, auth_type='disabled', is_otp_enabled=False):
-        """ Constructor for object """
-        self.username = username
-        self.password_hash = password_hash
-        self.display_name = display_name
-        self.auth_type = auth_type
-        self.vendor_id = vendor_id
-        self.is_otp_enabled = is_otp_enabled
-
-        # generate a random secret
-        if self.otp_secret is None:
-            self.otp_secret = _otp_hash()
 
     def get_action(self, value):
         for action in self.actions:
@@ -437,10 +423,6 @@ class Restriction(db.Model):
     # link back to parent
     vendor = relationship("Vendor", back_populates="restrictions")
 
-    def __init__(self, value=None):
-        """ Constructor for object """
-        self.value = value
-
     def __repr__(self):
         return "Restriction object %s" % self.restriction_id
 
@@ -504,10 +486,6 @@ class Affiliation(db.Model):
     vendor = relationship("Vendor", foreign_keys=[vendor_id], back_populates="affiliations")
     vendor_odm = relationship("Vendor", foreign_keys=[vendor_id_odm])
     actions = relationship("AffiliationAction", cascade='all,delete-orphan')
-
-    def __init__(self, vendor_id, vendor_id_odm):
-        self.vendor_id = vendor_id
-        self.vendor_id_odm = vendor_id_odm
 
     def get_action(self, action):
         for act in self.actions:
@@ -584,20 +562,6 @@ class Vendor(db.Model):
                           foreign_keys=[remote_id],
                           single_parent=True,
                           cascade='all,delete-orphan')
-
-    def __init__(self, group_id=None, remote_id=None):
-        """ Constructor for object """
-        self.group_id = group_id
-        self.display_name = None
-        self.plugins = None
-        self.description = None
-        self.visible = False
-        self.comments = None
-        self.icon = None
-        self.keywords = None
-        self.quote_text = None
-        self.quote_author = None
-        self.remote_id = remote_id
 
     @property
     @functools.lru_cache()
@@ -768,16 +732,6 @@ class Event(db.Model):
     vendor = relationship('Vendor', foreign_keys=[vendor_id])
     user = relationship('User', foreign_keys=[user_id])
 
-    def __init__(self, user_id, vendor_id=None, address=None, message=None,
-                 request=None, is_important=False):
-        """ Constructor for object """
-        self.timestamp = None
-        self.user_id = user_id
-        self.vendor_id = vendor_id
-        self.address = address
-        self.message = message
-        self.request = request
-        self.is_important = is_important
     def __repr__(self):
         return "Event object %s" % self.message
 
@@ -795,13 +749,6 @@ class Certificate(db.Model):
 
     # link using foreign keys
     user = relationship('User', foreign_keys=[user_id])
-
-    def __init__(self, user_id, serial=None, text=None):
-        """ Constructor for object """
-        self.user_id = user_id
-        self.serial = serial
-        self.text = text
-
 
     def check_acl(self, action, user=None):
 
@@ -852,12 +799,6 @@ class Guid(db.Model):
     # link back to parent
     md = relationship("Component", back_populates="guids")
 
-    def __init__(self, component_id=None, value=None):
-        """ Constructor for object """
-        #self.guid_id = 0
-        self.component_id = component_id
-        self.value = value
-
     def __repr__(self):
         return "Guid object %s" % self.guid_id
 
@@ -874,12 +815,6 @@ class Keyword(db.Model):
 
     # link back to parent
     md = relationship("Component", back_populates="keywords")
-
-    def __init__(self, value, priority=0, md=None):
-        """ Constructor for object """
-        self.value = value
-        self.priority = priority
-        self.md = md
 
     def __repr__(self):
         return "Keyword object %s" % self.value
@@ -936,11 +871,6 @@ class Checksum(db.Model):
     # link back to parent
     md = relationship("Component")
 
-    def __init__(self, value, kind='SHA1'):
-        """ Constructor for object """
-        self.kind = kind        # e.g. 'SHA1' or 'SHA256'
-        self.value = value
-
     def __repr__(self):
         return "Checksum object %s(%s)" % (self.kind, self.value)
 
@@ -956,13 +886,6 @@ class TestAttribute(db.Model):
 
     # link back to parent
     test = relationship("Test", back_populates="attributes")
-
-    def __init__(self, test_id=0, title=None, message=None, success=True):
-        """ Constructor for object """
-        self.test_id = test_id
-        self.title = title
-        self.message = message
-        self.success = success
 
     def __repr__(self):
         return "TestAttribute object %s=%s" % (self.title, self.message)
@@ -994,13 +917,8 @@ class Test(db.Model):
     # link back to parent
     fw = relationship("Firmware", back_populates="tests")
 
-    def __init__(self, plugin_id, waivable=False, max_age=0):
-        self.plugin_id = plugin_id
-        self.waivable = waivable
-        self.max_age = max_age
-
     def add_pass(self, title, message=None):
-        self.attributes.append(TestAttribute(title=title, message=message))
+        self.attributes.append(TestAttribute(title=title, message=message, success=True))
 
     def add_fail(self, title, message=None):
         self.attributes.append(TestAttribute(title=title, message=message, success=False))
@@ -1162,13 +1080,6 @@ class Category(db.Model):
     fallbacks = Column(Text, default=None)
     expect_device_checksum = Column(Boolean, default=False)
 
-    def __init__(self, value, name=None, fallbacks=None, expect_device_checksum=False):
-        """ Constructor for object """
-        self.value = value
-        self.name = name
-        self.fallbacks = fallbacks
-        self.expect_device_checksum = expect_device_checksum
-
     def matches(self, values):
         for value in values:
             if self.value == value:
@@ -1249,11 +1160,6 @@ class ComponentShardChecksum(db.Model):
     # link back to parent
     shard = relationship("ComponentShard")
 
-    def __init__(self, value, kind='SHA1'):
-        """ Constructor for object """
-        self.kind = kind        # e.g. 'SHA1' or 'SHA256'
-        self.value = value
-
     def __repr__(self):
         return "ComponentShardChecksum object %s(%s)" % (self.kind, self.value)
 
@@ -1274,15 +1180,6 @@ class ComponentShardCertificate(db.Model):
 
     # link back to parent
     shard = relationship('ComponentShard', back_populates="certificates")
-
-    def __init__(self, component_shard_id=None, kind=None, description=None):
-        """ Constructor for object """
-        self.component_shard_id = component_shard_id
-        self.kind = kind
-        self.description = description
-        self.serial_number = None
-        self.not_before = None
-        self.not_after = None
 
     @property
     def color(self):
@@ -1426,12 +1323,12 @@ class ComponentShard(db.Model):
 
         # SHA1 is what's used by researchers, but considered broken
         if 'SHA1' in checksums:
-            csum = ComponentShardChecksum(hashlib.sha1(value).hexdigest(), 'SHA1')
+            csum = ComponentShardChecksum(value=hashlib.sha1(value).hexdigest(), kind='SHA1')
             self.checksums.append(csum)
 
         # SHA256 is now the best we have
         if 'SHA256' in checksums:
-            csum = ComponentShardChecksum(hashlib.sha256(value).hexdigest(), 'SHA256')
+            csum = ComponentShardChecksum(value=hashlib.sha256(value).hexdigest(), kind='SHA256')
             self.checksums.append(csum)
 
     def save(self):
@@ -1607,32 +1504,6 @@ class Component(db.Model):
     protocol = relationship('Protocol', foreign_keys=[protocol_id])
     category = relationship('Category', foreign_keys=[category_id])
     verfmt = relationship('Verfmt', foreign_keys=[verfmt_id])
-
-    def __init__(self):
-        """ Constructor for object """
-        self.appstream_id = None            # e.g. com.hughski.ColorHug.firmware
-        self.guids = []
-        self.version = None
-        self.name = None
-        self.summary = None
-        self.checksum_contents = None       # SHA1 of the firmware.bin
-        self.release_description = None
-        self.release_timestamp = 0
-        self.details_url = None
-        self.source_url = None
-        self.developer_name = None
-        self.metadata_license = None
-        self.project_license = None
-        self.url_homepage = None
-        self.description = None
-        self.filename_contents = None       # filename of the firmware.bin
-        self.release_installed_size = 0
-        self.release_download_size = 0
-        self.release_urgency = None
-        self.screenshot_url = None
-        self.screenshot_caption = None
-        self.priority = 0
-        self._blob = None
 
     def __lt__(self, other):
         return vercmp(self.version_display, other.version_display) < 0
@@ -1963,7 +1834,7 @@ class Component(db.Model):
         for keyword in _split_search_string(value):
             if keyword in existing_keywords:
                 continue
-            self.keywords.append(Keyword(keyword, priority))
+            self.keywords.append(Keyword(value=keyword, priority=priority))
 
     def find_req(self, kind, value):
         """ Find a Requirement from the kind and/or value """
@@ -2102,12 +1973,6 @@ class FirmwareEvent(db.Model):
     # link using foreign keys
     user = relationship('User', foreign_keys=[user_id])
     remote = relationship('Remote', foreign_keys=[remote_id], lazy='joined')
-
-    def __init__(self, remote_id=None, user_id=0, timestamp=None):
-        """ Constructor for object """
-        self.remote_id = remote_id
-        self.user_id = user_id
-        self.timestamp = timestamp
 
     def __repr__(self):
         return "FirmwareEvent object %s" % self.firmware_event_id
@@ -2370,18 +2235,6 @@ class Firmware(db.Model):
                 problems.append(problem)
         return problems
 
-    def __init__(self):
-        """ Constructor for object """
-        self.addr = None
-        self.timestamp = None
-        self.filename = None        # filename of the original .cab file
-        self.checksum_upload_sha1 = None # SHA1 of the original .cab file
-        self._version_display = None # from the firmware.inf file
-        self.download_cnt = 0       # generated from the client database
-        self.checksum_signed_sha1 = None # SHA1 of the signed .cab
-        self.user_id = None         # user_id of the uploader
-        self.mds = []
-
     def _is_owner(self, user):
         return self.user_id == user.user_id
 
@@ -2515,14 +2368,6 @@ class Client(db.Model):
     # link using foreign keys
     fw = relationship('Firmware', foreign_keys=[firmware_id])
 
-    def __init__(self, addr=None, firmware_id=None, user_agent=None, timestamp=None):
-        """ Constructor for object """
-        self.timestamp = timestamp
-        self.addr = addr
-        self.firmware_id = firmware_id
-        self.user_agent = user_agent
-        self.datestr = _get_datestr_from_datetime(datetime.datetime.utcnow())
-
     def __repr__(self):
         return "Client object %s" % self.id
 
@@ -2570,13 +2415,6 @@ class Condition(db.Model):
             return 10
         return False
 
-    def __init__(self, issue_id=0, key=None, value=None, compare='eq'):
-        """ Constructor for object """
-        self.issue_id = issue_id
-        self.key = key
-        self.value = value
-        self.compare = compare
-
     def __repr__(self):
         return "Condition object %s %s %s" % (self.key, self.compare, self.value)
 
@@ -2599,17 +2437,6 @@ class Issue(db.Model):
 
     # link using foreign keys
     vendor = relationship('Vendor', foreign_keys=[vendor_id])
-
-    def __init__(self, url=None, name=None, description=None, enabled=False, vendor_id=None, priority=0):
-        """ Constructor for object """
-        self.url = url
-        self.name = name
-        self.enabled = enabled
-        self.priority = priority
-        self.description = description
-        self.enabled = enabled
-        self.vendor_id = vendor_id
-        self.priority = priority
 
     def matches(self, data):
         """ if all conditions are satisfied from data """
@@ -2659,12 +2486,6 @@ class ReportAttribute(db.Model):
     # link back to parent
     report = relationship("Report", back_populates="attributes")
 
-    def __init__(self, report_id=0, key=None, value=None):
-        """ Constructor for object """
-        self.report_id = report_id
-        self.key = key
-        self.value = value
-
     def __repr__(self):
         return "ReportAttribute object %s=%s" % (self.key, self.value)
 
@@ -2690,16 +2511,6 @@ class Report(db.Model):
                               back_populates="report",
                               lazy='joined',
                               cascade='all,delete-orphan')
-
-    def __init__(self, firmware_id, machine_id=None, state=0, checksum=None, issue_id=0, user_id=None):
-        """ Constructor for object """
-        self.timestamp = None
-        self.state = state
-        self.machine_id = machine_id
-        self.firmware_id = firmware_id
-        self.issue_id = issue_id
-        self.user_id = user_id
-        self.checksum = checksum
 
     @property
     def color(self):
@@ -2774,10 +2585,6 @@ class Setting(db.Model):
     key = Column('config_key', Text)
     value = Column('config_value', Text)
 
-    def __init__(self, key, value=None):
-        """ Constructor for object """
-        self.key = key
-        self.value = value
     def __repr__(self):
         return "Setting object %s" % self.key
 
@@ -2792,11 +2599,6 @@ class Analytic(db.Model):
 
     datestr = Column(Integer, primary_key=True)
     cnt = Column(Integer, default=1)
-
-    def __init__(self, datestr=0, cnt=1):
-        """ Constructor for object """
-        self.cnt = cnt
-        self.datestr = datestr
 
     def __repr__(self):
         return "Analytic object %s" % self.datestr
@@ -2815,12 +2617,6 @@ class AnalyticVendor(db.Model):
     # link using foreign keys
     vendor = relationship('Vendor', foreign_keys=[vendor_id])
 
-    def __init__(self, vendor_id, datestr=0, cnt=0):
-        """ Constructor for object """
-        self.vendor_id = vendor_id
-        self.datestr = datestr
-        self.cnt = cnt
-
     def __repr__(self):
         return "AnalyticVendor object %s:%s" % (self.datestr, self.vendor_id)
 
@@ -2838,16 +2634,10 @@ class AnalyticFirmware(db.Model):
     # link using foreign keys
     firmware = relationship('Firmware', foreign_keys=[firmware_id])
 
-    def __init__(self, firmware_id, datestr=0, cnt=0):
-        """ Constructor for object """
-        self.firmware_id = firmware_id
-        self.datestr = datestr
-        self.cnt = cnt
-
     def __repr__(self):
         return "AnalyticFirmware object %s:%s" % (self.datestr, self.firmware_id)
 
-class UseragentKind(Enum):
+class UseragentKind(IntEnum):
     APP = 0
     FWUPD = 1
     LANG = 2
@@ -2865,15 +2655,8 @@ class Useragent(db.Model):
     value = Column(Text, default=None)
     cnt = Column(Integer, default=1)
 
-    def __init__(self, kind, value, datestr=0, cnt=1):
-        """ Constructor for object """
-        self.kind = kind.value
-        self.value = value
-        self.cnt = cnt
-        self.datestr = datestr
-
     def __repr__(self):
-        return "Useragent object %i:%s" % (self.kind, self.datestr)
+        return 'Useragent object {}:{}'.format(self.kind, self.datestr)
 
 class Protocol(db.Model):
 
@@ -2892,15 +2675,6 @@ class Protocol(db.Model):
 
     verfmt = relationship('Verfmt', foreign_keys=[verfmt_id])
 
-    def __init__(self, value, name=None, is_signed=False, can_verify=False, is_public=True, has_header=False):
-        """ Constructor for object """
-        self.value = value
-        self.name = name
-        self.is_signed = is_signed
-        self.is_public = is_public
-        self.can_verify = can_verify
-        self.has_header = has_header
-
     def __repr__(self):
         return "Protocol object %s:%s" % (self.protocol_id, self.value)
 
@@ -2916,14 +2690,6 @@ class SearchEvent(db.Model):
     value = Column(Text, nullable=False)
     count = Column(Integer, default=0)
     method = Column(Text, default=None)
-
-    def __init__(self, value, addr=None, timestamp=None, count=0, method=None):
-        """ Constructor for object """
-        self.value = value
-        self.addr = addr
-        self.timestamp = timestamp
-        self.count = count
-        self.method = method
 
     def __repr__(self):
         return "SearchEvent object %s" % self.search_event_id

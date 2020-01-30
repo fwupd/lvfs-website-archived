@@ -87,10 +87,10 @@ def route_condition_create(issue_id):
         return redirect(url_for('issues.route_conditions', issue_id=issue_id))
 
     # add condition
-    db.session.add(Condition(issue_id,
-                             request.form['key'],
-                             request.form['value'],
-                             request.form['compare']))
+    db.session.add(Condition(issue_id=issue_id,
+                             key=request.form['key'],
+                             value=request.form['value'],
+                             compare=request.form['compare']))
     db.session.commit()
     flash('Added condition', 'info')
     return redirect(url_for('issues.route_conditions', issue_id=issue_id))

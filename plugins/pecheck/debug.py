@@ -21,11 +21,11 @@ if __name__ == '__main__':
     for _argv in sys.argv[1:]:
         print('Processing', _argv)
         plugin = Plugin('pecheck')
-        _test = Test(plugin.id)
+        _test = Test(plugin_id=plugin.id)
         _fw = Firmware()
         _fw.timestamp = datetime.datetime.utcnow()
         _md = Component()
-        _md.protocol = Protocol('org.uefi.capsule')
+        _md.protocol = Protocol(value='org.uefi.capsule')
         _shard = ComponentShard(name=os.path.basename(_argv))
         try:
             with open(_argv, 'rb') as f:

@@ -360,7 +360,7 @@ def _generate_stats_for_vendor(v, datestr):
     cnt = _execute_count_star(db.session.query(Client).\
                     filter(Client.firmware_id.in_(fw_ids)).\
                     filter(Client.datestr == datestr))
-    analytic = AnalyticVendor(v.vendor_id, datestr, cnt)
+    analytic = AnalyticVendor(vendor_id=v.vendor_id, datestr=datestr, cnt=cnt)
     print('adding %s:%s = %i' % (datestr, v.group_id, cnt))
     db.session.add(analytic)
 
@@ -374,7 +374,7 @@ def _generate_stats_for_firmware(fw, datestr):
     cnt = _execute_count_star(db.session.query(Client).\
                     filter(Client.firmware_id == fw.firmware_id).\
                     filter(Client.datestr == datestr))
-    analytic = AnalyticFirmware(fw.firmware_id, datestr, cnt)
+    analytic = AnalyticFirmware(firmware_id=fw.firmware_id, datestr=datestr, cnt=cnt)
     db.session.add(analytic)
 
 def _demote_back_to_testing(fw):
@@ -395,7 +395,7 @@ def _demote_back_to_testing(fw):
     remote = db.session.query(Remote).filter(Remote.name == 'testing').first()
     remote.is_dirty = True
     fw.remote_id = remote.remote_id
-    fw.events.append(FirmwareEvent(fw.remote_id, user_id=user.user_id))
+    fw.events.append(FirmwareEvent(remote_id=fw.remote_id, user_id=user.user_id))
     db.session.commit()
     _event_log('Demoted firmware {} as reported success {}%'.format(fw.firmware_id, fw.success))
 
@@ -569,13 +569,13 @@ def _generate_stats_for_datestr(datestr, kinds=None):
                 else:
                     ua_distros[ua_distro] += 1
         for ua in ua_apps:
-            db.session.add(Useragent(UseragentKind.APP, ua, datestr, cnt=ua_apps[ua]))
+            db.session.add(Useragent(kind=int(UseragentKind.APP), value=ua, datestr=datestr, cnt=ua_apps[ua]))
         for ua in ua_fwupds:
-            db.session.add(Useragent(UseragentKind.FWUPD, ua, datestr, cnt=ua_fwupds[ua]))
+            db.session.add(Useragent(kind=int(UseragentKind.FWUPD), value=ua, datestr=datestr, cnt=ua_fwupds[ua]))
         for ua in ua_langs:
-            db.session.add(Useragent(UseragentKind.LANG, ua, datestr, cnt=ua_langs[ua]))
+            db.session.add(Useragent(kind=int(UseragentKind.LANG), value=ua, datestr=datestr, cnt=ua_langs[ua]))
         for ua in ua_distros:
-            db.session.add(Useragent(UseragentKind.DISTRO, ua, datestr, cnt=ua_distros[ua]))
+            db.session.add(Useragent(kind=int(UseragentKind.DISTRO), value=ua, datestr=datestr, cnt=ua_distros[ua]))
         db.session.commit()
 
     # update Analytic
@@ -584,7 +584,7 @@ def _generate_stats_for_datestr(datestr, kinds=None):
         if analytic:
             db.session.delete(analytic)
             db.session.commit()
-        db.session.add(Analytic(datestr, len(clients)))
+        db.session.add(Analytic(datestr=datestr, cnt=len(clients)))
         db.session.commit()
 
     # for the log

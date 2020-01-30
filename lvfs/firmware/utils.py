@@ -34,4 +34,4 @@ def _firmware_delete(fw):
 
     # mark as invalid
     fw.remote_id = remote.remote_id
-    fw.events.append(FirmwareEvent(fw.remote_id, g.user.user_id))
+    fw.events.append(FirmwareEvent(remote_id=fw.remote_id, user_id=g.user.user_id))

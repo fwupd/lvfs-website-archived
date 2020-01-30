@@ -105,7 +105,7 @@ def route_undelete(firmware_id):
 
     # put back to the private state
     fw.remote_id = remote.remote_id
-    fw.events.append(FirmwareEvent(fw.remote_id, g.user.user_id))
+    fw.events.append(FirmwareEvent(remote_id=fw.remote_id, user_id=g.user.user_id))
     db.session.commit()
 
     flash('Firmware undeleted', 'info')
@@ -237,7 +237,7 @@ def route_promote(firmware_id, target):
 
     # all okay
     fw.remote_id = remote.remote_id
-    fw.events.append(FirmwareEvent(fw.remote_id, g.user.user_id))
+    fw.events.append(FirmwareEvent(remote_id=fw.remote_id, user_id=g.user.user_id))
     db.session.commit()
 
     # send email
@@ -448,7 +448,7 @@ def route_affiliation_change(firmware_id):
         fw.user.vendor.remote.is_dirty = True
         old_vendor.remote.is_dirty = True
         fw.remote_id = fw.vendor.remote.remote_id
-        fw.events.append(FirmwareEvent(fw.remote_id, g.user.user_id))
+        fw.events.append(FirmwareEvent(remote_id=fw.remote_id, user_id=g.user.user_id))
         fw.mark_dirty()
         db.session.commit()
 

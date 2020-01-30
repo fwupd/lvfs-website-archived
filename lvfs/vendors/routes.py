@@ -19,6 +19,7 @@ from sqlalchemy.orm import joinedload
 from lvfs import app, db
 
 from lvfs.emails import send_email
+from lvfs.hash import _otp_hash
 from lvfs.util import admin_login_required
 from lvfs.util import _error_internal, _email_check
 from lvfs.models import Vendor, Restriction, Namespace, User, Remote, Affiliation, AffiliationAction, Verfmt, Firmware
@@ -187,7 +188,7 @@ def route_create():
     r = Remote(name='embargo-%s' % request.form['group_id'])
     db.session.add(r)
     db.session.commit()
-    v = Vendor(request.form['group_id'], remote_id=r.remote_id)
+    v = Vendor(group_id=request.form['group_id'], remote_id=r.remote_id)
     db.session.add(v)
     db.session.commit()
     flash('Added vendor %s' % request.form['group_id'], 'info')
@@ -369,7 +370,7 @@ def route_restriction_create(vendor_id):
         return redirect(url_for('vendors.route_list_admin'), 302)
     if not 'value' in request.form:
         return _error_internal('No value')
-    vendor.restrictions.append(Restriction(request.form['value']))
+    vendor.restrictions.append(Restriction(value=request.form['value']))
     db.session.commit()
     flash('Added restriction', 'info')
     return redirect(url_for('vendors.route_restrictions', vendor_id=vendor_id), 302)
@@ -573,6 +574,7 @@ def route_user_create(vendor_id):
         user = User(username=request.form['username'],
                     display_name=request.form['display_name'],
                     auth_type='local',
+                    otp_secret=_otp_hash(),
                     vendor_id=vendor.vendor_id)
         # this is stored hashed
         password = _generate_password()
@@ -732,7 +734,7 @@ def route_affiliation_create(vendor_id):
             return redirect(url_for('vendors.route_affiliations', vendor_id=vendor_id), 302)
 
     # add a new ODM -> OEM affiliation
-    aff = Affiliation(vendor_id, vendor_id_odm)
+    aff = Affiliation(vendor_id=vendor_id, vendor_id_odm=vendor_id_odm)
     for action in ['@delete',
                    '@modify',
                    '@undelete',

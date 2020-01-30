@@ -276,9 +276,9 @@ class UploadedFile:
         for csum in release.xpath('checksum[@target="device"]'):
             text = _node_validate_text(csum, minlen=32, maxlen=128)
             if csum.get('kind') == 'sha1':
-                md.device_checksums.append(Checksum(text, 'SHA1'))
+                md.device_checksums.append(Checksum(value=text, kind='SHA1'))
             elif csum.get('kind') == 'sha256':
-                md.device_checksums.append(Checksum(text, 'SHA256'))
+                md.device_checksums.append(Checksum(value=text, kind='SHA256'))
         if not md.filename_contents:
             md.filename_contents = 'firmware.bin'
 
@@ -430,7 +430,7 @@ class UploadedFile:
                         'd6072785-6fc0-5f83-9d49-11376e7f48b1',     # MST-leaf
                         '49ec4eb4-c02b-58fc-8935-b1ee182405c7']:    # MST-tesla
                 raise MetadataInvalid('The GUID {} is too generic'.format(text))
-            md.guids.append(Guid(md.component_id, text))
+            md.guids.append(Guid(value=text))
         if not md.guids:
             raise MetadataInvalid('The metadata file did not provide any GUID.')
 

@@ -85,7 +85,7 @@ def route_create():
     for plugin in ploader.get_all():
         for s in plugin.settings():
             if s.key not in settings:
-                db.session.add(Setting(s.key, s.default))
+                db.session.add(Setting(key=s.key, value=s.default))
     db.session.commit()
     return redirect(url_for('settings.route_view'))
 

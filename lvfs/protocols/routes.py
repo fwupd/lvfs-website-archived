@@ -46,7 +46,7 @@ def route_create():
         return redirect(url_for('protocols.route_list'))
 
     # add protocol
-    protocol = Protocol(value=request.form['value'])
+    protocol = Protocol(value=request.form['value'], is_public=True)
     db.session.add(protocol)
     db.session.commit()
     flash('Added protocol', 'info')

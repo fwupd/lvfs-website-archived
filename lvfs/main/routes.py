@@ -130,9 +130,11 @@ def serveStaticResource(resource):
 
         # log the client request
         if not fw.do_not_track:
+            datestr = _get_datestr_from_datetime(datetime.datetime.utcnow())
             db.session.add(Client(addr=_addr_hash(_get_client_address()),
                                   firmware_id=fw.firmware_id,
-                                  user_agent=user_agent))
+                                  user_agent=user_agent,
+                                  datestr=datestr))
             db.session.commit()
 
     # firmware blobs
@@ -301,9 +303,9 @@ def _create_user_for_oauth_username(username):
             if not fnmatch.fnmatch(username.lower(), glob):
                 continue
             if v.oauth_unknown_user == 'create':
-                return User(username, vendor_id=v.vendor_id, auth_type='oauth')
+                return User(username=username, vendor_id=v.vendor_id, auth_type='oauth')
             if v.oauth_unknown_user == 'disabled':
-                return User(username, vendor_id=v.vendor_id)
+                return User(username=username, vendor_id=v.vendor_id)
     return None
 
 # unauthenticed

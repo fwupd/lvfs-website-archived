@@ -242,7 +242,7 @@ def _upload_firmware():
                   format(md.appstream_id), 'warning')
 
     # add to database
-    fw.events.append(FirmwareEvent(remote.remote_id, g.user.user_id))
+    fw.events.append(FirmwareEvent(remote_id=remote.remote_id, user_id=g.user.user_id))
     db.session.add(fw)
     db.session.commit()
 
