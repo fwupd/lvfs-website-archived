@@ -183,13 +183,13 @@ class LocalTestCase(LvfsTestCase):
 
         # check there is a problem
         rv = self.app.get('/lvfs/firmware/1/problems')
-        assert b'CVE information should be entered in the issues section' in rv.data, rv.data.decode()
+        assert b'CVEs in update description' in rv.data, rv.data.decode()
 
         # autoimport the CVEs
         rv = self.app.get('/lvfs/components/1/issue/autoimport', follow_redirects=True)
         assert b'Added 2 issues' in rv.data, rv.data.decode()
         rv = self.app.get('/lvfs/firmware/1/problems')
-        assert b'CVE information should be entered in the issues section' not in rv.data, rv.data.decode()
+        assert b'CVEs in update description' not in rv.data, rv.data.decode()
         rv = self.app.get('/lvfs/components/1/update')
         assert b'- Address security advisories INTEL-SA-00233(, )\n' +\
                b'- Firmware updates to address security advisory INTEL-SA-00213' in rv.data, rv.data.decode()

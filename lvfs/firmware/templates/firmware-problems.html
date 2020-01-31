@@ -11,7 +11,7 @@
 <div class="card mb-3">
   <div class="card-body">
     <div class="card-title">
-      <img src="/img/{{problem.icon_name}}.png"/>
+      <span class="fs-2 {{problem.icon_css|join(' ')}}"></span>
 {% if problem.md %}
       {{problem.summary}} for &lsquo;{{problem.md.name_with_category}}&rsquo;
       <code class="float-right">{{problem.md.appstream_id}}</code>
@@ -19,140 +19,7 @@
       {{problem.summary}}
 {% endif %}
     </div>
-{% if problem.kind == 'no-release-urgency' %}
-    <td class="col col-sm-7">
-      <p class="card-text">
-        All components should have an appropriate update urgency before a
-        firmware is moved to stable.
-      </p>
-      <p class="card-text">
-        For future firmware uploads, this can be set automatically using
-        <code>&lt;release urgency="high"&gt;</code> in the
-        <a href="/metainfo"><code>.metainfo.xml</code></a> file.
-      </p>
-    </td>
-{% elif problem.kind == 'no-release-timestamp' %}
-    <td class="col col-sm-7">
-      <p class="card-text">
-        All components should have an appropriate update timestamp at upload time.
-      </p>
-      <p class="card-text">
-        This can be set easily using <code>&lt;release date="2019-08-05"&gt;</code>
-        in the <a href="/metainfo"><code>.metainfo.xml</code></a> file.
-      </p>
-    </td>
-{% elif problem.kind == 'no-release-description' %}
-    <td class="col col-sm-7">
-      <p class="card-text">
-        All components should have a suitable update description before a
-        firmware is moved to stable.
-        Writing good quality release notes are really important as some users may be
-        worried about an update that does not explain what it fixes.
-      </p>
-      <p class="card-text">
-        For future firmware uploads, this can be set automatically using this
-        in the <a href="/metainfo"><code>.metainfo.xml</code></a> file:<br/>
-        <code>&lt;release&gt;&lt;description&gt;&lt;p&gt;Release note
-        text&lt;/p&gt;&lt;/description&gt;&lt;/release&gt;</code>
-      </p>
-    </td>
-{% elif problem.kind == 'no-protocol' %}
-    <td class="col col-sm-7">
-      <p class="card-text">
-        All components should have a defined update protocol before being moved
-        to stable.
-      </p>
-      <p class="card-text">
-        For future firmware uploads, this can be set automatically using this
-        in the <a href="/metainfo"><code>.metainfo.xml</code></a> file:<br/>
-        <code>&lt;custom&gt;<br/>&nbsp;&nbsp;&lt;value key="LVFS::UpdateProtocol"&gt;org.uefi.capsule&lt;/value&gt;<br/>&lt;/custom&gt;</code>
-      </p>
-    </td>
-{% elif problem.kind == 'no-category' %}
-    <td class="col col-sm-7">
-      <p class="card-text">
-        All components should have a defined update category before being moved
-        to stable.
-      </p>
-      <p class="card-text">
-        For future firmware uploads, this can be set automatically using this
-        in the <a href="/metainfo"><code>.metainfo.xml</code></a> file:<br/>
-        <code>&lt;categories&gt;<br/>&nbsp;&nbsp;&lt;category&gt;X-Device&lt;/category&gt;<br/>&lt;/categories&gt;</code>
-      </p>
-    </td>
-{% elif problem.kind == 'invalid-release-description' %}
-    <td class="col col-sm-7">
-      <p class="card-text">
-        All components should have a suitable update description before a
-        firmware is moved to stable.
-      </p>
 {% if problem.description %}
-      <p class="card-text">
-        <code>{{problem.description}}</code>
-      </p>
-{% endif %}
-    </td>
-{% elif problem.kind == 'unsigned' %}
-    <td class="col col-sm-7">
-      <p class="card-text">
-        Signing a firmware file on the LVFS is automatic and will be completed in
-        {{format_timedelta_approx(fw.scheduled_signing)}}.
-        You can refresh this page to find out when the firmware has been signed.
-      </p>
-    </td>
-{% elif problem.kind == 'deleted' %}
-    <td class="col col-sm-7">
-      <p class="card-text">
-        Once a file has been deleted on the LVFS it must be undeleted before it
-        can be moved to a different target.
-      </p>
-    </td>
-{% elif problem.kind == 'test-pending' %}
-    <td class="col col-sm-7">
-      <p class="card-text">
-        The LVFS runs tests on certain types of firmware to check they are valid.
-        Some tests are still pending and will be completed shortly.
-        You can refresh this page to find out when the firmware has been tested.
-      </p>
-    </td>
-{% elif problem.kind == 'test-failed' %}
-    <td class="col col-sm-7">
-      <p class="card-text">
-        A check on the firmware has failed.
-        Some checks can be <em>waived</em> by a QA user and ignored.
-      </p>
-      <p class="card-text">
-        <code>{{problem.description}}</code>
-      </p>
-    </td>
-{% elif problem.kind == 'no-source' %}
-    <td class="col col-sm-7">
-      <p class="card-text">
-        Firmware that uses the GNU General Public License has to provide a link
-        to the source code used to build the firmware.
-      </p>
-    </td>
-{% elif problem.kind == 'no-vendor-namespace' %}
-    <td class="col col-sm-7">
-      <p class="card-text">
-        The <code>{{problem.md.fw.vendor.group_id}}</code> vendor
-        does not have permission to own the <code>{{problem.md.appstream_id_prefix}}</code>
-        AppStream ID component prefix and no namespaces have been set up.
-        Please either change the firmware vendor or contact the LVFS
-        administrator to fix this.
-      </p>
-    </td>
-{% elif problem.kind == 'invalid-vendor-namespace' %}
-    <td class="col col-sm-7">
-      <p class="card-text">
-        The <code>{{problem.md.fw.vendor.group_id}}</code> vendor
-        does not have permission to own the <code>{{problem.md.appstream_id_prefix}}</code>
-        AppStream ID component prefix.
-        Please either <a href="{{url_for('firmware.route_affiliation', firmware_id=problem.md.fw.firmware_id)}}">change the vendor</a>
-        to the correct OEM or contact the LVFS administrator to fix this.
-      </p>
-    </td>
-{% else %}
     <td class="col col-sm-7">
       <p class="card-text">
         {{problem.description}}

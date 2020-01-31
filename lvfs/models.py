@@ -40,61 +40,6 @@ from lvfs.hash import _qa_hash, _password_hash
 from lvfs.util import _generate_password, _xml_from_markdown, _get_update_description_problems
 from lvfs.util import _get_absolute_path, _get_shard_path, _validate_guid
 
-class Problem:
-    def __init__(self, kind, description=None, url=None, md=None):
-        self.kind = kind
-        self.description = description
-        self.url = url
-        self.md = md
-
-    @property
-    def summary(self):
-        if self.kind == 'unsigned':
-            return 'Firmware is unsigned'
-        if self.kind == 'deleted':
-            return 'Firmware has been deleted'
-        if self.kind == 'no-release-urgency':
-            return 'No update urgency'
-        if self.kind == 'no-release-timestamp':
-            return 'No update timestamp'
-        if self.kind == 'no-release-description':
-            return 'No update description'
-        if self.kind == 'invalid-release-description':
-            return 'No valid update description'
-        if self.kind == 'no-protocol':
-            return 'No update protocol set'
-        if self.kind == 'no-category':
-            return 'No firmware category set'
-        if self.kind == 'test-failed':
-            return 'Firmware is not valid'
-        if self.kind == 'test-pending':
-            return 'Firmware tests are pending'
-        if self.kind == 'no-source':
-            return 'No source code link'
-        if self.kind == 'no-vendor-namespace':
-            return 'No vendor namespaces set'
-        if self.kind == 'invalid-vendor-namespace':
-            return 'Invalid vendor namespace'
-        if self.kind == 'invalid-details-url':
-            return 'Invalid details URL'
-        if self.kind == 'invalid-source-url':
-            return 'Invalid source URL'
-        if self.kind == 'invalid-version-for-format':
-            return 'Invalid version format for defined protocol'
-        if self.kind == 'invalid-format-for-protocol':
-            return 'Invalid version format for protocol'
-        if self.kind == 'invalid-guid':
-            return 'Invalid GUID specified for provide'
-        return 'Problem %s' % self.kind
-
-    @property
-    def icon_name(self):
-        if self.kind == 'unsigned':
-            return 'task-due'
-        if self.kind == 'deleted':
-            return 'emblem-readonly'
-        return 'dialog-warning'
-
 class Agreement(db.Model):
 
     __tablename__ = 'agreements'
@@ -1048,6 +993,7 @@ class Claim(db.Model):
     kind = Column(Text, nullable=False, index=True)
     icon = Column(Text)     # e.g. 'success'
     summary = Column(Text)
+    description = Column(Text, default=None)
     url = Column(Text)
 
     def __lt__(self, other):
@@ -1060,14 +1006,15 @@ class Claim(db.Model):
 
     @property
     def icon_css(self):
-        val = ['fas']
         if self.icon in ['danger', 'warning']:
-            val += ['fa-times-circle', 'text-' + self.icon]
-        elif self.icon == 'info':
-            val += ['fa-info-circle', 'text-' + self.icon]
-        elif self.icon == 'success':
-            val += ['fa-check-circle', 'text-' + self.icon]
-        return val
+            return ['fas', 'fa-times-circle', 'text-' + self.icon]
+        if self.icon == 'info':
+            return ['fas', 'fa-info-circle', 'text-' + self.icon]
+        if self.icon == 'success':
+            return ['fas', 'fa-check-circle', 'text-' + self.icon]
+        if self.icon == 'waiting':
+            return ['far', 'fa-clock', 'text-info']
+        return ['far', 'fa-{}'.format(self.icon)]
 
     def __repr__(self):
         return 'Claim object {}:{}->{}'.format(self.claim_id, self.kind, self.icon)
@@ -1288,13 +1235,20 @@ class ComponentIssue(db.Model):
     def problem(self):
         parts = self.value.split('-')
         if len(parts) != 3 or parts[0] != 'CVE':
-            return Problem('invalid-issue', 'Format expected to be CVE-XXXX-XXXXX')
-        if not parts[1].isnumeric:
-            return Problem('invalid-issue', 'Expected year in CVE value')
-        if int(parts[1]) < 1995:
-            return Problem('invalid-issue', 'Invalid year in CVE value')
+            return Claim(kind='invalid-issue',
+                         icon='warning',
+                         summary='Invalid component issue',
+                         description='Format expected to be CVE-XXXX-XXXXX')
+        if not parts[1].isnumeric or int(parts[1]) < 1995:
+            return Claim(kind='invalid-issue',
+                         icon='warning',
+                         summary='Invalid component issue',
+                         description='Invalid year in CVE value')
         if not parts[2].isnumeric:
-            return Problem('invalid-issue', 'Expected integer in CVE token')
+            return Claim(kind='invalid-issue',
+                         icon='warning',
+                         summary='Invalid component issue',
+                         description='Expected integer in CVE token')
         return None
 
     def __repr__(self):
@@ -1592,122 +1546,155 @@ class Component(db.Model):
             # check for OEMs just pasting in the XML like before
             for element_name in ['p', 'li', 'ul', 'ol']:
                 if self.release_description.find('<' + element_name + '>') != -1:
-                    problems.append(Problem('invalid-release-description',
-                                            'Release description cannot contain XML markup'))
+                    problems.append(Claim(kind='invalid-release-description',
+                                          icon='warning',
+                                          summary='No valid update description',
+                                          description='Release description cannot contain XML markup'))
                     break
         else:
             problems = []
-            problems.append(Problem('invalid-release-description',
-                                    'Release description is missing'))
+            problems.append(Claim(kind='no-release-description',
+                                  icon='warning',
+                                  summary='Release description is missing',
+                                  description='All components should have a suitable update '
+                                              'description before a firmware is moved to stable.\n'
+                                              'Writing good quality release notes are really important '
+                                              'as some users may be worried about an update that does '
+                                              'not explain what it fixes.\n'
+                                              'This also can be set in the .metainfo.xml file.'))
 
         # urgency is now a hard requirement
         if self.release_urgency == 'unknown':
-            problems.append(Problem('no-release-urgency',
-                                    'Release urgency has not been set'))
+            problems.append(Claim(kind='no-release-urgency',
+                                  icon='warning',
+                                  summary='Release urgency has not been set',
+                                  description='All components should have an appropriate '
+                                              'update urgency before a firmware is moved to stable.\n'
+                                              'This also can be set in the .metainfo.xml file.'))
 
         # release timestamp is now a hard requirement
         if self.release_timestamp == 0:
-            problems.append(Problem('no-release-timestamp',
-                                    'Release timestamp was not set'))
+            problems.append(Claim(kind='no-release-timestamp',
+                                  icon='warning',
+                                  summary='Release timestamp was not set',
+                                  description='All components should have an appropriate '
+                                              'update timestamp at upload time.\n'
+                                              'This also can be set in the .metainfo.xml file.'))
 
         # we are going to be making policy decision on this soon
         if not self.protocol or self.protocol.value == 'unknown':
-            problem = Problem('no-protocol',
-                              'Update protocol has not been set')
-            problem.url = url_for('components.route_show',
-                                  component_id=self.component_id)
-            problems.append(problem)
+            problems.append(Claim(kind='no-protocol',
+                                  icon='warning',
+                                  summary='Update protocol has not been set',
+                                  description='All components should have a defined update protocol '
+                                              'before being moved to stable.\n'
+                                              'This also can be set in the .metainfo.xml file.',
+                                  url=url_for('components.route_show',
+                                              component_id=self.component_id)))
 
         # check the GUIDs are indeed lowercase GUIDs (already done on upload)
         for guid in self.guids:
             if not _validate_guid(guid.value):
-                problem = Problem('invalid-guid',
-                                  'GUID {} is not valid'.format(guid.value))
-                problem.url = url_for('components.route_show',
-                                      component_id=self.component_id)
-                problems.append(problem)
+                problems.append(Claim(kind='invalid-guid',
+                                      icon='warning',
+                                      summary='Component GUID invalid',
+                                      description='GUID {} is not valid'.format(guid.value),
+                                      url=url_for('components.route_show',
+                                                  component_id=self.component_id)))
 
         # check the version matches the expected section count
         if self.verfmt_with_fallback and \
            self.verfmt_with_fallback.value != 'plain' and \
            self.verfmt_with_fallback.sections:
             if self.version_sections != self.verfmt_with_fallback.sections:
-                problem = Problem('invalid-version-for-format',
-                                  'Version number {} incompatible with {}'.\
-                                  format(self.version_display,
-                                         self.verfmt_with_fallback.value))
-                problem.url = url_for('components.route_show',
-                                      component_id=self.component_id)
-                problems.append(problem)
+                problems.append(Claim(kind='invalid-version-for-format',
+                                      icon='warning',
+                                      summary='Version format invalid',
+                                      description='The version number {} incompatible with {}.'.\
+                                                    format(self.version_display,
+                                                           self.verfmt_with_fallback.value),
+                                      url=url_for('components.route_show',
+                                                  component_id=self.component_id)))
 
         # if the component and protocol both have verfmt, they must match
         if self.verfmt and self.protocol and self.protocol.verfmt:
             if self.verfmt.value != self.protocol.verfmt.value:
-                problem = Problem('invalid-format-for-protocol',
-                                  'Version vormat {} incompatible with protocol-defined {}'.\
-                                  format(self.verfmt.value,
-                                         self.protocol.verfmt.value))
-                problem.url = url_for('components.route_show',
-                                      component_id=self.component_id)
-                problems.append(problem)
+                problems.append(Claim(kind='invalid-format-for-protocol',
+                                      icon='warning',
+                                      summary='Version vormat {} incompatible with protocol-defined {}'.\
+                                                    format(self.verfmt.value,
+                                                           self.protocol.verfmt.value),
+                                      url=url_for('components.route_show',
+                                                  component_id=self.component_id)))
 
         # we are going to be uing this in the UI soon
         if not self.category or self.category.value == 'unknown':
-            problem = Problem('no-category',
-                              'Firmware category has not been set')
-            problem.url = url_for('components.route_show',
-                                  component_id=self.component_id)
-            problems.append(problem)
+            problems.append(Claim(kind='no-category',
+                                  icon='warning',
+                                  summary='Firmware category has not been set',
+                                  description='All components should have a defined update category '
+                                              'before being moved to stable.\n'
+                                              'This also can be set in the .metainfo.xml file.',
+                                  url=url_for('components.route_show',
+                                              component_id=self.component_id)))
 
         # firmware can't be pushed to public with a private protocol
         if self.protocol and not self.protocol.is_public:
-            problem = Problem('no-protocol',
-                              'Update protocol is not public')
-            problem.url = url_for('components.route_show',
-                                  component_id=self.component_id)
-            problems.append(problem)
+            problems.append(Claim(kind='no-protocol',
+                                  icon='warning',
+                                  summary='Update protocol is not public',
+                                  url=url_for('components.route_show',
+                                              component_id=self.component_id)))
 
         # some firmware requires a source URL
         if self.requires_source_url and not self.source_url:
-            problem = Problem('no-source',
-                              'Update does not link to source code')
-            problem.url = url_for('components.route_show',
-                                  component_id=self.component_id,
-                                  page='update')
-            problems.append(problem)
+            problems.append(Claim(kind='no-source',
+                                  icon='warning',
+                                  summary='Update does not link to source code',
+                                  description='Firmware that uses the GNU General Public License has to '
+                                              'provide a link to the source code used to build the firmware.',
+                                  url=url_for('components.route_show',
+                                              component_id=self.component_id,
+                                              page='update')))
 
         # the URL has to be valid if provided
         if self.details_url and not _is_valid_url(self.details_url):
-            problem = Problem('invalid-details-url',
-                              'The update details URL was provided but not valid')
-            problem.url = url_for('components.route_show',
-                                  page='update',
-                                  component_id=self.component_id)
-            problems.append(problem)
+            problems.append(Claim(kind='invalid-details-url',
+                                  icon='warning',
+                                  summary='The update details URL was provided but not valid',
+                                  url=url_for('components.route_show',
+                                              page='update',
+                                              component_id=self.component_id)))
         if self.source_url and not _is_valid_url(self.source_url):
-            problem = Problem('invalid-source-url',
-                              'The release source URL was provided but not valid')
-            problem.url = url_for('components.route_show',
-                                  page='update',
-                                  component_id=self.component_id)
-            problems.append(problem)
+            problems.append(Claim(kind='invalid-source-url',
+                                  icon='warning',
+                                  summary='The release source URL was provided but not valid',
+                                  url=url_for('components.route_show',
+                                              page='update',
+                                              component_id=self.component_id)))
 
         # the OEM doesn't manage this namespace
         values = [ns.value for ns in self.fw.vendor.namespaces]
         if not values:
-            problem = Problem('no-vendor-namespace',
-                              'No AppStream namespace values for '
-                              'vendor {}'.format(self.fw.vendor_odm.group_id))
-            problems.append(problem)
+            problems.append(Claim(kind='no-vendor-namespace',
+                                  icon='warning',
+                                  summary='No AppStream namespace for vendor',
+                                  description='Your vendor does not have permission to own this AppStream ID '
+                                              'component prefix.\n'
+                                              'Please either change the firmware vendor or contact the '
+                                              'LVFS administrator to fix this.'))
         elif self.appstream_id_prefix not in values:
-            problem = Problem('invalid-vendor-namespace',
-                              'Component ID {} not allowed '
-                              'for vendor {}: {}'.format(self.appstream_id_prefix,
-                                                         self.fw.vendor_odm.group_id,
-                                                         ','.join(values)))
-            problem.url = url_for('firmware.route_affiliation',
-                                  firmware_id=self.fw.firmware_id)
-            problems.append(problem)
+            problems.append(Claim(kind='invalid-vendor-namespace',
+                                  icon='warning',
+                                  summary='Invalid vendor namespace',
+                                  description='{} does not have permission to own the AppStream ID '
+                                              'component prefix of {}.\n'
+                                              'Please either change the vendor to the correct OEM or contact '
+                                              'the LVFS administrator to fix this.'.\
+                                                    format(self.fw.vendor_odm.display_name,
+                                                           self.appstream_id_prefix),
+                                  url=url_for('firmware.route_affiliation',
+                                              firmware_id=self.fw.firmware_id)))
 
         # name_variant_suffix contains a word in the name
         if self.name_variant_suffix:
@@ -1715,11 +1702,11 @@ class Component(db.Model):
             nvs_kws = [_sanitize_keyword(word) for word in nvs_words]
             for word in self.name.split(' '):
                 if _sanitize_keyword(word) in nvs_kws:
-                    problem = Problem('invalid-name-variant-suffix',
-                                      '{} is already part of the <name>'.format(word))
-                    problem.url = url_for('components.route_show',
-                                          component_id=self.component_id)
-                    problems.append(problem)
+                    problems.append(Claim(kind='invalid-name-variant-suffix',
+                                          icon='warning',
+                                          summary='{} is already part of the <name>'.format(word),
+                                          url=url_for('components.route_show',
+                                                      component_id=self.component_id)))
 
         # add all CVE problems
         for issue in self.issues:
@@ -2120,25 +2107,47 @@ class Firmware(db.Model):
         # does the firmware have any warnings
         problems = []
         if self.is_deleted:
-            problem = Problem('deleted')
-            problem.url = url_for('firmware.route_show', firmware_id=self.firmware_id)
-            problems.append(problem)
+            problems.append(Claim(kind='deleted',
+                                  icon='trash',
+                                  summary='Firmware has been deleted',
+                                  description='Once a file has been deleted on the LVFS it must be '
+                                              'undeleted before it can be moved to a different target.',
+                                  url=url_for('firmware.route_show', firmware_id=self.firmware_id)))
         if not self.signed_timestamp:
-            problem = Problem('unsigned')
-            problem.url = url_for('firmware.route_show', firmware_id=self.firmware_id)
-            problems.append(problem)
+            problems.append(Claim(kind='unsigned',
+                                  icon='waiting',
+                                  summary='Firmware is unsigned',
+                                  description='Signing a firmware file on the LVFS is automatic and will '
+                                              'be completed soon.\n'
+                                              'You can refresh this page to find out when the firmware '
+                                              'has been signed.',
+                                  url=url_for('firmware.route_show', firmware_id=self.firmware_id)))
         # test failures
         for test in self.tests:
             if not test.started_ts:
-                problem = Problem('test-pending',
-                                  'Runtime test %s is pending' % test.plugin_id)
-                problem.url = url_for('firmware.route_tests', firmware_id=self.firmware_id)
-                problems.append(problem)
+                problems.append(Claim(kind='test-pending',
+                                      icon='waiting',
+                                      summary='Runtime test {} is pending'.format(test.plugin_id),
+                                      description='The LVFS runs tests on certain types of firmware to check they '
+                                                  'are valid.\n'
+                                                  'Some tests are still pending and will be completed shortly.\n'
+                                                  'You can refresh this page to find out when the firmware has '
+                                                  'been tested.',
+                                      url=url_for('firmware.route_tests', firmware_id=self.firmware_id)))
             elif not test.success and not test.waived_ts:
-                problem = Problem('test-failed',
-                                  'Runtime test %s did not succeed' % test.plugin_id)
-                problem.url = url_for('firmware.route_tests', firmware_id=self.firmware_id)
-                problems.append(problem)
+                if test.waivable:
+                    problems.append(Claim(kind='test-failed',
+                                          icon='warning',
+                                          summary='Runtime test {} did not succeed'.format(test.plugin_id),
+                                          description='A check on the firmware has failed.\n'
+                                                      'This failure can be waived by a QA user and ignored.',
+                                          url=url_for('firmware.route_tests', firmware_id=self.firmware_id)))
+                else:
+                    problems.append(Claim(kind='test-failed',
+                                          icon='warning',
+                                          summary='Runtime test {} did not succeed'.format(test.plugin_id),
+                                          description='A non-waivable check on the firmware has failed.',
+                                          url=url_for('firmware.route_tests', firmware_id=self.firmware_id)))
         for md in self.mds:
             for problem in md.problems:
                 problem.md = md

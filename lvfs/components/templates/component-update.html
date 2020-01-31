@@ -51,7 +51,7 @@
   <strong>Release is not valid!</strong>
   <ul>
 {% for problem in md.problems %}
-    <li>{{problem.description}}</li>
+    <li>{{problem.summary}}: <em>{{problem.description}}</em></li>
 {% endfor %}
   </ul>
 </div>

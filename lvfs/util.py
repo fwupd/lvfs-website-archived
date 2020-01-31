@@ -128,16 +128,17 @@ def _xml_from_markdown(markdown):
             ET.SubElement(root, 'p').text = line
     return root
 
-def _add_problem(problems, title, line=None):
-    from lvfs.models import Problem
-    if line:
-        tmp = "%s: [%s]" % (title, line)
-    else:
-        tmp = title
+def _add_problem(problems, description, line=None):
+    from lvfs.models import Claim
     for problem in problems:
-        if problem.description == tmp:
+        if problem.description.split('\n')[0] == description:
             return
-    problems.append(Problem('invalid-release-description', tmp))
+    if line:
+        description += '\n{}'.format(line)
+    problems.append(Claim(kind='invalid-release-description',
+                          icon='warning',
+                          summary='Invalid release description',
+                          description=description))
 
 def _check_both(problems, txt):
     if txt.isupper():
@@ -145,7 +146,7 @@ def _check_both(problems, txt):
     if txt.find('http://') != -1 or txt.find('https://') != -1:
         _add_problem(problems, 'Links cannot be included in update descriptions', txt)
     if txt.find('CVE-') != -1:
-        _add_problem(problems, 'CVE information should be entered in the issues section', txt)
+        _add_problem(problems, 'CVEs in update description')
 
 def _check_is_fake_li(txt):
     for line in txt.split('\n'):
@@ -164,24 +165,24 @@ def _check_para(problems, txt):
     if txt.find('.BLD') != -1 or txt.find('changes.new') != -1:
         _add_problem(problems, 'Do not refer to BLD or changes.new release notes', txt)
     if len(txt) > 300:
-        _add_problem(problems, 'Paragraphs is too long, limit is 300 chars and was %i' % len(txt), txt)
+        _add_problem(problems, 'Paragraph too long, limit is 300 chars and was %i' % len(txt), txt)
     if len(txt) < 12:
-        _add_problem(problems, 'Paragraphs is too short, minimum is 12 chars and was %i' % len(txt), txt)
+        _add_problem(problems, 'Paragraph too short, minimum is 12 chars and was %i' % len(txt), txt)
 
 def _check_li(problems, txt):
     _check_both(problems, txt)
     if txt in ('Nothing.', 'Not applicable.'):
-        _add_problem(problems, 'List elements cannot be empty', txt)
+        _add_problem(problems, 'List element cannot be empty', txt)
     if _check_is_fake_li(txt):
-        _add_problem(problems, 'List elements cannot start with bullets', txt)
+        _add_problem(problems, 'List element cannot start with bullets', txt)
     if txt.find('.BLD') != -1:
-        _add_problem(problems, 'Do not refer to BLD release notes', txt)
+        _add_problem(problems, 'Do not refer to BLD notes', txt)
     if txt.find('Fix the return code from GetHardwareVersion') != -1:
         _add_problem(problems, 'Do not use the example update notes!', txt)
     if len(txt) > 300:
-        _add_problem(problems, 'List element is too long, limit is 300 chars and was %i' % len(txt), txt)
+        _add_problem(problems, 'List element too long, limit is 300 chars and was %i' % len(txt), txt)
     if len(txt) < 5:
-        _add_problem(problems, 'List element is too short, minimum is 5 chars and was %i' % len(txt), txt)
+        _add_problem(problems, 'List element too short, minimum is 5 chars and was %i' % len(txt), txt)
 
 def _get_update_description_problems(root):
     problems = []
