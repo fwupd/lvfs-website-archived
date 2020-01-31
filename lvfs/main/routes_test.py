@@ -31,6 +31,8 @@ class LocalTestCase(LvfsTestCase):
         assert b'Incorrect username' in rv.data, rv.data
         rv = self._login('sign-test@fwupd.org', 'defaultx')
         assert b'Incorrect password' in rv.data, rv.data
+        rv = self._login('SIGN-TEST@FWUPD.ORG', 'Pa$$w0rd')
+        assert b'/lvfs/upload/firmware' in rv.data, rv.data.decode()
 
     def test_eventlog(self):
 

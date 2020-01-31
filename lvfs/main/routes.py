@@ -322,9 +322,10 @@ def route_login1_response():
     if 'username' not in request.form:
         flash('Username not specified', 'warning')
         return redirect(url_for('main.route_login1'))
-    user = db.session.query(User).filter(User.username == request.form['username']).first()
+    username = request.form['username'].lower()
+    user = db.session.query(User).filter(User.username == username).first()
     if not user:
-        flash('Failed to log in: Incorrect username %s' % request.form['username'], 'danger')
+        flash('Failed to log in: Incorrect username {}'.format(username), 'danger')
         return redirect(url_for('main.route_login1'))
     return render_template('login2.html', u=user)
 
@@ -332,29 +333,34 @@ def route_login1_response():
 @csrf.exempt
 def route_login():
     """ A login screen to allow access to the LVFS main page """
+    if 'username' not in request.form:
+        flash('Username not specified', 'warning')
+        return redirect(url_for('main.route_login1'))
+
     # auth check
-    user = db.session.query(User).filter(User.username == request.form['username']).first()
+    username = request.form['username'].lower()
+    user = db.session.query(User).filter(User.username == username).first()
     if user:
         if user.auth_type == 'oauth':
             flash('Failed to log in as %s: Only OAuth can be used for this user' % user.username, 'danger')
             return redirect(url_for('main.route_index'))
         if not user.verify_password(request.form['password']):
-            flash('Failed to log in: Incorrect password for %s' % request.form['username'], 'danger')
+            flash('Failed to log in: Incorrect password for {}'.format(username), 'danger')
             return redirect(url_for('main.route_login1'))
     else:
         # check OAuth, user is NOT added to the database
-        user = _create_user_for_oauth_username(request.form['username'])
+        user = _create_user_for_oauth_username(username)
         if not user:
-            flash('Failed to log in: Incorrect username %s' % request.form['username'], 'danger')
+            flash('Failed to log in: Incorrect username {}'.format(username), 'danger')
             return redirect(url_for('main.route_index'))
 
     # check auth type
     if not user.auth_type or user.auth_type == 'disabled':
         if user.dtime:
             flash('Failed to log in as %s: User account was disabled on %s' %
-                  (request.form['username'], user.dtime.strftime('%Y-%m-%d')), 'danger')
+                  (username, user.dtime.strftime('%Y-%m-%d')), 'danger')
         else:
-            flash('Failed to log in as %s: User account is disabled' % request.form['username'], 'danger')
+            flash('Failed to log in as %s: User account is disabled' % username, 'danger')
         return redirect(url_for('main.route_index'))
 
     # check OTP

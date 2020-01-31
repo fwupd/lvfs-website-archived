@@ -540,13 +540,14 @@ def route_user_create(vendor_id):
     if not 'display_name' in request.form:
         flash('Unable to add user as no display_name', 'danger')
         return redirect(url_for('vendors.route_show', vendor_id=vendor_id))
-    user = db.session.query(User).filter(User.username == request.form['username']).first()
+    username = request.form['username'].lower()
+    user = db.session.query(User).filter(User.username == username).first()
     if user:
         flash('Failed to add user: Username already exists', 'warning')
         return redirect(url_for('vendors.route_users', vendor_id=vendor_id), 302)
 
     # verify email
-    if not _email_check(request.form['username']):
+    if not _email_check(username):
         flash('Failed to add user: Invalid email address', 'warning')
         return redirect(url_for('users.route_list'), 302)
 
@@ -557,8 +558,7 @@ def route_user_create(vendor_id):
                   'Admin has not set the account policy for this vendor',
                   'warning')
             return redirect(url_for('vendors.route_users', vendor_id=vendor_id), 302)
-        if not _verify_username_vendor_glob(request.form['username'].lower(),
-                                            vendor.username_glob):
+        if not _verify_username_vendor_glob(username, vendor.username_glob):
             flash('Failed to add user: '
                   'Email address does not match account policy %s' % vendor.username_glob,
                   'warning')
@@ -566,12 +566,12 @@ def route_user_create(vendor_id):
 
     # add user
     if g.user.vendor.oauth_domain_glob:
-        user = User(username=request.form['username'],
+        user = User(username=username,
                     display_name=request.form['display_name'],
                     auth_type='oauth',
                     vendor_id=vendor.vendor_id)
     else:
-        user = User(username=request.form['username'],
+        user = User(username=username,
                     display_name=request.form['display_name'],
                     auth_type='local',
                     otp_secret=_otp_hash(),

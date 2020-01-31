@@ -613,7 +613,7 @@ def route_create():
         return redirect(url_for('users.route_list'), 302)
 
     # verify email
-    username = request.form['username']
+    username = request.form['username'].lower()
     if not _email_check(username):
         flash('Failed to add user: Invalid email address', 'warning')
         return redirect(url_for('users.route_list'), 302)
