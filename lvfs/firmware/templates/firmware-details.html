@@ -173,7 +173,11 @@ new Chart(ctx, {
         </div>
         <p class="card-text">
           The firmware cannot be downloaded from users in these countries:
-          <code>{{fw.banned_country_codes}}</code>.
+          <ul>
+{% for country_code in fw.banned_country_codes.split(',') %}
+          <li>{{format_iso3166(country_code)}}</li>
+{% endfor %}
+          </ul>
         </p>
       </div>
     </div>
