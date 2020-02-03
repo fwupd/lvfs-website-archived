@@ -10,6 +10,7 @@ Linux Vendor Firmware Service
    metainfo.rst
    upload.rst
    testing.rst
+   claims.rst
    telemetry.rst
    custom-plugin.rst
    privacy.rst

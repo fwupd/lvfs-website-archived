@@ -32,44 +32,27 @@ For reference, the UEFI capsule header is defined like this:
     UINT32     CapsuleImageSize;
     } EFI_CAPSULE_HEADER;
 
+If the header is missing or invalid the test will fail, although the failure
+can be waived by a QA user.
 
-Attestation of UEFI Firmware
-----------------------------
-
-Although the firmware capsule is signed by the OEM or ODM, we can’t reliably
-read the SPI EEPROM from userspace.
-We can get a hash of the firmware, or rather, a hash derived from the firmware.
-This is stored in the TPM chip as ``PCR0``.
-
-To list the various ``PCRs`` on the running system you can use
-``cat /sys/class/tpm/tpm0/pcrs`` for TPMs using protocol 1.2, or
-``tpm2_listpcrs`` for TPMs using later protocol versions.
-The PCR0 can be included in the vendor-supplied ``firmware.metainfo.xml``:
-
-.. code-block:: xml
-
-    <releases>
-      <release date="2019-01-08" urgency="high" version="1.2.3">
-        <checksum type="sha1" target="device">ce7dd93006be33bcce1a1965cb69634bd0a0fe35</checksum>
-        <checksum type="sha256" target="device">c479988947653b403d6a4ebe366cc60eaf7b6e147bd058fb524be418890655c9</checksum>
-      </release>
-    </releases>
-
-Multiple possible device checksums can also be set using the admin console of
-the LVFS:
-
-.. figure:: img/component-checksums.png
+.. figure:: img/testing-failure-uefi-capsule.png
     :align: center
-    :width: 100%
-    :alt: component checksum
-
-    Adding PCR0 checksums to a component for attestation
+    :width: 800px
+    :alt: Test failure due to invalid UEFI capsule
 
 DFU
 ---
 
 DFU updates must be uploaded with a valid ``UFD`` footer
 that matches the device revision number with a correct CRC value.
+
+Although these can be waived by a QA user, firmware uploaded without a footer
+can be installed on any DFU device, which makes this unwise.
+
+.. figure:: img/testing-failure-dfu.png
+    :align: center
+    :width: 800px
+    :alt: Test failure due invalid DFU footer
 
 ``dfu-tool`` from the ``fwupd`` project can convert a *raw* firmware image to
 include a DFU header, for example:
@@ -79,6 +62,54 @@ include a DFU header, for example:
     $ dfu-tool convert dfu old.raw new.dfu
     $ dfu-tool set-vendor new.dfu 0xabcd
     $ dfu-tool set-product new.dfu 0x1234
+
+Blocklist
+---------
+
+All update binaries, and shards contained within are scanned for strings which
+may indicate a problem with the firmware. Example strings are:
+
+* ``DO NOT SHIP``
+* ``To Be Defined By O.E.M``
+
+Although these can be waived by a QA user, firmware should not be uploaded that
+have this text.
+
+.. figure:: img/testing-failure-blocklist.png
+    :align: center
+    :width: 800px
+    :alt: Test failure due to blocklist detection
+
+Additionally, the blocklist plugin will search for other information that may
+add a component claim. For instance the ``computrace`` claim will be added to any
+firmware shipping the official Computrace agent, and it will be visible to users
+when viewing the component information.
+
+Microcode
+---------
+
+All UEFI updates are decompressed, and if a processor microcode is found then it
+is compared with older firmware versions that have been uploaded to the LVFS.
+
+If the microcode has been downgraded then the test will fail, although the failure
+can be waived by a QA user.
+
+.. figure:: img/testing-failure-microcode.png
+    :align: center
+    :width: 800px
+    :alt: Test failure due to microcode downgrade
+
+PE Check
+--------
+
+Any EFI shards are loaded and will have their PE signatures checked.
+If any certificate is out of date, or otherwise invalid a test failure will appear.
+This failure can be waived by a QA user.
+
+.. figure:: img/testing-failure-pecheck.png
+    :align: center
+    :width: 800px
+    :alt: Test failure due to PE signature being out of date downgrade
 
 End-to-End testing
 ==================

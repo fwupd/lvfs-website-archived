@@ -1505,36 +1505,44 @@ class Component(db.Model):
             if self.protocol.is_signed:
                 claims.append(Claim(kind='signed-firmware',
                                     icon='success',
-                                    summary='Update is cryptographically signed'))
+                                    summary='Update is cryptographically signed',
+                                    url='https://lvfs.readthedocs.io/en/latest/claims.html#signed-firmware'))
             else:
                 claims.append(Claim(kind='no-signed-firmware',
                                     icon='warning',
-                                    summary='Update is not cryptographically signed'))
+                                    summary='Update is not cryptographically signed',
+                                    url='https://lvfs.readthedocs.io/en/latest/claims.html#signed-firmware'))
             if self.protocol.can_verify:
                 claims.append(Claim(kind='verify-firmware',
                                     icon='success',
-                                    summary='Firmware can be verified after flashing'))
+                                    summary='Firmware can be verified after flashing',
+                                    url='https://lvfs.readthedocs.io/en/latest/claims.html#verified-firmware'))
                 if self.category and self.category.expect_device_checksum:
                     if self.device_checksums:
                         claims.append(Claim(kind='device-checksum',
                                             icon='success',
-                                            summary='Firmware has attestation checksums'))
+                                            summary='Firmware has attestation checksums',
+                                            url='https://lvfs.readthedocs.io/en/latest/claims.html#device-checksums'))
                     else:
                         claims.append(Claim(kind='no-device-checksum',
                                             icon='warning',
-                                            summary='Firmware has no attestation checksums'))
+                                            summary='Firmware has no attestation checksums',
+                                            url='https://lvfs.readthedocs.io/en/latest/claims.html#device-checksums'))
             else:
                 claims.append(Claim(kind='no-verify-firmware',
                                     icon='warning',
-                                    summary='Firmware cannot be verified after flashing'))
+                                    summary='Firmware cannot be verified after flashing',
+                                    url='https://lvfs.readthedocs.io/en/latest/claims.html#verified-firmware'))
         if self.checksum_contents:
-            claims.append(Claim(kind='contents-checksum',
+            claims.append(Claim(kind='vendor-provenance',
                                 icon='success',
-                                summary='Added to the LVFS by {}'.format(self.fw.vendor.display_name)))
+                                summary='Added to the LVFS by {}'.format(self.fw.vendor.display_name),
+                                url='https://lvfs.readthedocs.io/en/latest/claims.html#vendor-provenance'))
         if self.source_url:
             claims.append(Claim(kind='source-url',
                                 icon='success',
-                                summary='Source code available'))
+                                summary='Source code available',
+                                url='https://lvfs.readthedocs.io/en/latest/claims.html#source-url'))
         return claims
 
     @property
@@ -2064,7 +2072,8 @@ class Firmware(db.Model):
         if test and test.ended_ts and test.success:
             claims.append(Claim(kind='virus-safe',
                                 icon='success',
-                                summary='Virus checked using ClamAV'))
+                                summary='Virus checked using ClamAV',
+                                url='https://lvfs.readthedocs.io/en/latest/claims.html#virus-safe'))
         return claims
 
     @property
