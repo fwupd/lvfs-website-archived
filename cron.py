@@ -21,7 +21,7 @@ from lvfs import app, db, ploader
 from lvfs.dbutils import _execute_count_star
 from lvfs.emails import send_email
 from lvfs.models import Remote, Firmware, Vendor, Client, AnalyticVendor, User, YaraQuery, YaraQueryResult
-from lvfs.models import AnalyticFirmware, Useragent, UseragentKind, Analytic, Report
+from lvfs.models import AnalyticFirmware, Useragent, UseragentKind, Analytic, Report, Metric
 from lvfs.models import ComponentShard, ComponentShardInfo, Test, Component, Category, Protocol, FirmwareEvent
 from lvfs.models import _get_datestr_from_datetime
 from lvfs.metadata.utils import _metadata_update_targets, _metadata_update_pulp
@@ -454,9 +454,58 @@ def _generate_stats_shard_info(info):
 
 def _generate_stats(kinds=None):
     if not kinds:
-        kinds = ['FirmwareReport', 'ShardCount', 'ShardInfo']
+        kinds = ['FirmwareReport', 'ShardCount', 'ShardInfo', 'Metrics']
 
     # Set ComponentShardInfo in ComponentShard if GUID matches
+    if 'Metrics' in kinds:
+        print('stats::Metrics')
+        values = {}
+        values['ClientCnt'] = _execute_count_star(\
+                                    db.session.query(Client))
+        values['FirmwareCnt'] = _execute_count_star(\
+                                    db.session.query(Firmware))
+        values['FirmwareStableCnt'] = _execute_count_star(\
+                                    db.session.query(Firmware)\
+                                              .join(Remote)\
+                                              .filter(Remote.name == 'stable'))
+        values['FirmwareTestingCnt'] = _execute_count_star(\
+                                    db.session.query(Firmware)\
+                                              .join(Remote)\
+                                              .filter(Remote.name == 'testing'))
+        values['FirmwarePrivateCnt'] = _execute_count_star(\
+                                    db.session.query(Firmware)\
+                                              .join(Remote)\
+                                              .filter(Remote.is_public == False))
+        values['TestCnt'] = _execute_count_star(\
+                                    db.session.query(Test))
+        values['ReportCnt'] = _execute_count_star(\
+                                    db.session.query(Report))
+        values['ProtocolCnt'] = _execute_count_star(\
+                                    db.session.query(Protocol))
+        values['ComponentShardInfoCnt'] = _execute_count_star(\
+                                    db.session.query(ComponentShardInfo))
+        values['ComponentShardCnt'] = _execute_count_star(\
+                                    db.session.query(ComponentShard))
+        values['ComponentCnt'] = _execute_count_star(\
+                                    db.session.query(Component))
+        values['VendorCnt'] = _execute_count_star(\
+                                    db.session.query(Vendor)\
+                                              .filter(Vendor.visible)\
+                                              .filter(Vendor.username_glob != None))
+        values['UserCnt'] = _execute_count_star(\
+                                    db.session.query(User)\
+                                             .filter(User.auth_type != 'disabled'))
+
+        #  save to database
+        for key in values:
+            metric = db.session.query(Metric).filter(Metric.key == key).first()
+            if not metric:
+                metric = Metric(key=key)
+                db.session.add(metric)
+            metric.value = values[key]
+            print('{}={}'.format(metric.key, metric.value))
+        db.session.commit()
+
     if 'ShardInfo' in kinds:
         print('stats::ShardInfo')
         infos = {}

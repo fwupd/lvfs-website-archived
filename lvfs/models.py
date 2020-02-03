@@ -2462,6 +2462,17 @@ class Report(db.Model):
     def __repr__(self):
         return "Report object %s" % self.report_id
 
+class Metric(db.Model):
+
+    __tablename__ = 'metrics'
+
+    setting_id = Column(Integer, primary_key=True)
+    key = Column(Text, nullable=False)
+    value = Column(Integer, default=0)
+
+    def __repr__(self):
+        return 'Metric object {}={}'.format(self.key, self.value)
+
 class Setting(db.Model):
 
     __tablename__ = 'settings'

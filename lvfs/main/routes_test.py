@@ -86,6 +86,17 @@ class LocalTestCase(LvfsTestCase):
         assert b'bob@fwupd.org' in rv.data, rv.data
         assert b'mario@oem.com' in rv.data, rv.data
 
+    def test_metrics(self):
+
+        self.login()
+        self.upload()
+        self.logout()
+        self._download_firmware()
+        self.run_cron_stats()
+
+        rv = self.app.get('/lvfs/metrics')
+        assert b'ClientCnt": 1' in rv.data, rv.data.decode()
+
     def test_nologin_required(self):
 
         # all these are viewable without being logged in

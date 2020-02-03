@@ -11,6 +11,7 @@ import os
 import html
 import datetime
 import fnmatch
+import json
 import humanize
 import iso3166
 
@@ -28,7 +29,7 @@ from lvfs import app, db, lm, ploader, csrf
 from lvfs.dbutils import _execute_count_star
 from lvfs.pluginloader import PluginError
 
-from lvfs.models import Firmware, Requirement, Vendor
+from lvfs.models import Firmware, Requirement, Vendor, Metric
 from lvfs.models import User, Client, Event, AnalyticVendor, Remote
 from lvfs.models import _get_datestr_from_datetime
 from lvfs.hash import _addr_hash
@@ -124,10 +125,6 @@ def serveStaticResource(resource):
                     resp.headers['Retry-After'] = '86400'
                     return resp
 
-        # this is cached for easy access on the firmware details page
-        if not fw.do_not_track:
-            fw.download_cnt += 1
-
         # log the client request
         if not fw.do_not_track:
             datestr = _get_datestr_from_datetime(datetime.datetime.utcnow())
@@ -135,6 +132,12 @@ def serveStaticResource(resource):
                                   firmware_id=fw.firmware_id,
                                   user_agent=user_agent,
                                   datestr=datestr))
+
+            # this is updated best-effort, but also set in the cron job
+            fw.download_cnt += 1
+            metric = db.session.query(Metric).filter(Metric.key == 'ClientCnt').first()
+            if metric:
+                metric.value += 1
             db.session.commit()
 
     # firmware blobs
@@ -517,6 +520,17 @@ def route_profile():
         flash('Permission denied: Unable to view profile as account locked', 'danger')
         return redirect(url_for('main.route_dashboard'))
     return render_template('profile.html', u=g.user)
+
+@bp_main.route('/lvfs/metrics')
+def route_metrics():
+
+    item = {}
+    for metric in db.session.query(Metric).order_by(Metric.key):
+        item[metric.key] = metric.value
+    dat = json.dumps(item, indent=4, separators=(',', ': '))
+    return Response(response=dat,
+                    status=200,
+                    mimetype="application/json")
 
 # old names used on the static site
 @bp_main.route('/users.html')
