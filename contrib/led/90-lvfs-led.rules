@@ -1,0 +1,1 @@
+ACTION=="add", KERNEL=="ttyUSB*", TAG+="systemd", ENV{SYSTEMD_WANTS}+="lvfs-led@%k.service"

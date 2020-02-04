@@ -1,0 +1,11 @@
+[Unit]
+Description=LVFS LED Display
+
+[Service]
+ExecStart=/usr/bin/python /usr/bin/lvfs-led.py
+PrivateTmp=yes
+ProtectHome=yes
+ProtectSystem=full
+ProtectControlGroups=yes
+ProtectKernelModules=yes
+RestrictRealtime=yes
