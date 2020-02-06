@@ -12,11 +12,17 @@
     <h2 class="card-header card-title list-group-item-info">Private</h2>
     <div class="card-body">
       <p class="card-text">Firmware is only available to your specific user.</p>
-{% if fw.remote.name != 'private' and fw.check_acl('@promote-private') %}
+{% if fw.remote.name != 'private' %}
+{% if fw.check_acl('@promote-private') %}
       <a class="card-link btn btn-block btn-primary"
         href="{{url_for('firmware.route_promote', firmware_id=fw.firmware_id, target='private')}}">
         Move here
       </a>
+{% else %}
+      <button class="card-link btn btn-block btn-secondary" disabled>
+        Permission denied
+      </button>
+{% endif %}
 {% endif %}
     </div>
   </div>
@@ -24,11 +30,17 @@
     <h2 class="card-header card-title list-group-item-success">Embargo</h2>
     <div class="card-body">
       <p class="card-text">Firmware is available to anyone in your vendor group.</p>
-{% if not fw.remote.name.startswith('embargo') and fw.check_acl('@promote-embargo') %}
+{% if not fw.remote.name.startswith('embargo') %}
+{% if fw.check_acl('@promote-embargo') %}
       <a class="card-link btn btn-block btn-primary"
         href="{{url_for('firmware.route_promote', firmware_id=fw.firmware_id, target='embargo')}}">
         Move here
       </a>
+{% else %}
+      <button class="card-link btn btn-block btn-secondary" disabled>
+        Permission denied
+      </button>
+{% endif %}
 {% endif %}
     </div>
   </div>
@@ -36,7 +48,8 @@
     <h2 class="card-header card-title list-group-item-warning">Testing</h2>
     <div class="card-body">
       <p class="card-text">Firmware is available to thousands of public testers.</p>
-{% if fw.remote.name != 'testing' and fw.check_acl('@promote-testing') %}
+{% if fw.remote.name != 'testing' %}
+{% if fw.check_acl('@promote-testing') %}
 {% if fw.remote.name != 'stable' %}
 {% if fw.problems|length == 0 %}
       <a class="card-link btn btn-block btn-primary"
@@ -53,6 +66,11 @@
         Move here
       </button>
 {% endif %}
+{% else %}
+      <button class="card-link btn btn-block btn-secondary" disabled>
+        Permission denied
+      </button>
+{% endif %}
 {% endif %}
     </div>
   </div>
@@ -60,7 +78,8 @@
     <h2 class="card-header card-title list-group-item-danger">Stable</h2>
     <div class="card-body">
       <p class="card-text">Firmware is available to millions of public end-users.</p>
-{% if fw.remote.name != 'stable' and fw.check_acl('@promote-stable') %}
+{% if fw.remote.name != 'stable' %}
+{% if fw.check_acl('@promote-stable') %}
 {% if fw.problems|length == 0 %}
       <button class="card-link btn btn-block btn-warning" data-toggle="modal" data-target="#promoteStableModal">
         Move here
@@ -68,6 +87,11 @@
 {% else %}
       <button class="card-link btn btn-block btn-secondary" disabled>
         Unavailable due to problems
+      </button>
+{% endif %}
+{% else %}
+      <button class="card-link btn btn-block btn-secondary" disabled>
+        Permission denied
       </button>
 {% endif %}
 {% endif %}
