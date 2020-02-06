@@ -87,9 +87,13 @@ def route_modify(protocol_id):
     protocol.is_public = bool('is_public' in request.form)
     protocol.can_verify = bool('can_verify' in request.form)
     protocol.has_header = bool('has_header' in request.form)
-    for key in ['name', 'verfmt_id']:
+    for key in ['name']:
         if key in request.form:
-            setattr(protocol, key, request.form[key])
+            setattr(protocol, key, request.form[key] or None)
+    if 'verfmt_id' in request.form:
+        protocol.verfmt = db.session.query(Verfmt)\
+                                    .filter(Verfmt.verfmt_id == request.form['verfmt_id'])\
+                                    .first()
     db.session.commit()
 
     # success
