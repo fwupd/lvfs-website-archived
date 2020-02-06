@@ -7,13 +7,13 @@
 
 <div class="card mt-3">
   <div class="card-body">
-    <div class="card-title">
+    <h2 class="card-title">
       Stable
       <span class="badge badge-success">Public</span>
       <a class="float-right" href="/downloads/firmware.xml.gz">
         <code>firmware.xml.gz</code>
       </a>
-    </div>
+    </h2>
     <p class="card-text">
       This remote contains firmware available to millions of end users.
     </p>
@@ -32,13 +32,13 @@
 
 <div class="card mt-3">
   <div class="card-body">
-    <div class="card-title">
+    <h2 class="card-title">
       Testing
       <span class="badge badge-success">Public</span>
       <a class="float-right" href="/downloads/firmware-testing.xml.gz">
         <code>firmware-testing.xml.gz</code>
       </a>
-    </div>
+    </h2>
     <p class="card-text">
       This remote contains firmware available to thousands of end users who have
       manually enabled the <code>lvfs-testing</code> remote.
@@ -68,13 +68,13 @@
 {% for v in vendors %}
 <div class="card mt-3">
   <div class="card-body">
-    <div class="card-title">
+    <h2 class="card-title">
       {{v.display_name_with_team}} Embargo
       <span class="badge badge-warning">Private</span>
       <a class="float-right" href="/downloads/{{v.remote.filename}}">
         <code>{{v.remote.filename[:16]}}</code>
       </a>
-    </div>
+    </h2>
     <p class="card-text">
       This remote contains firmware available only to users who have installed the
       vendor remote.
@@ -108,7 +108,7 @@
 <!-- admin only actions -->
 <div class="card mt-3">
   <div class="card-body">
-    <div class="card-title">Complete Rebuild</div>
+    <h2 class="card-title">Complete Rebuild</h2>
 <p class="card-text">
   This rebuilds metadata for all targets and QA groups.
 </p>

@@ -10,7 +10,7 @@
 {% for problem in fw.problems %}
 <div class="card mb-3">
   <div class="card-body">
-    <div class="card-title">
+    <h2 class="card-title">
       <span class="fs-2 {{problem.icon_css|join(' ')}}"></span>
 {% if problem.md %}
       {{problem.summary}} for &lsquo;{{problem.md.name_with_category}}&rsquo;
@@ -18,7 +18,7 @@
 {% else %}
       {{problem.summary}}
 {% endif %}
-    </div>
+    </h2>
 {% if problem.description %}
     <td class="col col-sm-7">
       <p class="card-text">

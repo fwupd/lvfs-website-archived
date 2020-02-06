@@ -6,7 +6,7 @@
 {% if protocols|length == 0 %}
 <div class="card">
   <div class="card-body">
-    <div class="card-title">Known Protocols</div>
+    <h2 class="card-title">Known Protocols</h2>
     <p class="card-text">
       No protocols have been created.
     </p>
@@ -17,7 +17,7 @@
 
 <div class="card">
   <div class="card-body">
-    <div class="card-title">Known Protocols</div>
+    <h2 class="card-title">Known Protocols</h2>
     <p class="card-text">
       New protocols should be added to the fwupd project before adding here.
     </p>
@@ -27,10 +27,10 @@
 {% for pr in protocols %}
 <div class="card mt-3">
   <div class="card-body">
-    <div class="card-title">
+    <h2 class="card-title">
       {{pr.name}}
       <code class="float-right">{{pr.value}}</code>
-    </div>
+    </h2>
     <p class="card-text">
 {% if pr.is_signed %}
       <span class="badge badge-success text-uppercase">Signed</span>
@@ -68,7 +68,7 @@
 <input type="hidden" name="csrf_token" value="{{csrf_token()}}"/>
 <div class="card mt-3">
   <div class="card-body">
-    <div class="card-title">Create a new update protocol</div>
+    <h2 class="card-title">Create a new update protocol</h2>
     <p class="card-text">
       <input class="form-control" type="text" name="value" placeholder="Value" required>
     </p>

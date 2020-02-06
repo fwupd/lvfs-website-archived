@@ -8,7 +8,7 @@
 {% if fws|length == 0 %}
 <div class="card">
   <div class="card-body">
-    <div class="card-title">All Firmware</div>
+    <h2 class="card-title">All Firmware</h2>
     <p class="card-text">
       No firmware has been uploaded by {{v.display_name_with_team}}.
     </p>
@@ -19,13 +19,13 @@
 
 <div class="card">
   <div class="card-body">
-    <div class="card-title">
+    <h2 class="card-title">
 {% if fws|length <= 100 %}
       All Firmware uploaded by {{v.display_name_with_team}} ({{fws|length}})
 {% else %}
       Latest Firmware uploaded by {{v.display_name_with_team}}
 {% endif %}
-    </div>
+    </h2>
 <table class="table card-text">
 {% for fw in fws %}
   <tr class="row">

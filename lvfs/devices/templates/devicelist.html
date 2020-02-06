@@ -4,7 +4,7 @@
 {% block content %}
 <div class="card">
   <div class="card-body">
-    <div class="card-title">Search for devices</div>
+    <h2 class="card-title">Search for devices</h2>
     <form method="GET" class="form-inline" action="{{url_for('search.route_search')}}">
       <input type="hidden" name="csrf_token" value="{{csrf_token()}}"/>
       <div class="input-group">
@@ -21,7 +21,7 @@
 {% if devices|length > 0 %}
 <div class="card mt-3">
   <div class="card-body">
-    <div class="card-title">Latest Devices Supported</div>
+    <h2 class="card-title">Latest Devices Supported</h2>
     <ul class="list-group">
 {% for fw in devices %}
       <li class="list-group-item">
@@ -38,7 +38,7 @@
 {% if vendors|length > 0 %}
 <div class="card mt-3">
   <div class="card-body">
-    <div class="card-title">Devices supported by the LVFS</div>
+    <h2 class="card-title">Devices supported by the LVFS</h2>
     <p class="card-text">
       This list shows all the updates that have been made available to the public.
       This list is automatically generated and will be updated when new firmware
@@ -57,7 +57,7 @@
 {% if mds_by_vendor[vendor]|length > 0 %}
 <div class="card mt-3">
   <div class="card-body">
-    <div class="card-title">{{vendor}}</div>
+    <h2 class="card-title">{{vendor}}</h2>
     <ul class="list-group">
 {% for md in mds_by_vendor[vendor] %}
       <li class="list-group-item">

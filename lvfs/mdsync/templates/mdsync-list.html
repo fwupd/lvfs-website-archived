@@ -6,7 +6,7 @@
 
 <div class="card mt-3">
   <div class="card-body">
-    <div class="card-title">Partner Metadata</div>
+    <h2 class="card-title">Partner Metadata</h2>
 {% if vendors|length == 0 %}
     <p class="card-text text-muted">No vendors have contributed metadata.</p>
 {% else %}
@@ -21,14 +21,14 @@
 {% for v in vendors %}
 <div class="card mt-3" id="{{v.group_id}}">
   <div class="card-body">
-    <div class="card-title">
+    <h2 class="card-title">
       {{v.display_name}}
 {% if v.icon %}
       <img class="img-thumbnail float-right" src="/uploads/{{v.icon}}" width="96"/>
 {% else %}
       <img class="img-thumbnail float-right" src="/uploads/vendor-unknown.png" width="96"/>
 {% endif %}
-    </div>
+    </h2>
     <p class="card-text">{{v.description}}</p>
     <a class="card-link btn btn-primary mt-3" href="{{url_for('mdsync.route_vendors', vendor_id_partner=v.vendor_id)}}">Show devices</a>
   </div>
@@ -40,7 +40,7 @@
 <input type="hidden" name="csrf_token" value="{{csrf_token()}}"/>
 <div class="card mt-3">
   <div class="card-body">
-    <div class="card-title">Manual upload</div>
+    <h2 class="card-title">Manual upload</h2>
     <p class="card-text">
       <input class="form-control mb-3" type="file" name="file" required/>
       <input class="card-link btn btn-primary" type="submit" value="Add">

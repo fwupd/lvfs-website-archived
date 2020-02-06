@@ -6,7 +6,7 @@
 {% if categories|length == 0 %}
 <div class="card">
   <div class="card-body">
-    <div class="card-title">Update Categories</div>
+    <h2 class="card-title">Update Categories</h2>
     <p class="card-text">
       No categories have been created.
     </p>
@@ -18,10 +18,10 @@
 {% for cat in categories %}
 <div class="card mt-3">
   <div class="card-body">
-    <div class="card-title">
+    <h2 class="card-title">
       {{cat.name}}
       <code class="float-right">{{cat.value}}</code>
-    </div>
+    </h2>
     <a class="card-link btn btn-info"
       href="{{url_for('categories.route_show', category_id=cat.category_id)}}"
       role="button">Details &raquo;</a>
@@ -33,7 +33,7 @@
 
 <div class="card mt-3">
   <div class="card-body">
-    <div class="card-title">Create a new category</div>
+    <h2 class="card-title">Create a new category</h2>
     <form method="post" action="{{url_for('categories.route_create')}}" class="form">
       <input type="hidden" name="csrf_token" value="{{csrf_token()}}"/>
       <div class="form-group card-text">

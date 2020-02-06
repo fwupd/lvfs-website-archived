@@ -13,9 +13,9 @@
 
 {% for cert in md.certificates %}
 <div class="card mb-3">
-  <div class="card-header card-title list-group-item-{{cert.color}}">
+  <h2 class="card-header card-title list-group-item-{{cert.color}}">
     {{cert.shard.name}}
-  </div>
+  </h2>
   <div class="card-body">
     <table class="table card-text table-borderless">
 {% if cert.serial_number %}

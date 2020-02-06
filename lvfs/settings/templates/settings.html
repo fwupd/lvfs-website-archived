@@ -8,7 +8,7 @@
   <div class="card-body">
   <form class="form" method="post" action="{{url_for('settings.route_modify', plugin_id=plugin.id)}}">
     <input type="hidden" name="csrf_token" value="{{csrf_token()}}"/>
-    <div class="card-title">{{plugin.name}}</div>
+    <h2 class="card-title">{{plugin.name}}</h2>
     <p class="card-text">{{plugin.summary}}</p>
 {% for s in plugin.settings() %}
     <div class="form-group">

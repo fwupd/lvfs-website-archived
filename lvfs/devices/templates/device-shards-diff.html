@@ -7,9 +7,9 @@
 
 {% for shard in shards_added %}
 <div class="card mb-3">
-  <div class="card-header card-title list-group-item-danger">
+  <h2 class="card-header card-title list-group-item-danger">
     {{shard.name}} : Added
-  </div>
+  </h2>
   <div class="card-body">
 {% if shard.description %}
     <p class="card-text">
@@ -48,9 +48,9 @@
 
 {% for shard in shards_removed %}
 <div class="card mb-3">
-  <div class="card-header card-title list-group-item-success">
+  <h2 class="card-header card-title list-group-item-success">
     {{shard.name}} : Removed
-  </div>
+  </h2>
   <div class="card-body">
 {% if shard.description %}
     <p class="card-text">
@@ -89,9 +89,9 @@
 
 {% for shard_new, shard_old in shards_changed %}
 <div class="card mb-3">
-  <div class="card-header card-title list-group-item-warning">
+  <h2 class="card-header card-title list-group-item-warning">
     {{shard_new.name}} : Changed
-  </div>
+  </h2>
   <div class="card-body">
 {% if shard_new.description %}
     <p class="card-text">

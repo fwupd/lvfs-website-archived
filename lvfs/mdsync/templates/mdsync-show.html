@@ -21,9 +21,9 @@
 {% if md_by_id %}
 <div class="card mb-3" id="{appsteam_id}}">
   <div class="card-body">
-    <div class="card-title">
+    <h2 class="card-title">
       Summary for all models ({{md_by_id|length}})
-    </div>
+    </h2>
     <ul class="list-group">
 {% for appstream_id in mdrefs_by_id|sort %}
 {% set mdrefs = mdrefs_by_id[appstream_id]|sort %}
@@ -59,7 +59,7 @@
 <a name="{{appstream_id}}"></a>
 <div class="card mb-3" id="{appsteam_id}}">
   <div class="card-body">
-    <div class="card-title">
+    <h2 class="card-title">
 {% set md = md_by_id.get(appstream_id, None) %}
 {% if md %}
       {{md.fw.vendor.display_name}} {{md.name_with_category}}
@@ -69,7 +69,7 @@
 {% if appstream_id != mdrefs[0].name %}
       <code class="float-right">{{appstream_id}}</code>
 {% endif %}
-    </div>
+    </h2>
 {% for mdref in mdrefs|sort %}
     <h3>
 {% if mdref.md and mdref.md.fw.remote.is_public %}

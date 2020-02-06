@@ -4,7 +4,7 @@
 {% block content %}
 <div class="card">
   <div class="card-body">
-    <div class="card-title">Userlist</div>
+    <h2 class="card-title">Userlist</h2>
 {% if users|length > 0 %}
 <table class="table">
   <tr class="row table-borderless">
@@ -30,7 +30,7 @@
 
 <div class="card mt-3">
   <div class="card-body">
-    <div class="card-title">Create a new user</div>
+    <h2 class="card-title">Create a new user</h2>
 <form method="post" action="{{url_for('users.route_create')}}" class="form">
   <input type="hidden" name="csrf_token" value="{{csrf_token()}}"/>
   <div class="form-group">

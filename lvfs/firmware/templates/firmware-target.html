@@ -9,7 +9,7 @@
 
 <div class="card-group">
   <div class="card">
-    <div class="card-header card-title list-group-item-info">Private</div>
+    <h2 class="card-header card-title list-group-item-info">Private</h2>
     <div class="card-body">
       <p class="card-text">Firmware is only available to your specific user.</p>
 {% if fw.remote.name != 'private' and fw.check_acl('@promote-private') %}
@@ -21,7 +21,7 @@
     </div>
   </div>
   <div class="card">
-    <div class="card-header card-title list-group-item-success">Embargo</div>
+    <h2 class="card-header card-title list-group-item-success">Embargo</h2>
     <div class="card-body">
       <p class="card-text">Firmware is available to anyone in your vendor group.</p>
 {% if not fw.remote.name.startswith('embargo') and fw.check_acl('@promote-embargo') %}
@@ -33,7 +33,7 @@
     </div>
   </div>
   <div class="card">
-    <div class="card-header card-title list-group-item-warning">Testing</div>
+    <h2 class="card-header card-title list-group-item-warning">Testing</h2>
     <div class="card-body">
       <p class="card-text">Firmware is available to thousands of public testers.</p>
 {% if fw.remote.name != 'testing' and fw.check_acl('@promote-testing') %}
@@ -57,7 +57,7 @@
     </div>
   </div>
   <div class="card">
-    <div class="card-header card-title list-group-item-danger">Stable</div>
+    <h2 class="card-header card-title list-group-item-danger">Stable</h2>
     <div class="card-body">
       <p class="card-text">Firmware is available to millions of public end-users.</p>
 {% if fw.remote.name != 'stable' and fw.check_acl('@promote-stable') %}
@@ -77,7 +77,7 @@
 
 <div class="card mt-3">
   <div class="card-body">
-    <div class="card-title">History</div>
+    <h2 class="card-title">History</h2>
 <table class="table">
   <tr class="row table-borderless">
     <th class="col">Timestamp</td>

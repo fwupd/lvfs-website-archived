@@ -6,7 +6,7 @@
 {% for plugin_id in plugin_ids %}
 <div class="card mt-3">
   <div class="card-body">
-    <div class="card-title">{{plugins[plugin_id].name}}</div>
+    <h2 class="card-title">{{plugins[plugin_id].name}}</h2>
 <p class="text-secondary">{{plugins[plugin_id].summary}}</p>
 <table class="table">
 {% if tests_pending[plugin_id]|length > 0 %}

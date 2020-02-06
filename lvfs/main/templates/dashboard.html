@@ -100,7 +100,7 @@ new Chart(ctx, {
   <div class="card overflow-hidden" style="min-width: 12rem">
     <div class="bg-holder bg-card" style="background-image:url(/img/corner-1.png);"></div>
     <div class="card-body position-relative">
-      <div class="card-title">Do Not Track in use</div>
+      <h2 class="card-title">Do Not Track in use</h2>
       <p class="card-text">
         No download counts, telemetry or user reports are available for any
         firmware.
@@ -112,7 +112,7 @@ new Chart(ctx, {
   <div class="card overflow-hidden" style="min-width: 12rem">
     <div class="bg-holder bg-card" style="background-image:url(/img/corner-1.png);"></div>
     <div class="card-body position-relative">
-      <div class="card-title">Downloads</div>
+      <h2 class="card-title">Downloads</h2>
       <p class="card-text">
         {{g.user.vendor.fws|length}} firmware files from {{g.user.vendor.display_name}}
         have been downloaded {{download_cnt}} times!
@@ -128,7 +128,7 @@ new Chart(ctx, {
   <div class="card overflow-hidden" style="min-width: 12rem">
     <div class="bg-holder bg-card" style="background-image:url(/img/corner-1.png);"></div>
     <div class="card-body position-relative">
-      <div class="card-title">Lets upload firmware!</div>
+      <h2 class="card-title">Lets upload firmware!</h2>
       <p class="card-text">
         We can start by uploading a cabinet archive and then the LVFS will
         automatically sign the firmware for you.
@@ -146,7 +146,7 @@ new Chart(ctx, {
   <div class="card overflow-hidden" style="min-width: 12rem">
     <div class="bg-holder bg-card" style="background-image:url(/img/corner-2.png);"></div>
     <div class="card-body position-relative">
-      <div class="card-title">Devices</div>
+      <h2 class="card-title">Devices</h2>
       <p class="card-text">You have {{devices_cnt}} different devices supported on the LVFS.</p>
       <a class="card-link text-nowrap" href="{{url_for('firmware.route_firmware')}}">
         See all <span class="font-weight-bold">›</span>
@@ -158,7 +158,7 @@ new Chart(ctx, {
   <div class="card overflow-hidden" style="min-width: 12rem">
     <div class="bg-holder bg-card" style="background-image:url(/img/corner-2.png);"></div>
     <div class="card-body position-relative">
-      <div class="card-title">Howdy partner!</div>
+      <h2 class="card-title">Howdy partner!</h2>
       <p class="card-text">You can help us by uploading and downloading metadata from the LVFS.</p>
       <a class="card-link text-nowrap"
         href="{{url_for('mdsync.route_vendors', vendor_id_partner=g.user.vendor.vendor_id)}}">
@@ -170,7 +170,7 @@ new Chart(ctx, {
   <div class="card overflow-hidden" style="min-width: 12rem">
     <div class="bg-holder bg-card" style="background-image:url(/img/corner-3.png);"></div>
     <div class="card-body position-relative">
-      <div class="card-title">Users</div>
+      <h2 class="card-title">Users</h2>
       <p class="card-text">
         {{g.user.vendor.users|length}} users are in your organisation.
       </p>
@@ -192,7 +192,7 @@ new Chart(ctx, {
 {% if fws_recent|length %}
 <div class="card mt-3">
   <div class="card-body">
-    <div class="card-title">Recently uploaded firmware</div>
+    <h2 class="card-title">Recently uploaded firmware</h2>
     <div class="table card-body p-0 card-text">
 {% for fw in fws_recent %}
   <div class="row table-borderless">

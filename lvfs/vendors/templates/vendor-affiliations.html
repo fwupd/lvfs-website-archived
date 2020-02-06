@@ -29,7 +29,7 @@
 <input type="hidden" name="csrf_token" value="{{csrf_token()}}"/>
 <div class="card mt-3">
   <div class="card-body">
-    <div class="card-title">Add affiliation</div>
+    <h2 class="card-title">Add affiliation</h2>
     <p class="card-text">
       <select class="form-control" name="vendor_id_odm">
 {% for ov in other_vendors %}
@@ -48,7 +48,7 @@
 {% if v.affiliations|length == 0 %}
 <div class="card mt-3">
   <div class="card-body">
-    <div class="card-title">ODMs acting on behalf of {{v.display_name_with_team}}</div>
+    <h2 class="card-title">ODMs acting on behalf of {{v.display_name_with_team}}</h2>
     <p class="card-text">
       No affiliations exist.
     </p>
@@ -58,12 +58,12 @@
 {% for aff in v.affiliations %}
 <div class="card mt-3">
   <div class="card-body">
-    <div class="card-title">
+    <h2 class="card-title">
       {{aff.vendor_odm.display_name_with_team}}
 {% if aff.vendor_odm.icon %}
       <img class="float-right mb-3" src="/uploads/{{aff.vendor_odm.icon}}" width="64"/>
 {% endif %}
-    </div>
+    </h2>
     <table class="table mt-3">
       <tr class="row">
         <th class="col">Action</td>

@@ -8,7 +8,7 @@
 
 <div class="card">
   <div class="card-body">
-    <div class="card-title">Consulting Services for fwupd and the LVFS</div>
+    <h2 class="card-title">Consulting Services for fwupd and the LVFS</h2>
     <p class="card-text">
       Most hardware vendors use standardized firmware update protocols and so
       employees can read the <a href="{{url_for('docs.route_introduction')}}">introduction</a>
@@ -49,14 +49,14 @@
 {% for v in vendors %}
 <div class="card mt-3">
   <div class="card-body">
-    <div class="card-title">
+    <h2 class="card-title">
       {{v.display_name_with_team}}
 {% if v.icon %}
       <img class="img-thumbnail float-right" src="/uploads/{{v.icon}}" width="96"/>
 {% else %}
       <img class="img-thumbnail float-right" src="/uploads/vendor-unknown.png" width="96"/>
 {% endif %}
-    </div>
+    </h2>
     <p class="card-text">
       {{v.consulting_text}}
     </p>

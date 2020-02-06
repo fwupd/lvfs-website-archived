@@ -12,13 +12,13 @@
 {% for issue in issues %}
 <div class="card mb-3">
   <div class="card-body">
-    <div class="card-title">
+    <h2 class="card-title">
       {{issue.name}} {{issue.group_id}}
       <a href="{{issue.url}}">[link]</a>
 {% if not issue.enabled %}
       <span class="text-secondary">[disabled]</span>
 {% endif %}
-    </div>
+    </h2>
     <p class="card-text">{{issue.description}}</p>
     <a class="btn btn-info card-link" href="{{url_for('issues.route_show', issue_id=issue.issue_id)}}" role="button">Details &raquo;</a>
 
@@ -41,7 +41,7 @@
 
 <div class="card">
   <div class="card-body">
-    <div class="card-title">Create a new issue</div>
+    <h2 class="card-title">Create a new issue</h2>
     <div class="card-text">
     <form method="post" action="{{url_for('issues.route_create')}}" class="form">
       <input type="hidden" name="csrf_token" value="{{csrf_token()}}"/>

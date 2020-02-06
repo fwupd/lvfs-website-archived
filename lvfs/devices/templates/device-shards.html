@@ -7,9 +7,9 @@
 
 {% for shard in md.shards %}
 <div class="card mb-3">
-  <div class="card-header card-title list-group-item-info">
+  <h2 class="card-header card-title list-group-item-info">
     {{shard.name}}
-  </div>
+  </h2>
   <div class="card-body">
 {% if shard.description %}
     <p class="card-text">

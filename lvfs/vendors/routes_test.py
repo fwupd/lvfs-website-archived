@@ -186,7 +186,7 @@ class LocalTestCase(LvfsTestCase):
         # add affiliation (as admin)
         self.add_affiliation(2, 3)
         rv = self.app.get('/lvfs/vendors/2/affiliations')
-        assert b'<div class="card-title">\n      BobOEM' in rv.data, rv.data.decode()
+        assert b'<h2 class="card-title">\n      BobOEM' in rv.data, rv.data.decode()
 
         # add duplicate (as admin)
         rv = self.app.post('/lvfs/vendors/2/affiliation/create', data=dict(

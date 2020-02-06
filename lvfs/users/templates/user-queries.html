@@ -17,10 +17,10 @@
 
 {% for query in u.queries %}
 <div class="card mb-3">
-  <div class="card-header card-title list-group-item-{{query.color}}">
+  <h2 class="card-header card-title list-group-item-{{query.color}}">
     {{query.title}}: {{query.found}} out of {{query.total}}
     <span class="float-right">{{format_humanize_naturaltime(query.ctime)}}</span>
-  </div>
+  </h2>
   <div class="card-body">
     <pre class="mb-3">{{query.value}}</pre>
 {% if query.error %}

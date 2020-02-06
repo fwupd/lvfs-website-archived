@@ -8,12 +8,12 @@
 {% if search_size < 0 %}
     <p class="text-muted">Search for firmware or hardware vendors using the top bar&hellip;</p>
 {% elif mds|length == 0 and vendors|length == 0 %}
-    <div class="card-title">No results found for <i>{{keywords_bad|join(',')}}</i>.</div>
+    <h2 class="card-title">No results found for <i>{{keywords_bad|join(',')}}</i>.</h2>
 {% else %}
 {% if keywords_good|length > 0 and keywords_bad|length > 0 and vendors|length == 0 %}
-    <div class="card-title">Showing {{mds|length}} of {{search_size}} results for <i>{{keywords_good|join(',')}},<strike>{{keywords_bad|join(',')}}</strike></i>:</div>
+    <h2 class="card-title">Showing {{mds|length}} of {{search_size}} results for <i>{{keywords_good|join(',')}},<strike>{{keywords_bad|join(',')}}</strike></i>:</h2>
 {% else %}
-    <div class="card-title">Showing {{mds|length + vendors|length}} of {{search_size + vendors|length}} results for <i>{{keywords_good|join(',')}}</i>:</div>
+    <h2 class="card-title">Showing {{mds|length + vendors|length}} of {{search_size + vendors|length}} results for <i>{{keywords_good|join(',')}}</i>:</h2>
 {% endif %}
 <table class="table table-striped card-text">
 {% for vendor in vendors %}
@@ -97,9 +97,9 @@
 
 {% if not mds and not g.user is defined %}
 <div class="card mt-3">
-  <div class="card-header card-title list-group-item-info">
+  <h2 class="card-header card-title list-group-item-info">
     Not found what you were looking for?
-  </div>
+  </h2>
   <div class="card-body">
     <p class="card-text">
       If you didn't find the hardware you were looking for <b>please contact

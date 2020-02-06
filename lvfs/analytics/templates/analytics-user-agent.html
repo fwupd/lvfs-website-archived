@@ -4,7 +4,7 @@
 {% block content %}
 <div class="card">
   <div class="card-body">
-  <div class="card-title">
+  <h2 class="card-title">
     User Agent Downloads
 {% if kind == 'APP' %}
     :: Applications
@@ -15,7 +15,7 @@
 {% elif kind == 'DISTRO' %}
     :: Distribution
 {% endif %}
-  </div>
+  </h2>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.8.0/Chart.js" crossorigin="anonymous"></script>
 

@@ -19,7 +19,7 @@
 <input type="hidden" name="value" value="">
 <div class="card">
   <div class="card-body">
-    <div class="card-title">Existing firmware version</div>
+    <h2 class="card-title">Existing firmware version</h2>
     <div class="row card-text">
 {% set rq = md.find_req('firmware', None) %}
       <div class="col">
@@ -51,7 +51,7 @@
 <input type="hidden" name="value" value="bootloader"/>
 <div class="card mt-3">
   <div class="card-body">
-    <div class="card-title">Bootloader version</div>
+    <h2 class="card-title">Bootloader version</h2>
     <div class="row card-text">
 {% set rq = md.find_req('firmware','bootloader') %}
       <div class="col">
@@ -83,7 +83,7 @@
 <input type="hidden" name="value" value="org.freedesktop.fwupd">
 <div class="card mt-3">
   <div class="card-body">
-    <div class="card-title">Client fwupd version</div>
+    <h2 class="card-title">Client fwupd version</h2>
     <div class="row card-text">
 {% set rq = md.find_req('id','org.freedesktop.fwupd') %}
       <div class="col">
@@ -113,7 +113,7 @@
 <input type="hidden" name="csrf_token" value="{{csrf_token()}}"/>
 <div class="card mt-3">
   <div class="card-body">
-    <div class="card-title">Computer Hardware IDs</div>
+    <h2 class="card-title">Computer Hardware IDs</h2>
     <p class="card-text">
       Add GUIDs here to restrict the update to a specific machine.
     </p>

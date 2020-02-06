@@ -6,7 +6,7 @@
 
 <div class="card mb-3">
   <div class="card-body">
-    <div class="card-title">Vendor accounts</div>
+    <h2 class="card-title">Vendor accounts</h2>
     <table class="table">
       <tr class="row table-borderless">
         <th class="col-3">Group ID</th>
@@ -63,7 +63,7 @@
 
 <div class="card mt-3">
   <div class="card-body">
-    <div class="card-title">Create a new vendor</div>
+    <h2 class="card-title">Create a new vendor</h2>
     <form method="post" action="{{url_for('vendors.route_create')}}" class="form-inline">
       <input type="hidden" name="csrf_token" value="{{csrf_token()}}"/>
       <input class="form-control" type="text" size="20" name="group_id" placeholder="Group ID" required>

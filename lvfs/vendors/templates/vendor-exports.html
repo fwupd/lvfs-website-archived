@@ -18,7 +18,7 @@
 {% if not v.banned_country_codes %}
 <div class="card mt-3 mb-3">
   <div class="card-body">
-    <div class="card-title">All countries can download firmware</div>
+    <h2 class="card-title">All countries can download firmware</h2>
     <p class="card-text">
       Like most other vendors on the LVFS, no countries are included in the
       export control list.
@@ -30,10 +30,10 @@
 {% for export_id in v.banned_country_codes.split(',') %}
   <div class="card">
     <div class="card-body">
-      <div class="card-title">
+      <h2 class="card-title">
         {{format_iso3166(export_id)}}
         <code class="float-right small">{{export_id}}</code>
-      </div>
+      </h2>
 {% if v.check_acl('@modify-exports') %}
       <a class="card-link btn btn-danger"
         href="{{url_for('vendors.route_export_delete', vendor_id=v.vendor_id, export_id=export_id)}}"
@@ -50,7 +50,7 @@
 <input type="hidden" name="csrf_token" value="{{csrf_token()}}"/>
 <div class="card">
   <div class="card-body">
-    <div class="card-title">Add ISO 3166 country to export control list</div>
+    <h2 class="card-title">Add ISO 3166 country to export control list</h2>
     <p class="card-text">
       <input type="text" class="form-control" name="export_id">
     </p>

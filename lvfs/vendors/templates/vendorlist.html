@@ -7,7 +7,7 @@
 {% for v in vendors %}
 <div class="card mb-3" id="{{v.group_id}}">
   <div class="card-body">
-    <div class="card-title">
+    <h2 class="card-title">
 {% if v.url %}
       <a href="{{v.url}}">{{v.display_name_with_team}}</a>
 {% else %}
@@ -18,7 +18,7 @@
 {% else %}
       <img class="img-thumbnail float-right" src="/uploads/vendor-unknown.png" width="96"/>
 {% endif %}
-    </div>
+    </h2>
     <p class="card-text">{{v.description}}</p>
     <ul class="list-group card-text">
 {% if v.fws_stable %}

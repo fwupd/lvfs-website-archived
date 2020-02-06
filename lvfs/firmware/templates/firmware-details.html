@@ -15,7 +15,7 @@
 {% if graph_data %}
 <div class="card mb-3">
   <div class="card-body rounded-soft bg-gradient">
-    <div class="card-title text-white">Downloads</div>
+    <h2 class="card-title text-white">Downloads</h2>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.8.0/Chart.js" crossorigin="anonymous"></script>
 <script>
 Chart.defaults.global.animation = false;
@@ -81,12 +81,12 @@ new Chart(ctx, {
     <div class="card overflow-hidden" style="min-width: 12rem">
       <div class="bg-holder bg-card" style="background-image:url(/img/corner-1.png);"></div>
       <div class="card-body position-relative">
-        <div class="card-title">
+        <h2 class="card-title">
           Overview
 {% if fw.vendor.icon %}
           <img class="img-thumbnail float-right" src="/uploads/{{fw.vendor.icon}}" width="64"/>
 {% endif %}
-        </div>
+        </h2>
         <p class="card-text">
 {% if fw.do_not_track %}
           No download statistics are available for this firmware as
@@ -133,7 +133,7 @@ new Chart(ctx, {
     <div class="card overflow-hidden mt-3 mt-xl-0" style="min-width: 12rem">
       <div class="bg-holder bg-card" style="background-image:url(/img/corner-2.png);"></div>
       <div class="card-body position-relative">
-        <div class="card-title">Details</div>
+        <h2 class="card-title">Details</h2>
         <p class="card-text">
           {{fw.filename[41:]}} was uploaded {{format_humanize_naturaltime(fw.timestamp)}} by {{fw.user.username}}.
         </p>
@@ -145,9 +145,9 @@ new Chart(ctx, {
 {% if fw.success != None %}
     <div class="card overflow-hidden mt-3" style="min-width: 12rem">
       <div class="bg-holder bg-card" style="background-image:url(/img/corner-3.png);"></div>
-      <div class="card-header card-title list-group-item-{{fw.color}}">
+      <h2 class="card-header card-title list-group-item-{{fw.color}}">
         {{fw.success|round(1)}}% Reported Success
-      </div>
+      </h2>
       <div class="card-body position-relative">
 {% if fw.report_success_cnt > 0 %}
         <p class="card-text">
@@ -168,9 +168,9 @@ new Chart(ctx, {
     <div class="card overflow-hidden mt-3" style="min-width: 12rem">
       <div class="bg-holder bg-card" style="background-image:url(/img/corner-1.png);"></div>
       <div class="card-body position-relative">
-        <div class="card-title">
+        <h2 class="card-title">
           Banned Countries
-        </div>
+        </h2>
         <p class="card-text">
           The firmware cannot be downloaded from users in these countries:
           <ul>

@@ -10,7 +10,7 @@
     <!-- profile -->
     <div class="card mb-3">
       <div class="card-body bg-light">
-        <div class="card-title">Profile Settings</div>
+        <h2 class="card-title">Profile Settings</h2>
         <form class="form" method="post" action="{{url_for('users.route_modify', user_id=g.user.user_id)}}">
           <input type="hidden" name="csrf_token" value="{{csrf_token()}}"/>
           <div class="row">
@@ -42,7 +42,7 @@
     <input type="hidden" name="csrf_token" value="{{csrf_token()}}"/>
     <div class="card mb-3 mb-xl-3">
       <div class="card-body bg-light">
-        <div class="card-title">Email Notifications</div>
+        <h2 class="card-title">Email Notifications</h2>
         <p class="card-text">
           The LVFS can optionally send an email when a condition is met.
         </p>
@@ -114,7 +114,7 @@
     <!-- certificates -->
     <div class="card mb-3 mb-xl-0">
       <div class="card-body bg-light">
-        <div class="card-title">Client Certificates</div>
+        <h2 class="card-title">Client Certificates</h2>
         <p class="card-text">
           Client certificates are used to verify that a report was sent from a specific
           user or machine and can be used to automatically set device checksums.
@@ -165,7 +165,7 @@
       <!-- authentication -->
       <div class="card mb-3 overflow-hidden">
         <div class="card-body bg-light">
-          <div class="card-title">Authentication</div>
+          <h2 class="card-title">Authentication</h2>
           <form method="post" action="{{url_for('users.route_auth', user_id=g.user.user_id)}}">
             <input type="hidden" name="csrf_token" value="{{csrf_token()}}"/>
             <p>Using 2 factor authentication secures your account more than just using a password.</p>
@@ -189,7 +189,7 @@
       <!-- password -->
       <div class="card mb-3">
         <div class="card-body bg-light">
-          <div class="card-title">Change Password</div>
+          <h2 class="card-title">Change Password</h2>
           <form method="post" action="{{url_for('users.route_password', user_id=g.user.user_id)}}">
             <input type="hidden" name="csrf_token" value="{{csrf_token()}}"/>
             <div class="form-group">
@@ -212,7 +212,7 @@
       <!-- deactivate -->
       <div class="card">
         <div class="card-body bg-light">
-          <div class="card-title">Danger Zone</div>
+          <h2 class="card-title">Danger Zone</h2>
           <h5 class="fs-0">Delete this account</h5>
           <p class="fs--1">Once you delete the account there is no going back.</p>
           <button type="button" class="btn btn-block btn-falcon-danger" data-toggle="modal" data-target="#deactivateModal">

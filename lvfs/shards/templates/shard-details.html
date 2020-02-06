@@ -6,7 +6,7 @@
 {% block content %}
 <div class="card">
   <div class="card-body">
-    <div class="card-title">Component Shard Details</div>
+    <h2 class="card-title">Component Shard Details</h2>
 <form method="post" action="{{url_for('shards.route_modify', component_shard_info_id=shard.component_shard_info_id)}}">
   <input type="hidden" name="csrf_token" value="{{csrf_token()}}"/>
   <div class="form-group">

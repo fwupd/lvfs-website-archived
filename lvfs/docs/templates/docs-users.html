@@ -5,7 +5,7 @@
 {% block content %}
 <div class="card">
   <div class="card-body">
-    <div class="card-title">Introduction</div>
+    <h2 class="card-title">Introduction</h2>
 <p class="card-text">
   To update a BIOS or device firmware in Linux traditionally meant
   rebooting into Microsoft Windows, or preparing a MS-DOS floppy disk (!) and
@@ -17,7 +17,7 @@
 </div>
 
 <div class="card mt-3">
-  <div class="card-header card-title list-group-item-info">Is my hardware supported?</div>
+  <h2 class="card-header card-title list-group-item-info">Is my hardware supported?</h2>
   <div class="card-body">
     <p class="card-text">
       The LVFS only provides firmware once the original OEM vendor has joined
@@ -33,7 +33,7 @@
 
 <div class="card mt-3">
   <div class="card-body">
-    <div class="card-title">fwupd</div>
+    <h2 class="card-title">fwupd</h2>
 <p class="card-text">
   fwupd is a simple daemon to allow session software to update device firmware on
   your local machine. It's designed for desktops, but also usable on phones and
@@ -63,7 +63,7 @@ You can see all the command line options using <code>--help</code>:
 
 <div class="card mt-3">
   <div class="card-body">
-    <div class="card-title">GNOME Software</div>
+    <h2 class="card-title">GNOME Software</h2>
 <p class="card-text">
   GNOME Software is an application store designed to make installing, removing
   and updating both easy and beautiful.
@@ -87,7 +87,7 @@ You can see all the command line options using <code>--help</code>:
 
 <div class="card mt-3">
   <div class="card-body">
-    <div class="card-title">KDE Discover</div>
+    <h2 class="card-title">KDE Discover</h2>
 <p class="card-text">
   Discover is intended for users and distros where the terminal isn't the optimal
   solution for installation of apps and add-ons or updates. 
@@ -104,7 +104,7 @@ You can see all the command line options using <code>--help</code>:
 
 <div class="card mt-3">
   <div class="card-body">
-    <div class="card-title">Search Using The LVFS</div>
+    <h2 class="card-title">Search Using The LVFS</h2>
 <p class="card-text">
   You can search for firmware and hardware vendors
   <a href="{{url_for('search.route_search')}}">directly on the LVFS</a>:
@@ -118,7 +118,7 @@ You can see all the command line options using <code>--help</code>:
 
 <div class="card mt-3">
   <div class="card-body">
-    <div class="card-title">Using the D-Bus API</div>
+    <h2 class="card-title">Using the D-Bus API</h2>
 <p class="card-text">
   The fwupd daemon is launched when queried for the first time.
   This exports an interface that can be queried from any language with
@@ -137,7 +137,7 @@ $ $ gdbus call --system --dest org.freedesktop.fwupd --object-path / --method or
 </div>
 
 <div class="card mt-3">
-  <div class="card-header card-title list-group-item-info">Do I always need the root password to update?</div>
+  <h2 class="card-header card-title list-group-item-info">Do I always need the root password to update?</h2>
   <div class="card-body">
     <p class="card-text">
       By default, any users are able to update signed firmware for removable hardware.

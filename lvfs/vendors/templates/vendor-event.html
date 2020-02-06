@@ -8,7 +8,7 @@
 <div class="list-group">
 {% for e in v.events.limit(100) %}
   <div class="list-group-item list-group-item-action {{'list-group-item-warning' if e.is_important}}">
-    <div class="card-title">{{e.message}}</div>
+    <h2 class="card-title">{{e.message}}</h2>
     <p class="text-secondary">
 {% if e.user.username != 'anon@fwupd.org' %}
       {{e.user.username}}

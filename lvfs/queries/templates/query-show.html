@@ -27,9 +27,9 @@
 {% for result in query.results %}
 {% set md = result.md %}
 <div class="card mt-3">
-  <div class="card-header card-title list-group-item-{{query.color}}">
+  <h2 class="card-header card-title list-group-item-{{query.color}}">
     {{md.fw.vendor.display_name}} {{md.name_with_category}}: {{result.result}}
-  </div>
+  </h2>
 {% if result.shard %}
   <div class="card-body">
 {% set shard = result.shard %}

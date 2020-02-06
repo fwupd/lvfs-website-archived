@@ -17,9 +17,9 @@
 {% for shard in shards %}
 <div class="card mt-3">
   <div class="card-body">
-    <div class="card-title">
+    <h2 class="card-title">
       <code>{{shard.guid}}</code> ({{shard.cnt}})
-    </div>
+    </h2>
     <div class="card-text mb-3">
 {% if shard.description %}
       {{shard.description}}
@@ -41,7 +41,7 @@
 
 <div class="card mt-3">
   <div class="card-body">
-    <div class="card-title">Create a new shard</div>
+    <h2 class="card-title">Create a new shard</h2>
     <form method="post" action="{{url_for('shards.route_create')}}" class="form">
       <input type="hidden" name="csrf_token" value="{{csrf_token()}}"/>
       <div class="form-group card-text">

@@ -6,9 +6,9 @@
 {% if fws|length > 0 %}
 <div class="card mt-3">
   <div class="card-body">
-    <div class="card-title">
+    <h2 class="card-title">
       Telemetry for group {{group_id}}
-    </div>
+    </h2>
 {% if age %}
     <p class="card-text">
       Only firmware that has been uploaded less than {{age}} days ago and downloaded at least once will be shown here.
@@ -35,10 +35,10 @@
 {% if fws|length > 0 %}
 {% for fw in fws %}
 <div class="card mt-3">
-  <div class="card-header card-title list-group-item-{{fw.color}}">
+  <h2 class="card-header card-title list-group-item-{{fw.color}}">
     <div class="row">
       <div class="col col-lg-8 text-truncate">
-        {{fw.names|join(' & ')}}
+        {{fw.vendor.display_name}} {{fw.names|join(' & ')}}
       </div>
       <div class="col">
         <code class="float-right">{{fw.version_display}}</code>
@@ -51,7 +51,7 @@
       </div>
     </div>
 {% endif %}
-  </div>
+  </h2>
   <div class="card-body">
     <table class="card-text table table-borderless">
       <tr class="row">
