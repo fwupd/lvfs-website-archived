@@ -15,7 +15,7 @@
 {% if fw.remote.name != 'private' and fw.check_acl('@promote-private') %}
       <a class="card-link btn btn-block btn-primary"
         href="{{url_for('firmware.route_promote', firmware_id=fw.firmware_id, target='private')}}">
-        Move firmware
+        Move here
       </a>
 {% endif %}
     </div>
@@ -27,7 +27,7 @@
 {% if not fw.remote.name.startswith('embargo') and fw.check_acl('@promote-embargo') %}
       <a class="card-link btn btn-block btn-primary"
         href="{{url_for('firmware.route_promote', firmware_id=fw.firmware_id, target='embargo')}}">
-        Move firmware
+        Move here
       </a>
 {% endif %}
     </div>
@@ -41,7 +41,7 @@
 {% if fw.problems|length == 0 %}
       <a class="card-link btn btn-block btn-primary"
         href="{{url_for('firmware.route_promote', firmware_id=fw.firmware_id, target='testing')}}">
-        Move firmware
+        Move here
       </a>
 {% else %}
       <button class="card-link btn btn-block btn-secondary" disabled>
@@ -50,7 +50,7 @@
 {% endif %}
 {% else %}
       <button class="card-link btn btn-block btn-primary" data-toggle="modal" data-target="#demoteTestingModal">
-        Move firmware
+        Move here
       </button>
 {% endif %}
 {% endif %}
@@ -63,7 +63,7 @@
 {% if fw.remote.name != 'stable' and fw.check_acl('@promote-stable') %}
 {% if fw.problems|length == 0 %}
       <button class="card-link btn btn-block btn-warning" data-toggle="modal" data-target="#promoteStableModal">
-        Move firmware
+        Move here
       </button>
 {% else %}
       <button class="card-link btn btn-block btn-secondary" disabled>
