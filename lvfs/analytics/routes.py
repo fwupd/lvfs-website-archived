@@ -14,7 +14,7 @@ from flask_login import login_required
 
 from lvfs import db
 
-from lvfs.models import Analytic, Client, Report, Useragent, UseragentKind, SearchEvent, AnalyticVendor
+from lvfs.models import Analytic, Client, Report, Useragent, UseragentKind, SearchEvent, AnalyticVendor, ReportAttribute
 from lvfs.models import _get_datestr_from_datetime, _split_search_string
 from lvfs.util import admin_login_required
 from lvfs.util import _get_chart_labels_months, _get_chart_labels_days
@@ -166,6 +166,88 @@ def route_user_agents(kind='APP', timespan_days=30):
         dataset['data'] = '[' + ', '.join(data[::-1]) + ']'
         datasets.append(dataset)
     return render_template('analytics-user-agent.html',
+                           category='analytics',
+                           kind=kind,
+                           labels_user_agent=_get_chart_labels_days(timespan_days)[::-1],
+                           datasets=datasets)
+
+@bp_analytics.route('/reportattrs')
+@login_required
+@admin_login_required
+def route_reportattrs():
+    datestr_year = datetime.date.today() - datetime.timedelta(days=365)
+    attrs = [attr for attr, in db.session.query(ReportAttribute.key)\
+                                         .distinct(ReportAttribute.key)\
+                                         .join(Report)\
+                                         .filter(Report.timestamp < datestr_year).all()]
+    return render_template('analytics-reportattrs.html',
+                           category='analytics',
+                           attrs=attrs)
+
+@bp_analytics.route('/reportattrs/<kind>')
+@bp_analytics.route('/reportattrs/<kind>/<int:timespan_days>')
+@login_required
+@admin_login_required
+def route_reportattrs_kind(kind, timespan_days=90):
+    """ A analytics screen to show information about users """
+
+    # get data for this time period
+    cnt_total = {}
+    yesterday = datetime.date.today() - datetime.timedelta(days=1)
+    datestr_start = yesterday - datetime.timedelta(days=timespan_days)
+    cnt_total = {}
+    cached_cnt = {}
+    for report_ts, attr_val in db.session.query(Report.timestamp,
+                                                ReportAttribute.value)\
+                          .filter(ReportAttribute.key == kind)\
+                          .join(Report)\
+                          .filter(and_(Report.timestamp > datestr_start,
+                                       Report.timestamp <= yesterday)):
+
+        key = str(_get_datestr_from_datetime(report_ts)) + attr_val
+        if key not in cached_cnt:
+            cached_cnt[key] = 1
+        else:
+            cached_cnt[key] += 1
+        if not attr_val in cnt_total:
+            cnt_total[attr_val] = 1
+            continue
+        cnt_total[attr_val] += 1
+
+    # find most popular user agent strings
+    most_popular = []
+    for key, value in sorted(iter(cnt_total.items()), key=lambda k_v: (k_v[1], k_v[0]), reverse=True):
+        most_popular.append(key)
+        if len(most_popular) >= 6:
+            break
+
+    # generate enough for the template
+    datasets = []
+    palette = [
+        'ef4760',   # red
+        'ffd160',   # yellow
+        '06c990',   # green
+        '2f8ba0',   # teal
+        '845f80',   # purple
+        'ee8510',   # orange
+    ]
+    idx = 0
+    for value in most_popular:
+        dataset = {}
+        dataset['label'] = value
+        dataset['color'] = palette[idx % 6]
+        idx += 1
+        data = []
+        for i in range(timespan_days):
+            datestr = _get_datestr_from_datetime(yesterday - datetime.timedelta(days=i))
+            key = str(datestr) + value
+            dataval = 'NaN'
+            if key in cached_cnt:
+                dataval = str(cached_cnt[key])
+            data.append(dataval)
+        dataset['data'] = '[' + ', '.join(data[::-1]) + ']'
+        datasets.append(dataset)
+    return render_template('analytics-reportattrs-kind.html',
                            category='analytics',
                            kind=kind,
                            labels_user_agent=_get_chart_labels_days(timespan_days)[::-1],

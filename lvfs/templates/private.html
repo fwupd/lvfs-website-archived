@@ -229,6 +229,9 @@
             <li class="nav-item {{'active' if request.url_rule.endpoint == 'analytics.route_vendor'}}">
               <a class="nav-link" href="{{url_for('analytics.route_vendor')}}">Vendor Downloads</a>
             </li>
+            <li class="nav-item {{'active' if request.url_rule.endpoint == 'analytics.route_reportattrs'}}">
+              <a class="nav-link" href="{{url_for('analytics.route_reportattrs')}}">Report Attributes</a>
+            </li>
             <li class="nav-item {{'active' if request.url_rule.endpoint == 'analytics.route_clients'}}">
               <a class="nav-link" href="{{url_for('analytics.route_clients')}}">Recent Downloads</a>
             </li>
