@@ -15,6 +15,7 @@ from lvfs import db
 from lvfs.pluginloader import PluginBase, PluginSettingBool, PluginSettingText
 from lvfs.models import Test, Claim
 from lvfs.models import _get_datestr_from_datetime
+from lvfs.util import _get_shard_path
 
 class Plugin(PluginBase):
     def __init__(self):
@@ -96,6 +97,12 @@ class Plugin(PluginBase):
                               .first()
             if claim:
                 shard.md.add_claim(claim)
+        else:
+            c.execute('SELECT version FROM Intel WHERE cpuid=? AND '
+                      'platform=? AND version==? LIMIT 1',
+                      (cpuid, platform, version,))
+            if not c.fetchone():
+                print('microcode NOT FOUND, please upload: {}'.format(_get_shard_path(shard)))
         c.close()
 
     def run_test_on_md(self, test, md):
