@@ -14,7 +14,7 @@ from flask_login import login_required
 
 from sqlalchemy.orm import joinedload
 
-from lvfs import app, db
+from lvfs import app, db, ploader
 
 from lvfs.emails import send_email
 from lvfs.models import Firmware, Report, Client, FirmwareEvent, FirmwareLimit
@@ -230,6 +230,9 @@ def route_promote(firmware_id, target):
 
     # invalidate the firmware as we're waiting for the metadata generation
     fw.mark_dirty()
+
+    # some tests only run when the firmware is in stable
+    ploader.ensure_test_for_fw(fw)
 
     # also dirty any ODM remote if uploading on behalf of an OEM
     if target == 'embargo' and fw.vendor != fw.user.vendor:
