@@ -273,6 +273,10 @@ def _generate_metadata_kind(filename, fws, firmware_baseuri='', local=False):
                         elements.append(('LVFS::VersionFormat', fallback))
                 elements.append(('LVFS::VersionFormat', verfmt.value))
                 break
+        for md in mds:
+            if md.protocol:
+                elements.append(('LVFS::UpdateProtocol', md.protocol.value))
+                break
         if elements:
             parent = ET.SubElement(component, 'custom')
             for key, value in elements:
