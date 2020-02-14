@@ -1229,27 +1229,85 @@ class ComponentIssue(db.Model):
 
     @property
     def url(self):
-        return 'https://nvd.nist.gov/vuln/detail/{}'.format(self.value)
+        if self.kind == 'cve':
+            return 'https://nvd.nist.gov/vuln/detail/{}'.format(self.value)
+        if self.kind == 'dell':
+            # you have to search for the issue number yourself...
+            return 'https://www.dell.com/support/security/en-us/'
+        if self.kind == 'lenovo':
+            return 'https://support.lenovo.com/us/en/product_security/{}'.format(self.value)
+        if self.kind == 'intel':
+            return 'https://www.intel.com/content/www/us/en/security-center/advisory/{}'.format(self.value)
+        return None
 
     @property
     def problem(self):
-        parts = self.value.split('-')
-        if len(parts) != 3 or parts[0] != 'CVE':
-            return Claim(kind='invalid-issue',
-                         icon='warning',
-                         summary='Invalid component issue',
-                         description='Format expected to be CVE-XXXX-XXXXX')
-        if not parts[1].isnumeric or int(parts[1]) < 1995:
-            return Claim(kind='invalid-issue',
-                         icon='warning',
-                         summary='Invalid component issue',
-                         description='Invalid year in CVE value')
-        if not parts[2].isnumeric:
-            return Claim(kind='invalid-issue',
-                         icon='warning',
-                         summary='Invalid component issue',
-                         description='Expected integer in CVE token')
-        return None
+        if self.kind == 'cve':
+            parts = self.value.split('-')
+            if len(parts) != 3 or parts[0] != 'CVE':
+                return Claim(kind='invalid-issue',
+                             icon='warning',
+                             summary='Invalid component issue',
+                             description='Format expected to be CVE-XXXX-XXXXX')
+            if not parts[1].isnumeric or int(parts[1]) < 1995:
+                return Claim(kind='invalid-issue',
+                             icon='warning',
+                             summary='Invalid component issue',
+                             description='Invalid year in CVE value')
+            if not parts[2].isnumeric:
+                return Claim(kind='invalid-issue',
+                             icon='warning',
+                             summary='Invalid component issue',
+                             description='Expected integer in CVE token')
+            return None
+        if self.kind == 'dell':
+            parts = self.value.split('-')
+            if len(parts) != 3 or parts[0] != 'DSA':
+                return Claim(kind='invalid-issue',
+                             icon='warning',
+                             summary='Invalid component issue',
+                             description='Format expected to be DSA-XXXX-XXX')
+            if not parts[1].isnumeric or int(parts[1]) < 1995:
+                return Claim(kind='invalid-issue',
+                             icon='warning',
+                             summary='Invalid component issue',
+                             description='Invalid year in DSA value')
+            if not parts[2].isnumeric:
+                return Claim(kind='invalid-issue',
+                             icon='warning',
+                             summary='Invalid component issue',
+                             description='Expected integer in DSA token')
+            return None
+        if self.kind == 'lenovo':
+            parts = self.value.split('-')
+            if len(parts) != 2 or parts[0] != 'LEN':
+                return Claim(kind='invalid-issue',
+                             icon='warning',
+                             summary='Invalid component issue',
+                             description='Format expected to be LEN-XXXXX')
+            if not parts[1].isnumeric:
+                return Claim(kind='invalid-issue',
+                             icon='warning',
+                             summary='Invalid component issue',
+                             description='Expected integer in LEN token')
+            return None
+        if self.kind == 'intel':
+            parts = self.value.split('-')
+            if len(parts) != 3 or parts[0] != 'INTEL' or parts[1] != 'SA':
+                return Claim(kind='invalid-issue',
+                             icon='warning',
+                             summary='Invalid component issue',
+                             description='Format expected to be INTEL-SA-XXXXX')
+            if not parts[2].isnumeric:
+                return Claim(kind='invalid-issue',
+                             icon='warning',
+                             summary='Invalid component issue',
+                             description='Expected integer in INTEL-SA token')
+            return None
+        return Claim(kind='invalid-issue',
+                     icon='warning',
+                     summary='Invalid component kind',
+                     description='Issue kind {} not supported'.format(self.kind))
 
     def __repr__(self):
         return '<ComponentIssue {}>'.format(self.value)

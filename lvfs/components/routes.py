@@ -497,7 +497,7 @@ def route_issue_delete(component_id, component_issue_id):
             filter(Component.component_id == component_id,
                    ComponentIssue.component_issue_id == component_issue_id).first()
     if not issue:
-        flash('No CVE matched!', 'danger')
+        flash('No issue matched!', 'danger')
         return redirect(url_for('components.route_show', component_id=component_id))
 
     # permission check
@@ -506,7 +506,7 @@ def route_issue_delete(component_id, component_issue_id):
         flash('Permission denied: Unable to modify firmware', 'danger')
         return redirect(url_for('components.route_show', component_id=component_id))
 
-    # remove CVE
+    # remove issue
     db.session.delete(issue)
     md.fw.mark_dirty()
     db.session.commit()
@@ -516,6 +516,54 @@ def route_issue_delete(component_id, component_issue_id):
     return redirect(url_for('components.route_show',
                             component_id=md.component_id,
                             page='issues'))
+
+def _autoimport_issues(md, prefix, kind):
+    issues = []
+    start = 0
+    tmp = md.release_description
+    description_new = ''
+
+    while True:
+
+        # look for a CVE token
+        idx = tmp.find(prefix, start)
+        if idx == -1:
+            description_new += tmp[start:]
+            break
+
+        # yay, so save what we've got so far
+        description_new += tmp[start:idx]
+
+        # find the end of the CVE value
+        issue_len = 0
+        for char in tmp[idx+len(prefix):]:
+            if char != '-' and not char.isnumeric():
+                break
+            issue_len += 1
+
+        # extract the CVE value, and add to the component if required
+        value = tmp[idx:idx + len(prefix) + issue_len]
+        if value not in md.issue_values:
+            issue = ComponentIssue(kind=kind, value=value)
+            if issue.problem:
+                description_new += value
+            else:
+                issues.append(issue)
+
+        # advance string to end of CVE number
+        start = idx + len(prefix) + issue_len
+
+    # success
+    if issues:
+        for empty in ['()', '( )', '(  )', '(   )', '(    )',
+                      '(,)', '(, , )', '(, , , )', '(, , , , )',
+                      '( & )']:
+            description_new = description_new.replace(empty, '')
+        description_new = description_new.replace(' \n', '\n')
+        md.release_description = description_new
+        md.issues.extend(issues)
+
+    return len(issues)
 
 @bp_components.route('/<int:component_id>/issue/autoimport')
 @login_required
@@ -534,51 +582,18 @@ def route_issue_autoimport(component_id):
         return redirect(url_for('components.route_show', component_id=component_id))
 
     # find any valid CVE numbers in the existing description
-    start = 0
-    tmp = md.release_description
-    description_new = ''
-    issues = []
-    while True:
-
-        # look for a CVE token
-        idx = tmp.find('CVE-', start)
-        if idx == -1:
-            description_new += tmp[start:]
-            break
-
-        # yay, so save what we've got so far
-        description_new += tmp[start:idx]
-
-        # find the end of the CVE value
-        issue_len = 0
-        for char in tmp[idx+4:]:
-            if char != '-' and not char.isnumeric():
-                break
-            issue_len += 1
-
-        # extract the CVE value, and add to the component if required
-        value = tmp[idx:idx + 4 + issue_len]
-        if value not in md.issue_values:
-            issue = ComponentIssue(kind="cve", value=value)
-            if issue.problem:
-                description_new += value
-            else:
-                issues.append(issue)
-
-        # advance string to end of CVE number
-        start = idx + 4 + issue_len
+    n_issues = _autoimport_issues(md, 'CVE-', 'cve')
+    n_issues += _autoimport_issues(md, 'DSA-', 'dell')
+    n_issues += _autoimport_issues(md, 'LEN-', 'lenovo')
+    n_issues += _autoimport_issues(md, 'INTEL-SA-', 'intel')
 
     # success
-    if not issues:
+    if not n_issues:
         flash('No issues could be detected', 'info')
     else:
-        for empty in ['()', '( )', '(  )', '(   )', '(    )', '( & )']:
-            description_new = description_new.replace(empty, '')
-        md.release_description = description_new
-        md.issues.extend(issues)
         md.fw.mark_dirty()
         db.session.commit()
-        flash('Added {} issues — now review the update description for sanity'.format(len(issues)), 'info')
+        flash('Added {} issues — now review the update description for sanity'.format(n_issues), 'info')
     return redirect(url_for('components.route_show',
                             component_id=md.component_id,
                             page='update'))
@@ -605,14 +620,26 @@ def route_issue_create(component_id):
         flash('Permission denied: Unable to modify firmware', 'danger')
         return redirect(url_for('components.route_show', component_id=component_id))
 
-    # add CVE
+    # add issue
     for value in request.form['value'].split(','):
         if value in md.issue_values:
             flash('Already exists: {}'.format(value), 'info')
             continue
-        issue = ComponentIssue(kind="cve", value=value)
+        if value.startswith('CVE-'):
+            issue = ComponentIssue(kind='cve', value=value)
+        elif value.startswith('DSA-'):
+            issue = ComponentIssue(kind='dell', value=value)
+        elif value.startswith('LEN-'):
+            issue = ComponentIssue(kind='lenovo', value=value)
+        elif value.startswith('INTEL-SA-'):
+            issue = ComponentIssue(kind='intel', value=value)
+        else:
+            flash('Issue invalid: {}'.format(value), 'danger')
+            return redirect(url_for('components.route_show',
+                                    component_id=component_id,
+                                    page='issues'))
         if issue.problem:
-            flash('CVE invalid: {}'.format(issue.problem.description), 'danger')
+            flash('Issue invalid: {}'.format(issue.problem.description), 'danger')
             return redirect(url_for('components.route_show',
                                     component_id=component_id,
                                     page='issues'))

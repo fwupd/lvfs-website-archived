@@ -147,6 +147,12 @@ def _check_both(problems, txt):
         _add_problem(problems, 'Links cannot be included in update descriptions', txt)
     if txt.find('CVE-') != -1:
         _add_problem(problems, 'CVEs in update description')
+    if txt.find('LEN-') != -1:
+        _add_problem(problems, 'Lenovo-specific security advisory tag in update description')
+    if txt.find('DSA-') != -1:
+        _add_problem(problems, 'Dell-specific security advisory tag in update description')
+    if txt.find('INTEL-SA-') != -1:
+        _add_problem(problems, 'Intel-specific security advisory tag in update description')
 
 def _check_is_fake_li(txt):
     for line in txt.split('\n'):

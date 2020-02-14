@@ -160,23 +160,25 @@ class LocalTestCase(LvfsTestCase):
 
         # add another set of CVEs
         rv = self.app.post('/lvfs/components/1/issue/create', data=dict(
-            value='CVE-2018-00000,CVE-2019-00000',
+            value='DSA-2018-000,INTEL-SA-00000,LEN-99999',
         ), follow_redirects=True)
-        assert b'Added CVE-' in rv.data, rv.data.decode()
+        assert b'Added DSA-' in rv.data, rv.data.decode()
         assert b'CVE-2016' in rv.data, rv.data.decode()
         assert b'CVE-2017' in rv.data, rv.data.decode()
-        assert b'CVE-2018' in rv.data, rv.data.decode()
-        assert b'CVE-2019' in rv.data, rv.data.decode()
+        assert b'DSA-2018-000' in rv.data, rv.data.decode()
+        assert b'INTEL-SA-00000' in rv.data, rv.data.decode()
+        assert b'LEN-99999' in rv.data, rv.data.decode()
 
         # delete one of the added CVEs
         rv = self.app.get('/lvfs/components/1/issue/3/delete', follow_redirects=True)
-        assert b'Removed CVE-2018' in rv.data, rv.data.decode()
+        assert b'Removed DSA-2018-000' in rv.data, rv.data.decode()
         assert b'CVE-2017' in rv.data, rv.data.decode()
 
         # update the description to include CVEs
         rv = self.app.post('/lvfs/components/1/modify', data=dict(
             urgency='critical',
-            description='- Address security advisories INTEL-SA-00233(CVE-2018-12126, CVE-2018-12127)\n'
+            description='- Address security advisories INTEL-SA-00233(CVE-2018-12126, '
+                        'LEN-54321, CVE-2018-12127, LEN-12345)\n'
                         '- Firmware updates to address security advisory INTEL-SA-00213',
         ), follow_redirects=True)
         assert b'Component updated' in rv.data, rv.data
@@ -187,12 +189,12 @@ class LocalTestCase(LvfsTestCase):
 
         # autoimport the CVEs
         rv = self.app.get('/lvfs/components/1/issue/autoimport', follow_redirects=True)
-        assert b'Added 2 issues' in rv.data, rv.data.decode()
+        assert b'Added 6 issues' in rv.data, rv.data.decode()
         rv = self.app.get('/lvfs/firmware/1/problems')
         assert b'CVEs in update description' not in rv.data, rv.data.decode()
         rv = self.app.get('/lvfs/components/1/update')
-        assert b'- Address security advisories INTEL-SA-00233(, )\n' +\
-               b'- Firmware updates to address security advisory INTEL-SA-00213' in rv.data, rv.data.decode()
+        assert b'- Address security advisories\n' +\
+               b'- Firmware updates to address security advisory' in rv.data, rv.data.decode()
 
     def test_device_checksums(self):
 

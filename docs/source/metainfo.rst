@@ -49,6 +49,9 @@ An example ``metainfo.xml`` file looks like this:
           <issues>
             <issue type="cve">CVE-2016-12345</issue>
             <issue type="cve">CVE-2017-54321</issue>
+            <issue type="dell">DSA-2020-321</issue>
+            <issue type="intel">INTEL-SA-54321</issue>
+            <issue type="lenovo">LEN-28775</issue>
           </issues>
         </release>
       </releases>
