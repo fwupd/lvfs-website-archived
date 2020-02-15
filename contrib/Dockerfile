@@ -9,6 +9,8 @@ RUN yum -y install \
 	geolite2-country \
 	libgcab1 \
 	GeoIP-devel \
+	cairo-gobject-devel \
+	gobject-introspection-devel \
 	gcc \
 	postgresql-devel \
 	python-GeoIP \

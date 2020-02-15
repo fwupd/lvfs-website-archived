@@ -41,8 +41,9 @@ psycopg2==2.8.4
 py==1.8.1
 pyasn1==0.4.8
 pyasn1-modules==0.2.8
+pycairo==1.19.0
 pycparser==2.19
-PyGObject==3.22.0
+PyGObject==3.34.0
 pylint==2.4.4
 pyparsing==2.4.6
 PyQRCode==1.2.1
