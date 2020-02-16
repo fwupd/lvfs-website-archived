@@ -23,7 +23,7 @@ def _vercmp_char(chr1, chr2):
     return 1
 
 def _strtoll(val):
-    """ Parses a value, returning the numberic part and any string suffix """
+    """ Parses a value, returning the numeric part and any string suffix """
     num_part = ''
     str_part = ''
     for char in val:
