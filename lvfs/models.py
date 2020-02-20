@@ -517,7 +517,6 @@ class Vendor(db.Model):
                     all()
 
     @property
-    @functools.lru_cache()
     def is_account_holder(self):
         return self.users
 
