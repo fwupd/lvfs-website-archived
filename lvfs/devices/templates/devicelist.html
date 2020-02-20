@@ -55,9 +55,9 @@
 </div>
 {% for vendor in vendors %}
 {% if mds_by_vendor[vendor]|length > 0 %}
-<div class="card mt-3">
+<div class="card mt-3" id="{{vendor.group_id}}">
   <div class="card-body">
-    <h2 class="card-title">{{vendor}}</h2>
+    <h2 class="card-title">{{vendor.display_name}}</h2>
     <ul class="list-group">
 {% for md in mds_by_vendor[vendor] %}
       <li class="list-group-item">

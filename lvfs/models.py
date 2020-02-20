@@ -628,6 +628,15 @@ class Vendor(db.Model):
             return user.check_acl('@vendor-manager')
         raise NotImplementedError('unknown security check action: %s:%s' % (self, action))
 
+    def __hash__(self):
+        return self.vendor_id
+
+    def __lt__(self, other):
+        return self.vendor_id < other.vendor_id
+
+    def __eq__(self, other):
+        return self.vendor_id == other.vendor_id
+
     def __repr__(self):
         return "Vendor object %s" % self.group_id
 
