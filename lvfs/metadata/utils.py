@@ -225,22 +225,22 @@ def _generate_metadata_kind(filename, fws, firmware_baseuri='', local=False):
                 sz.set('type', 'download')
                 sz.text = str(md.release_download_size)
 
-        # deliberately not including <category> here until 2020-01-01
-        if False:                       # pylint: disable=using-constant-test
-            cats = [] #lgtm [py/unreachable-statement]
-            for md in mds:
-                if not md.category:
-                    continue
-                if md.category.value not in cats:
-                    cats.append(md.category.value)
-                if md.category.fallbacks:
-                    for fallback in md.category.fallbacks.split(','):
-                        if fallback not in cats:
-                            cats.append(fallback)
-            if cats:
-                categories = ET.SubElement(root, 'categories')
-                for cat in cats:
-                    ET.SubElement(categories, 'category').text = cat
+        # add enumerated categories
+        cats = []
+        for md in mds:
+            if not md.category:
+                continue
+            if md.category.value not in cats:
+                cats.append(md.category.value)
+            if md.category.fallbacks:
+                for fallback in md.category.fallbacks.split(','):
+                    if fallback not in cats:
+                        cats.append(fallback)
+        if cats:
+            # use a non-standard prefix as we're still using .name_with_category
+            categories = ET.SubElement(root, 'X-categories')
+            for cat in cats:
+                ET.SubElement(categories, 'category').text = cat
 
         # provides shared by all releases
         elements = {}
