@@ -84,10 +84,7 @@ class Plugin(PluginBase):
 
     def archive_sign(self, cabarchive, cabfile):
 
-        # already signed
         detached_fn = cabfile.filename + '.asc'
-        if detached_fn in cabarchive:
-            return
 
         # create the detached signature
         blob_asc = _sigul_detached_sign_data(cabfile.buf,

@@ -85,10 +85,7 @@ class Plugin(PluginBase):
 
     def archive_sign(self, cabarchive, cabfile):
 
-        # already signed
         detached_fn = cabfile.filename + '.p7b'
-        if detached_fn in cabarchive:
-            return
 
         # create the detached signature
         blob_p7b = self._sign_blob(cabfile.buf)

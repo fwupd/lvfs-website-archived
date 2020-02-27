@@ -100,10 +100,7 @@ class Plugin(PluginBase):
 
     def archive_sign(self, cabarchive, cabfile):
 
-        # already signed
         detached_fn = cabfile.filename + '.asc'
-        if detached_fn in cabarchive:
-            return
 
         # create the detached signature
         affidavit = Affidavit(self.get_setting('sign_gpg_firmware_uid', required=True),
