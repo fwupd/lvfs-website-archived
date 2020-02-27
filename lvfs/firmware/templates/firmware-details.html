@@ -126,6 +126,9 @@ new Chart(ctx, {
 {% if fw.is_deleted and fw.check_acl('@nuke') %}
         <button type="button" class="btn btn-danger card-link" data-toggle="modal" data-target="#nukeModal">☠ Nuke ☠</button>
 {% endif %}
+{% if fw.signed_timestamp and g.user.check_acl('@admin') %}
+        <a class="btn btn-warning card-link" href="{{url_for('firmware.route_resign', firmware_id=fw.firmware_id)}}" role="button">Re-sign</a>
+{% endif %}
       </div>
     </div>
   </div>

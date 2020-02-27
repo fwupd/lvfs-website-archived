@@ -21,7 +21,7 @@ from lvfs.models import Firmware, Report, Client, FirmwareEvent, FirmwareLimit
 from lvfs.models import Remote, Vendor, AnalyticFirmware, Component
 from lvfs.models import ComponentShard, ComponentShardChecksum
 from lvfs.models import _get_datestr_from_datetime
-from lvfs.util import _error_internal
+from lvfs.util import _error_internal, admin_login_required
 from lvfs.util import _get_chart_labels_months, _get_chart_labels_days, _get_shard_path
 from .utils import _firmware_delete
 
@@ -178,6 +178,29 @@ def route_nuke(firmware_id):
 
     flash('Firmware nuked', 'info')
     return redirect(url_for('firmware.route_firmware'))
+
+@bp_firmware.route('/<int:firmware_id>/resign')
+@login_required
+@admin_login_required
+def route_resign(firmware_id):
+    """ Re-sign a firmware archive """
+
+    # check firmware exists in database
+    fw = db.session.query(Firmware).filter(Firmware.firmware_id == firmware_id).first()
+    if not fw:
+        flash('No firmware {} exists'.format(firmware_id), 'danger')
+        return redirect(url_for('firmware.route_firmware'))
+
+    # firmware is not signed yet
+    if not fw.signed_timestamp:
+        flash('Cannot resign unsigned file', 'danger')
+        return redirect(url_for('firmware.route_show', firmware_id=firmware_id))
+
+    # all done
+    fw.signed_timestamp = None
+    db.session.commit()
+    flash('Firmware will be re-signed soon', 'info')
+    return redirect(url_for('firmware.route_show', firmware_id=firmware_id))
 
 @bp_firmware.route('/<int:firmware_id>/promote/<target>')
 @login_required
