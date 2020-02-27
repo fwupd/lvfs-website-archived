@@ -32,7 +32,7 @@ class Plugin(PluginBase):
         s.append(PluginSettingBool('cdn_purge_enable', 'Enabled', False))
         s.append(PluginSettingText('cdn_purge_uri', 'URI', 'https://bunnycdn.com/api/purge?url=https://lvfs.b-cdn.net/downloads/'))
         s.append(PluginSettingText('cdn_purge_accesskey', 'Accesskey', ''))
-        s.append(PluginSettingTextList('cdn_purge_files', 'File Whitelist', ['*.xml.gz', '*.xml.gz.*']))
+        s.append(PluginSettingTextList('cdn_purge_files', 'File Whitelist', ['*.xml.gz', '*.xml.gz.*', '*.jcat']))
         s.append(PluginSettingText('cdn_purge_method', 'Request method', 'GET'))
         return s
 

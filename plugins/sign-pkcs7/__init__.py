@@ -10,7 +10,7 @@
 import subprocess
 import tempfile
 
-from cabarchive import CabFile
+from jcat import JcatBlobText, JcatBlobKind
 from lvfs.pluginloader import PluginBase, PluginError, PluginSettingText, PluginSettingBool
 from lvfs import ploader, app
 
@@ -62,35 +62,14 @@ class Plugin(PluginBase):
         with open(dst.name, 'rb') as f:
             return f.read()
 
-    def _metadata_modified(self, fn):
-
-        # read in the file
-        with open(fn, 'rb') as fin:
-            blob = fin.read()
-        blob_p7b = self._sign_blob(blob)
-        if not blob_p7b:
-            return
-
-        # write a new file
-        fn_p7b = fn + '.p7b'
-        with open(fn_p7b, 'wb') as f:
-            f.write(blob_p7b)
-
-        # inform the plugin loader
-        ploader.file_modified(fn_p7b)
-
-    def file_modified(self, fn):
-        if fn.endswith('.xml.gz'):
-            self._metadata_modified(fn)
-
-    def archive_sign(self, cabarchive, cabfile):
-
-        detached_fn = cabfile.filename + '.p7b'
+    def metadata_sign(self, blob):
 
         # create the detached signature
-        blob_p7b = self._sign_blob(cabfile.buf)
-        if not blob_p7b:
-            return
+        blob_p7b = self._sign_blob(blob)
+        return JcatBlobText(JcatBlobKind.PKCS7, blob_p7b)
 
-        # add it to the archive
-        cabarchive[detached_fn] = CabFile(blob_p7b)
+    def archive_sign(self, blob):
+
+        # create the detached signature
+        blob_p7b = self._sign_blob(blob)
+        return JcatBlobText(JcatBlobKind.PKCS7, blob_p7b)

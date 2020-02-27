@@ -8,17 +8,18 @@
 # pylint: disable=too-many-statements,too-many-locals,too-many-nested-blocks
 
 import os
+import gzip
 import hashlib
 
 from collections import defaultdict
 from lxml import etree as ET
 
-from lvfs import app, db
+from lvfs import db
 
 from lvfs.models import Firmware, Remote
 from lvfs.util import _get_settings, _xml_from_markdown
 
-def _generate_metadata_kind(filename, fws, firmware_baseuri='', local=False):
+def _generate_metadata_kind(fws, firmware_baseuri='', local=False):
     """ Generates AppStream metadata of a specific kind """
 
     root = ET.Element('components')
@@ -292,24 +293,15 @@ def _generate_metadata_kind(filename, fws, firmware_baseuri='', local=False):
                 parent.append(child)
 
     # dump to file
-    et = ET.ElementTree(root)
-    et.write(filename,
-             encoding='utf-8',
-             xml_declaration=True,
-             compression=5,
-             pretty_print=True)
+    return gzip.compress(ET.tostring(root, encoding='utf-8', xml_declaration=True))
 
 def _metadata_update_targets(remotes):
     """ updates metadata for a specific target """
     fws = db.session.query(Firmware).all()
     settings = _get_settings()
 
-    # set destination path from app config
-    download_dir = app.config['DOWNLOAD_DIR']
-    if not os.path.exists(download_dir):
-        os.mkdir(download_dir)
-
     # create metadata for each remote
+    targets = []
     for r in remotes:
         fws_filtered = []
         for fw in fws:
@@ -319,18 +311,20 @@ def _metadata_update_targets(remotes):
                 continue
             if r.check_fw(fw):
                 fws_filtered.append(fw)
-        _generate_metadata_kind(os.path.join(download_dir, r.filename),
-                                fws_filtered,
-                                firmware_baseuri=settings['firmware_baseuri'])
+        blob = _generate_metadata_kind(fws_filtered,
+                                       firmware_baseuri=settings['firmware_baseuri'])
+        targets.append((r, blob))
 
         # all firmwares are contained in the correct metadata now
         for fw in fws_filtered:
             fw.is_dirty = False
 
-def _metadata_update_pulp():
+    # success
+    return targets
+
+def _metadata_update_pulp(download_dir):
 
     """ updates metadata for Pulp """
-    download_dir = app.config['DOWNLOAD_DIR']
     with open(os.path.join(download_dir, 'PULP_MANIFEST'), 'w') as manifest:
 
         # add metadata

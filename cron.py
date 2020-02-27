@@ -15,7 +15,8 @@ import yara
 
 from flask import render_template
 
-from cabarchive import CabArchive
+from cabarchive import CabArchive, CabFile
+from jcat import JcatFile, JcatBlobSha256, JcatBlobKind
 
 from lvfs import app, db, ploader
 from lvfs.dbutils import _execute_count_star
@@ -52,18 +53,58 @@ def _regenerate_and_sign_metadata(only_embargo=False):
     if not remotes:
         return
 
+    # set destination path from app config
+    download_dir = app.config['DOWNLOAD_DIR']
+    if not os.path.exists(download_dir):
+        os.mkdir(download_dir)
+
+    # create Jcat file
+    jcatfile = JcatFile()
+
     # update everything required
+    invalid_fns = []
     for r in remotes:
         print('Updating: %s' % r.name)
-    _metadata_update_targets(remotes)
+    for r, blob_xmlgz in _metadata_update_targets(remotes):
+
+        # write metadata.xml.gz
+        fn_xmlgz = os.path.join(download_dir, r.filename)
+        with open(fn_xmlgz, 'wb') as f:
+            f.write(blob_xmlgz)
+        invalid_fns.append(fn_xmlgz)
+
+        # create Jcat item with SHA256 checksum blob
+        jcatitem = jcatfile.get_item(r.filename)
+        jcatitem.add_blob(JcatBlobSha256(blob_xmlgz))
+
+        # write each signed file
+        for blob in ploader.metadata_sign(blob_xmlgz):
+
+            # add GPG only to archive for backwards compat with older fwupd
+            if blob.kind == JcatBlobKind.GPG:
+                fn_xmlgz_asc = fn_xmlgz + '.' + blob.filename_ext
+                with open(fn_xmlgz_asc, 'wb') as f:
+                    f.write(blob.data)
+                invalid_fns.append(fn_xmlgz_asc)
+
+            # add to Jcat file too
+            jcatitem.add_blob(blob)
+
+        # write jcat file
+        fn_xmlgz_jcat = fn_xmlgz + '.jcat'
+        with open(fn_xmlgz_jcat, 'wb') as f:
+            f.write(jcatfile.save())
+        invalid_fns.append(fn_xmlgz_jcat)
+
+    # update PULP
     for r in remotes:
         if r.name == 'stable':
-            _metadata_update_pulp()
+            _metadata_update_pulp(download_dir)
 
-    # sign and sync
-    download_dir = app.config['DOWNLOAD_DIR']
-    for r in remotes:
-        ploader.file_modified(os.path.join(download_dir, r.filename))
+    # do this all at once right at the end of all the I/O
+    for fn in invalid_fns:
+        print('Invalidating {}'.format(fn))
+        ploader.file_modified(fn)
 
     # mark as no longer dirty
     for r in remotes:
@@ -88,13 +129,44 @@ def _sign_fw(fw):
     except IOError as e:
         raise NotImplementedError('cannot read %s: %s' % (fn, str(e)))
 
+    # create Jcat file
+    jcatfile = JcatFile()
+
     # sign each component in the archive
     print('Signing: %s' % fn)
     for md in fw.mds:
         try:
-            ploader.archive_sign(cabarchive, cabarchive[md.filename_contents])
+
+            # create Jcat item with SHA256 checksum blob
+            cabfile = cabarchive[md.filename_contents]
+            jcatitem = jcatfile.get_item(md.filename_contents)
+            jcatitem.add_blob(JcatBlobSha256(cabfile.buf))
+
+            # sign using plugins
+            for blob in ploader.archive_sign(cabfile.buf):
+
+                # add GPG only to archive for backwards compat with older fwupd
+                if blob.kind == JcatBlobKind.GPG:
+                    fn_blob = md.filename_contents + '.' + blob.filename_ext
+                    cabarchive[fn_blob] = CabFile(blob.data)
+
+                # add to Jcat file too
+                jcatitem.add_blob(blob)
+
         except KeyError as _:
             raise NotImplementedError('no {} firmware found'.format(md.filename_contents))
+
+    # sign all the metainfo.xml files
+    for md in fw.mds:
+        blob_xml = cabarchive[md.filename_xml].buf
+        jcatitem = jcatfile.get_item(md.filename_xml)
+        jcatitem.add_blob(JcatBlobSha256(blob_xml))
+        for blob in ploader.archive_sign(blob_xml):
+            jcatitem.add_blob(blob)
+
+    # write jcat file
+    if jcatfile.items:
+        cabarchive['firmware.jcat'] = CabFile(jcatfile.save())
 
     # overwrite old file
     cab_data = cabarchive.save()

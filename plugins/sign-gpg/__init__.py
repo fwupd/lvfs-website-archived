@@ -10,7 +10,7 @@
 import os
 import gnupg
 
-from cabarchive import CabFile
+from jcat import JcatBlobText, JcatBlobKind
 from lvfs.pluginloader import PluginBase, PluginError, PluginSettingText, PluginSettingBool
 from lvfs import ploader
 
@@ -78,34 +78,18 @@ class Plugin(PluginBase):
                                    'sign-test@fwupd.org'))
         return s
 
-    def _metadata_modified(self, fn):
-
-        # generate
-        affidavit = Affidavit(self.get_setting('sign_gpg_metadata_uid', required=True),
-                              self.get_setting('sign_gpg_keyring_dir', required=True))
-        if not affidavit:
-            return
-        with open(fn, 'rb') as blob:
-            blob_asc = affidavit.create(blob.read())
-        fn_asc = fn + '.asc'
-        with open(fn_asc, 'w') as f:
-            f.write(str(blob_asc))
-
-        # inform the plugin loader
-        ploader.file_modified(fn_asc)
-
-    def file_modified(self, fn):
-        if fn.endswith('.xml.gz'):
-            self._metadata_modified(fn)
-
-    def archive_sign(self, cabarchive, cabfile):
-
-        detached_fn = cabfile.filename + '.asc'
+    def metadata_sign(self, blob):
 
         # create the detached signature
         affidavit = Affidavit(self.get_setting('sign_gpg_firmware_uid', required=True),
                               self.get_setting('sign_gpg_keyring_dir', required=True))
-        contents_asc = str(affidavit.create(cabfile.buf))
+        contents_asc = str(affidavit.create(blob))
+        return JcatBlobText(JcatBlobKind.GPG, contents_asc)
 
-        # add it to the archive
-        cabarchive[detached_fn] = CabFile(contents_asc.encode('utf-8'))
+    def archive_sign(self, blob):
+
+        # create the detached signature
+        affidavit = Affidavit(self.get_setting('sign_gpg_firmware_uid', required=True),
+                              self.get_setting('sign_gpg_keyring_dir', required=True))
+        contents_asc = str(affidavit.create(blob))
+        return JcatBlobText(JcatBlobKind.GPG, contents_asc)

@@ -181,18 +181,35 @@ class Pluginloader:
                 except PluginError as e:
                     _event_log('Plugin %s failed for FileModifed(%s): %s' % (plugin.id, fn, str(e)))
 
-    # an archive is being built
-    def archive_sign(self, cabarchive, cabfile):
+    # metadata is being built
+    def metadata_sign(self, blob):
         if not self.loaded:
             self.load_plugins()
+        blobs = []
+        for plugin in self._plugins:
+            if hasattr(plugin, 'metadata_sign'):
+                if not plugin.enabled:
+                    continue
+                try:
+                    blobs.append(plugin.metadata_sign(blob))
+                except PluginError as e:
+                    _event_log('Plugin %s failed for MetadataSign(): %s' % (plugin.id, str(e)))
+        return blobs
+
+    # an archive is being built
+    def archive_sign(self, blob):
+        if not self.loaded:
+            self.load_plugins()
+        blobs = []
         for plugin in self._plugins:
             if hasattr(plugin, 'archive_sign'):
                 if not plugin.enabled:
                     continue
                 try:
-                    plugin.archive_sign(cabarchive, cabfile)
+                    blobs.append(plugin.archive_sign(blob))
                 except PluginError as e:
                     _event_log('Plugin %s failed for ArchiveSign(): %s' % (plugin.id, str(e)))
+        return blobs
 
     # an archive is being built
     def archive_copy(self, cabarchive, cabfile):

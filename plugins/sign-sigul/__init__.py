@@ -10,7 +10,7 @@
 import subprocess
 import tempfile
 
-from cabarchive import CabFile
+from jcat import JcatBlobText, JcatBlobKind
 from lvfs.pluginloader import PluginBase, PluginError, PluginSettingText, PluginSettingBool
 from lvfs import ploader
 
@@ -65,31 +65,18 @@ class Plugin(PluginBase):
                                    'sigul-client-cert'))
         return s
 
-    def _metadata_modified(self, fn):
-
-        # generate
-        blob_asc = _sigul_detached_sign_data(open(fn, 'rb').read(),
-                                             self.get_setting('sign_sigul_config_file', required=True),
-                                             self.get_setting('sign_sigul_metadata_key', required=True))
-        fn_asc = fn + '.asc'
-        with open(fn_asc, 'w') as f:
-            f.write(blob_asc)
-
-        # inform the plugin loader
-        ploader.file_modified(fn_asc)
-
-    def file_modified(self, fn):
-        if fn.endswith('.xml.gz'):
-            self._metadata_modified(fn)
-
-    def archive_sign(self, cabarchive, cabfile):
-
-        detached_fn = cabfile.filename + '.asc'
+    def metadata_sign(self, blob):
 
         # create the detached signature
-        blob_asc = _sigul_detached_sign_data(cabfile.buf,
+        blob_asc = _sigul_detached_sign_data(blob,
+                                             self.get_setting('sign_sigul_config_file', required=True),
+                                             self.get_setting('sign_sigul_metadata_key', required=True))
+        return JcatBlobText(JcatBlobKind.GPG, blob_asc)
+
+    def archive_sign(self, blob):
+
+        # create the detached signature
+        blob_asc = _sigul_detached_sign_data(blob,
                                              self.get_setting('sign_sigul_config_file', required=True),
                                              self.get_setting('sign_sigul_firmware_key', required=True))
-
-        # add it to the archive
-        cabarchive[detached_fn] = CabFile(blob_asc.encode('utf-8'))
+        return JcatBlobText(JcatBlobKind.GPG, blob_asc)

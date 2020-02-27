@@ -12,7 +12,7 @@ import sys
 import argparse
 
 from lvfs.metadata.utils import _generate_metadata_kind
-from lvfs.upload.uploadedfile import UploadedFile
+from lvfs.upload.uploadedfile import UploadedFile, MetadataInvalid
 
 def parse_args():
     parser = argparse.ArgumentParser(description="Generate local metadata to use with fwupd")
@@ -34,13 +34,19 @@ def create_metadata(archive_dir, basename, metadata_fn):
                 continue
             print('Processing %s...' % filename)
             ufile = UploadedFile()
-            with open(os.path.join(root, filename), 'r') as f:
-                ufile.parse(filename, f.read(), use_hashed_prefix=False)
-            fws.append(ufile.fw)
+            try:
+                with open(os.path.join(root, filename), 'rb') as f:
+                    ufile.parse(filename, f.read(), use_hashed_prefix=False)
+            except MetadataInvalid as e:
+                print('Failed to parse {}: {}'.format(filename, e))
+            else:
+                fws.append(ufile.fw)
 
     # write metadata
     print('Writing %s' % metadata_fn)
-    _generate_metadata_kind(metadata_fn, fws, firmware_baseuri="%s/" % basename, local=True)
+    xml = _generate_metadata_kind(fws, firmware_baseuri="%s/" % basename, local=True)
+    with open(metadata_fn, 'wb') as f:
+        f.write(xml)
 
 if __name__ == '__main__':
     ARGS = parse_args()
