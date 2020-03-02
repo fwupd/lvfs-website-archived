@@ -1385,7 +1385,7 @@ class Component(db.Model):
     protocol_id = Column(Integer, ForeignKey('protocol.protocol_id'))
     category_id = Column(Integer, ForeignKey('categories.category_id'))
     checksum_contents_sha1 = Column(String(40), nullable=False)
-    checksum_contents_sha256 = Column(String(64), default=None)
+    checksum_contents_sha256 = Column(String(64), nullable=False)
     appstream_id = Column(Text, nullable=False)
     name = Column(Text, default=None)
     name_variant_suffix = Column(Text, default=None)

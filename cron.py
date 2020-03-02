@@ -114,19 +114,6 @@ def _sign_fw(fw):
     fw.signed_timestamp = datetime.datetime.utcnow()
     db.session.commit()
 
-def _repair_mdcsum():
-
-    # fix all component checksums
-    for md in db.session.query(Component)\
-                        .filter(Component.checksum_contents_sha256 == None)\
-                        .order_by(Component.component_id):
-        with open(_get_absolute_path(md.fw), 'rb') as f:
-            cabarchive = CabArchive(f.read())
-        md.checksum_contents_sha256 = hashlib.sha256(cabarchive[md.filename_contents]).hexdigest()
-
-    # all done
-    db.session.commit()
-
 def _repair_ts():
 
     # fix any timestamps that are incorrect
@@ -660,8 +647,6 @@ def _main_with_app_context():
         _repair_ts()
     if 'repair-csum' in sys.argv:
         _repair_csum()
-    if 'repair-mdcsum' in sys.argv:
-        _repair_mdcsum()
     if 'ensure' in sys.argv:
         _ensure_tests()
     if 'firmware' in sys.argv:
