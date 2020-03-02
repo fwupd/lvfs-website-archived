@@ -1398,6 +1398,7 @@ class Component(db.Model):
     project_license = Column(Text, default=None)
     developer_name = Column(Text, default=None)
     filename_contents = Column(Text, nullable=False)
+    filename_xml = Column(Text, default=None)
     release_timestamp = Column(Integer, default=0)
     version = Column(Text, nullable=False)
     release_installed_size = Column(Integer, default=0)
@@ -1628,6 +1629,15 @@ class Component(db.Model):
                                               'as some users may be worried about an update that does '
                                               'not explain what it fixes.\n'
                                               'This also can be set in the .metainfo.xml file.'))
+
+        # possible for broken legacy firmware
+        if not self.filename_xml:
+            problems.append(Claim(kind='invalid-metainfo',
+                                  icon='warning',
+                                  summary='Metainfo filename has not been set',
+                                  description='The metainfo filename has not been set and this '
+                                              'firmware cannot be signed. '
+                                              'Please contact the LVFS administrator for help.'))
 
         # urgency is now a hard requirement
         if self.release_urgency == 'unknown':
