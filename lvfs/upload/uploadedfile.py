@@ -231,7 +231,7 @@ class UploadedFile:
             md.release_tag = release.attrib['tag']
             if len(md.release_tag) < 4:
                 raise MetadataInvalid('<release> tag was too short to identify the firmware')
-            md.add_keywords_from_string(md.release_tag, priority=5)
+            md.add_keywords_from_string(md.release_tag, priority=6)
 
         # get list of CVEs
         for issue in release.xpath('issues/issue'):

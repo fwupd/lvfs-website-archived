@@ -26,7 +26,8 @@ def _md_to_mdsync_dict(md):
     obj['component_id'] = md.component_id
     obj['status'] = md.fw.remote.icon_name
     if md.fw.remote.is_public:
-        obj['date'] = md.fw.signed_timestamp.isoformat()
+        if md.fw.signed_timestamp:
+            obj['date'] = md.fw.signed_timestamp.isoformat()
         if md.release_tag:
             obj['release_tag'] = md.release_tag
         if md.details_url:

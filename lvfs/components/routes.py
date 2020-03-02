@@ -181,6 +181,7 @@ def route_modify(component_id):
 
     # modify
     md.fw.mark_dirty()
+    md.fw.signed_timestamp = None
     db.session.commit()
     flash('Component updated', 'info')
     return redirect(url_for('components.route_show',
@@ -286,6 +287,7 @@ def route_requirement_delete(component_id, requirement_id):
     # remove chid
     db.session.delete(rq)
     md.fw.mark_dirty()
+    md.fw.signed_timestamp = None
     db.session.commit()
 
     # log
@@ -344,6 +346,7 @@ def route_requirement_create(component_id):
                      depth=depth)
     md.requirements.append(rq)
     md.fw.mark_dirty()
+    md.fw.signed_timestamp = None
     db.session.commit()
     flash('Added requirement', 'info')
     return redirect(url_for('components.route_show',
@@ -418,6 +421,7 @@ def route_requirement_modify(component_id):
                     )
     md.requirements.append(rq)
     md.fw.mark_dirty()
+    md.fw.signed_timestamp = None
     db.session.commit()
     flash('Added requirement', 'info')
     return redirect(url_for('components.route_show',
@@ -449,6 +453,7 @@ def route_keyword_delete(component_id, keyword_id):
     # remove chid
     db.session.delete(kw)
     md.fw.mark_dirty()
+    md.fw.signed_timestamp = None
     db.session.commit()
 
     # log
@@ -482,6 +487,7 @@ def route_keyword_create(component_id):
     # add keyword
     md.add_keywords_from_string(request.form['value'])
     md.fw.mark_dirty()
+    md.fw.signed_timestamp = None
     db.session.commit()
     flash('Added keywords', 'info')
     return redirect(url_for('components.route_show',
@@ -509,6 +515,7 @@ def route_issue_delete(component_id, component_issue_id):
     # remove issue
     db.session.delete(issue)
     md.fw.mark_dirty()
+    md.fw.signed_timestamp = None
     db.session.commit()
 
     # log
@@ -592,6 +599,7 @@ def route_issue_autoimport(component_id):
         flash('No issues could be detected', 'info')
     else:
         md.fw.mark_dirty()
+        md.fw.signed_timestamp = None
         db.session.commit()
         flash('Added {} issues — now review the update description for sanity'.format(n_issues), 'info')
     return redirect(url_for('components.route_show',
@@ -646,6 +654,7 @@ def route_issue_create(component_id):
         flash('Added {}'.format(value), 'info')
         md.issues.append(issue)
     md.fw.mark_dirty()
+    md.fw.signed_timestamp = None
     db.session.commit()
     return redirect(url_for('components.route_show',
                             component_id=md.component_id,
@@ -676,6 +685,7 @@ def route_checksum_delete(component_id, checksum_id):
 
     # remove chid
     md.fw.mark_dirty()
+    md.fw.signed_timestamp = None
     db.session.delete(csum)
     db.session.commit()
 
@@ -731,6 +741,7 @@ def route_checksum_create(component_id):
     csum = Checksum(kind=hash_kind, value=hash_value)
     md.device_checksums.append(csum)
     md.fw.mark_dirty()
+    md.fw.signed_timestamp = None
     db.session.commit()
     flash('Added device checksum', 'info')
     return redirect(url_for('components.route_show',

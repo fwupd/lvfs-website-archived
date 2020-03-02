@@ -9,9 +9,12 @@
 
 import os
 import sys
+import difflib
 import hashlib
 import datetime
 import yara
+
+from lxml import etree as ET
 
 from flask import render_template
 
@@ -25,7 +28,7 @@ from lvfs.models import Remote, Firmware, Vendor, Client, AnalyticVendor, User, 
 from lvfs.models import AnalyticFirmware, Useragent, UseragentKind, Analytic, Report, Metric
 from lvfs.models import ComponentShard, ComponentShardInfo, Test, Component, Category, Protocol, FirmwareEvent
 from lvfs.models import _get_datestr_from_datetime
-from lvfs.metadata.utils import _metadata_update_targets, _metadata_update_pulp
+from lvfs.metadata.utils import _metadata_update_targets, _metadata_update_pulp, _generate_metadata_mds
 from lvfs.util import _event_log, _get_shard_path, _get_absolute_path
 from lvfs.upload.uploadedfile import UploadedFile, MetadataInvalid
 
@@ -118,6 +121,12 @@ def _regenerate_and_sign_metadata(only_embargo=False):
     for r in remotes:
         _event_log('Signed metadata %s' % r.name)
 
+def _show_diff(blob_old, blob_new):
+    fromlines = blob_old.decode().replace('\r', '').split('\n')
+    tolines = blob_new.decode().split('\n')
+    diff = difflib.unified_diff(fromlines, tolines)
+    print('\n'.join(list(diff)[3:]))
+
 def _sign_fw(fw):
 
     # load the .cab file
@@ -156,9 +165,20 @@ def _sign_fw(fw):
         except KeyError as _:
             raise NotImplementedError('no {} firmware found'.format(md.filename_contents))
 
-    # sign all the metainfo.xml files
+    # rewrite the metainfo.xml file to reflect latest changes and sign it
     for md in fw.mds:
-        blob_xml = cabarchive[md.filename_xml].buf
+
+        # write new metainfo.xml file
+        component = _generate_metadata_mds([md], metainfo=True)
+        blob_xml = b'<?xml version="1.0" encoding="UTF-8"?>\n' + \
+                   ET.tostring(component,
+                               encoding='UTF-8',
+                               xml_declaration=False,
+                               pretty_print=True)
+        _show_diff(cabarchive[md.filename_xml].buf, blob_xml)
+        cabarchive[md.filename_xml].buf = blob_xml
+
+        # sign it
         jcatitem = jcatfile.get_item(md.filename_xml)
         jcatitem.add_blob(JcatBlobSha256(blob_xml))
         for blob in ploader.archive_sign(blob_xml):
