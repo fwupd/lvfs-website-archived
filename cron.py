@@ -13,8 +13,6 @@ import hashlib
 import datetime
 import yara
 
-from lxml import etree as ET
-
 from flask import render_template
 
 from cabarchive import CabArchive
@@ -114,52 +112,6 @@ def _sign_fw(fw):
     fw.checksum_signed_sha1 = hashlib.sha1(cab_data).hexdigest()
     fw.checksum_signed_sha256 = hashlib.sha256(cab_data).hexdigest()
     fw.signed_timestamp = datetime.datetime.utcnow()
-    db.session.commit()
-
-def _repair_fnxml():
-
-    # fix any timestamps that are incorrect
-    for md in db.session.query(Component)\
-                        .filter(Component.filename_xml == None)\
-                        .order_by(Component.component_id):
-
-        # load cabinet archive
-        absolute_path = _get_absolute_path(md.fw)
-        with open(absolute_path, 'rb') as f:
-            cabarchive = CabArchive(f.read())
-
-        # filter the XMLs
-        metainfo_xmls = []
-        for fn in cabarchive:
-            if not fn.endswith('.metainfo.xml'):
-                continue
-            metainfo_xmls.append(fn)
-
-        # process each metainfo.xml file
-        for fn in metainfo_xmls:
-
-            # load the XML
-            cabfile = cabarchive[fn]
-            try:
-                component = ET.fromstring(cabfile.buf).xpath('/component')[0]
-            except ET.XMLSyntaxError as e:
-                print('FAILED to load {}:{} ({})'.format(absolute_path, fn, e))
-                continue
-            appstream_id = component.xpath('id')[0].text.replace('/', '_').strip()
-            if md.appstream_id == appstream_id:
-                md.filename_xml = fn
-                print('repairing {} filename_xml to {}'.format(md.appstream_id, md.filename_xml))
-                break
-
-        # hope the archive only has one filename
-        if not md.filename_xml:
-            if len(metainfo_xmls) == 1:
-                md.filename_xml = metainfo_xmls[0]
-                print('repairing {} filename_xml to {} using fallback'.format(md.appstream_id, md.filename_xml))
-            else:
-                print('FAILED to get filename_xml for {}:{}'.format(absolute_path, md.appstream_id))
-
-    # all done
     db.session.commit()
 
 def _repair_ts():
@@ -695,8 +647,6 @@ def _main_with_app_context():
         _repair_ts()
     if 'repair-csum' in sys.argv:
         _repair_csum()
-    if 'repair-fnxml' in sys.argv:
-        _repair_fnxml()
     if 'ensure' in sys.argv:
         _ensure_tests()
     if 'firmware' in sys.argv:
