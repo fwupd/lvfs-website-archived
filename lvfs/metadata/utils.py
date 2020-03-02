@@ -179,10 +179,16 @@ def _generate_metadata_kind(filename, fws, firmware_baseuri='', local=False):
                 csum.set('target', 'container')
 
             # add content checksum
-            if md.checksum_contents:
+            if md.checksum_contents_sha1:
                 csum = ET.SubElement(rel, 'checksum')
-                csum.text = md.checksum_contents
+                csum.text = md.checksum_contents_sha1
                 csum.set('type', 'sha1')
+                csum.set('filename', md.filename_contents)
+                csum.set('target', 'content')
+            if md.checksum_contents_sha256:
+                csum = ET.SubElement(rel, 'checksum')
+                csum.text = md.checksum_contents_sha256
+                csum.set('type', 'sha256')
                 csum.set('filename', md.filename_contents)
                 csum.set('target', 'content')
 

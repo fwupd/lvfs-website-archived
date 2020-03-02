@@ -83,7 +83,11 @@
 {% endfor %}
         <tr class="row">
           <th class="col-2">SHA1</th>
-          <td class="col text-truncate"><code>{{md.checksum_contents}}</code></td>
+          <td class="col text-truncate"><code>{{md.checksum_contents_sha1}}</code></td>
+        </tr>
+        <tr class="row">
+          <th class="col-2">SHA256</th>
+          <td class="col text-truncate"><code>{{md.checksum_contents_sha256}}</code></td>
         </tr>
       </table>
     <a class="card-link btn btn-info" href="{{url_for('components.route_download', component_id=md.component_id)}}">Download File</a>

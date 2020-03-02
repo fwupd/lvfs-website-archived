@@ -1384,7 +1384,8 @@ class Component(db.Model):
     firmware_id = Column(Integer, ForeignKey('firmware.firmware_id'), nullable=False, index=True)
     protocol_id = Column(Integer, ForeignKey('protocol.protocol_id'))
     category_id = Column(Integer, ForeignKey('categories.category_id'))
-    checksum_contents = Column(String(40), nullable=False)
+    checksum_contents_sha1 = Column(String(40), nullable=False)
+    checksum_contents_sha256 = Column(String(64), default=None)
     appstream_id = Column(Text, nullable=False)
     name = Column(Text, default=None)
     name_variant_suffix = Column(Text, default=None)
@@ -1554,7 +1555,7 @@ class Component(db.Model):
                                     icon='warning',
                                     summary='Firmware cannot be verified after flashing',
                                     url='https://lvfs.readthedocs.io/en/latest/claims.html#verified-firmware'))
-        if self.checksum_contents:
+        if self.checksum_contents_sha1:
             claims.append(Claim(kind='vendor-provenance',
                                 icon='success',
                                 summary='Added to the LVFS by {}'.format(self.fw.vendor.display_name),

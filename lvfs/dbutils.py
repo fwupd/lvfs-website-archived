@@ -137,7 +137,8 @@ def anonymize_db(db):
         if not _should_anonymize(fw.vendor):
             continue
         for md in fw.mds:
-            md.checksum_contents = hashlib.sha1(os.urandom(32)).hexdigest()
+            md.checksum_contents_sha1 = hashlib.sha1(os.urandom(32)).hexdigest()
+            md.checksum_contents_sha256 = hashlib.sha256(os.urandom(32)).hexdigest()
             for csum in md.device_checksums:
                 csum.kind = 'SHA1'
                 csum.value = hashlib.sha1(os.urandom(32)).hexdigest()

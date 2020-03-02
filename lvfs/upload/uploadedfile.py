@@ -602,7 +602,8 @@ class UploadedFile:
         except KeyError as _:
             raise MetadataInvalid('No {} found in the archive'.format(md.filename_contents))
         self.cabarchive_repacked[cabfile_fw.filename] = cabfile_fw
-        md.checksum_contents = hashlib.sha1(cabfile_fw.buf).hexdigest()
+        md.checksum_contents_sha1 = hashlib.sha1(cabfile_fw.buf).hexdigest()
+        md.checksum_contents_sha256 = hashlib.sha256(cabfile_fw.buf).hexdigest()
         md.release_installed_size = len(cabfile_fw.buf)
         self.fw.mds.append(md)
 
