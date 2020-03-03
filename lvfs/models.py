@@ -1839,18 +1839,12 @@ class Component(db.Model):
             return True
 
         # depends on the action requested
-        if action == '@modify-updateinfo':
+        if action in ('@modify-keywords', '@modify-requirements', '@modify-checksums', '@modify-updateinfo'):
             if not self.fw.remote.is_public:
                 if user.check_acl('@qa') and self.fw._is_permitted_action(action, user):
                     return True
                 if self.fw._is_owner(user):
                     return True
-            return False
-        if action in ('@modify-keywords', '@modify-requirements', '@modify-checksums'):
-            if user.check_acl('@qa') and self.fw._is_permitted_action(action, user):
-                return True
-            if self.fw._is_owner(user):
-                return True
             return False
         raise NotImplementedError('unknown security check action: %s:%s' % (self, action))
 

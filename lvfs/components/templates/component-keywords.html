@@ -4,6 +4,15 @@
 {% block nav %}{% include 'component-nav.html' %}{% endblock %}
 
 {% block content %}
+
+{% if md.fw.remote.is_public and md.check_acl('@modify-requirements') %}
+  <div class="alert alert-danger mt-1" role="alert">
+    This firmware has already been pushed to {{md.fw.remote.name}} and in this
+    target no modifications are possible.
+  </div>
+{% endif %}
+
+<fieldset {{ 'disabled="disabled"' if md.fw.remote.is_public }} >
 <div class="card">
   <div class="card-body">
     <h2 class="card-title">Search Keywords</h2>
@@ -39,4 +48,5 @@
 </table>
   </div>
 </div>
+</fieldset>
 {% endblock %}
