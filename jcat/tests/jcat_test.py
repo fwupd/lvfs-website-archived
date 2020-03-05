@@ -32,6 +32,7 @@ class TestJcatFile(unittest.TestCase):
         jcatfile = JcatFile()
         jcatitem = JcatItem('filename.bin')
         jcatfile.add_item(jcatitem)
+        jcatitem.add_blob(JcatBlob(JcatBlobKind.SHA1, b'deadbeef'))
         jcatitem.add_blob(JcatBlob(JcatBlobKind.SHA256, b'deadbeef'))
         jcatitem.add_blob(JcatBlob(JcatBlobKind.GPG, b'beefdeaf'))
         with open('/tmp/firmware.jcat', 'wb') as f:

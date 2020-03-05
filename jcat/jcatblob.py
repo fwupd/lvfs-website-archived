@@ -16,6 +16,7 @@ class JcatBlobKind(enum.IntEnum):
     SHA256 = 1
     GPG = 2
     PKCS7 = 3
+    SHA1 = 4
 
 class JcatBlobFlags(enum.IntEnum):
     NONE = 0
@@ -69,6 +70,12 @@ class JcatBlobText(JcatBlob):
 
     def __init__(self, kind, data_str):
         JcatBlob.__init__(self, kind, data_str.encode(), JcatBlobFlags.IS_UTF8)
+
+class JcatBlobSha1(JcatBlobText):
+
+    def __init__(self, blob):
+        data_str = hashlib.sha1(blob).hexdigest()
+        JcatBlobText.__init__(self, JcatBlobKind.SHA1, data_str)
 
 class JcatBlobSha256(JcatBlobText):
 

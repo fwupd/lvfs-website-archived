@@ -19,7 +19,7 @@ from lxml import etree as ET
 from flask import render_template
 
 from cabarchive import CabArchive, CabFile
-from jcat import JcatFile, JcatBlobSha256, JcatBlobKind
+from jcat import JcatFile, JcatBlobSha1, JcatBlobSha256, JcatBlobKind
 
 from lvfs import app, db, ploader
 from lvfs.dbutils import _execute_count_star
@@ -76,6 +76,7 @@ def _regenerate_and_sign_metadata(only_embargo=False):
         # create Jcat item with SHA256 checksum blob
         jcatfile = JcatFile()
         jcatitem = jcatfile.get_item(r.filename)
+        jcatitem.add_blob(JcatBlobSha1(blob_xmlgz))
         jcatitem.add_blob(JcatBlobSha256(blob_xmlgz))
 
         # write each signed file
@@ -144,9 +145,10 @@ def _sign_fw(fw):
     for md in fw.mds:
         try:
 
-            # create Jcat item with SHA256 checksum blob
+            # create Jcat item with SHA1 and SHA256 checksum blob
             cabfile = cabarchive[md.filename_contents]
             jcatitem = jcatfile.get_item(md.filename_contents)
+            jcatitem.add_blob(JcatBlobSha1(cabfile.buf))
             jcatitem.add_blob(JcatBlobSha256(cabfile.buf))
 
             # sign using plugins
@@ -178,6 +180,7 @@ def _sign_fw(fw):
 
         # sign it
         jcatitem = jcatfile.get_item(md.filename_xml)
+        jcatitem.add_blob(JcatBlobSha1(blob_xml))
         jcatitem.add_blob(JcatBlobSha256(blob_xml))
         for blob in ploader.archive_sign(blob_xml):
             jcatitem.add_blob(blob)

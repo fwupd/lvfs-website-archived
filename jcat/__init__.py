@@ -6,5 +6,5 @@
 # SPDX-License-Identifier: GPL-2.0+
 
 from . jcatfile import JcatFile, NotSupportedError
-from . jcatblob import JcatBlob, JcatBlobSha256, JcatBlobText, JcatBlobKind
+from . jcatblob import JcatBlob, JcatBlobSha1, JcatBlobSha256, JcatBlobText, JcatBlobKind
 from . jcatitem import JcatItem
