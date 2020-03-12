@@ -13,12 +13,36 @@ import hashlib
 
 from collections import defaultdict
 from datetime import date
+from distutils.version import StrictVersion
 from lxml import etree as ET
 
 from lvfs import db
 
 from lvfs.models import Firmware, Remote
 from lvfs.util import _get_settings, _xml_from_markdown
+
+def _is_verfmt_supported_by_fwupd(md, verfmt):
+
+    # fwupd version no specified
+    if not verfmt.fwupd_version:
+        return False
+
+    # did the firmware specify >= a fwupd version
+    req = md.find_req('id', 'org.freedesktop.fwupd')
+    if not req:
+        return False
+    if req.compare != 'ge':
+        return False
+
+    # compare the version number for the protocol and the requirement
+    try:
+        if StrictVersion(req.version) >= StrictVersion(verfmt.fwupd_version):
+            return True
+    except ValueError as _:
+        pass
+
+    # failed
+    return False
 
 def _generate_metadata_mds(mds, firmware_baseuri='', local=False, metainfo=False):
 
@@ -121,7 +145,7 @@ def _generate_metadata_mds(mds, firmware_baseuri='', local=False, metainfo=False
     for md in mds:
         verfmt = md.verfmt_with_fallback
         if verfmt:
-            if verfmt.fallbacks:
+            if verfmt.fallbacks and not _is_verfmt_supported_by_fwupd(md, verfmt):
                 for fallback in verfmt.fallbacks.split(','):
                     elements.append(('LVFS::VersionFormat', fallback))
             elements.append(('LVFS::VersionFormat', verfmt.value))
