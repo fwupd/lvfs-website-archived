@@ -394,6 +394,11 @@ class UploadedFile:
                 raise MetadataInvalid('<metadata_license> tag')
             except IndexError as _:
                 raise MetadataInvalid('<metadata_license> tag missing')
+        else:
+            try:
+                md.metadata_license = _node_validate_text(component.xpath('metadata_license')[0])
+            except (AttributeError, IndexError) as _:
+                md.metadata_license = 'CC0-1.0'
 
         # get <project_license>
         try:
