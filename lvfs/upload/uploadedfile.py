@@ -491,7 +491,7 @@ class UploadedFile:
 
         # allows OEM to change the triplet (AA.BB.CCDD) to quad (AA.BB.CC.DD)
         try:
-            version_format = _node_validate_text(component.xpath('custom/value[@key="LVFS::VersionFormat"]')[0])
+            version_format = _node_validate_text(component.xpath('custom/value[@key="LVFS::VersionFormat"]')[-1])
             if not self.version_formats:
                 raise MetadataInvalid('Valid version formats have not been added')
             if version_format not in self.version_formats:
