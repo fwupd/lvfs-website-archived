@@ -1,4 +1,4 @@
-alembic==1.4.1
+alembic==1.4.2
 astroid==2.3.3
 attrs==19.3.0
 blinker==1.4
