@@ -60,6 +60,20 @@ def route_firmware(state=None):
                            remote=remote,
                            fws=fws)
 
+@bp_firmware.route('/user')
+@login_required
+def route_user():
+    """
+    Show all firmware uploaded by this user.
+    """
+    # pre-filter by user ID or vendor
+    stmt = db.session.query(Firmware).filter(Firmware.user_id == g.user.user_id)
+    stmt = stmt.options(joinedload('tests'))
+    fws = stmt.order_by(Firmware.timestamp.desc()).all()
+    return render_template('firmware-search.html',
+                           category='firmware',
+                           fws=fws)
+
 @bp_firmware.route('/new')
 @bp_firmware.route('/new/<int:limit>')
 def route_new(limit=50):

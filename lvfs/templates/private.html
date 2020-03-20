@@ -60,22 +60,25 @@
               <a class="nav-link" href="{{url_for('upload.route_firmware')}}">Upload new</a>
             </li>
             <li class="nav-item {{'active' if request.url_rule.endpoint == 'firmware.route_firmware' and state == 'private'}}">
-              <a class="nav-link" href="{{url_for('firmware.route_firmware', state='private')}}">In Private</a>
+              <a class="nav-link" href="{{url_for('firmware.route_firmware', state='private')}}">State :: Private</a>
             </li>
             <li class="nav-item {{'active' if request.url_rule.endpoint == 'firmware.route_firmware' and state == 'embargo'}}">
-              <a class="nav-link" href="{{url_for('firmware.route_firmware', state='embargo')}}">In Embargo</a>
+              <a class="nav-link" href="{{url_for('firmware.route_firmware', state='embargo')}}">State :: Embargo</a>
             </li>
             <li class="nav-item {{'active' if request.url_rule.endpoint == 'firmware.route_firmware' and state == 'testing'}}">
-              <a class="nav-link" href="{{url_for('firmware.route_firmware', state='testing')}}">In Testing</a>
+              <a class="nav-link" href="{{url_for('firmware.route_firmware', state='testing')}}">State :: Testing</a>
             </li>
             <li class="nav-item {{'active' if request.url_rule.endpoint == 'firmware.route_firmware' and state == 'stable'}}">
-              <a class="nav-link" href="{{url_for('firmware.route_firmware', state='stable')}}">In Stable</a>
+              <a class="nav-link" href="{{url_for('firmware.route_firmware', state='stable')}}">State :: Stable</a>
             </li>
             <li class="nav-item {{'active' if request.url_rule.endpoint == 'firmware.route_firmware' and state == 'deleted'}}">
-              <a class="nav-link" href="{{url_for('firmware.route_firmware', state='deleted')}}">In Deleted</a>
+              <a class="nav-link" href="{{url_for('firmware.route_firmware', state='deleted')}}">State :: Deleted</a>
             </li>
             <li class="nav-item {{'active' if request.url_rule.endpoint == 'firmware.route_firmware' and not state}}">
-              <a class="nav-link" href="{{url_for('firmware.route_firmware')}}">Show all</a>
+              <a class="nav-link" href="{{url_for('firmware.route_firmware')}}">State :: All</a>
+            </li>
+            <li class="nav-item {{'active' if request.url_rule.endpoint == 'firmware.route_firmware' and state == 'private'}}">
+              <a class="nav-link" href="{{url_for('firmware.route_user')}}">User :: All</a>
             </li>
 {% if g.user.check_acl('@view-issues') %}
             <li class="nav-item {{'active' if request.url_rule.endpoint == 'issues.route_list'}}">
