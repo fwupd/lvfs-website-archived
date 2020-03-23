@@ -139,8 +139,11 @@ def route_modify(component_id):
             md.protocol_id = request.form['protocol_id']
             retry_all_tests = True
     if 'category_id' in request.form:
-        if md.category_id != request.form['category_id']:
-            md.category_id = request.form['category_id']
+        category_id = request.form['category_id']
+        if not category_id:
+            category_id = None
+        if md.category_id != category_id:
+            md.category_id = category_id
             retry_all_tests = True
     if 'screenshot_caption' in request.form:
         md.screenshot_caption = _sanitize_markdown_text(request.form['screenshot_caption'])
