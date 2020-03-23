@@ -143,6 +143,7 @@
 {% if md.fw.remote.name != 'stable' or g.user.check_acl('@admin') %}
     <td class="col-7">
       <select class="form-control" name="category_id">
+        <option value="" {{ 'selected' if not md.category }}>Unknown</option>
 {% for cat in categories %}
         <option value="{{cat.category_id}}" {{ 'selected' if md.category and md.category.value == cat.value }}>{{ cat.name if cat.name else cat.value}}</option>
 {% endfor %}
