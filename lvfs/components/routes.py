@@ -338,9 +338,14 @@ def route_requirement_create(component_id):
     if not depth:
         depth = None
 
+    # firmware is unset value
+    value = request.form['value'].strip()
+    if value == 'self':
+        value = None
+
     # add requirement
     rq = Requirement(kind=request.form['kind'],
-                     value=request.form['value'].strip(),
+                     value=value,
                      compare=compare,
                      version=version,
                      depth=depth)
