@@ -12,11 +12,14 @@ import sys
 import difflib
 import hashlib
 import datetime
+
+from collections import defaultdict
+
 import yara
 
 from lxml import etree as ET
 
-from flask import render_template
+from flask import render_template, g
 
 from cabarchive import CabArchive, CabFile
 from jcat import JcatFile, JcatBlobSha1, JcatBlobSha256, JcatBlobKind
@@ -24,6 +27,7 @@ from jcat import JcatFile, JcatBlobSha1, JcatBlobSha256, JcatBlobKind
 from lvfs import app, db, ploader
 from lvfs.dbutils import _execute_count_star
 from lvfs.emails import send_email
+from lvfs.firmware.utils import _firmware_delete
 from lvfs.models import Remote, Firmware, Vendor, Client, AnalyticVendor, User, YaraQuery, YaraQueryResult
 from lvfs.models import AnalyticFirmware, Useragent, UseragentKind, Analytic, Report, Metric
 from lvfs.models import ComponentShard, ComponentShardInfo, Test, Component, Category, Protocol, FirmwareEvent
@@ -296,6 +300,62 @@ def _ensure_tests():
         if not fw.is_deleted:
             ploader.ensure_test_for_fw(fw)
             db.session.commit()
+
+def _delete_embargo_obsoleted_fw():
+
+    # all embargoed firmware
+    emails = defaultdict(list)
+    for fw in db.session.query(Firmware)\
+                        .join(Remote)\
+                        .filter(Remote.name.startswith('embargo'))\
+                        .order_by(Firmware.timestamp.asc()):
+
+        # less than 6 months old
+        if fw.target_duration < datetime.timedelta(days=30*6):
+            continue
+
+        # check that all the components are available with new versions
+        all_newer = True
+        print(fw.target_duration, fw.remote.name, fw.version_display)
+        for md in fw.mds:
+            md_newest = None
+            for md_new in db.session.query(Component)\
+                                    .join(Firmware)\
+                                    .join(Remote)\
+                                    .filter(Remote.is_public)\
+                                    .filter(Component.appstream_id == md.appstream_id)\
+                                    .order_by(Firmware.timestamp.asc()):
+                if md_new > md or (md_newest and md_new > md_newest):
+                    md_newest = md_new
+                    break
+            if not md_newest:
+                all_newer = False
+                print('no newer version of {} {}'.format(md.appstream_id,
+                                                         md.version_display))
+                break
+            print('{} {} [{}] is newer than {} [{}]'.format(md.appstream_id,
+                                                            md_newest.version_display,
+                                                            md_newest.fw.remote.name,
+                                                            md.version_display,
+                                                            md.fw.remote.name))
+        if not all_newer:
+            continue
+
+        # delete, but not purge for another 6 months...
+        _firmware_delete(fw)
+
+        # dedupe emails by user
+        emails[fw.user].append(fw)
+
+    # send email to the user that uploaded them, unconditionally
+    for user in emails:
+        send_email("[LVFS] Firmware has been obsoleted",
+                   user.email_address,
+                   render_template('email-firmware-obsolete.txt',
+                                   user=user, fws=emails[user]))
+
+    # all done
+    db.session.commit()
 
 def _purge_old_deleted_firmware():
 
@@ -749,6 +809,7 @@ def _main_with_app_context():
     if 'metadata-embargo' in sys.argv:
         _regenerate_and_sign_metadata(only_embargo=True)
     if 'purgedelete' in sys.argv:
+        _delete_embargo_obsoleted_fw()
         _purge_old_deleted_firmware()
     if 'fwchecks' in sys.argv:
         _check_firmware()
@@ -769,6 +830,7 @@ if __name__ == '__main__':
         sys.exit(1)
     try:
         with app.test_request_context():
+            g.user = db.session.query(User).filter(User.username == 'anon@fwupd.org').first()
             _main_with_app_context()
     except NotImplementedError as e:
         print(str(e))
