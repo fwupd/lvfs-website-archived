@@ -180,6 +180,8 @@ def _generate_metadata_mds(mds, firmware_baseuri='', local=False, metainfo=False
                 rel.set('timestamp', str(md.release_timestamp))
         if md.release_urgency and md.release_urgency != 'unknown':
             rel.set('urgency', md.release_urgency)
+        if md.release_tag:
+            rel.set('tag', md.release_tag)
         if not metainfo:
             ET.SubElement(rel, 'location').text = firmware_baseuri + md.fw.filename
 
