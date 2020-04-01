@@ -44,6 +44,13 @@ def _is_verfmt_supported_by_fwupd(md, verfmt):
     # failed
     return False
 
+def _use_hex_release_version(md):
+    if not md.version.isdigit():
+        return False
+    if not md.verfmt or md.verfmt.value == 'plain':
+        return False
+    return True
+
 def _generate_metadata_mds(mds, firmware_baseuri='', local=False, metainfo=False):
 
     # assume all the components have the same parent firmware information
@@ -169,7 +176,7 @@ def _generate_metadata_mds(mds, firmware_baseuri='', local=False, metainfo=False
             continue
         rel = ET.SubElement(releases, 'release')
         if md.version:
-            if metainfo and md.version.isdigit():
+            if metainfo and _use_hex_release_version(md):
                 rel.set('version', hex(int(md.version)))
             else:
                 rel.set('version', md.version)
