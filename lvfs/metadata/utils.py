@@ -51,6 +51,12 @@ def _use_hex_release_version(md):
         return False
     return True
 
+def _rewrite_url(url):
+    settings = _get_settings('firmware')
+    basename = '{}-{}'.format(hashlib.sha256(url.encode()).hexdigest(),
+                              os.path.basename(url))
+    return os.path.join(settings['firmware_baseuri_cdn'], basename)
+
 def _generate_metadata_mds(mds, firmware_baseuri='', local=False, metainfo=False):
 
     # assume all the components have the same parent firmware information
@@ -114,7 +120,10 @@ def _generate_metadata_mds(mds, firmware_baseuri='', local=False, metainfo=False
             if md.screenshot_caption:
                 ET.SubElement(child, 'caption').text = md.screenshot_caption
             if md.screenshot_url:
-                ET.SubElement(child, 'image').text = md.screenshot_url
+                if metainfo:
+                    ET.SubElement(child, 'image').text = md.screenshot_url
+                else:
+                    ET.SubElement(child, 'image').text = _rewrite_url(md.screenshot_url)
             elements[key] = child
     if elements:
         parent = ET.SubElement(component, 'screenshots')

@@ -101,6 +101,8 @@ class PluginGeneral(PluginBase):
                                    'This is a test instance and may be broken at any time.'))
         s.append(PluginSettingText('firmware_baseuri', 'Firmware BaseURI',
                                    'https://fwupd.org/downloads/'))
+        s.append(PluginSettingText('firmware_baseuri_cdn', 'Firmware CDN BaseURI',
+                                   'https://cdn.fwupd.org/downloads/'))
         s.append(PluginSettingTextList('hwinfo_kinds', 'Allowed hwinfo Types', ['nvme']))
         s.append(PluginSettingInteger('default_failure_minimum', 'Report failures required to demote', 5))
         s.append(PluginSettingInteger('default_failure_percentage', 'Report failures threshold for demotion', 70))

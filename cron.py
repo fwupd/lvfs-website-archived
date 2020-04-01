@@ -15,6 +15,7 @@ import datetime
 
 from collections import defaultdict
 
+import requests
 import yara
 
 from lxml import etree as ET
@@ -59,6 +60,10 @@ def _regenerate_and_sign_metadata(only_embargo=False):
     # nothing to do
     if not remotes:
         return
+
+    # mirror screenshots
+    for r in remotes:
+        _mirror_images_for_remote(r)
 
     # set destination path from app config
     download_dir = app.config['DOWNLOAD_DIR']
@@ -245,6 +250,32 @@ def _fsck():
         fn = _get_absolute_path(fw)
         if not os.path.isfile(fn):
             print('firmware {} is missing, expected {}'.format(fw.firmware_id, fn))
+
+def _mirror_images_for_remote(remote):
+
+    # mirror all the screenshots
+    for md in db.session.query(Component)\
+                        .filter(Component.screenshot_url != None)\
+                        .join(Firmware)\
+                        .join(Remote)\
+                        .filter(Remote.remote_id == remote.remote_id)\
+                        .order_by(Component.component_id.asc()):
+        basename = '{}-{}'.format(hashlib.sha256(md.screenshot_url.encode()).hexdigest(),
+                                  os.path.basename(md.screenshot_url))
+        fn = os.path.join(app.config['DOWNLOAD_DIR'], basename)
+        if os.path.isfile(fn):
+            continue
+
+        # download it now
+        print('downloading {} for component {}'.format(md.screenshot_url, md.component_id))
+        try:
+            r = requests.get(md.screenshot_url)
+            r.raise_for_status()
+        except requests.exceptions.RequestException as e:
+            print(e)
+            continue
+        with open(fn, 'wb') as fd:
+            fd.write(r.content)
 
 def _repair_csum():
 
@@ -806,6 +837,9 @@ def _main_with_app_context():
         _repair_ts()
     if 'repair-csum' in sys.argv:
         _repair_csum()
+    if 'repair-img' in sys.argv:
+        for r in db.session.query(Remote):
+            _mirror_images_for_remote(r)
     if 'fsck' in sys.argv:
         _fsck()
     if 'ensure' in sys.argv:
