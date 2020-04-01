@@ -838,6 +838,7 @@ if __name__ == '__main__':
         sys.exit(1)
     try:
         with app.test_request_context():
+            app.config['SERVER_NAME'] = app.config['HOST_NAME']
             g.user = db.session.query(User).filter(User.username == 'anon@fwupd.org').first()
             _main_with_app_context()
     except NotImplementedError as e:
