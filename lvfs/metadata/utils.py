@@ -114,7 +114,10 @@ def _generate_metadata_mds(mds, firmware_baseuri='', local=False, metainfo=False
             if md.screenshot_caption:
                 ET.SubElement(child, 'caption').text = md.screenshot_caption
             if md.screenshot_url:
-                ET.SubElement(child, 'image').text = md.screenshot_url
+                if metainfo or not md.screenshot_url_safe:
+                    ET.SubElement(child, 'image').text = md.screenshot_url
+                else:
+                    ET.SubElement(child, 'image').text = md.screenshot_url_safe
             elements[key] = child
     if elements:
         parent = ET.SubElement(component, 'screenshots')

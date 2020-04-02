@@ -1409,6 +1409,7 @@ class Component(db.Model):
     release_urgency = Column(Text, default=None)
     release_tag = Column(Text, default=None)
     screenshot_url = Column(Text, default=None)
+    screenshot_url_safe = Column(Text, default=None)
     screenshot_caption = Column(Text, default=None)
     inhibit_download = Column(Boolean, default=False)
     verfmt_id = Column(Integer, ForeignKey('verfmts.verfmt_id'))
