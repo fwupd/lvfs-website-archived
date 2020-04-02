@@ -337,6 +337,7 @@ class UploadedFile:
                     'me' : 'X-ManagementEngine',
                     'embedded' : 'X-EmbeddedController',
                     'controller' : 'X-EmbeddedController',
+                    'microcode' : 'X-CpuMicrocode',
                 }
                 words = [word.lower() for word in md.name.split(' ')]
                 for search in category:

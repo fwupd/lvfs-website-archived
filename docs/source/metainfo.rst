@@ -205,6 +205,8 @@ Allowed Category Values
 +-----------------------------+-----------------------------+
 | X-PlatformSecurityProcessor | Platform Security Processor |
 +-----------------------------+-----------------------------+
+| X-CpuMicrocode              | CPU Microcode               |
++-----------------------------+-----------------------------+
 
 Update Protocol
 ===============
@@ -225,7 +227,7 @@ To do this, add this to the metainfo file:
       <value key="LVFS::UpdateProtocol">some-value-here</value>
     </custom>
 
-The latest allowed values for ``LVFS::UpdateProtocol`` can be found 
+The latest allowed values for ``LVFS::UpdateProtocol`` can be found
 `using the LVFS <https://www.fwupd.org/lvfs/docs/metainfo/protocol>`_.
 
 Version Format
@@ -430,7 +432,7 @@ please use:
     <custom>
       <value key="LVFS::EnableInfParsing">false</value>
     </custom>
-    
+
 The default action is to verify the provided ``.inf`` files, but
 firmware should use ``<value key="LVFS::EnableInfParsing">true</value>``
 if relying on the ``DisplayVersion`` in case this default changes in the future.
@@ -570,7 +572,7 @@ Here are some of our suggestions:
 
 * Use a short device name, e.g. *"ThinkPad"* or *"ColorHug"*.
 * Use a UTF-8 character (e.g. ™ or ®) rather than ``(R)`` if required
-* Don't include the vendor name    
+* Don't include the vendor name
 
 ``<name_variant_suffix>``
 -------------------------
@@ -578,14 +580,14 @@ Here are some of our suggestions:
 * Only use this optional tag if the ``<name>`` would be duplicated, e.g. if
   there are two variants of the same hardware
 * Use a short string, as it will be appended to the visible name with brackets if required
-* Don't duplicate any part of the name    
+* Don't duplicate any part of the name
 
 ``<summary>``
 -------------
 
 * Refer to the type of hardware, e.g. *"Firmware for the Hughski ColorHug Colorimeter"*
 * Include the vendor name before the full device description
-* Use a UTF-8 character (e.g. ™ or ®) rather than ``(R)`` if required    
+* Use a UTF-8 character (e.g. ™ or ®) rather than ``(R)`` if required
 
 ``<description>``
 -----------------
