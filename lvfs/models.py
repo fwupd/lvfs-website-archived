@@ -1865,6 +1865,7 @@ class Remote(db.Model):
     name = Column(Text, nullable=False)
     is_public = Column(Boolean, default=False)
     is_dirty = Column(Boolean, default=False)
+    build_cnt = Column(Integer, default=0)
 
     vendors = relationship("Vendor", back_populates="remote")
     fws = relationship("Firmware")

@@ -114,6 +114,9 @@ def _regenerate_and_sign_metadata(only_embargo=False):
 
     # mark as no longer dirty
     for r in remotes:
+        if not r.build_cnt:
+            r.build_cnt = 0
+        r.build_cnt += 1
         r.is_dirty = False
         db.session.commit()
 
