@@ -9,6 +9,7 @@
 
 import os
 import sys
+import glob
 import difflib
 import hashlib
 import datetime
@@ -71,8 +72,14 @@ def _regenerate_and_sign_metadata(only_embargo=False):
         print('Updating: %s' % r.name)
     for r, blob_xmlgz in _metadata_update_targets(remotes):
 
-        # write metadata.xml.gz
+        # write metadata-?????.xml.gz
         fn_xmlgz = os.path.join(download_dir, r.filename)
+        with open(fn_xmlgz, 'wb') as f:
+            f.write(blob_xmlgz)
+        invalid_fns.append(fn_xmlgz)
+
+        # write metadata.xml.gz
+        fn_xmlgz = os.path.join(download_dir, r.filename_newest)
         with open(fn_xmlgz, 'wb') as f:
             f.write(blob_xmlgz)
         invalid_fns.append(fn_xmlgz)
@@ -80,6 +87,7 @@ def _regenerate_and_sign_metadata(only_embargo=False):
         # create Jcat item with SHA256 checksum blob
         jcatfile = JcatFile()
         jcatitem = jcatfile.get_item(r.filename)
+        jcatitem.add_alias_id(r.filename_newest)
         jcatitem.add_blob(JcatBlobSha1(blob_xmlgz))
         jcatitem.add_blob(JcatBlobSha256(blob_xmlgz))
 
@@ -125,7 +133,20 @@ def _regenerate_and_sign_metadata(only_embargo=False):
 
     # log what we did
     for r in remotes:
-        _event_log('Signed metadata %s' % r.name)
+        _event_log('Signed metadata {} build {}'.format(r.name, r.build_cnt))
+
+    # only keep the last 6 metadata builds (24h / stable refresh every 4h)
+    for r in remotes:
+        if not r.filename:
+            continue
+        suffix = r.filename.split('-')[2]
+        fns = glob.glob(os.path.join(download_dir, 'firmware-*-{}'.format(suffix)))
+        for fn in sorted(fns):
+            build_cnt = int(fn.split('-')[1])
+            if build_cnt + 6 > r.build_cnt:
+                continue
+            os.remove(fn)
+            _event_log('Deleted metadata {} build {}'.format(r.name, build_cnt))
 
 def _show_diff(blob_old, blob_new):
     fromlines = blob_old.decode().replace('\r', '').split('\n')

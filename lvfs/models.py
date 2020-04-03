@@ -1910,7 +1910,23 @@ class Remote(db.Model):
         return self.name != 'deleted' and self.name != 'private'
 
     @property
+    def build_str(self):
+        if not self.build_cnt:
+            return '00000'
+        return '{:05d}'.format(self.build_cnt)
+
+    @property
     def filename(self):
+        if self.name == 'private':
+            return None
+        if self.name == 'stable':
+            return 'firmware-{}-stable.xml.gz'.format(self.build_str)
+        if self.name == 'testing':
+            return 'firmware-{}-testing.xml.gz'.format(self.build_str)
+        return 'firmware-{}-{}.xml.gz'.format(self.build_str, _qa_hash(self.name[8:]))
+
+    @property
+    def filename_newest(self):
         if self.name == 'private':
             return None
         if self.name == 'stable':

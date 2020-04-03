@@ -41,7 +41,7 @@ def route_remote(group_id):
     remote.append('Enabled=true')
     remote.append('Title=Embargoed for ' + group_id)
     remote.append('Keyring=gpg')
-    remote.append('MetadataURI=https://fwupd.org/downloads/%s' % vendor.remote.filename)
+    remote.append('MetadataURI=https://fwupd.org/downloads/%s' % vendor.remote.filename_newest)
     remote.append('ReportURI=https://fwupd.org/lvfs/firmware/report')
     remote.append('OrderBefore=lvfs,fwupd')
     fn = group_id + '-embargo.conf'
