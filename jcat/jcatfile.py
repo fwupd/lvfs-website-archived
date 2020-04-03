@@ -29,6 +29,9 @@ class JcatFile():
         for item in self.items:
             if item.id == jid:
                 return item
+        for item in self.items:
+            if jid in item.alias_ids:
+                return item
         item = JcatItem(jid)
         self.items.append(item)
         return item
