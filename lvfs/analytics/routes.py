@@ -6,6 +6,7 @@
 # SPDX-License-Identifier: GPL-2.0+
 
 import datetime
+import json
 from collections import defaultdict
 
 from sqlalchemy import and_
@@ -254,11 +255,24 @@ def route_reportattrs_kind(kind, timespan_days=90):
                            labels_user_agent=_get_chart_labels_days(timespan_days)[::-1],
                            datasets=datasets)
 
+def _running_mean(l, points):
+    total = 0
+    result = list(0 for x in l)
+    for i in range(0, points):
+        total = total + l[i]
+        result[i] = total / (i + 1)
+    for i in range(points, len(l)):
+        total = total - l[i - points] + l[i]
+        result[i] = int(total / points)
+    return result
+
 @bp_analytics.route('/vendor')
 @bp_analytics.route('/vendor/<int:timespan_days>')
+@bp_analytics.route('/vendor/<int:timespan_days>/<int:vendor_cnt>')
+@bp_analytics.route('/vendor/<int:timespan_days>/<int:vendor_cnt>/<int:smoothing>')
 @login_required
 @admin_login_required
-def route_vendor(timespan_days=30):
+def route_vendor(timespan_days=30, vendor_cnt=6, smoothing=0):
     """ A analytics screen to show information about users """
 
     # get data for this time period
@@ -267,9 +281,10 @@ def route_vendor(timespan_days=30):
     yesterday = datetime.date.today() - datetime.timedelta(days=1)
     datestr_start = _get_datestr_from_datetime(yesterday - datetime.timedelta(days=timespan_days))
     datestr_end = _get_datestr_from_datetime(yesterday)
-    for ug in db.session.query(AnalyticVendor).\
-                    filter(and_(AnalyticVendor.datestr > datestr_start,
-                                AnalyticVendor.datestr <= datestr_end)):
+    print('get data for', datestr_start, datestr_end)
+    for ug in db.session.query(AnalyticVendor)\
+                        .filter(and_(AnalyticVendor.datestr >= datestr_start,
+                                     AnalyticVendor.datestr <= datestr_end)):
         display_name = ug.vendor.display_name
         key = str(ug.datestr) + display_name
         cached_cnt[key] += ug.cnt
@@ -279,8 +294,12 @@ def route_vendor(timespan_days=30):
     most_popular = []
     for key, value in sorted(iter(cnt_total.items()), key=lambda k_v: (k_v[1], k_v[0]), reverse=True):
         most_popular.append(key)
-        if len(most_popular) >= 6:
+        if len(most_popular) >= vendor_cnt:
             break
+
+    # optionally smooth
+    if not smoothing:
+        smoothing = int(timespan_days / 25)
 
     # generate enough for the template
     datasets = []
@@ -293,21 +312,24 @@ def route_vendor(timespan_days=30):
         'ee8510',   # orange
     ]
     idx = 0
-    for value in most_popular:
+    for value in sorted(most_popular):
         dataset = {}
         dataset['label'] = value
         dataset['color'] = palette[idx % 6]
         idx += 1
         data = []
-        for i in range(timespan_days):
+        for i in range(timespan_days, 0, -1):
             datestr = _get_datestr_from_datetime(yesterday - datetime.timedelta(days=i))
             key = str(datestr) + value
-            dataval = 'NaN'
+            dataval = 0
             if key in cached_cnt:
-                dataval = str(cached_cnt[key])
+                dataval = cached_cnt[key]
             data.append(dataval)
-        dataset['data'] = '[' + ', '.join(data[::-1]) + ']'
+        if smoothing > 1:
+            data = _running_mean(data, smoothing)
+        dataset['data'] = json.dumps(data)
         datasets.append(dataset)
+
     return render_template('analytics-vendor.html',
                            category='analytics',
                            labels_user_agent=_get_chart_labels_days(timespan_days)[::-1],
