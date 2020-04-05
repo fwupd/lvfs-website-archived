@@ -45,7 +45,7 @@ pycairo==1.19.1
 pycparser==2.20
 PyGObject==3.36.0
 pylint==2.4.4
-pyparsing==2.4.6
+pyparsing==2.4.7
 Pillow==7.1.1
 PyQRCode==1.2.1
 pyserial==3.4
