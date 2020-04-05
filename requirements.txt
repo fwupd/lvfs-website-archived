@@ -2,7 +2,7 @@ alembic==1.4.2
 astroid==2.3.3
 attrs==19.3.0
 blinker==1.4
-certifi==2019.11.28
+certifi==2020.4.5
 cffi==1.14.0
 chardet==3.0.4
 Click==7.1.1
