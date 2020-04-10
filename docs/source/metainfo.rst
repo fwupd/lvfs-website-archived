@@ -560,6 +560,26 @@ Whist the update details should still be considered the "primary" method to
 convey information about the firmware release, the URL may be useful for larger
 OEMs with existing contractual requirements.
 
+Release Urgency Values
+----------------------
+
+It is important to set the urgency of the release to the correct value as this
+may influence how the client notifies the user. For instance, critical updates
+may cause a daily session notification to the user, but low priority updates
+might only be visible when the user manually visits the software center.
+
++-------------------------+----------------------------------------------------+
+| Value                   | Meaning                                            |
++=========================+====================================================+
+| ``low``                 | Low importance                                     |
++-------------------------+----------------------------------------------------+
+| ``medium``              | Medium importance, e.g. optional update            |
++-------------------------+----------------------------------------------------+
+| ``high``                | High importance, e.g. recommended update           |
++-------------------------+----------------------------------------------------+
+| ``critical``            | Critical importance, e.g. urgent or security issue |
++-----------------------------+------------------------------------------------+
+
 Style Guide
 ===========
 
