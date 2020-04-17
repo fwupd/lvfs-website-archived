@@ -18,7 +18,7 @@ from lvfs import app, db, ploader
 
 from lvfs.emails import send_email
 from lvfs.models import Firmware, Report, Client, FirmwareEvent, FirmwareLimit
-from lvfs.models import Remote, Vendor, AnalyticFirmware, Component
+from lvfs.models import Remote, Vendor, AnalyticFirmware, Component, User
 from lvfs.models import ComponentShard, ComponentShardChecksum
 from lvfs.models import _get_datestr_from_datetime
 from lvfs.util import _error_internal, admin_login_required
@@ -36,9 +36,11 @@ def route_firmware(state=None):
     """
     # pre-filter by user ID or vendor
     if g.user.check_acl('@analyst') or g.user.check_acl('@qa'):
+        subq = db.session.query(User.user_id).\
+                                filter(User.vendor_id == g.user.vendor.vendor_id).\
+                                subquery()
         stmt = db.session.query(Firmware).\
-                    filter((Firmware.vendor_id == g.user.vendor.vendor_id) | \
-                           (Firmware.user_id == g.user.user_id))
+                    join(subq, Firmware.user_id == subq.c.user_id)
     else:
         stmt = db.session.query(Firmware).\
                     filter(Firmware.user_id == g.user.user_id)

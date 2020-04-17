@@ -337,9 +337,6 @@ class LocalTestCase(LvfsTestCase):
 
         # check alice can't see or promote the irmware uploaded by bob
         self.login('alice@odm.com')
-        rv = self.app.get('/lvfs/firmware/',
-                          follow_redirects=True)
-        assert b'No firmware has been uploaded' in rv.data, rv.data
         rv = self.app.get('/lvfs/firmware/1/promote/testing',
                           follow_redirects=True)
         assert b'Permission denied: No QA access to 1' in rv.data, rv.data
