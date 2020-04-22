@@ -219,6 +219,7 @@ def _upload_firmware():
     target = request.form['target']
     fw = ufile.fw
     fw.vendor = vendor
+    fw.vendor_odm = g.user.vendor
     fw.user = g.user
     fw.addr = _get_client_address()
     fw.remote = remote

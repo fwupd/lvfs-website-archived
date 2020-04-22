@@ -466,6 +466,7 @@ class Vendor(db.Model):
                                     foreign_keys=[Affiliation.vendor_id_odm],
                                     back_populates="vendor")
     fws = relationship("Firmware",
+                       foreign_keys='[Firmware.vendor_id]',
                        cascade='all,delete-orphan')
     mdrefs = relationship('ComponentRef',
                           foreign_keys='[ComponentRef.vendor_id_partner]',
@@ -2004,6 +2005,7 @@ class Firmware(db.Model):
     failure_minimum = Column(Integer, default=0)
     failure_percentage = Column(Integer, default=0)
     _do_not_track = Column('do_not_track', Boolean, default=False)
+    vendor_odm_id = Column(Integer, ForeignKey('vendors.vendor_id'), nullable=False, index=True)
 
     mds = relationship("Component",
                        back_populates="fw",
@@ -2031,14 +2033,9 @@ class Firmware(db.Model):
                              cascade='all,delete-orphan')
 
     vendor = relationship('Vendor', foreign_keys=[vendor_id])
+    vendor_odm = relationship('Vendor', foreign_keys=[vendor_odm_id])
     user = relationship('User', foreign_keys=[user_id])
     remote = relationship('Remote', foreign_keys=[remote_id], lazy='joined')
-
-    @property
-    def vendor_odm(self):
-        if not self.user:
-            return None
-        return self.user.vendor
 
     @property
     def target_duration(self):
