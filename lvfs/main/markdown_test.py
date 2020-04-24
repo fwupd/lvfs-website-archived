@@ -20,6 +20,43 @@ from lvfs.util import _markdown_from_root, _xml_from_markdown, _get_update_descr
 
 class MarkdownTest(unittest.TestCase):
 
+    def test_markdown_from_root(self):
+
+        xml = """<desc><p>Firmware</p><p>Awesome</p></desc>"""
+        root = ET.fromstring(xml)
+        md = _markdown_from_root(root)
+        self.assertEqual(md, "Firmware\n\nAwesome")
+
+        xml = """<desc><ul><li>Firmware</li><li>Awesome</li></ul></desc>"""
+        root = ET.fromstring(xml)
+        md = _markdown_from_root(root)
+        self.assertEqual(md, "* Firmware\n * Awesome")
+
+        xml = """<desc><unknown>Firmware</unknown></desc>"""
+        root = ET.fromstring(xml)
+        with self.assertRaises(KeyError):
+            _markdown_from_root(root)
+
+        xml = """<desc><li>Firmware</li></desc>"""
+        root = ET.fromstring(xml)
+        with self.assertRaises(KeyError):
+            _markdown_from_root(root)
+
+        xml = """<desc><ul><p>Firmware</p></ul></desc>"""
+        root = ET.fromstring(xml)
+        with self.assertRaises(KeyError):
+            _markdown_from_root(root)
+
+        xml = """<desc><ul><li><li>Firmware</li></li></ul></desc>"""
+        root = ET.fromstring(xml)
+        with self.assertRaises(KeyError):
+            _markdown_from_root(root)
+
+        xml = """<desc><p>Firmware<li>Awesome</li></p></desc>"""
+        root = ET.fromstring(xml)
+        with self.assertRaises(KeyError):
+            _markdown_from_root(root)
+
     def test_appstream_convert(self):
 
         markup = """

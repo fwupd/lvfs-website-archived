@@ -98,7 +98,10 @@ def _node_validate_text(node, minlen=0, maxlen=0, nourl=False, allow_none=False)
 
     # unwrap description
     if node.tag == 'description':
-        text = _markdown_from_root(node)
+        try:
+            text = _markdown_from_root(node)
+        except KeyError as e:
+            raise MetadataInvalid(e)
     else:
         text = node.text
         if text:

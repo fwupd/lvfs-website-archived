@@ -83,13 +83,22 @@ def _markdown_from_root(root):
     tmp = ''
     for n in root:
         if n.tag == 'p':
+            if list(n):
+                raise KeyError('Invalid XML, found child of {}'.format(n.tag))
             if n.text:
                 tmp += _unwrap_xml_text(n.text) + '\n\n'
         elif n.tag == 'ul' or n.tag == 'ol':
             for c in n:
-                if c.tag == 'li' and c.text:
-                    tmp += ' * ' + _unwrap_xml_text(c.text) + '\n'
+                if c.tag == 'li':
+                    if list(c):
+                        raise KeyError('Invalid XML, found child of {}'.format(c.tag))
+                    if c.text:
+                        tmp += ' * ' + _unwrap_xml_text(c.text) + '\n'
+                else:
+                    raise KeyError('Invalid XML, got {}'.format(c.tag))
             tmp += '\n'
+        else:
+            raise KeyError('Invalid XML, got {}'.format(n.tag))
     tmp = tmp.strip(' \n')
     return tmp
 
