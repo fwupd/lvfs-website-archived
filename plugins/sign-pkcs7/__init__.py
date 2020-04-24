@@ -1,14 +1,15 @@
 #!/usr/bin/python3
 # -*- coding: utf-8 -*-
 #
-# Copyright (C) 2018 Richard Hughes <richard@hughsie.com>
+# Copyright (C) 2018-2020 Richard Hughes <richard@hughsie.com>
 #
 # SPDX-License-Identifier: GPL-2.0+
 #
 # pylint: disable=no-self-use
 
-import subprocess
-import tempfile
+from PyGnuTLS.crypto import X509Certificate, X509PrivateKey, Pkcs7
+from PyGnuTLS.library.constants import GNUTLS_PKCS7_INCLUDE_TIME
+from PyGnuTLS.library.errors import GNUTLSError
 
 from jcat import JcatBlobText, JcatBlobKind
 from lvfs.pluginloader import PluginBase, PluginError, PluginSettingText, PluginSettingBool
@@ -31,36 +32,21 @@ class Plugin(PluginBase):
 
     def _sign_blob(self, contents):
 
-        # write firmware to temp file
-        src = tempfile.NamedTemporaryFile(mode='wb',
-                                          prefix='pkcs7_',
-                                          suffix=".bin",
-                                          dir=None,
-                                          delete=True)
-        src.write(contents)
-        src.flush()
-
-        # get p7b file from temp file
-        dst = tempfile.NamedTemporaryFile(mode='wb',
-                                          prefix='pkcs7_',
-                                          suffix=".p7b",
-                                          dir=None,
-                                          delete=True)
-
-        # sign
-        argv = app.config['CERTTOOL'].split(' ')
-        argv += ['--p7-detached-sign', '--p7-time',
-                 '--load-privkey', self.get_setting('sign_pkcs7_privkey', required=True),
-                 '--load-certificate', self.get_setting('sign_pkcs7_certificate', required=True),
-                 '--infile', src.name,
-                 '--outfile', dst.name]
-        ps = subprocess.Popen(argv, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        if ps.wait() != 0:
-            raise PluginError('Failed to sign: %s' % ps.stderr.read())
-
-        # read back the temp file
-        with open(dst.name, 'r') as f:
-            return f.read()
+        with open(self.get_setting('sign_pkcs7_certificate', required=True), "rb") as f:
+            cert = X509Certificate(f.read())
+        with open(self.get_setting('sign_pkcs7_privkey', required=True), "rb") as f:
+            privkey = X509PrivateKey(f.read())
+        pkcs7 = Pkcs7()
+        try:
+            pkcs7.sign(
+                cert,
+                privkey,
+                contents,
+                flags=GNUTLS_PKCS7_INCLUDE_TIME,
+            )
+        except GNUTLSError as e:
+            raise PluginError('Failed to sign') from e
+        return pkcs7.export()
 
     def metadata_sign(self, blob):
 

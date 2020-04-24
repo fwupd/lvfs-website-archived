@@ -13,13 +13,13 @@ import calendar
 import datetime
 import string
 import random
-import subprocess
-import tempfile
 
 from functools import wraps
 
 from lxml import etree as ET
 from flask import request, flash, render_template, g, Response, redirect, url_for
+from PyGnuTLS.crypto import X509Certificate, Pkcs7
+from PyGnuTLS.errors import GNUTLSError
 
 def _fix_component_name(name, developer_name=None):
     if not name:
@@ -351,112 +351,38 @@ def _email_check(value):
 def _generate_password(size=10, chars=string.ascii_letters + string.digits):
     return ''.join(random.choice(chars) for _ in range(size))
 
-def _get_certtool():
-    from lvfs import app
-    return app.config['CERTTOOL'].split(' ')
-
 def _pkcs7_certificate_info(text):
 
-    # write certificate to temp file
-    crt = tempfile.NamedTemporaryFile(mode='wb',
-                                      prefix='pkcs7_',
-                                      suffix=".p7b",
-                                      dir=None,
-                                      delete=True)
-    crt.write(text.encode('utf8'))
-    crt.flush()
-
-    # get signature
-    argv = _get_certtool() + ['--certificate-info', '--infile', crt.name]
-    ps = subprocess.Popen(argv, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-    out, err = ps.communicate()
-    if ps.returncode != 0:
-        raise IOError(err)
+    try:
+        crt = X509Certificate(text.encode())
+    except GNUTLSError as e:
+        raise IOError from e
     info = {}
-    for line in out.decode('utf8').split('\n'):
-        try:
-            key, value = line.strip().split(':', 2)
-            if key == 'Serial Number (hex)':
-                info['serial'] = value.strip()
-        except ValueError as _:
-            pass
+    info['serial'] = crt.serial_number
     return info
 
-def _pkcs7_signature_info(text, check_rc=True):
+def _pkcs7_signature_info(text):
 
-    # write signature to temp file
-    sig = tempfile.NamedTemporaryFile(mode='wb',
-                                      prefix='pkcs7_',
-                                      suffix=".txt",
-                                      dir=None,
-                                      delete=True)
-    sig.write(text.encode('utf8'))
-    sig.flush()
-
-    # parse
-    argv = _get_certtool() + ['--p7-verify', '--infile', sig.name]
-    ps = subprocess.Popen(argv, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-    out, err = ps.communicate()
-    if check_rc and ps.returncode != 0:
-        raise IOError(out, err)
+    pkcs7 = Pkcs7()
+    try:
+        pkcs7.import_signature(text.encode())
+    except GNUTLSError as e:
+        raise IOError from e
+    signatures = pkcs7.get_signature_info()
+    if len(signatures) != 1:
+        raise IOError('Only one signature supported')
     info = {}
-    for line in out.decode('utf8').split('\n'):
-        try:
-            key, value = line.strip().split(':', 2)
-            if key == 'Signer\'s serial':
-                info['serial'] = value.strip()
-        except ValueError as _:
-            pass
+    info['serial'] = signatures[0].signer_serial
     return info
 
 def _pkcs7_signature_verify(certificate, payload, signature):
 
-    # check the signature against the client cert
-    crt = tempfile.NamedTemporaryFile(mode='wb',
-                                      prefix='pkcs7_',
-                                      suffix=".p7b",
-                                      dir=None,
-                                      delete=True)
-    crt.write(certificate.text.encode('utf8'))
-    crt.flush()
-
-    # write payload to temp file
-    pay = tempfile.NamedTemporaryFile(mode='wb',
-                                      prefix='pkcs7_',
-                                      suffix=".json",
-                                      dir=None,
-                                      delete=True)
-    pay.write(payload.encode('utf8'))
-    pay.flush()
-
-    # write signature to temp file
-    sig = tempfile.NamedTemporaryFile(mode='wb',
-                                      prefix='pkcs7_',
-                                      suffix=".p7b",
-                                      dir=None,
-                                      delete=True)
-    sig.write(signature.encode('utf8'))
-    sig.flush()
-
-    # verify
-    status = None
-    argv = _get_certtool() + ['--p7-verify',
-                              '--load-certificate', crt.name,
-                              '--infile', sig.name,
-                              '--load-data', pay.name]
-    ps = subprocess.Popen(argv, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-    _, err = ps.communicate()
-    if ps.returncode != 0:
-        raise IOError(err)
-    for line in err.decode('utf8').split('\n'):
-        try:
-            key, value = line.strip().split(':', 1)
-            print(key, value)
-            if key == 'Signature status':
-                status = value.strip()
-        except ValueError as _:
-            pass
-    return status == 'ok'
+    pkcs7 = Pkcs7()
+    try:
+        pkcs7.import_signature(signature.encode())
+        pkcs7.verify_direct(X509Certificate(certificate.encode()), payload.encode())
+    except GNUTLSError as e:
+        raise IOError from e
 
 def admin_login_required(f):
     @wraps(f)
