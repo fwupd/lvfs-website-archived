@@ -10,6 +10,7 @@
 import os
 import sys
 import unittest
+import json
 
 sys.path.append(os.path.realpath('.'))
 
@@ -47,9 +48,19 @@ class LocalTestCase(LvfsTestCase):
 
         # get the LVFS world-view
         rv = self.app.get('/lvfs/mdsync/export')
-        assert b'com.hughski.ColorHug2.firmware' in rv.data, rv.data.decode()
-        assert b'com.hughski.colorhug' in rv.data, rv.data.decode()
-        assert b'2.0.3' in rv.data, rv.data.decode()
+
+        test_protocol = 'com.hughski.colorhug'
+        test_version = '2.0.3'
+        test_appstream_id = 'com.hughski.ColorHug2.firmware'
+        test_failure_percentage = 70
+
+        parsed_export = json.loads(rv.data)
+        device = parsed_export['devices'][0]
+        assert device['appstream_id'] == test_appstream_id, f'appstream_id {test_appstream_id} not found in JSON'
+        assert device['protocol'] == 'com.hughski.colorhug', f'protocol {test_protocol} not found in JSON'
+        assert test_version in device['versions'], f'Version {test_version} not found in exported JSON'
+        failure_percentage = device['versions'][test_version]['failure_percentage']
+        assert failure_percentage == test_failure_percentage, f'Failure percentage not {test_failure_percentage}'
 
         # import another world-view
         payload = """
