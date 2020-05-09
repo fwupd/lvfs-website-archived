@@ -825,6 +825,39 @@ def _generate_stats_for_datestr(datestr, kinds=None):
     # for the log
     print('generated for %s: %s' % (datestr, ','.join(kinds)))
 
+def _user_disable_notify():
+
+    # find all users that have not logged in for over one year, and have never
+    # been warned
+    now = datetime.datetime.utcnow()
+    for user in db.session.query(User)\
+                          .filter(User.auth_type != 'disabled')\
+                          .filter(User.atime < now - datetime.timedelta(days=365))\
+                          .filter(User.unused_notify_ts == None):
+        # send email
+        send_email("[LVFS] User account unused: ACTION REQUIRED",
+                   user.email_address,
+                   render_template('email-unused.txt',
+                                   user=user))
+        user.unused_notify_ts = now
+        db.session.commit()
+
+def _user_disable_actual():
+
+    # find all users that have an atime greater than 1 year and unused_notify_ts > 6 weeks */
+    now = datetime.datetime.utcnow()
+    for user in db.session.query(User)\
+                          .filter(User.auth_type != 'disabled')\
+                          .filter(User.atime < now - datetime.timedelta(days=365))\
+                          .filter(User.unused_notify_ts < now - datetime.timedelta(days=42)):
+        _event_log('Disabling user {} {} ({}) as unused'.format(user.user_id,
+                                                                user.username,
+                                                                user.display_name))
+        user.auth_type = 'disabled'
+        user.username = 'disabled_user{}@fwupd.org'.format(user.user_id)
+        user.display_name = 'Disabled User {}'.format(user.user_id)
+        db.session.commit()
+
 def _main_with_app_context():
     if 'repair-ts' in sys.argv:
         _repair_ts()
@@ -846,6 +879,8 @@ def _main_with_app_context():
     if 'fwchecks' in sys.argv:
         _check_firmware()
         _yara_query_all()
+        _user_disable_notify()
+        _user_disable_actual()
     if 'stats' in sys.argv:
         val = _get_datestr_from_datetime(datetime.date.today() - datetime.timedelta(days=1))
         _generate_stats_for_datestr(val)

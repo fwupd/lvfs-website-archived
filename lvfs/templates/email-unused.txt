@@ -1,0 +1,10 @@
+Dear {{ user.display_name }},
+
+You have not logged into the Linux Vendor Firmware Service for over one year. If you still need to use your LVFS account, please log into the LVFS within the next 6 weeks to keep your account active.
+Unused accounts will be disabled and the user name cleared due to GDPR regulations.
+
+If you believe this notification was issued in error, please contact the LVFS administrators.
+
+Regards,
+
+The LVFS admins

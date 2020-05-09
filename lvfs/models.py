@@ -87,6 +87,7 @@ class User(db.Model):
     atime = Column(DateTime, default=None)
     dtime = Column(DateTime, default=None)
     human_user_id = Column(Integer, ForeignKey('users.user_id'), nullable=True)
+    unused_notify_ts = Column(DateTime, default=None)
 
     vendor = relationship('Vendor', foreign_keys=[vendor_id])
     agreement = relationship('Agreement', foreign_keys=[agreement_id])

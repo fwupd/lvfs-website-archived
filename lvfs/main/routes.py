@@ -383,6 +383,9 @@ def route_login():
     else:
         flash('Logged in, now change your password using Profile ⇒ User', 'info')
 
+    # if we warned the user, clear that timer
+    user.unused_notify_ts = None
+
     # set the access time
     user.atime = datetime.datetime.utcnow()
     db.session.commit()
