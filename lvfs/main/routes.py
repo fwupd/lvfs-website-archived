@@ -61,6 +61,11 @@ def _user_agent_safe_for_requirement(user_agent):
     # is is probably okay
     return True
 
+# this is linked from each README, so redirect to somewhere better than 404
+@bp_main.route('/downloads/')
+def route_downloads():
+    return redirect(url_for('devices.route_list'))
+
 @bp_main.route('/<path:resource>')
 def serveStaticResource(resource):
     """ Return a static image or resource """
