@@ -310,10 +310,26 @@ def _generate_metadata_mds(mds, firmware_baseuri='', local=False, metainfo=False
             child.set('version', '|'.join(vendor_ids))
             elements.append(child)
 
-    # add requires for <firmware> or fwupd version
+    # add requires for <id>
     for md in mds:
         for rq in md.requirements:
-            if rq.kind == 'hardware':
+            if rq.kind != 'id':
+                continue
+            child = ET.Element(rq.kind)
+            if rq.value:
+                child.text = rq.value
+            if rq.compare:
+                child.set('compare', rq.compare)
+            if rq.version:
+                child.set('version', rq.version)
+            if rq.depth:
+                child.set('depth', rq.depth)
+            elements.append(child)
+
+    # add requires for <firmware>
+    for md in mds:
+        for rq in md.requirements:
+            if rq.kind != 'firmware':
                 continue
             child = ET.Element(rq.kind)
             if rq.value:
