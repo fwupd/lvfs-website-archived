@@ -2318,6 +2318,12 @@ class Firmware(db.Model):
             if self._is_owner(user):
                 return True
             return False
+        if action == '@resign':
+            if user.check_acl('@qa') and self._is_permitted_action(action, user):
+                return True
+            if self._is_owner(user):
+                return True
+            return False
         if action in ('@promote-stable', '@promote-testing'):
             if user.check_acl('@approved-public') and self._is_permitted_action(action, user):
                 return True

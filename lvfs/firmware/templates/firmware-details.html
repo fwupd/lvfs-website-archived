@@ -126,8 +126,8 @@ new Chart(ctx, {
 {% if fw.is_deleted and fw.check_acl('@nuke') %}
         <button type="button" class="btn btn-danger card-link" data-toggle="modal" data-target="#nukeModal">☠ Nuke ☠</button>
 {% endif %}
-{% if fw.signed_timestamp and g.user.check_acl('@admin') %}
-        <a class="btn btn-warning card-link" href="{{url_for('firmware.route_resign', firmware_id=fw.firmware_id)}}" role="button">Re-sign</a>
+{% if fw.signed_timestamp and fw.check_acl('@resign') %}
+        <button type="button" class="btn btn-warning card-link" data-toggle="modal" data-target="#resignModal">Re-sign</button>
 {% endif %}
       </div>
     </div>
@@ -262,6 +262,38 @@ new Chart(ctx, {
       <div class="modal-footer">
         <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
         <a class="btn btn-danger" href="{{url_for('firmware.route_nuke', firmware_id=fw.firmware_id)}}">☠ Nuke ☠</a>
+      </div>
+    </div>
+  </div>
+</div>
+{% endif %}
+
+{% if fw.check_acl('@resign') %}
+<!-- modal dialog -->
+<div class="modal" id="resignModal" tabindex="-1" role="dialog" aria-labelledby="resignModalLabel" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="resignModalLabel">Really Re-sign Firmware?</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <p class="card-text">
+          This forces the LVFS regenerate the <code>metainfo.xml</code> file inside the archive,
+          and will also resign the firmware with the LVFS GPG and PKCS-7 keys.
+          These actions change the archive checksum and could cause confusion as the
+          downloaded filename does not change.
+        </p>
+        <p class="card-text">
+          You do not normally need to manually re-sign firmware as the LVFS will
+          do it when required. If if doubt, click <em>Cancel</em>.
+        </p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+        <a class="btn btn-warning" href="{{url_for('firmware.route_resign', firmware_id=fw.firmware_id)}}">Re-sign</a>
       </div>
     </div>
   </div>
