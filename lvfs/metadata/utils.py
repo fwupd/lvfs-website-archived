@@ -283,6 +283,9 @@ def _generate_metadata_mds(mds, firmware_baseuri='', local=False, metainfo=False
     # add requires for each allowed vendor_ids
     elements = []
     if not metainfo and not local:
+
+        # create a superset of all vendors (there is typically just one)
+        vendor_ids = []
         for md in mds:
 
             # the vendor can upload to any hardware
@@ -292,15 +295,14 @@ def _generate_metadata_mds(mds, firmware_baseuri='', local=False, metainfo=False
 
             # no restrictions in place!
             if not vendor.restrictions:
-                child = ET.Element('firmware')
-                child.text = 'vendor-id'
-                child.set('compare', 'eq')
-                child.set('version', 'XXX:NEVER_GOING_TO_MATCH')
-                elements.append(child)
+                vendor_ids.append('XXX:NEVER_GOING_TO_MATCH')
                 continue
+            for res in vendor.restrictions:
+                if res.value not in vendor_ids:
+                    vendor_ids.append(res.value)
 
-            # allow specifying more than one ID
-            vendor_ids = [res.value for res in vendor.restrictions]
+        # allow specifying more than one ID
+        if vendor_ids:
             child = ET.Element('firmware')
             child.text = 'vendor-id'
             if len(vendor_ids) == 1:
