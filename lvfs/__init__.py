@@ -56,6 +56,7 @@ from lvfs.categories.routes import bp_categories
 from lvfs.claims.routes import bp_claims
 from lvfs.components.routes import bp_components
 from lvfs.devices.routes import bp_devices
+from lvfs.hsireports.routes import bp_hsireports
 from lvfs.mdsync.routes import bp_mdsync
 from lvfs.docs.routes import bp_docs
 from lvfs.firmware.routes import bp_firmware
@@ -99,6 +100,7 @@ app.register_blueprint(bp_upload, url_prefix='/lvfs/upload')
 app.register_blueprint(bp_users, url_prefix='/lvfs/users')
 app.register_blueprint(bp_vendors, url_prefix='/lvfs/vendors')
 app.register_blueprint(bp_verfmts, url_prefix='/lvfs/verfmts')
+app.register_blueprint(bp_hsireports, url_prefix='/lvfs/hsireports')
 
 def _set_up_notify_server_error():
     from lvfs.models import User, UserAction

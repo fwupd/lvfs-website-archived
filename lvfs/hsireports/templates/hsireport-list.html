@@ -1,0 +1,49 @@
+{% extends "default.html" %}
+{% block title %}HSI Reports{% endblock %}
+
+{% block nav %}
+{% if rpts_filter %}
+{% include 'hsireport-nav.html' %}
+{% endif %}
+{% endblock %}
+
+{% block content %}
+<div class="card">
+  <div class="card-body">
+  <h2 class="card-title">
+    HSI Reports
+{% if rpts_filter %}
+    ({{rpts_filter}})
+{% endif %}
+  </h2>
+<table class="table">
+  <tr class="row table-borderless">
+    <th class="col col-sm-3">Timestamp</th>
+    <th class="col col-sm-5">Model</th>
+    <th class="col col-sm-2">HSI</th>
+    <th class="col col-sm-2"></th>
+  </tr>
+{% for rpt in rpts %}
+  <tr class="row">
+    <td class="col col-sm-3">{{rpt.timestamp.strftime('%F %T')}}</td>
+    <td class="col col-sm-5">
+      <a href="{{url_for('hsireports.route_vendor_show', host_vendor=rpt.host_vendor)}}">{{rpt.host_vendor}}</a>
+{% if rpt.host_vendor == 'LENOVO' %}
+      <a href="{{url_for('hsireports.route_family_show', host_family=rpt.host_family)}}">{{rpt.host_family}}</a>
+      (<code><a href="{{url_for('hsireports.route_product_show', host_product=rpt.host_product)}}">{{rpt.host_product}}</a></code>)
+{% else %}
+      <a href="{{url_for('hsireports.route_product_show', host_product=rpt.host_product)}}">{{rpt.host_product}}</a>
+      (<code><a href="{{url_for('hsireports.route_sku_show', host_sku=rpt.host_sku)}}">{{rpt.host_sku}}</a></code>)
+{% endif %}
+    </td>
+    <td class="col col-sm-2"><code>{{rpt.host_security_id}}</code></td>
+    <td class="col col-sm-2">
+      <a class="btn btn-info btn-block"
+         href="{{url_for('hsireports.route_show', hsi_report_id=rpt.hsi_report_id)}}">Info</a>
+    </td>
+  </tr>
+{% endfor %}
+</table>
+  </div>
+</div>
+{% endblock %}

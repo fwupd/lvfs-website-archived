@@ -158,6 +158,9 @@
             <li class="nav-item {{'active' if request.url_rule.endpoint == 'agreements.route_list'}}">
               <a class="nav-link" href="{{url_for('agreements.route_list')}}">Agreements</a>
             </li>
+            <li class="nav-item {{'active' if request.url_rule.endpoint == 'hsireports.route_list'}}">
+              <a class="nav-link" href="{{url_for('hsireports.route_list')}}">HSI Reports</a>
+            </li>
           </ul>
         </li>
         <li class="nav-item">

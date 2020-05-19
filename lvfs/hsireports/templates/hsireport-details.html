@@ -1,0 +1,106 @@
+{% extends "default.html" %}
+{% block title %}HSI Report {{rpt.hsi_report_id}}{% endblock %}
+
+{% block nav %}{% include 'hsireport-nav.html' %}{% endblock %}
+
+{% block content %}
+<div class="card-deck">
+<div class="card">
+  <div class="card-body">
+  <h2 class="card-title">HSI Report {{rpt.hsi_report_id}}</h2>
+<table class="table card-text">
+  <tr class="row table-borderless">
+    <th class="col col-3">Submitted</th>
+    <td class="col"><code>{{rpt.timestamp.strftime('%F %T')}}</code></td>
+  </tr>
+  <tr class="row table-borderless">
+    <th class="col col-3">HSI</th>
+    <td class="col"><code>{{rpt.host_security_id}} {{rpt.host_security_version}}</code></td>
+  </tr>
+{% if rpt.kernel_version %}
+  <tr class="row table-borderless">
+    <th class="col col-3">Kernel Version</th>
+    <td class="col"><code>{{rpt.kernel_version}}</code></td>
+  </tr>
+{% endif %}
+{% if rpt.kernel_cmdline %}
+  <tr class="row table-borderless">
+    <th class="col col-3">Kernel Commandline</th>
+    <td class="col"><code>{{rpt.kernel_cmdline}}</code></td>
+  </tr>
+{% endif %}
+{% if rpt.distro %}
+  <tr class="row table-borderless">
+    <th class="col col-3">Distribution</th>
+    <td class="col"><code>{{rpt.distro}}</code></td>
+  </tr>
+{% endif %}
+{% if rpt.user %}
+  <tr class="row table-borderless">
+    <th class="col col-3">User</th>
+    <td class="col"><code>{{rpt.user.display_name}}</code></td>
+  </tr>
+{% endif %}
+</table>
+  </div>
+</div>
+<div class="card">
+  <div class="card-body">
+  <h2 class="card-title">Device</h2>
+<table class="table card-text">
+  <tr class="row table-borderless">
+    <th class="col col-3">Machine</th>
+    <td class="col text-truncate"><code>{{rpt.machine_id}}</code></td>
+  </tr>
+  <tr class="row table-borderless">
+    <th class="col col-3">Vendor</th>
+    <td class="col"><code>{{rpt.host_vendor}}</code></td>
+  </tr>
+  <tr class="row table-borderless">
+    <th class="col col-3">Product</th>
+    <td class="col"><code>{{rpt.host_product}}</code></td>
+  </tr>
+  <tr class="row table-borderless">
+    <th class="col col-3">Family</th>
+    <td class="col"><code>{{rpt.host_family}}</code></td>
+  </tr>
+  <tr class="row table-borderless">
+    <th class="col col-3">SKU</th>
+    <td class="col"><code>{{rpt.host_sku}}</code></td>
+  </tr>
+</table>
+  </div>
+</div>
+</div>
+
+<div class="card mt-3">
+  <div class="card-body">
+  <h2 class="card-title">HSI Attributes</h2>
+<table class="table card-text">
+  <tr class="row table-borderless">
+    <th class="col">AppStream ID</th>
+    <th class="col">Result</th>
+  </tr>
+{% for rattr in rpt.attrs|sort(attribute='key') %}
+  <tr class="row">
+    <td class="col"><code>{{rattr.appstream_id}}</code></td>
+    <td class="col">
+{% if rattr.is_success %}
+      <span class="fas fa-check-circle fs-1 text-success mr-2"></span>
+{% else %}
+      <span class="fas fa-times-circle fs-1 text-danger mr-2"></span>
+{% endif %}
+      <code>{{rattr.hsi_result}}</code>
+{% if rattr.is_runtime %}
+      (runtime)
+{% endif %}
+{% if rattr.is_obsoleted %}
+      (obsoleted)
+{% endif %}
+    </td>
+  </tr>
+{% endfor %}
+</table>
+  </div>
+</div>
+{% endblock %}
