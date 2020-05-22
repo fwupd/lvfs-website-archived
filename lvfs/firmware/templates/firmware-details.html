@@ -98,6 +98,12 @@ new Chart(ctx, {
 {% endif %}
 {% if fw.signed_timestamp %}
 <!-- Signed: {{fw.signed_timestamp}} -->
+{% else %}
+          <div class="alert alert-warning" role="alert">
+            The file has not been signed.
+            This happens automatically after it is uploaded and only takes only
+            a few minutes.
+          </div>
 {% endif %}
 {% if fw.inhibit_download %}
         <p class="text-muted">
