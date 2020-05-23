@@ -33,7 +33,9 @@
       (<code><a href="{{url_for('hsireports.route_product_show', host_product=rpt.host_product)}}">{{rpt.host_product}}</a></code>)
 {% else %}
       <a href="{{url_for('hsireports.route_product_show', host_product=rpt.host_product)}}">{{rpt.host_product}}</a>
-      (<code><a href="{{url_for('hsireports.route_sku_show', host_sku=rpt.host_sku)}}">{{rpt.host_sku}}</a></code>)
+{% if rpt.host_sku_sane %}
+      (<code><a href="{{url_for('hsireports.route_sku_show', host_sku=rpt.host_sku)}}">{{rpt.host_sku_sane}}</a></code>)
+{% endif %}
 {% endif %}
     </td>
     <td class="col col-sm-2"><code>{{rpt.host_security_id}}</code></td>

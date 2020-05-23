@@ -70,10 +70,12 @@
     <th class="col col-3">Family</th>
     <td class="col"><code>{{rpt.host_family}}</code></td>
   </tr>
+{% if rpt.host_sku %}
   <tr class="row table-borderless">
     <th class="col col-3">SKU</th>
     <td class="col"><code>{{rpt.host_sku}}</code></td>
   </tr>
+{% endif %}
 </table>
   </div>
 </div>

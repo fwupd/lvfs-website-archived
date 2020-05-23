@@ -2515,6 +2515,14 @@ class HsiReport(db.Model):
                          back_populates="report",
                          cascade='all,delete-orphan')
 
+    @property
+    def host_sku_sane(self):
+        if self.host_sku == 'To be filled by O.E.M.':
+            return None
+        if self.host_sku == 'Default string':
+            return None
+        return self.host_sku
+
     def check_acl(self, action, user=None):
 
         # fall back
