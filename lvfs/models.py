@@ -2551,6 +2551,9 @@ class ReportAttribute(db.Model):
 
     report = relationship("Report", back_populates="attributes")
 
+    def __lt__(self, other):
+        return self.key < other.key
+
     def __repr__(self):
         return "ReportAttribute object %s=%s" % (self.key, self.value)
 
@@ -2587,33 +2590,6 @@ class Report(db.Model):
         if self.state == 4:
             return 'info'
         return 'danger'
-
-    def to_flat_dict(self):
-        data = {}
-        if self.state == 1:
-            data['UpdateState'] = 'pending'
-        elif self.state == 2:
-            data['UpdateState'] = 'success'
-        elif self.state == 3:
-            data['UpdateState'] = 'failed'
-        elif self.state == 4:
-            data['UpdateState'] = 'needs-reboot'
-        else:
-            data['UpdateState'] = 'unknown'
-        if self.machine_id:
-            data['MachineId'] = self.machine_id
-        if self.firmware_id:
-            data['FirmwareId'] = self.firmware_id
-        for attr in self.attributes:
-            data[attr.key] = attr.value
-        return data
-
-    def to_kvs(self):
-        flat_dict = self.to_flat_dict()
-        kv_array = []
-        for key in flat_dict:
-            kv_array.append('%s=%s' % (key, flat_dict[key]))
-        return ', '.join(sorted(kv_array))
 
     def check_acl(self, action, user=None):
 

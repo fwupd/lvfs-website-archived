@@ -22,11 +22,18 @@
     <code class="float-right">{{format_humanize_naturaltime(r.timestamp)}}</code>
   </h2>
   <div class="card-body">
-    <p class="card-text">
-      <code>{{r.to_kvs()}}</code>
-    </p>
+    <table class="table">
+{% for attr in r.attributes|sort %}
+      <tr class="row table-borderless">
+        <th class="col col-sm-4">{{attr.key}}</th>
+        <td class="col col-sm-8"><code>{{attr.value}}</code></td>
+      </tr>
+{% endfor %}
+    </table>
     <a class="card-link btn btn-info" href="{{url_for('firmware.route_show', firmware_id=r.fw.firmware_id)}}">Details</a>
-    <a class="card-link btn btn-danger float-right" href="{{url_for('reports.route_delete', report_id=r.report_id)}}">Delete</a>
+{% if g.user.check_acl('@admin') %}
+    <a class="card-link btn btn-danger" href="{{url_for('reports.route_delete', report_id=r.report_id)}}">Delete</a>
+{% endif %}
   </div>
 </div>
 {% endfor %}

@@ -150,28 +150,52 @@ def route_delete(issue_id):
     flash('Deleted issue', 'info')
     return redirect(url_for('issues.route_list'))
 
-def _issue_fix_report_failures(issue):
 
-    # prefilter with the first 'eq' report attribute
-    stmt = db.session.query(Report).join(ReportAttribute)
+def _create_query_for_conditions(issue):
+
+    # use a set of subqueries for speed
+    subqs = []
     for cond in issue.conditions:
         if cond.compare == 'eq':
-            stmt = stmt.filter(ReportAttribute.key == cond.key,
-                               ReportAttribute.value == cond.value)
-            break
+            subqs.append(db.session.query(ReportAttribute.report_id)\
+                                   .filter(ReportAttribute.key == cond.key,
+                                           ReportAttribute.value == cond.value).subquery())
+        elif cond.compare == 'lt':
+            subqs.append(db.session.query(ReportAttribute.report_id)\
+                                   .filter(ReportAttribute.key == cond.key,
+                                           ReportAttribute.value < cond.value).subquery())
+        elif cond.compare == 'le':
+            subqs.append(db.session.query(ReportAttribute.report_id)\
+                                   .filter(ReportAttribute.key == cond.key,
+                                           ReportAttribute.value <= cond.value).subquery())
+        elif cond.compare == 'gt':
+            subqs.append(db.session.query(ReportAttribute.report_id)\
+                                   .filter(ReportAttribute.key == cond.key,
+                                           ReportAttribute.value > cond.value).subquery())
+        elif cond.compare == 'ge':
+            subqs.append(db.session.query(ReportAttribute.report_id)\
+                                   .filter(ReportAttribute.key == cond.key,
+                                           ReportAttribute.value >= cond.value).subquery())
+        elif cond.compare == 'glob':
+            value = cond.value.replace('*', '%')
+            subqs.append(db.session.query(ReportAttribute.report_id)\
+                                   .filter(ReportAttribute.key == cond.key,
+                                           ReportAttribute.value.like(value)).subquery())
+        elif cond.compare == 'regex':
+            subqs.append(db.session.query(ReportAttribute.report_id)\
+                                   .filter(ReportAttribute.key == cond.key,
+                                           ReportAttribute.value.op('~')(cond.value)).subquery())
+    stmt = db.session.query(Report)
+    for subq in subqs:
+        stmt = stmt.join(subq, Report.report_id == subq.c.report_id)
+    return stmt
+
+def _issue_fix_report_failures(issue):
 
     # process each report
     change_cnt = 0
-    for report in stmt:
-
-        # already has a report
-        if report.issue_id != 0:
-            continue
-
-        # it matches the new issue
-        data = report.to_flat_dict()
-        if not issue.matches(data):
-            continue
+    stmt = _create_query_for_conditions(issue)
+    for report in stmt.filter(Report.issue_id != 0):
 
         # check we can apply changes to this firmware
         fw = db.session.query(Firmware).\
@@ -295,32 +319,16 @@ def route_reports(issue_id):
         flash('Permission denied: Unable to view issue reports', 'danger')
         return redirect(url_for('issues.route_list'))
 
-    # prefilter with the first 'eq' report attribute
-    stmt = db.session.query(Report).join(ReportAttribute)
-    for cond in issue.conditions:
-        if cond.compare == 'eq':
-            stmt = stmt.filter(ReportAttribute.key == cond.key,
-                               ReportAttribute.value == cond.value)
-            break
-
-    # check firmware details are available to this user, and check if it matches
+    # check firmware details are available to this user
     reports = []
     reports_hidden = []
-    reports_cnt = 0
-    for report in stmt:
-        data = report.to_flat_dict()
-        if not issue.matches(data):
+    stmt = _create_query_for_conditions(issue)
+    reports_unfiltered = stmt.order_by(Report.timestamp.desc()).limit(10).all()
+    for report in reports_unfiltered:
+        if not report.fw.check_acl('@view'):
+            reports_hidden.append(report)
             continue
-        reports_cnt += 1
-
-        # limit this to the latest 10 reports
-        if reports_cnt < 10:
-            fw = db.session.query(Firmware).\
-                    filter(Firmware.firmware_id == report.firmware_id).first()
-            if not fw.check_acl('@view'):
-                reports_hidden.append(report)
-                continue
-            reports.append(report)
+        reports.append(report)
 
     # show reports
     return render_template('issue-reports.html',
@@ -328,7 +336,7 @@ def route_reports(issue_id):
                            issue=issue,
                            reports=reports,
                            reports_hidden=reports_hidden,
-                           reports_cnt=reports_cnt)
+                           reports_cnt=len(reports_unfiltered))
 
 @bp_issues.route('/<int:issue_id>/conditions')
 @login_required

@@ -76,7 +76,7 @@ class LocalTestCase(LvfsTestCase):
 
         # check the saved report
         rv = self.app.get('/lvfs/reports/1')
-        assert b'UpdateState=success' in rv.data, rv.data
+        assert b'UpdateState": "success' in rv.data, rv.data
 
         # download the firmware at least once
         self._download_firmware()

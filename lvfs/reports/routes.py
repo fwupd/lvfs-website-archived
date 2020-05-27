@@ -19,6 +19,26 @@ from lvfs.hash import _is_sha1, _is_sha256
 
 bp_reports = Blueprint('reports', __name__, template_folder='templates')
 
+def _report_to_dict(report):
+    data = {}
+    if report.state == 1:
+        data['UpdateState'] = 'pending'
+    elif report.state == 2:
+        data['UpdateState'] = 'success'
+    elif report.state == 3:
+        data['UpdateState'] = 'failed'
+    elif report.state == 4:
+        data['UpdateState'] = 'needs-reboot'
+    else:
+        data['UpdateState'] = 'unknown'
+    if report.machine_id:
+        data['MachineId'] = report.machine_id
+    if report.firmware_id:
+        data['FirmwareId'] = report.firmware_id
+    for attr in report.attributes:
+        data[attr.key] = attr.value
+    return data
+
 @bp_reports.route('/<report_id>')
 @login_required
 def route_view(report_id):
@@ -28,7 +48,8 @@ def route_view(report_id):
     # security check
     if not report.check_acl('@view'):
         return _json_error('Permission denied: Unable to view report')
-    return Response(response=str(report.to_kvs()),
+    response = json.dumps(_report_to_dict(report), indent=4, separators=(',', ': '))
+    return Response(response=response,
                     status=400, \
                     mimetype="application/json")
 

@@ -12,9 +12,21 @@
 
 {% for r in reports %}
 <div class="card mt-3">
+  <h2 class="card-header card-title list-group-item-{{r.color}}">
+    {{r.fw.md_prio.developer_name_display}} {{r.fw.names|join(' & ')}}
+    <code class="float-right">{{format_humanize_naturaltime(r.timestamp)}}</code>
+  </h2>
   <div class="card-body">
-    <h2 class="card-title">{{r.timestamp}}</h2>
-    <code class="card-text">{{r.to_kvs()}}</code>
+    <table class="table">
+{% for attr in r.attributes|sort %}
+      <tr class="row table-borderless">
+        <th class="col col-sm-4">{{attr.key}}</th>
+        <td class="col col-sm-8"><code>{{attr.value}}</code></td>
+      </tr>
+{% endfor %}
+    </table>
+    <a class="card-link btn btn-info" href="{{url_for('firmware.route_show', firmware_id=r.fw.firmware_id)}}">Details</a>
+    <a class="card-link btn btn-danger float-right" href="{{url_for('reports.route_delete', report_id=r.report_id)}}">Delete</a>
   </div>
 </div>
 {% endfor %}
