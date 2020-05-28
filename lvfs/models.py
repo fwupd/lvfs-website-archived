@@ -174,8 +174,6 @@ class User(db.Model):
         if action in ['@qa', '@analyst', '@vendor-manager', '@researcher',
                       '@approved-public', '@robot', '@admin', '@partner']:
             return self.get_action(action[1:])
-        if action == '@view-profile':
-            return self.auth_type == 'local'
         if action == '@view-analytics':
             if self.check_acl('@qa') or self.check_acl('@analyst'):
                 return True

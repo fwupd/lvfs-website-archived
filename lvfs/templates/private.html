@@ -360,10 +360,8 @@
             </a>
             <div class="dropdown-menu dropdown-menu-right py-0" aria-labelledby="navbarDropdownUser">
               <div class="bg-white rounded-soft py-2">
-{% if g.user.check_acl('@view-profile') %}
                 <a class="dropdown-item" href="{{url_for('main.route_profile')}}">Profile Settings</a>
                 <div class="dropdown-divider"></div>
-{% endif %}
                 <a class="dropdown-item" href="{{url_for('main.route_logout')}}">Logout</a>
               </div>
             </div>

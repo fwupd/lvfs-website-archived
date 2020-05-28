@@ -522,11 +522,6 @@ def route_profile():
     """
     Allows the normal user to change details about the account,
     """
-
-    # security check
-    if not g.user.check_acl('@view-profile'):
-        flash('Permission denied: Unable to view profile as account locked', 'danger')
-        return redirect(url_for('main.route_dashboard'))
     return render_template('profile.html', u=g.user)
 
 @bp_main.route('/lvfs/metrics')

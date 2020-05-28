@@ -67,9 +67,7 @@
           <div class="dropdown-menu dropdown-menu-card" aria-labelledby="navbarDropdownProfile">
             <div class="bg-white rounded-soft py-2">
               <a class="dropdown-item" href="{{url_for('main.route_dashboard')}}">Dashboard</a>
-{% if g.user.check_acl('@view-profile') %}
               <a class="dropdown-item" href="{{url_for('main.route_profile')}}">User</a>
-{% endif %}
 {% if g.user.vendor.check_acl('@manage-users') %}
               <a class="dropdown-item" href="{{url_for('vendors.route_users', vendor_id=g.user.vendor_id)}}">Vendor</a>
 {% endif %}

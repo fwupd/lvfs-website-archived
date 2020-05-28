@@ -213,8 +213,8 @@ def route_auth(user_id):
 def route_qrcode():
 
     # security check
-    if not g.user.check_acl('@view-profile'):
-        flash('Permission denied: Unable to view profile as account locked', 'danger')
+    if not g.user.check_acl('@manage-password'):
+        flash('Permission denied: Unable to manage authentication', 'danger')
         return redirect(url_for('main.route_dashboard'))
 
     # render qrcode for FreeTOTP
@@ -232,8 +232,8 @@ def route_qrcode():
 def route_otp_test():
 
     # security check
-    if not g.user.check_acl('@view-profile'):
-        flash('Permission denied: Unable to view profile as account locked', 'danger')
+    if not g.user.check_acl('@manage-password'):
+        flash('Permission denied: Unable to manage authentication', 'danger')
         return redirect(url_for('main.route_dashboard'))
 
     # check was sent
@@ -533,11 +533,6 @@ def route_certificate_create():
     # only accept form data
     if request.method != 'POST':
         return redirect(url_for('main.route_profile'), code=302)
-
-    # security check
-    if not g.user.check_acl('@view-profile'):
-        flash('Permission denied: Unable to add certificate as account locked', 'danger')
-        return redirect(url_for('main.route_dashboard'))
 
     # check was sent
     if not 'file' in request.files:
