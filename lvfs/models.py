@@ -243,7 +243,7 @@ class User(db.Model):
 
     @property
     def is_active(self):
-        return True
+        return self.auth_type != 'disabled'
 
     @property
     def is_anonymous(self):
