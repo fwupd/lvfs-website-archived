@@ -5,7 +5,9 @@ deleted
 downloads
 gnupg
 lvfs/custom.cfg
+htmlcov
 hwinfo
 lvfs_*.sql
 report.csv
 .coverage
+.gnupg
