@@ -181,10 +181,10 @@ class LvfsTestCase(unittest.TestCase):
     def run_cron_firmware(self, fn='hughski-colorhug2-2.0.3'):
 
         from lvfs import app
-        from cron import _regenerate_and_sign_firmware
+        from lvfs.firmware.utils import _sign_firmware_all
         with app.test_request_context():
             with io.StringIO() as buf, redirect_stdout(buf):
-                _regenerate_and_sign_firmware()
+                _sign_firmware_all()
                 stdout = buf.getvalue()
 
         assert fn in stdout, stdout
@@ -195,12 +195,15 @@ class LvfsTestCase(unittest.TestCase):
     def run_cron_stats():
 
         from lvfs import app
-        from cron import _generate_stats_for_datestr, _generate_stats
+        from lvfs.main.utils import _regenerate_metrics
+        from lvfs.reports.utils import _regenerate_reports
+        from lvfs.analytics.utils import _generate_stats_for_datestr
         from lvfs.models import _get_datestr_from_datetime
         with app.test_request_context():
             with io.StringIO() as buf, redirect_stdout(buf):
                 _generate_stats_for_datestr(_get_datestr_from_datetime(datetime.date.today()))
-                _generate_stats()
+                _regenerate_metrics()
+                _regenerate_reports()
                 stdout = buf.getvalue()
 
         assert 'generated' in stdout, stdout
@@ -209,7 +212,7 @@ class LvfsTestCase(unittest.TestCase):
     def run_cron_metadata(remote_ids=None):
 
         from lvfs import app
-        from cron import _regenerate_and_sign_metadata
+        from lvfs.metadata.utils import _regenerate_and_sign_metadata
         with app.test_request_context():
             with io.StringIO() as buf, redirect_stdout(buf):
                 _regenerate_and_sign_metadata()
@@ -223,11 +226,12 @@ class LvfsTestCase(unittest.TestCase):
     def run_cron_fwchecks():
 
         from lvfs import app
-        from cron import _check_firmware, _yara_query_all
+        from lvfs.queries.utils import _query_run_all
+        from lvfs.tests.utils import _test_run_all
         with app.test_request_context():
             with io.StringIO() as buf, redirect_stdout(buf):
-                _check_firmware()
-                _yara_query_all()
+                _test_run_all()
+                _query_run_all()
 
     def add_vendor(self, group_id):
         rv = self.app.post('/lvfs/vendors/create', data=dict(group_id=group_id),

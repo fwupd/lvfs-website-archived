@@ -10,16 +10,19 @@
 import os
 import gzip
 import hashlib
+import glob
 
 from collections import defaultdict
 from datetime import date
 from distutils.version import StrictVersion
 from lxml import etree as ET
 
-from lvfs import db
+from jcat import JcatFile, JcatBlobSha1, JcatBlobSha256, JcatBlobKind
+
+from lvfs import db, app, ploader
 
 from lvfs.models import Firmware, Remote
-from lvfs.util import _get_settings, _xml_from_markdown
+from lvfs.util import _get_settings, _xml_from_markdown, _event_log
 
 def _is_verfmt_supported_by_fwupd(md, verfmt):
 
@@ -409,33 +412,6 @@ def _generate_metadata_kind(fws, firmware_baseuri='', local=False):
                                      xml_declaration=True,
                                      pretty_print=True))
 
-def _metadata_update_targets(remotes):
-    """ updates metadata for a specific target """
-    fws = db.session.query(Firmware).all()
-    settings = _get_settings()
-
-    # create metadata for each remote
-    targets = []
-    for r in remotes:
-        fws_filtered = []
-        for fw in fws:
-            if fw.remote.name in ['private', 'deleted']:
-                continue
-            if not fw.signed_timestamp:
-                continue
-            if r.check_fw(fw):
-                fws_filtered.append(fw)
-        blob = _generate_metadata_kind(fws_filtered,
-                                       firmware_baseuri=settings['firmware_baseuri'])
-        targets.append((r, blob))
-
-        # all firmwares are contained in the correct metadata now
-        for fw in fws_filtered:
-            fw.is_dirty = False
-
-    # success
-    return targets
-
 def _metadata_update_pulp(download_dir):
 
     """ updates metadata for Pulp """
@@ -454,3 +430,122 @@ def _metadata_update_pulp(download_dir):
             manifest.write('{},{},{}\n'.format(fw.filename,
                                                fw.checksum_signed_sha256,
                                                fw.mds[0].release_download_size))
+
+def _regenerate_and_sign_metadata_remote(r):
+
+    # not required */
+    if not r.is_signed:
+        return
+
+    # fix up any remotes that are not dirty, but have firmware that is dirty
+    # -- which shouldn't happen, but did...
+    if not r.is_dirty:
+        for fw in r.fws:
+            if not fw.is_dirty:
+                continue
+            print('Marking remote %s as dirty due to %u' % (r.name, fw.firmware_id))
+            r.is_dirty = True
+
+    # not needed
+    if not r.is_dirty:
+        return
+
+    # set destination path from app config
+    download_dir = app.config['DOWNLOAD_DIR']
+    if not os.path.exists(download_dir):
+        os.mkdir(download_dir)
+
+    invalid_fns = []
+    print('Updating: %s' % r.name)
+
+    # create metadata for each remote
+    fws_filtered = []
+    for fw in db.session.query(Firmware):
+        if fw.remote.name in ['private', 'deleted']:
+            continue
+        if not fw.signed_timestamp:
+            continue
+        if r.check_fw(fw):
+            fws_filtered.append(fw)
+    settings = _get_settings()
+    blob_xmlgz = _generate_metadata_kind(fws_filtered,
+                                         firmware_baseuri=settings['firmware_baseuri'])
+
+    # write metadata-?????.xml.gz
+    fn_xmlgz = os.path.join(download_dir, r.filename)
+    with open(fn_xmlgz, 'wb') as f:
+        f.write(blob_xmlgz)
+    invalid_fns.append(fn_xmlgz)
+
+    # write metadata.xml.gz
+    fn_xmlgz = os.path.join(download_dir, r.filename_newest)
+    with open(fn_xmlgz, 'wb') as f:
+        f.write(blob_xmlgz)
+    invalid_fns.append(fn_xmlgz)
+
+    # create Jcat item with SHA256 checksum blob
+    jcatfile = JcatFile()
+    jcatitem = jcatfile.get_item(r.filename)
+    jcatitem.add_alias_id(r.filename_newest)
+    jcatitem.add_blob(JcatBlobSha1(blob_xmlgz))
+    jcatitem.add_blob(JcatBlobSha256(blob_xmlgz))
+
+    # write each signed file
+    for blob in ploader.metadata_sign(blob_xmlgz):
+
+        # add GPG only to archive for backwards compat with older fwupd
+        if blob.kind == JcatBlobKind.GPG:
+            fn_xmlgz_asc = fn_xmlgz + '.' + blob.filename_ext
+            with open(fn_xmlgz_asc, 'wb') as f:
+                f.write(blob.data)
+            invalid_fns.append(fn_xmlgz_asc)
+
+        # add to Jcat file too
+        jcatitem.add_blob(blob)
+
+    # write jcat file
+    fn_xmlgz_jcat = fn_xmlgz + '.jcat'
+    with open(fn_xmlgz_jcat, 'wb') as f:
+        f.write(jcatfile.save())
+    invalid_fns.append(fn_xmlgz_jcat)
+
+    # update PULP
+    if r.name == 'stable':
+        _metadata_update_pulp(download_dir)
+
+    # do this all at once right at the end of all the I/O
+    for fn in invalid_fns:
+        print('Invalidating {}'.format(fn))
+        ploader.file_modified(fn)
+
+    # mark as no longer dirty
+    if not r.build_cnt:
+        r.build_cnt = 0
+    r.build_cnt += 1
+    r.is_dirty = False
+
+    # log what we did
+    _event_log('Signed metadata {} build {}'.format(r.name, r.build_cnt))
+
+    # only keep the last 6 metadata builds (24h / stable refresh every 4h)
+    suffix = r.filename.split('-')[2]
+    fns = glob.glob(os.path.join(download_dir, 'firmware-*-{}'.format(suffix)))
+    for fn in sorted(fns):
+        build_cnt = int(fn.split('-')[1])
+        if build_cnt + 6 > r.build_cnt:
+            continue
+        os.remove(fn)
+        _event_log('Deleted metadata {} build {}'.format(r.name, build_cnt))
+
+    # all firmwares are contained in the correct metadata now
+    for fw in fws_filtered:
+        fw.is_dirty = False
+    db.session.commit()
+
+def _regenerate_and_sign_metadata(only_embargo=False):
+
+    # get list of dirty remotes
+    for r in db.session.query(Remote):
+        if r.is_public and only_embargo:
+            continue
+        _regenerate_and_sign_metadata_remote(r)
