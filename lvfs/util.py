@@ -248,11 +248,14 @@ def _get_shard_path(shard):
 
 def _get_client_address():
     """ Gets user IP address """
-    if request.headers.getlist("X-Forwarded-For"):
-        return request.headers.getlist("X-Forwarded-For")[0]
-    if not request.remote_addr:
+    try:
+        if request.headers.getlist("X-Forwarded-For"):
+            return request.headers.getlist("X-Forwarded-For")[0]
+        if not request.remote_addr:
+            return '127.0.0.1'
+        return request.remote_addr
+    except RuntimeError as _:
         return '127.0.0.1'
-    return request.remote_addr
 
 def _event_log(msg, is_important=False):
     """ Adds an item to the event log """
