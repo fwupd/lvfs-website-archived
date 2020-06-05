@@ -20,11 +20,13 @@ from flask import send_from_directory, abort, Response, g
 from flask_login import login_required, login_user, logout_user
 from sqlalchemy.orm import joinedload
 
+from celery.schedules import crontab
+
 import GeoIP
 
 from pkgversion import vercmp
 
-from lvfs import app, db, lm, ploader, csrf
+from lvfs import app, db, lm, ploader, csrf, celery
 
 from lvfs.dbutils import _execute_count_star
 from lvfs.pluginloader import PluginError
@@ -36,7 +38,16 @@ from lvfs.hash import _addr_hash
 from lvfs.util import _get_client_address, _get_settings, _xml_from_markdown, _get_chart_labels_days
 from lvfs.util import _event_log, _error_internal
 
+from .utils import _async_regenerate_metrics
+
 bp_main = Blueprint('main', __name__, template_folder='templates')
+
+@celery.on_after_configure.connect
+def setup_periodic_tasks(sender, **_):
+    sender.add_periodic_task(
+        crontab(hour=4, minute=0),
+        _async_regenerate_metrics.s(),
+    )
 
 def _user_agent_safe_for_requirement(user_agent):
 

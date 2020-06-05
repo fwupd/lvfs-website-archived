@@ -21,11 +21,12 @@ from flask import render_template, g
 from jcat import JcatFile, JcatBlobSha1, JcatBlobSha256, JcatBlobKind
 from cabarchive import CabArchive, CabFile
 
-from lvfs import app, db, ploader
+from lvfs import app, db, celery, ploader
 from lvfs.emails import send_email
 from lvfs.models import Remote, Firmware, FirmwareEvent, Component
 from lvfs.util import _event_log, _get_shard_path
-from lvfs.metadata.utils import _generate_metadata_mds
+from lvfs.metadata.utils import _generate_metadata_mds, _async_regenerate_remote
+from lvfs.metadata.utils import _regenerate_and_sign_metadata_remote
 
 def _firmware_delete(fw):
 
@@ -43,6 +44,9 @@ def _firmware_delete(fw):
 
     # generate next cron run
     fw.mark_dirty()
+
+    # asynchronously sign
+    _async_regenerate_remote.apply_async(args=(fw.remote.remote_id,), queue='metadata')
 
     # mark as invalid
     fw.remote_id = remote.remote_id
@@ -63,7 +67,7 @@ def _delete_embargo_obsoleted_fw():
 
         # check that all the components are available with new versions
         all_newer = True
-        print(fw.target_duration, fw.remote.name, fw.version_display)
+        print('{} {} {}'.format(fw.target_duration, fw.remote.name, fw.version_display))
         for md in fw.mds:
             md_newest = None
             for md_new in db.session.query(Component)\
@@ -126,11 +130,30 @@ def _purge_old_deleted_firmware():
             db.session.delete(fw)
             db.session.commit()
 
+@celery.task(task_time_limit=60)
+def _async_autodelete():
+    _delete_embargo_obsoleted_fw()
+    _purge_old_deleted_firmware()
+
 def _show_diff(blob_old, blob_new):
     fromlines = blob_old.decode().replace('\r', '').split('\n')
     tolines = blob_new.decode().split('\n')
     diff = difflib.unified_diff(fromlines, tolines)
     print('\n'.join(list(diff)[3:]))
+
+@celery.task(task_time_limit=60)
+def _async_sign_fw(firmware_id):
+    fw = db.session.query(Firmware)\
+                   .filter(Firmware.firmware_id == firmware_id)\
+                   .one()
+    _sign_fw(fw)
+
+    # just do it now
+    fw.remote.is_dirty = True
+    if not fw.remote.is_public:
+        _regenerate_and_sign_metadata_remote(fw.remote)
+
+    _event_log('Signed firmware %s' % fw.firmware_id)
 
 def _sign_fw(fw):
 
@@ -229,3 +252,6 @@ def _sign_firmware_all():
         if fw.is_deleted:
             continue
         _sign_fw(fw)
+
+    # drop caches in other sessions
+    #db.session.expire_all()

@@ -16,6 +16,8 @@ from lvfs import db, ploader
 from lvfs.models import Test
 from lvfs.util import admin_login_required
 
+from .utils import _async_test_run
+
 bp_tests = Blueprint('tests', __name__, template_folder='templates')
 
 @bp_tests.route('/')
@@ -148,6 +150,9 @@ def route_retry(test_id):
     test.retry()
     db.session.commit()
 
+    # asynchronously run
+    _async_test_run.apply_async(args=(test.test_id,))
+
     # log
     flash('Test %s will be re-run soon' % test.plugin_id, 'info')
     return redirect(url_for('firmware.route_tests', firmware_id=test.fw.firmware_id))
@@ -192,6 +197,10 @@ def route_retry_all(plugin_id):
     for test in tests:
         test.retry()
     db.session.commit()
+
+        # asynchronously run
+    for test in tests:
+        _async_test_run.apply_async(args=(test.test_id,))
 
     # log
     flash('%i tests will be re-run soon' % len(tests), 'info')

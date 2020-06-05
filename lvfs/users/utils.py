@@ -11,7 +11,7 @@ import datetime
 
 from flask import render_template
 
-from lvfs import db
+from lvfs import db, celery
 
 from lvfs.emails import send_email
 from lvfs.models import User
@@ -49,3 +49,8 @@ def _user_disable_actual():
         user.username = 'disabled_user{}@fwupd.org'.format(user.user_id)
         user.display_name = 'Disabled User {}'.format(user.user_id)
         db.session.commit()
+
+@celery.task(task_time_limit=120)
+def _async_user_disable():
+    _user_disable_notify()
+    _user_disable_actual()

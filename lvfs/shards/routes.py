@@ -9,15 +9,26 @@ from collections import defaultdict
 
 from uuid import UUID
 
+from celery.schedules import crontab
+
 from flask import Blueprint, request, url_for, redirect, flash, render_template, make_response
 from flask_login import login_required
 
-from lvfs import db
+from lvfs import db, celery
 
 from lvfs.models import ComponentShard, ComponentShardInfo, Component, ComponentShardClaim, Claim
 from lvfs.util import admin_login_required
 
+from .utils import _async_regenerate_shard_infos
+
 bp_shards = Blueprint('shards', __name__, template_folder='templates')
+
+@celery.on_after_configure.connect
+def setup_periodic_tasks(sender, **_):
+    sender.add_periodic_task(
+        crontab(hour=3, minute=0),
+        _async_regenerate_shard_infos.s(),
+    )
 
 @bp_shards.route('/')
 @login_required

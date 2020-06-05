@@ -1,7 +1,7 @@
 #!/usr/bin/python3
 # -*- coding: utf-8 -*-
 #
-# Copyright (C) 2015-2018 Richard Hughes <richard@hughsie.com>
+# Copyright (C) 2015-2020 Richard Hughes <richard@hughsie.com>
 #
 # SPDX-License-Identifier: GPL-2.0+
 #
@@ -23,6 +23,7 @@ from flask_wtf.csrf import CSRFProtect, CSRFError
 from werkzeug.local import LocalProxy
 
 from lvfs.pluginloader import Pluginloader
+from lvfs.celery import FlaskCelery
 from lvfs.util import _error_internal, _event_log
 from lvfs.dbutils import drop_db, init_db, anonymize_db
 
@@ -49,6 +50,9 @@ lm = LoginManager(app)
 lm.login_view = 'login1'
 
 ploader = Pluginloader('plugins')
+
+celery = FlaskCelery(app.name, broker=app.config['CELERY_BROKER_URL'])
+celery.init_app(app)
 
 from lvfs.agreements.routes import bp_agreements
 from lvfs.analytics.routes import bp_analytics

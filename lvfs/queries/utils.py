@@ -11,9 +11,16 @@ import datetime
 
 import yara
 
-from lvfs import db
+from lvfs import db, celery
 
 from lvfs.models import Remote, Firmware, Component, YaraQuery, YaraQueryResult
+
+@celery.task(task_time_limit=6000)
+def _async_query_run(yara_query_id):
+    query = db.session.query(YaraQuery)\
+                      .filter(YaraQuery.yara_query_id == yara_query_id)\
+                      .one()
+    _query_run(query)
 
 def _query_run_shard(query, md, shard):
     if not shard.blob:

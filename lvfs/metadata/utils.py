@@ -19,7 +19,7 @@ from lxml import etree as ET
 
 from jcat import JcatFile, JcatBlobSha1, JcatBlobSha256, JcatBlobKind
 
-from lvfs import db, app, ploader
+from lvfs import db, app, ploader, celery
 
 from lvfs.models import Firmware, Remote
 from lvfs.util import _get_settings, _xml_from_markdown, _event_log
@@ -543,10 +543,17 @@ def _regenerate_and_sign_metadata_remote(r):
         fw.is_dirty = False
     db.session.commit()
 
-def _regenerate_and_sign_metadata(only_embargo=False):
-
-    # get list of dirty remotes
+def _regenerate_and_sign_metadata():
     for r in db.session.query(Remote):
-        if r.is_public and only_embargo:
-            continue
         _regenerate_and_sign_metadata_remote(r)
+
+@celery.task(task_time_limit=60)
+def _async_regenerate_remote(remote_id):
+    r = db.session.query(Remote)\
+                  .filter(Remote.remote_id == remote_id)\
+                  .one()
+    _regenerate_and_sign_metadata_remote(r)
+
+@celery.task(task_time_limit=60)
+def _async_regenerate_remote_all():
+    _regenerate_and_sign_metadata()

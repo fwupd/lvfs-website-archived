@@ -73,6 +73,11 @@ On Fedora:
         python3-psutil \
         python3-virtualenv
 
+## Running Celery ##
+
+    ./env/bin/celery -A lvfs.celery worker --queues metadata,firmware,celery,yara
+    ./env/bin/celery -A lvfs.celery beat
+
 ## Generating a SSL certificate ##
 
 IMPORTANT: The LVFS needs to be hosted over SSL.

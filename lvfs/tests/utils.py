@@ -9,7 +9,7 @@
 
 import datetime
 
-from lvfs import db, ploader
+from lvfs import db, ploader, celery
 
 from lvfs.models import Test
 from lvfs.util import _event_log
@@ -20,13 +20,14 @@ def _test_priority_sort_func(test):
         return 0
     return plugin.priority
 
-def _test_run_all():
+def _test_run_all(tests=None):
 
     # make a list of the first few tests that need running
-    tests = db.session.query(Test)\
-                      .filter(Test.started_ts == None)\
-                      .order_by(Test.scheduled_ts)\
-                      .limit(50).all()
+    if not tests:
+        tests = db.session.query(Test)\
+                          .filter(Test.started_ts == None)\
+                          .order_by(Test.scheduled_ts)\
+                          .limit(50).all()
 
     # mark all the tests as started
     for test in tests:
@@ -63,3 +64,24 @@ def _test_run_all():
 
     # all done
     db.session.commit()
+
+@celery.task(task_time_limit=600)
+def _async_test_run(test_id):
+    tests = db.session.query(Test)\
+                      .filter(Test.started_ts == None)\
+                      .filter(Test.test_id == test_id)\
+                      .all()
+    if not tests:
+        return
+    _test_run_all(tests)
+
+@celery.task(task_time_limit=600)
+def _async_test_run_for_firmware(firmware_id):
+    tests = db.session.query(Test)\
+                      .filter(Test.started_ts == None)\
+                      .filter(Test.firmware_id == firmware_id)\
+                      .order_by(Test.scheduled_ts)\
+                      .all()
+    if not tests:
+        return
+    _test_run_all(tests)

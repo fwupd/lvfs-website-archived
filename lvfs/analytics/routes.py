@@ -14,14 +14,25 @@ from sqlalchemy import and_
 from flask import Blueprint, render_template, flash, redirect, url_for
 from flask_login import login_required
 
-from lvfs import db
+from celery.schedules import crontab
+
+from lvfs import db, celery
 
 from lvfs.models import Analytic, Client, Report, Useragent, UseragentKind, SearchEvent, AnalyticVendor, ReportAttribute
 from lvfs.models import _get_datestr_from_datetime, _split_search_string
 from lvfs.util import admin_login_required
 from lvfs.util import _get_chart_labels_months, _get_chart_labels_days
 
+from .utils import _async_generate_stats
+
 bp_analytics = Blueprint('analytics', __name__, template_folder='templates')
+
+@celery.on_after_configure.connect
+def setup_periodic_tasks(sender, **_):
+    sender.add_periodic_task(
+        crontab(hour=0, minute=0),
+        _async_generate_stats.s(),
+    )
 
 @bp_analytics.route('/')
 @bp_analytics.route('/month')

@@ -1,34 +1,22 @@
 #!/usr/bin/python3
 # -*- coding: utf-8 -*-
 #
-# Copyright (C) 2015-2018 Richard Hughes <richard@hughsie.com>
+# Copyright (C) 2015-2020 Richard Hughes <richard@hughsie.com>
 #
 # SPDX-License-Identifier: GPL-2.0+
 #
-# pylint: disable=singleton-comparison,wrong-import-position,too-many-nested-blocks
+# pylint: disable=singleton-comparison
 
 import os
 import sys
 import hashlib
-import datetime
 
 from flask import g
 
 from lvfs import app, db, ploader
 
-from lvfs.analytics.utils import _generate_stats_for_datestr
-from lvfs.firmware.utils import _purge_old_deleted_firmware
-from lvfs.firmware.utils import _sign_firmware_all, _delete_embargo_obsoleted_fw
-from lvfs.main.utils import _regenerate_metrics
-from lvfs.metadata.utils import _regenerate_and_sign_metadata
 from lvfs.models import Component, Category, Protocol, Firmware, User
-from lvfs.models import _get_datestr_from_datetime
-from lvfs.queries.utils import _query_run_all
-from lvfs.reports.utils import _regenerate_reports
-from lvfs.shards.utils import _regenerate_shard_infos
-from lvfs.tests.utils import _test_run_all
 from lvfs.upload.uploadedfile import UploadedFile, MetadataInvalid
-from lvfs.users.utils import _user_disable_notify, _user_disable_actual
 from lvfs.util import _get_absolute_path
 
 def _repair_ts():
@@ -126,35 +114,10 @@ def _main_with_app_context():
         _fsck()
     if 'ensure' in sys.argv:
         _ensure_tests()
-    if 'firmware' in sys.argv:
-        _sign_firmware_all()
-    if 'metadata' in sys.argv:
-        _regenerate_and_sign_metadata()
-    if 'metadata-embargo' in sys.argv:
-        _regenerate_and_sign_metadata(only_embargo=True)
-    if 'purgedelete' in sys.argv:
-        _delete_embargo_obsoleted_fw()
-        _purge_old_deleted_firmware()
-    if 'fwchecks' in sys.argv:
-        _test_run_all()
-        _query_run_all()
-        _user_disable_notify()
-        _user_disable_actual()
-    if 'stats' in sys.argv:
-        val = _get_datestr_from_datetime(datetime.date.today() - datetime.timedelta(days=1))
-        _generate_stats_for_datestr(val)
-        _regenerate_metrics()
-        _regenerate_shard_infos()
-        _regenerate_reports()
-    if 'statsmigrate' in sys.argv:
-        for days in range(1, 720):
-            val = _get_datestr_from_datetime(datetime.date.today() - datetime.timedelta(days=days))
-            _generate_stats_for_datestr(val)
 
 if __name__ == '__main__':
 
     if len(sys.argv) < 2:
-        print('Usage: %s [metadata] [firmware]' % sys.argv[0])
         sys.exit(1)
     try:
         with app.test_request_context():

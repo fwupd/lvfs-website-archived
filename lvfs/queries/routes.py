@@ -11,6 +11,7 @@ from flask_login import login_required
 from lvfs import db
 
 from lvfs.models import YaraQuery
+from .utils import _async_query_run
 
 bp_queries = Blueprint('queries', __name__, template_folder='templates')
 
@@ -80,6 +81,10 @@ def route_retry(yara_query_id):
     query.started_ts = None
     query.ended_ts = None
     db.session.commit()
+
+    # asynchronously run
+    _async_query_run.apply_async(args=(query.yara_query_id,), queue='yara', countdown=10)
+
     flash('YARA query {} will be rerun soon'.format(query.yara_query_id), 'info')
     return redirect(url_for('queries.route_list'))
 
@@ -130,5 +135,9 @@ def route_create():
     query = YaraQuery(value=request.form['value'], user=g.user)
     db.session.add(query)
     db.session.commit()
+
+    # asynchronously run
+    _async_query_run.apply_async(args=(query.yara_query_id,), queue='yara', countdown=10)
+
     flash('YARA query {} added and will be run soon'.format(query.yara_query_id), 'info')
     return redirect(url_for('queries.route_list'), 302)

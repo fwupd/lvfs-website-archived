@@ -7,15 +7,15 @@
 
 from flask_mail import Message
 
-from lvfs import app, mail
+from lvfs import app, mail, celery
 
-from .decorators import async_wrapper
 from .util import _event_log
 
-@async_wrapper
-def send_async_email(app2, msg):
-    with app2.app_context():
-        mail.send(msg)
+@celery.task(task_time_limit=10)
+def _async_send_email(subject, recipient, text_body):
+    msg = Message(subject, recipients=[recipient])
+    msg.body = text_body
+    mail.send(msg)
 
 def send_email(subject, recipient, text_body):
     if 'MAIL_SUPPRESS_SEND' in app.config and app.config['MAIL_SUPPRESS_SEND']:
@@ -26,7 +26,5 @@ def send_email(subject, recipient, text_body):
             _event_log('Not sending email to %s' % recipient)
         print(text_body)
         return
-    msg = Message(subject, recipients=[recipient])
-    msg.body = text_body
     _event_log('Sending email to %s' % recipient)
-    send_async_email(app, msg)
+    _async_send_email.apply_async(args=(subject, recipient, text_body))

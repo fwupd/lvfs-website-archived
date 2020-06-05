@@ -18,6 +18,7 @@ RUN yum -y install \
 	python36-gobject \
 	python36-pip \
 	python36-psutil \
+	redis \
 	words
 RUN flatpak remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
 RUN flatpak -y install flathub org.freedesktop.fwupd
@@ -25,3 +26,5 @@ COPY requirements.txt /tmp/requirements.txt
 RUN pip3 install -r /tmp/requirements.txt
 RUN mkdir /build
 WORKDIR /build
+COPY . .
+CMD ["./contrib/centos.sh"]

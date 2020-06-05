@@ -1938,10 +1938,9 @@ class Remote(db.Model):
     @property
     def scheduled_signing(self):
         now = datetime.datetime.now()
-        if self.is_public:
-            secs = (((4 - (now.hour % 4)) * 60) + (60 - now.minute)) * 60 + (60 - now.second)
-        else:
-            secs = ((5 - (now.minute % 5)) * 60) + (60 - now.second)
+        if not self.is_public:
+            return now
+        secs = (((4 - (now.hour % 4)) * 60) + (60 - now.minute)) * 60 + (60 - now.second)
         return datetime.datetime.now() + datetime.timedelta(seconds=secs)
 
     def __repr__(self):

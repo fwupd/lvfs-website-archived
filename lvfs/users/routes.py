@@ -13,7 +13,9 @@ import pyqrcode
 from flask import Blueprint, request, flash, url_for, redirect, render_template, g
 from flask_login import login_required
 
-from lvfs import db
+from celery.schedules import crontab
+
+from lvfs import db, celery
 
 from lvfs.emails import send_email
 from lvfs.hash import _otp_hash
@@ -22,7 +24,16 @@ from lvfs.util import _error_internal, _email_check, _generate_password
 from lvfs.util import _pkcs7_certificate_info
 from lvfs.models import User, UserAction, Vendor, Remote, Firmware, Event, FirmwareEvent, Certificate
 
+from .utils import _async_user_disable
+
 bp_users = Blueprint('users', __name__, template_folder='templates')
+
+@celery.on_after_configure.connect
+def setup_periodic_tasks(sender, **_):
+    sender.add_periodic_task(
+        crontab(hour=1, minute=0),
+        _async_user_disable.s(),
+    )
 
 def _password_check(value):
     """ Check the password for suitability """

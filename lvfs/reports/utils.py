@@ -11,11 +11,12 @@ import datetime
 
 from flask import render_template
 
-from lvfs import db
+from lvfs import db, celery
 
 from lvfs.emails import send_email
 from lvfs.models import Report, User, Remote, FirmwareEvent, Firmware
 from lvfs.util import _event_log
+from lvfs.metadata.utils import _async_regenerate_remote
 
 def _demote_back_to_testing(fw):
 
@@ -34,6 +35,12 @@ def _demote_back_to_testing(fw):
     fw.mark_dirty()
     remote = db.session.query(Remote).filter(Remote.name == 'testing').first()
     remote.is_dirty = True
+
+    # asynchronously sign straight away, even public remotes
+    for r in set([remote, fw.remote]):
+        r.is_dirty = True
+        _async_regenerate_remote.apply_async(args=(r.remote_id,), queue='metadata', countdown=1)
+
     fw.remote_id = remote.remote_id
     fw.events.append(FirmwareEvent(remote_id=fw.remote_id, user_id=user.user_id))
     db.session.commit()
@@ -76,3 +83,7 @@ def _regenerate_reports():
                        .one()
         _generate_stats_firmware_reports(fw)
     db.session.commit()
+
+@celery.task(task_time_limit=600)
+def _async_regenerate_reports():
+    _regenerate_reports()

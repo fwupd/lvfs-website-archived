@@ -90,15 +90,17 @@
       You also may need to do <code>fwupdmgr refresh</code> on each
       client to show new updates.
     </p>
-{% if remotes['embargo-' + v.group_id].is_dirty %}
-    <div class="alert alert-info card-text" role="alert">
-      Remote will be signed with new firmware in {{format_timedelta_approx(remotes['embargo-' + v.group_id].scheduled_signing)}}
-    </div>
-{% endif %}
 {% if g.user.check_acl('@admin') %}
+{% if remotes['embargo-' + v.group_id].is_dirty %}
+    <!-- Remote will be signed with new firmware -->
+    <a class="card-link btn btn-secondary"
+      href={{url_for('metadata.route_rebuild_remote',
+                     remote_id=remotes['embargo-' + v.group_id].remote_id)}}>Rebuild</a>
+{% else %}
     <a class="card-link btn btn-primary"
       href={{url_for('metadata.route_rebuild_remote',
                      remote_id=remotes['embargo-' + v.group_id].remote_id)}}>Rebuild</a>
+{% endif %}
 {% endif %}
   </div>
 </div>

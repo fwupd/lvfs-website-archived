@@ -14,6 +14,8 @@ from lvfs import db, ploader
 
 from lvfs.models import Requirement, Component, ComponentIssue, Keyword, Checksum, Category
 from lvfs.models import Protocol, Report, ReportAttribute, Firmware, Remote
+from lvfs.firmware.utils import _async_sign_fw
+from lvfs.tests.utils import _async_test_run_for_firmware
 from lvfs.util import _error_internal, _validate_guid
 from lvfs.hash import _is_sha1, _is_sha256
 
@@ -184,10 +186,15 @@ def route_modify(component_id):
     # ensure the test has been added for the new firmware type
     ploader.ensure_test_for_fw(md.fw)
 
+    # asynchronously run
+    _async_test_run_for_firmware.apply_async(args=(md.fw.firmware_id,))
+
     # modify
     md.fw.mark_dirty()
     md.fw.signed_timestamp = None
     db.session.commit()
+    _async_sign_fw.apply_async(args=(md.fw.firmware_id,), queue='firmware')
+
     flash('Component updated', 'info')
     return redirect(url_for('components.route_show',
                             component_id=component_id,
@@ -294,6 +301,7 @@ def route_requirement_delete(component_id, requirement_id):
     md.fw.mark_dirty()
     md.fw.signed_timestamp = None
     db.session.commit()
+    _async_sign_fw.apply_async(args=(md.fw.firmware_id,), queue='firmware')
 
     # log
     flash('Removed requirement %s' % rq.value, 'info')
@@ -358,6 +366,8 @@ def route_requirement_create(component_id):
     md.fw.mark_dirty()
     md.fw.signed_timestamp = None
     db.session.commit()
+    _async_sign_fw.apply_async(args=(md.fw.firmware_id,), queue='firmware')
+
     flash('Added requirement', 'info')
     return redirect(url_for('components.route_show',
                             component_id=md.component_id,
@@ -429,9 +439,11 @@ def route_requirement_modify(component_id):
         md.requirements.append(rq)
         flash('Added requirement', 'info')
 
+    # asynchronously sign
     md.fw.mark_dirty()
     md.fw.signed_timestamp = None
     db.session.commit()
+    _async_sign_fw.apply_async(args=(md.fw.firmware_id,), queue='firmware')
 
     return redirect(url_for('components.route_show',
                             component_id=md.component_id,
@@ -464,6 +476,7 @@ def route_keyword_delete(component_id, keyword_id):
     md.fw.mark_dirty()
     md.fw.signed_timestamp = None
     db.session.commit()
+    _async_sign_fw.apply_async(args=(md.fw.firmware_id,), queue='firmware')
 
     # log
     flash('Removed keyword %s' % kw.value, 'info')
@@ -498,6 +511,8 @@ def route_keyword_create(component_id):
     md.fw.mark_dirty()
     md.fw.signed_timestamp = None
     db.session.commit()
+    _async_sign_fw.apply_async(args=(md.fw.firmware_id,), queue='firmware')
+
     flash('Added keywords', 'info')
     return redirect(url_for('components.route_show',
                             component_id=md.component_id,
@@ -526,6 +541,7 @@ def route_issue_delete(component_id, component_issue_id):
     md.fw.mark_dirty()
     md.fw.signed_timestamp = None
     db.session.commit()
+    _async_sign_fw.apply_async(args=(md.fw.firmware_id,), queue='firmware')
 
     # log
     flash('Removed {}'.format(issue.value), 'info')
@@ -610,6 +626,7 @@ def route_issue_autoimport(component_id):
         md.fw.mark_dirty()
         md.fw.signed_timestamp = None
         db.session.commit()
+        _async_sign_fw.apply_async(args=(md.fw.firmware_id,), queue='firmware')
         flash('Added {} issues — now review the update description for sanity'.format(n_issues), 'info')
     return redirect(url_for('components.route_show',
                             component_id=md.component_id,
@@ -665,6 +682,8 @@ def route_issue_create(component_id):
     md.fw.mark_dirty()
     md.fw.signed_timestamp = None
     db.session.commit()
+    _async_sign_fw.apply_async(args=(md.fw.firmware_id,), queue='firmware')
+
     return redirect(url_for('components.route_show',
                             component_id=md.component_id,
                             page='issues'))
@@ -697,6 +716,7 @@ def route_checksum_delete(component_id, checksum_id):
     md.fw.signed_timestamp = None
     db.session.delete(csum)
     db.session.commit()
+    _async_sign_fw.apply_async(args=(md.fw.firmware_id,), queue='firmware')
 
     # log
     flash('Removed device checksum', 'info')
@@ -752,6 +772,8 @@ def route_checksum_create(component_id):
     md.fw.mark_dirty()
     md.fw.signed_timestamp = None
     db.session.commit()
+    _async_sign_fw.apply_async(args=(md.fw.firmware_id,), queue='firmware')
+
     flash('Added device checksum', 'info')
     return redirect(url_for('components.route_show',
                             component_id=md.component_id,

@@ -10,14 +10,25 @@ import json
 from flask import Blueprint, request, url_for, redirect, flash, Response, render_template
 from flask_login import login_required
 
-from lvfs import app, db, csrf
+from celery.schedules import crontab
+
+from lvfs import app, db, csrf, celery
 
 from lvfs.models import Firmware, Report, ReportAttribute, Issue, Certificate, Checksum
 from lvfs.util import _event_log
 from lvfs.util import _json_success, _json_error, _pkcs7_signature_info, _pkcs7_signature_verify
 from lvfs.hash import _is_sha1, _is_sha256
 
+from .utils import _async_regenerate_reports
+
 bp_reports = Blueprint('reports', __name__, template_folder='templates')
+
+@celery.on_after_configure.connect
+def setup_periodic_tasks(sender, **_):
+    sender.add_periodic_task(
+        crontab(hour=5, minute=0),
+        _async_regenerate_reports.s(),
+    )
 
 def _report_to_dict(report):
     data = {}

@@ -14,18 +14,29 @@ from flask_login import login_required
 
 from sqlalchemy.orm import joinedload
 
-from lvfs import app, db, ploader
+from celery.schedules import crontab
+
+from lvfs import app, db, ploader, celery
 
 from lvfs.emails import send_email
+from lvfs.metadata.utils import _async_regenerate_remote
 from lvfs.models import Firmware, Report, Client, FirmwareEvent, FirmwareLimit
 from lvfs.models import Remote, Vendor, AnalyticFirmware, Component
 from lvfs.models import ComponentShard, ComponentShardChecksum
 from lvfs.models import _get_datestr_from_datetime
+from lvfs.tests.utils import _async_test_run_for_firmware
 from lvfs.util import _error_internal, admin_login_required
 from lvfs.util import _get_chart_labels_months, _get_chart_labels_days, _get_shard_path
-from .utils import _firmware_delete
+from .utils import _firmware_delete, _async_sign_fw, _async_autodelete
 
 bp_firmware = Blueprint('firmware', __name__, template_folder='templates')
+
+@celery.on_after_configure.connect
+def setup_periodic_tasks(sender, **_):
+    sender.add_periodic_task(
+        crontab(hour=2, minute=0),
+        _async_autodelete.s(),
+    )
 
 @bp_firmware.route('/')
 @bp_firmware.route('/state/<state>')
@@ -210,9 +221,11 @@ def route_resign(firmware_id):
         flash('Cannot resign unsigned file', 'danger')
         return redirect(url_for('firmware.route_show', firmware_id=firmware_id))
 
-    # all done
+    # asynchronously sign
     fw.signed_timestamp = None
     db.session.commit()
+    _async_sign_fw.apply_async(args=(fw.firmware_id,), queue='firmware')
+
     flash('Firmware will be re-signed soon', 'info')
     return redirect(url_for('firmware.route_show', firmware_id=firmware_id))
 
@@ -267,11 +280,19 @@ def route_promote(firmware_id, target):
     fw.remote.is_dirty = True
     fw.vendor_odm.remote.is_dirty = True
 
+    # asynchronously sign
+    for r in set([remote, fw.remote, fw.vendor_odm.remote]):
+        r.is_dirty = True
+        _async_regenerate_remote.apply_async(args=(r.remote_id,), queue='metadata', countdown=1)
+
     # invalidate the firmware as we're waiting for the metadata generation
     fw.mark_dirty()
 
     # some tests only run when the firmware is in stable
     ploader.ensure_test_for_fw(fw)
+
+    # asynchronously run
+    _async_test_run_for_firmware.apply_async(args=(fw.firmware_id,))
 
     # also dirty any ODM remote if uploading on behalf of an OEM
     if target == 'embargo' and fw.vendor != fw.user.vendor:
@@ -357,6 +378,10 @@ def route_limit_delete(firmware_limit_id):
     db.session.delete(fl)
     db.session.commit()
     flash('Deleted limit', 'info')
+
+    # asynchronously sign
+    _async_regenerate_remote.apply_async(args=(fl.fw.remote.remote_id,), queue='metadata')
+
     return redirect(url_for('firmware.route_limits', firmware_id=firmware_id))
 
 @bp_firmware.route('/<int:firmware_id>/modify', methods=['POST'])
@@ -417,6 +442,10 @@ def route_limit_create():
     fl.fw.mark_dirty()
     db.session.commit()
     flash('Added limit', 'info')
+
+    # asynchronously sign
+    _async_regenerate_remote.apply_async(args=(fl.fw.remote.remote_id,), queue='metadata')
+
     return redirect(url_for('firmware.route_limits', firmware_id=fl.firmware_id))
 
 @bp_firmware.route('/<int:firmware_id>/affiliation')
@@ -495,6 +524,10 @@ def route_affiliation_change(firmware_id):
         db.session.commit()
 
     flash('Changed firmware vendor', 'info')
+
+    # asynchronously sign
+    _async_regenerate_remote.apply_async(args=(fw.remote.remote_id,), queue='metadata')
+
     return redirect(url_for('firmware.route_show', firmware_id=fw.firmware_id))
 
 @bp_firmware.route('/<int:firmware_id>/problems')

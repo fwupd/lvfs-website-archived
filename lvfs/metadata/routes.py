@@ -10,12 +10,21 @@ import humanize
 from flask import Blueprint, render_template, make_response, flash, redirect, url_for
 from flask_login import login_required
 
-from lvfs import db
+from lvfs import db, celery
 
 from lvfs.models import Vendor, Remote
 from lvfs.util import admin_login_required
 
+from .utils import _async_regenerate_remote_all, _async_regenerate_remote
+
 bp_metadata = Blueprint('metadata', __name__, template_folder='templates')
+
+celery.control.time_limit('lvfs.metadata.utils._async_regenerate_remote',
+                          soft=60, hard=120, reply=True)
+
+@celery.on_after_configure.connect
+def setup_periodic_tasks(sender, **_):
+    sender.add_periodic_task(14400.0, _async_regenerate_remote_all.s(), options={'queue': 'metadata'})
 
 @bp_metadata.route('/<group_id>')
 @login_required
@@ -105,8 +114,13 @@ def route_rebuild_remote(remote_id):
         flash('No remote with that ID', 'danger')
         return redirect(url_for('metadata.route_view'))
     r.is_dirty = True
-
-    # modify
     db.session.commit()
-    flash('Remote %s marked as dirty' % r.name, 'info')
+
+    if r.is_public:
+        flash('Remote %s marked as dirty' % r.name, 'info')
+    else:
+        flash('Remote {} is being regenerated'.format(r.name), 'info')
+        # asynchronously rebuilt
+        _async_regenerate_remote.apply_async(args=(r.remote_id,), queue='metadata')
+
     return redirect(url_for('metadata.route_view'))

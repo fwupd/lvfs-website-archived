@@ -20,11 +20,12 @@ from lvfs import app, db, ploader, csrf
 from lvfs.emails import send_email
 from lvfs.models import Firmware, FirmwareEvent, Vendor, Remote, Agreement
 from lvfs.models import Affiliation, Protocol, Category, Component, Verfmt
+from lvfs.tests.utils import _async_test_run_for_firmware
 from lvfs.upload.uploadedfile import UploadedFile, FileTooLarge, FileTooSmall, FileNotSupported, MetadataInvalid
 from lvfs.util import _get_client_address, _get_settings, _fix_component_name
 from lvfs.util import _error_internal
 from lvfs.util import _json_success, _json_error
-from lvfs.firmware.utils import _firmware_delete
+from lvfs.firmware.utils import _firmware_delete, _async_sign_fw
 
 bp_upload = Blueprint('upload', __name__, template_folder='templates')
 
@@ -250,6 +251,9 @@ def _upload_firmware():
     # ensure the test has been added for the firmware type
     ploader.ensure_test_for_fw(fw)
 
+    # asynchronously run
+    _async_test_run_for_firmware.apply_async(args=(fw.firmware_id,))
+
     # send out emails to anyone interested
     for u in fw.get_possible_users_to_email:
         if u == g.user:
@@ -266,6 +270,9 @@ def _upload_firmware():
                                        user=u, user_upload=g.user, fw=fw))
 
     flash('Uploaded file %s to %s' % (ufile.fw.filename, target), 'info')
+
+    # asynchronously sign
+    _async_sign_fw.apply_async(args=(fw.firmware_id,), queue='firmware')
 
     # invalidate
     if target == 'embargo':

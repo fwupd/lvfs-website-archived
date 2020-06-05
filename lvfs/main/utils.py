@@ -7,7 +7,7 @@
 #
 # pylint: disable=singleton-comparison
 
-from lvfs import db
+from lvfs import db, celery
 
 from lvfs.dbutils import _execute_count_star
 from lvfs.models import Metric, Client, Firmware, Remote, Test, Report
@@ -61,3 +61,7 @@ def _regenerate_metrics():
         metric.value = values[key]
         print('{}={}'.format(metric.key, metric.value))
     db.session.commit()
+
+@celery.task(task_time_limit=600)
+def _async_regenerate_metrics():
+    _regenerate_metrics()

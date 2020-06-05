@@ -27,7 +27,7 @@ class LocalTestCase(LvfsTestCase):
         # upload file, dirtying the admin-embargo remote
         self.upload('embargo')
         rv = self.app.get('/lvfs/metadata/')
-        assert b'Remote will be signed with' in rv.data, rv.data
+        assert b'Remote will be signed with' in rv.data, rv.data.decode()
 
         # run the cron job manually
         self.run_cron_metadata(['embargo-admin'])

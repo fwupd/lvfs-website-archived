@@ -7,7 +7,7 @@
 #
 # pylint: disable=singleton-comparison
 
-from lvfs import db
+from lvfs import db, celery
 
 from lvfs.models import ComponentShard, ComponentShardInfo
 
@@ -47,3 +47,7 @@ def _regenerate_shard_infos():
                          .one()
         _generate_stats_shard_info(info)
     db.session.commit()
+
+@celery.task(task_time_limit=600)
+def _async_regenerate_shard_infos():
+    _regenerate_shard_infos()
