@@ -34,6 +34,7 @@ def _md_to_mdsync_dict(md):
             obj['changelog_url'] = md.details_url
         if md.fw.success:
             obj['success'] = md.fw.success
+            obj['success_confidence'] = md.fw.success_confidence
     return obj
 
 def _mds_to_mdsync_dict(mds):

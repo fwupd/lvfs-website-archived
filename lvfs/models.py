@@ -2079,6 +2079,15 @@ class Firmware(db.Model):
         return (self.report_success_cnt * 100) / total
 
     @property
+    def success_confidence(self):
+        total = self.report_failure_cnt + self.report_success_cnt + self.report_issue_cnt
+        if total > 1000:
+            return 'high'
+        if total > 100:
+            return 'medium'
+        return 'low'
+
+    @property
     def filename_absolute(self):
         if self.is_deleted:
             return os.path.join('/deleted', self.filename)
