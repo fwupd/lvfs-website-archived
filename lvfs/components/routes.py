@@ -418,22 +418,21 @@ def route_requirement_modify(component_id):
             flash('Modified requirement %s' % rq.value, 'info')
         else:
             flash('Modified requirement firmware', 'info')
-        return redirect(url_for('components.route_show',
-                                component_id=md.component_id,
-                                page='requires'))
+    else:
+        # add requirement
+        rq = Requirement(kind=request.form['kind'],
+                         value=value,
+                         compare=request.form.get('compare', None),
+                         version=request.form.get('version', None),
+                         depth=request.form.get('depth', None),
+                        )
+        md.requirements.append(rq)
+        flash('Added requirement', 'info')
 
-    # add requirement
-    rq = Requirement(kind=request.form['kind'],
-                     value=value,
-                     compare=request.form.get('compare', None),
-                     version=request.form.get('version', None),
-                     depth=request.form.get('depth', None),
-                    )
-    md.requirements.append(rq)
     md.fw.mark_dirty()
     md.fw.signed_timestamp = None
     db.session.commit()
-    flash('Added requirement', 'info')
+
     return redirect(url_for('components.route_show',
                             component_id=md.component_id,
                             page='requires'))
