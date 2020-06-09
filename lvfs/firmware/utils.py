@@ -153,8 +153,6 @@ def _async_sign_fw(firmware_id):
     if not fw.remote.is_public:
         _regenerate_and_sign_metadata_remote(fw.remote)
 
-    _event_log('Signed firmware %s' % fw.firmware_id)
-
 def _sign_fw(fw):
 
     # load the .cab file
