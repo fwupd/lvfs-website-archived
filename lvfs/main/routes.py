@@ -164,6 +164,7 @@ def serveStaticResource(resource):
     if resource.startswith('uploads/'):
         return send_from_directory(app.config['UPLOAD_DIR'], os.path.basename(resource))
 
+    print(resource)
     # static files served locally
     return send_from_directory(os.path.join(app.root_path, 'static'), resource)
 

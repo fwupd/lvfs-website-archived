@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 
 {% block head %}
-<link rel="stylesheet" href="/bootstrap-switch.css">
+<link rel="stylesheet" href="{{url_for('static', filename='bootstrap-switch.css')}}">
 {% endblock %}
 
 {% block body %}
@@ -14,7 +14,7 @@
     <a class="navbar-brand text-left" href="{{url_for('main.route_dashboard')}}">
       <div class="d-flex align-items-center text-primary py-3">
         <div class="d-inline-flex flex-center">
-          <img class="mr-2" src="/avatar.png" alt="" width="40" />
+          <img class="mr-2" src="{{url_for('static', filename='avatar.png')}}" alt="" width="40" />
           <span class="text-sans-serif">LVFS</span>
         </div>
       </div>
@@ -318,7 +318,7 @@
       <button class="navbar-toggler collapsed" type="button" data-toggle="collapse" data-target="#navbarVerticalCollapse" aria-controls="navbarVerticalCollapse" aria-expanded="false" aria-label="Toggle navigation"><span class="navbar-toggler-icon"></span></button><a class="navbar-brand text-left ml-3" href="../index.html">
         <div class="d-flex align-items-center text-primary">
           <div class="d-inline-flex flex-center">
-            <img class="mr-2" src="/avatar.png" alt="" width="40" />
+            <img class="mr-2" src="{{url_for('static', filename='avatar.png')}}" alt="" width="40" />
             <span class="text-sans-serif">LVFS</span>
           </div>
         </div>

@@ -112,7 +112,7 @@
   <tr class="row">
     <th class="col-3">OEM State</th>
     <td class="col">
-      <img src="/img/symbolic-{{mdref.status}}.svg" width="24"
+      <img src="{{url_for('static', filename='img/symbolic-' + mdref.status + '.svg')}}" width="24"
         alt="{{mdref.status}}"
         title="{{mdref.status}}"/>
       {{mdref.status}}

@@ -2,7 +2,7 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
   <link rel="self" href="{{url_for('devices.route_show_atom', appstream_id=appstream_id)}}"/>
   <id>{{url_for('devices.route_show_atom', appstream_id=appstream_id)}}</id>
-  <icon>/favicon.ico</icon>
+  <icon>{{url_for('static', filename='favicon.ico')}}</icon>
 
 {% if fws|length == 0 %}
   <title>No firmware is available for this device.</title>

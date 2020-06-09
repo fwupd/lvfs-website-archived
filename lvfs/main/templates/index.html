@@ -2,20 +2,20 @@
 {% block title %}Home{% endblock %}
 
 {% block head %}
-<link rel="stylesheet" href="/owl.carousel.css">
+<link rel="stylesheet" href="{{url_for('static', filename='owl.carousel.css')}}">
 {% endblock %}
 
 {% block script %}
-<script src="/stickyfill.min.js"></script>
-<script src="/sticky-kit.js"></script>
-<script src="/owl.carousel.js"></script>
+<script src="{{url_for('static', filename='stickyfill.min.js')}}"></script>
+<script src="{{url_for('static', filename='sticky-kit.js')}}"></script>
+<script src="{{url_for('static', filename='owl.carousel.js')}}"></script>
 {% endblock %}
 
 {% block content2 %}
 
 <!-- jumbotron -->
 <section class="py-0 overflow-hidden" id="banner">
-  <div class="bg-holder overlay" style="background-image:url(/bg-2.jpg);background-position: center bottom;">
+  <div class="bg-holder overlay" style="background-image:url({{url_for('static', filename='bg-2.jpg')}});background-position: center bottom;">
   </div>
   <div class="container pt-6 pt-lg-8">
 {% for category, msg in get_flashed_messages(with_categories=true) %}
@@ -39,7 +39,7 @@
       </div>
       <div class="col-xl-7 offset-xl-1 align-self-end">
         <a class="img-landing-bannar" href="{{url_for('docs.route_introduction')}}">
-          <img class="img-fluid" src="/img/dashboard.png" alt="" />
+          <img class="img-fluid" src="{{url_for('static', filename='img/dashboard.png')}}" alt="" />
         </a>
       </div>
     </div>

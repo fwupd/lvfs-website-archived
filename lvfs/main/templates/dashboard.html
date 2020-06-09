@@ -204,17 +204,17 @@ new Chart(ctx, {
       </p>
     </div>
     <div class="col pt-1">
-      <img src="/img/symbolic-{{fw.remote.icon_name}}.svg" width="24"
+      <img src="{{url_for('static', filename='img/symbolic-' + fw.remote.icon_name + '.svg')}}" width="24"
         alt="{{fw.remote.name}}"
         title="{{fw.remote.description}}"/>
 {% if fw.problems|length %}
-      <img src="/img/symbolic-problem.svg" width="24"
+      <img src="{{url_for('static', filename='img/symbolic-problem.svg')}}" width="24"
         title="{{fw.problems|length}} problems"/>
 {% endif %}
     </div>
     <div class="col pt-1">
       <span class="text-muted">
-        <img src="/img/symbolic-download.svg" width="24" alt="download icon"/>
+        <img src="{{url_for('static', filename='img/symbolic-download.svg')}}" width="24" alt="download icon"/>
         <span>{{format_humanize_intchar(fw.download_cnt)}}</span>
       </span>
     </div>
