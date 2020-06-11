@@ -65,6 +65,15 @@ def _test_run_all(tests=None):
     # all done
     db.session.commit()
 
+@celery.task(max_retries=3, default_retry_delay=600, task_time_limit=3600)
+def _async_test_run_all():
+    tests = db.session.query(Test)\
+                      .filter(Test.started_ts == None)\
+                      .all()
+    if not tests:
+        return
+    _test_run_all(tests)
+
 @celery.task(max_retries=3, default_retry_delay=5, task_time_limit=600)
 def _async_test_run(test_id):
     tests = db.session.query(Test)\
