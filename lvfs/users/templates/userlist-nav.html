@@ -1,0 +1,22 @@
+<nav class="row">
+  <div class="col col-sm-12 text-center mb-3">
+    <div class="btn-group" role="group">
+      <a class="btn btn-falcon-{{'primary' if request.url_rule.endpoint == 'users.route_list' and not acl else 'default'}}"
+        href="{{url_for('users.route_list')}}">All</a>
+      <a class="btn btn-falcon-{{'primary' if request.url_rule.endpoint == 'users.route_list' and acl == 'admin' else 'default'}}"
+        href="{{url_for('users.route_list', acl='admin')}}">Admin</a>
+      <a class="btn btn-falcon-{{'primary' if request.url_rule.endpoint == 'users.route_list' and acl == 'vendor-manager' else 'default'}}"
+        href="{{url_for('users.route_list', acl='vendor-manager')}}">Vendor Manager</a>
+      <a class="btn btn-falcon-{{'primary' if request.url_rule.endpoint == 'users.route_list' and acl == 'analyst' else 'default'}}"
+        href="{{url_for('users.route_list', acl='analyst')}}">Analyst</a>
+      <a class="btn btn-falcon-{{'primary' if request.url_rule.endpoint == 'users.route_list' and acl == 'qa' else 'default'}}"
+        href="{{url_for('users.route_list', acl='qa')}}">QA</a>
+      <a class="btn btn-falcon-{{'primary' if request.url_rule.endpoint == 'users.route_list' and acl == 'approved-public' else 'default'}}"
+        href="{{url_for('users.route_list', acl='approved-public')}}">Approved Public</a>
+      <a class="btn btn-falcon-{{'primary' if request.url_rule.endpoint == 'users.route_list' and acl == 'robot' else 'default'}}"
+        href="{{url_for('users.route_list', acl='robot')}}">Robot</a>
+      <a class="btn btn-falcon-{{'primary' if request.url_rule.endpoint == 'users.route_list' and acl == 'researcher' else 'default'}}"
+        href="{{url_for('users.route_list', acl='researcher')}}">Researcher</a>
+    </div>
+  </div>
+</nav>

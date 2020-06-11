@@ -672,15 +672,24 @@ def route_delete(user_id):
     return redirect(url_for('users.route_list'), 302)
 
 @bp_users.route('/')
+@bp_users.route('/acl/<acl>')
 @login_required
 @admin_login_required
-def route_list():
+def route_list(acl=None):
     """
     Show a list of all users
     """
+    if acl:
+        users = db.session.query(User)\
+                          .join(UserAction)\
+                          .filter(UserAction.value == acl)\
+                          .order_by(User.user_id.asc()).all()
+    else:
+        users = db.session.query(User).order_by(User.user_id.asc()).all()
     return render_template('userlist.html',
                            category='admin',
-                           users=db.session.query(User).all())
+                           users=users,
+                           acl=acl)
 
 @bp_users.route('/<int:user_id>')
 @bp_users.route('/<int:user_id>/<page>')

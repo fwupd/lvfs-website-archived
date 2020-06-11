@@ -1,22 +1,29 @@
 {% extends "default.html" %}
 {% block title %}User List{% endblock %}
 
+{% block nav %}{% include 'userlist-nav.html' %}{% endblock %}
+
 {% block content %}
 <div class="card">
   <div class="card-body">
-    <h2 class="card-title">Userlist</h2>
+    <h2 class="card-title">
+      Userlist
+{% if acl %}
+      with ACL &lsquo;{{acl}}&rsquo;
+{% endif %}
+    </h2>
 {% if users|length > 0 %}
-<table class="table">
+<table class="table card-text">
   <tr class="row table-borderless">
-    <th class="col col-sm-5">Vendor</th>
     <th class="col col-sm-5">Username</th>
+    <th class="col col-sm-5">Vendor</th>
     <th class="col col-sm-2">&nbsp;</th>
   </tr>
 {% for u in users %}
   <!-- user_id={{u.user_id}} -->
   <tr class="row">
-    <td class="col col-sm-5">{{u.vendor.group_id}}</td>
     <td class="col col-sm-5">{{u.username}}</td>
+    <td class="col col-sm-5">{{u.vendor.group_id}}</td>
     <td class="col col-sm-2">
       <a class="btn btn-info btn-block"
         href="{{url_for('users.route_admin', user_id=u.user_id)}}">Details</a>
@@ -28,6 +35,7 @@
   </div>
 </div>
 
+{% if not acl %}
 <div class="card mt-3">
   <div class="card-body">
     <h2 class="card-title">Create a new user</h2>
@@ -56,5 +64,6 @@
 </form>
   </div>
 </div>
+{% endif %}
 
 {% endblock %}
