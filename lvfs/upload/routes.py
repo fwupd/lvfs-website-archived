@@ -251,6 +251,9 @@ def _upload_firmware():
     # ensure the test has been added for the firmware type
     ploader.ensure_test_for_fw(fw)
 
+    # sync everything we added
+    db.session.commit()
+
     # asynchronously run
     _async_test_run_for_firmware.apply_async(args=(fw.firmware_id,))
 

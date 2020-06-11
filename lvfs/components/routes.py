@@ -186,6 +186,9 @@ def route_modify(component_id):
     # ensure the test has been added for the new firmware type
     ploader.ensure_test_for_fw(md.fw)
 
+    # sync everything we added
+    db.session.commit()
+
     # asynchronously run
     _async_test_run_for_firmware.apply_async(args=(md.fw.firmware_id,))
 

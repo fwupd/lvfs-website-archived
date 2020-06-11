@@ -291,6 +291,9 @@ def route_promote(firmware_id, target):
     # some tests only run when the firmware is in stable
     ploader.ensure_test_for_fw(fw)
 
+    # sync everything we added
+    db.session.commit()
+
     # asynchronously run
     _async_test_run_for_firmware.apply_async(args=(fw.firmware_id,))
 
