@@ -373,6 +373,8 @@ def route_login():
         if not user:
             flash('Failed to log in: Incorrect username {}'.format(username), 'danger')
             return redirect(url_for('main.route_index'))
+        flash('Failed to log in: {} must use OAuth to login'.format(username), 'danger')
+        return redirect(url_for('main.route_index'))
 
     # check auth type
     if not user.auth_type or user.auth_type == 'disabled':
