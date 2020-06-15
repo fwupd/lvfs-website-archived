@@ -122,10 +122,8 @@ class User(db.Model):
 
     @password.setter
     def password(self, password):
-        password_hash = generate_password_hash(password)
-        if password_hash != self.password_hash:
-            self.password_ts = datetime.datetime.utcnow()
-        self.password_hash = password_hash
+        self.password_hash = generate_password_hash(password)
+        self.password_ts = datetime.datetime.utcnow()
 
     def verify_password(self, password):
         # never set, or disabled
