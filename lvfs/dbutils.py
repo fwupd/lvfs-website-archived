@@ -56,7 +56,7 @@ def _make_fake_version():
                          random.randint(1, 254))
 
 def anonymize_db(db):
-    from .models import Vendor, Firmware, Client
+    from .models import Vendor, Firmware
 
     # get vendor display names
     vendor_names = []
@@ -176,11 +176,6 @@ def anonymize_db(db):
         fw.checksum_signed_sha256 = hashlib.sha256(os.urandom(4096)).hexdigest()
         fw.filename = fw.checksum_upload_sha256 + '-' + fw.vendor.group_id + '-' + \
                       _make_boring(fw.md_prio.name) + '-' + fw.version_display + '.cab'
-
-    # anonymize clients -- only do this on beefy hardware...
-    if 'FLASK_RANDOMIZE_CLIENTS' in os.environ:
-        for cl in db.session.query(Client):
-            cl.addr = hashlib.sha1(os.urandom(32)).hexdigest()
 
     # phew!
     db.session.commit()

@@ -2375,7 +2375,6 @@ class Client(db.Model):
     id = Column(Integer, primary_key=True)
     timestamp = Column(DateTime, nullable=False, default=datetime.datetime.utcnow, index=True)
     datestr = Column(Integer, default=0, index=True)
-    addr = Column(String(40), nullable=False)
     firmware_id = Column(Integer, ForeignKey('firmware.firmware_id'), nullable=False, index=True)
     user_agent = Column(Text, default=None)
 

@@ -34,7 +34,6 @@ from lvfs.pluginloader import PluginError
 from lvfs.models import Firmware, Requirement, Vendor, Metric
 from lvfs.models import User, Client, Event, AnalyticVendor, Remote
 from lvfs.models import _get_datestr_from_datetime
-from lvfs.hash import _addr_hash
 from lvfs.util import _get_client_address, _get_settings, _xml_from_markdown, _get_chart_labels_days
 from lvfs.util import _event_log, _error_internal
 
@@ -144,8 +143,7 @@ def serveStaticResource(resource):
         # log the client request
         if not fw.do_not_track:
             datestr = _get_datestr_from_datetime(datetime.datetime.utcnow())
-            db.session.add(Client(addr=_addr_hash(_get_client_address()),
-                                  firmware_id=fw.firmware_id,
+            db.session.add(Client(firmware_id=fw.firmware_id,
                                   user_agent=user_agent,
                                   datestr=datestr))
 
