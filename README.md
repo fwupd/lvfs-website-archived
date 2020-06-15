@@ -73,6 +73,10 @@ On Fedora:
         python3-psutil \
         python3-virtualenv
 
+You can then set up the default site settings by logging in as the admin, and
+then visiting `http://127.0.0.1:5000/lvfs/settings/create` to set all the unset
+config values to their defaults.
+
 ## Running Celery ##
 
     ./env/bin/celery -A lvfs.celery worker --queues metadata,firmware,celery,yara
