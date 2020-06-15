@@ -15,9 +15,10 @@ from flask import g
 
 from lvfs import app, db, ploader
 
-from lvfs.models import Component, Category, Protocol, Firmware, User
+from lvfs.models import Component, Category, Protocol, Firmware, User, Vendor
 from lvfs.upload.uploadedfile import UploadedFile, MetadataInvalid
 from lvfs.util import _get_absolute_path
+from lvfs.vendors.utils import _vendor_hash
 
 def _repair_ts():
 
@@ -57,6 +58,24 @@ def _fsck():
         fn = _get_absolute_path(fw)
         if not os.path.isfile(fn):
             print('firmware {} is missing, expected {}'.format(fw.firmware_id, fn))
+
+def _repair_vendor():
+
+    # fix all the checksums and file sizes
+    for v in db.session.query(Vendor):
+        hmac_dig = _vendor_hash(v)
+        icon = 'vendor-{}.png'.format(hmac_dig)
+        if v.icon and icon != v.icon:
+            print('moving {} to {}'.format(v.icon, icon))
+            try:
+                os.rename(os.path.join(app.config['UPLOAD_DIR'], v.icon),
+                          os.path.join(app.config['UPLOAD_DIR'], icon))
+                v.icon = icon
+            except FileNotFoundError as _:
+                pass
+
+    # all done
+    db.session.commit()
 
 def _repair_csum():
 
@@ -110,6 +129,8 @@ def _main_with_app_context():
         _repair_ts()
     if 'repair-csum' in sys.argv:
         _repair_csum()
+    if 'repair-vendor' in sys.argv:
+        _repair_vendor()
     if 'fsck' in sys.argv:
         _fsck()
     if 'ensure' in sys.argv:

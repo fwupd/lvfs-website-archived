@@ -26,6 +26,8 @@ from lvfs.metadata.utils import _async_regenerate_remote
 from lvfs.models import Vendor, Restriction, Namespace, User, Remote, Affiliation, AffiliationAction, Verfmt, Firmware
 from lvfs.util import _generate_password
 
+from .utils import _vendor_hash
+
 bp_vendors = Blueprint('vendors', __name__, template_folder='templates')
 
 def _count_vendor_fws_public(vendor, remote_name):
@@ -515,7 +517,8 @@ def route_upload(vendor_id):
 
     # write the pixmap
     buf = request.files['file'].read()
-    fn = os.path.join(app.config['UPLOAD_DIR'], 'vendor-%s.png' % vendor_id)
+    hmac_dig = _vendor_hash(vendor)
+    fn = os.path.join(app.config['UPLOAD_DIR'], 'vendor-{}.png'.format(hmac_dig))
     with open(fn, 'wb') as f:
         f.write(buf)
 
