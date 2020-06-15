@@ -2033,6 +2033,13 @@ class Firmware(db.Model):
         return datetime.datetime.utcnow() - self.events[0].timestamp.replace(tzinfo=None)
 
     @property
+    def release_ts(self):
+        for ev in self.events:
+            if ev.remote.is_public:
+                return ev.timestamp.replace(tzinfo=None)
+        return None
+
+    @property
     def do_not_track(self):
         return self._do_not_track or self.vendor.do_not_track
 

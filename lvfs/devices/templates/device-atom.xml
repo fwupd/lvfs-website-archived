@@ -9,7 +9,7 @@
 {% else %}
   <title>LVFS: {{fws[0].md_prio.name}}</title>
   <subtitle>{{fws[0].md_prio.description}}</subtitle>
-  <updated>{{fws[0].timestamp.isoformat()}}</updated>
+  <updated>{{fws[0].release_ts.isoformat()}}</updated>
   <author>
     <name>{{fws[0].md_prio.developer_name}}</name>
   </author>
@@ -20,7 +20,7 @@
     <title>{{fws[0].md_prio.name_with_category}} {{fw.version_display}}</title>
     <link href="{{url_for('devices.route_show', appstream_id=appstream_id)}}"/>
     <id>{{appstream_id}}_{{fw.version_display}}</id>
-    <updated>{{fw.timestamp.isoformat()}}</updated>
+    <updated>{{fw.release_ts.isoformat()}}</updated>
     <author>
         <name>{{fw.md_prio.developer_name}}</name>
     </author>
