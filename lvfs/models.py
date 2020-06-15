@@ -35,7 +35,7 @@ from pkgversion import vercmp
 from lvfs import db
 
 from lvfs.dbutils import _execute_count_star
-from lvfs.hash import _qa_hash, _password_hash
+from lvfs.hash import _qa_hash
 from lvfs.util import _generate_password, _xml_from_markdown, _get_update_description_problems
 from lvfs.util import _get_absolute_path, _get_shard_path, _validate_guid
 
@@ -129,12 +129,6 @@ class User(db.Model):
         # never set, or disabled
         if not self.password_hash:
             return False
-        # on success, upgrade the old hashing function to the new secure one
-        if len(self.password_hash) == 40:
-            if self.password_hash != _password_hash(password):
-                return False
-            self.password = password
-            return True
         return check_password_hash(self.password_hash, password)
 
     def get_totp_uri(self):
@@ -224,7 +218,7 @@ class User(db.Model):
         if self.auth_type == 'oauth':
             raise RuntimeError('account set to OAuth only')
         self.mtime = datetime.datetime.utcnow()
-        self.password_recovery = _password_hash(_generate_password())
+        self.password_recovery = _generate_password()
         self.password_recovery_ts = datetime.datetime.utcnow()
 
     @property

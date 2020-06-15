@@ -21,11 +21,6 @@ def _addr_hash(value):
     salt = app.config['SECRET_ADDR_SALT']
     return hashlib.sha1((salt + value).encode('utf-8')).hexdigest()
 
-def _password_hash(value):
-    """ Generate a salted hash of the password string """
-    salt = app.config['SECRET_PASSWORD_SALT']
-    return hashlib.sha1((salt + value).encode('utf-8')).hexdigest()
-
 def _otp_hash():
     """ Generate a random OTP secret """
     return base64.b32encode(os.urandom(10)).decode('utf-8')
