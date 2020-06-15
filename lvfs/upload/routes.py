@@ -24,7 +24,6 @@ from lvfs.tests.utils import _async_test_run_for_firmware
 from lvfs.upload.uploadedfile import UploadedFile, FileTooLarge, FileTooSmall, FileNotSupported, MetadataInvalid
 from lvfs.util import _get_client_address, _get_settings, _fix_component_name
 from lvfs.util import _error_internal
-from lvfs.util import _json_success, _json_error
 from lvfs.firmware.utils import _firmware_delete, _async_sign_fw
 
 bp_upload = Blueprint('upload', __name__, template_folder='templates')
@@ -324,45 +323,3 @@ def route_firmware():
 
     # continue with form data
     return _upload_firmware()
-
-@bp_upload.route('/hwinfo', methods=['POST'])
-def route_hwinfo():
-    """ Upload a hwinfo binary file to the LVFS service without authentication """
-
-    # not correct parameters
-    if not 'type' in request.form:
-        return _json_error('no type')
-    if not 'machine_id' in request.form:
-        return _json_error('no machine_id')
-    if not 'file' in request.files:
-        return _json_error('no file')
-    if len(request.form['machine_id']) != 32:
-        return _json_error('machine_id %s not valid' % request.form['machine_id'])
-    try:
-        int(request.form['machine_id'], 16)
-    except ValueError as e:
-        return _json_error(str(e))
-
-    # check type against defined list
-    settings = _get_settings()
-    if request.form['type'] not in settings['hwinfo_kinds'].split(','):
-        return _json_error('type not valid')
-
-    # read in entire file
-    fileitem = request.files['file']
-    if not fileitem:
-        return _json_error('no file object')
-    filebuf = fileitem.read()
-    if len(filebuf) > 0x40000:
-        return _json_error('file is too large')
-
-    # dump to a file
-    hwinfo_dir = os.path.join(app.config['HWINFO_DIR'], request.form['type'])
-    if not os.path.exists(hwinfo_dir):
-        os.mkdir(hwinfo_dir)
-    fn = os.path.join(hwinfo_dir, '%s' % request.form['machine_id'])
-    if os.path.exists(fn):
-        return _json_error('already reported from this machine-id')
-    with open(fn, 'wb') as f:
-        f.write(filebuf)
-    return _json_success()
