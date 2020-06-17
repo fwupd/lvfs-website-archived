@@ -49,7 +49,7 @@ def route_create():
     flash('Added version format', 'info')
     return redirect(url_for('verfmts.route_show', verfmt_id=verfmt.verfmt_id))
 
-@bp_verfmts.route('/<int:verfmt_id>/delete')
+@bp_verfmts.route('/<int:verfmt_id>/delete', methods=['POST'])
 @login_required
 @admin_login_required
 def route_delete(verfmt_id):

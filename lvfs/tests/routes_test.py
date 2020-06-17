@@ -24,7 +24,7 @@ class LocalTestCase(LvfsTestCase):
         rv = self.app.get('/lvfs/tests/recent')
         assert 'check firmware for problems' in rv.data.decode('utf-8'), rv.data.decode()
 
-        rv = self.app.get('/lvfs/tests/retry/2', follow_redirects=True)
+        rv = self.app.post('/lvfs/tests/retry/2', follow_redirects=True)
         assert 'Test blocklist will be re-run soon' in rv.data.decode('utf-8'), rv.data.decode()
 
         rv = self.app.get('/lvfs/tests/pending')

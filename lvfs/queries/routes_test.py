@@ -55,10 +55,10 @@ rule AMITestKey
         assert b'0 out of 0' in rv.data, rv.data.decode()
         assert b'Retry' in rv.data, rv.data.decode()
 
-        rv = self.app.get('/lvfs/queries/1/retry', follow_redirects=True)
+        rv = self.app.post('/lvfs/queries/1/retry', follow_redirects=True)
         assert b'will be rerun soon' in rv.data, rv.data.decode()
 
-        rv = self.app.get('/lvfs/queries/1/delete', follow_redirects=True)
+        rv = self.app.post('/lvfs/queries/1/delete', follow_redirects=True)
         assert b'Deleted YARA query' in rv.data, rv.data.decode()
 
         rv = self.app.get('/lvfs/queries/1', follow_redirects=True)

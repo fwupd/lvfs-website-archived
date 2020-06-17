@@ -57,7 +57,7 @@ def route_show(yara_query_id):
 
     return render_template('query-show.html', category='firmware', query=query)
 
-@bp_queries.route('/<int:yara_query_id>/retry')
+@bp_queries.route('/<int:yara_query_id>/retry', methods=['POST'])
 @login_required
 def route_retry(yara_query_id):
 
@@ -88,7 +88,7 @@ def route_retry(yara_query_id):
     flash('YARA query {} will be rerun soon'.format(query.yara_query_id), 'info')
     return redirect(url_for('queries.route_list'))
 
-@bp_queries.route('/<int:yara_query_id>/delete')
+@bp_queries.route('/<int:yara_query_id>/delete', methods=['POST'])
 @login_required
 def route_delete(yara_query_id):
 

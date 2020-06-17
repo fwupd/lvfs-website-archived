@@ -45,7 +45,7 @@ class LocalTestCase(LvfsTestCase):
         assert 'BIOSGuard' in rv.data.decode('utf-8'), rv.data.decode()
 
         # delete
-        rv = self.app.get('/lvfs/claims/1/delete', follow_redirects=True)
+        rv = self.app.post('/lvfs/claims/1/delete', follow_redirects=True)
         assert b'Deleted claim' in rv.data, rv.data.decode()
         rv = self.app.get('/lvfs/claims/')
         assert 'biosguard' not in rv.data.decode('utf-8'), rv.data.decode()

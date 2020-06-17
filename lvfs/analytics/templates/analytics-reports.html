@@ -32,7 +32,10 @@
     </table>
     <a class="card-link btn btn-info" href="{{url_for('firmware.route_show', firmware_id=r.fw.firmware_id)}}">Details</a>
 {% if g.user.check_acl('@admin') %}
-    <a class="card-link btn btn-danger" href="{{url_for('reports.route_delete', report_id=r.report_id)}}">Delete</a>
+    <form action="{{url_for('reports.route_delete', report_id=r.report_id)}}" method="POST">
+      <input type="hidden" name="csrf_token" value="{{csrf_token()}}"/>
+      <button class="card-link btn btn-danger">Delete</button>
+    </form>
 {% endif %}
   </div>
 </div>

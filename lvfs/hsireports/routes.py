@@ -112,7 +112,7 @@ def route_view(hsi_report_id):
                     status=400, \
                     mimetype="application/json")
 
-@bp_hsireports.route('/<int:hsi_report_id>/delete')
+@bp_hsireports.route('/<int:hsi_report_id>/delete', methods=['POST'])
 @login_required
 def route_delete(hsi_report_id):
     rpt = db.session.query(HsiReport).filter(HsiReport.hsi_report_id == hsi_report_id).first()

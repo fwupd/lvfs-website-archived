@@ -81,8 +81,10 @@
 {% endif %}
     </td>
     <td class="col col-2">
-      <a class="btn btn-danger btn-block"
-        href="{{url_for('firmware.route_limit_delete', firmware_limit_id=fl.firmware_limit_id)}}">Delete</a>
+      <form action="{{url_for('firmware.route_limit_delete', firmware_limit_id=fl.firmware_limit_id)}}" method="POST">
+        <input type="hidden" name="csrf_token" value="{{csrf_token()}}"/>
+        <button class="btn-block btn btn-danger">Delete</button>
+      </form>
     </td>
   </tr>
 {% endfor %}

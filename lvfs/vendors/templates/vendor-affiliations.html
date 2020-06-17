@@ -80,17 +80,21 @@
         <td class="col col-2">
 {% if v.check_acl('@modify-affiliation-actions') %}
 {% if act %}
-          <a class="btn btn-warning btn-block"
-            href="{{url_for('vendors.route_affiliation_action_remove',
-                            vendor_id=aff.vendor_id,
-                            affiliation_id=aff.affiliation_id,
-                            action=act.action)}}">Remove</a>
+          <form action="{{url_for('vendors.route_affiliation_action_remove',
+                                  vendor_id=aff.vendor_id,
+                                  affiliation_id=aff.affiliation_id,
+                                  action=act.action)}}" method="POST">
+            <input type="hidden" name="csrf_token" value="{{csrf_token()}}"/>
+            <button class="btn-block btn btn-warning">Remove</button>
+          </form>
 {% else %}
-          <a class="btn btn-primary btn-block"
-            href="{{url_for('vendors.route_affiliation_action_create',
-                            vendor_id=aff.vendor_id,
-                            affiliation_id=aff.affiliation_id,
-                            action=possible_action)}}">Add</a>
+          <form action="{{url_for('vendors.route_affiliation_action_create',
+                                  vendor_id=aff.vendor_id,
+                                  affiliation_id=aff.affiliation_id,
+                                  action=possible_action)}}" method="POST">
+            <input type="hidden" name="csrf_token" value="{{csrf_token()}}"/>
+            <button class="btn-block btn btn-primary">Add</button>
+          </form>
 {% endif %}
 {% endif %}
         </td>
@@ -98,9 +102,10 @@
 {% endfor %}
     </table>
 {% if v.check_acl('@modify-affiliation-actions') %}
-    <a class="card-link btn btn-danger"
-      href="{{url_for('vendors.route_affiliation_delete', vendor_id=v.vendor_id, affiliation_id=aff.affiliation_id)}}"
-      role="button">Delete</a>
+    <form action="{{url_for('vendors.route_affiliation_delete', vendor_id=v.vendor_id, affiliation_id=aff.affiliation_id)}}" method="POST">
+      <input type="hidden" name="csrf_token" value="{{csrf_token()}}"/>
+      <button class="card-link btn btn-danger">Delete</button>
+    </form>
 {% endif %}
   </div>
 </div>

@@ -69,9 +69,10 @@
       </div>
       <div class="modal-footer">
         <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
-        <a class="btn btn-danger"
-          href="{{url_for('protocols.route_delete', protocol_id=protocol.protocol_id)}}"
-          role="button">Delete</a>
+        <form action="{{url_for('protocols.route_delete', protocol_id=protocol.protocol_id)}}" method="POST">
+          <input type="hidden" name="csrf_token" value="{{csrf_token()}}"/>
+          <button class="btn btn-danger">Delete</button>
+        </form>
       </div>
     </div>
   </div>

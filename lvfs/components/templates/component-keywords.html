@@ -23,8 +23,10 @@
     <td class="col">
 {% if md.check_acl('@modify-keywords') %}
 {% if kw.priority < 5 %}
-      <a class="btn btn-block btn-danger"
-        href="{{url_for('components.route_keyword_delete', component_id=md.component_id, keyword_id=kw.keyword_id)}}">Delete</a>
+      <form action="{{url_for('components.route_keyword_delete', component_id=md.component_id, keyword_id=kw.keyword_id)}}" method="POST">
+        <input type="hidden" name="csrf_token" value="{{csrf_token()}}"/>
+        <button class="btn-block btn btn-danger">Delete</button>
+      </form>
 {% else %}
       <a class="btn btn-block btn-danger disabled" href="#">Delete</a>
 {% endif %}

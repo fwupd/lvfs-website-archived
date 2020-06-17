@@ -49,7 +49,7 @@ def route_create():
     flash('Added category', 'info')
     return redirect(url_for('categories.route_show', category_id=cat.category_id))
 
-@bp_categories.route('/<int:category_id>/delete')
+@bp_categories.route('/<int:category_id>/delete', methods=['POST'])
 @login_required
 @admin_login_required
 def route_delete(category_id):

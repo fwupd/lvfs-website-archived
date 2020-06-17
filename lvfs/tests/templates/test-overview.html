@@ -37,11 +37,22 @@
   </tr>
 {% endif %}
 </table>
-    <a class="card-link btn btn-warning" href="{{url_for('tests.route_retry_all', plugin_id=plugin_id)}}">Retry all</a>
+    <div class="form-inline">
+      <form action="{{url_for('tests.route_retry_all', plugin_id=plugin_id)}}" method="POST">
+        <input type="hidden" name="csrf_token" value="{{csrf_token()}}"/>
+        <button class="card-link btn btn-warning mx-1">Retry all</button>
+      </form>
 {% if tests_failed[plugin_id]|length > 0 %}
-    <a class="card-link btn btn-warning" href="{{url_for('tests.route_waive_all', plugin_id=plugin_id)}}">Waive all</a>
+      <form action="{{url_for('tests.route_waive_all', plugin_id=plugin_id)}}" method="POST">
+        <input type="hidden" name="csrf_token" value="{{csrf_token()}}"/>
+        <button class="card-link btn btn-warning mx-1">Waive all</button>
+      </form>
 {% endif %}
-    <a class="card-link btn btn-danger float-right" href="{{url_for('tests.route_delete_all', plugin_id=plugin_id)}}">Delete all</a>
+      <form action="{{url_for('tests.route_delete_all', plugin_id=plugin_id)}}" method="POST">
+        <input type="hidden" name="csrf_token" value="{{csrf_token()}}"/>
+        <button class="card-link btn btn-danger float-right mx-1">Delete</button>
+      </form>
+    </div>
   </div>
 </div>
 {% endfor %}

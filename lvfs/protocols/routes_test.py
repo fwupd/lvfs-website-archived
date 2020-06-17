@@ -46,7 +46,7 @@ class LocalTestCase(LvfsTestCase):
         assert 'ACME' in rv.data.decode('utf-8'), rv.data.decode()
 
         # delete
-        rv = self.app.get('/lvfs/protocols/4/delete', follow_redirects=True)
+        rv = self.app.post('/lvfs/protocols/4/delete', follow_redirects=True)
         assert b'Deleted protocol' in rv.data, rv.data.decode()
         rv = self.app.get('/lvfs/protocols/')
         assert 'com.acme' not in rv.data.decode('utf-8'), rv.data.decode()

@@ -112,7 +112,7 @@
     <label for="email">Comments:</label>
     <textarea class="form-control" name="comments" cols="64" rows="5">{{v.comments}}</textarea>
   </div>
-  <input type="submit" class="btn btn-primary btn-large" value="Modify">
+  <input type="submit" class="card-link btn btn-primary" value="Modify">
 </form>
   </div>
 </div>
@@ -124,9 +124,9 @@
   Unless you are required to delete a user for legal or compliance reasons,
   removing a vendor is not recommended.
 </p>
-<form method="get" action="{{url_for('vendors.route_delete', vendor_id=v.vendor_id)}}">
+<form method="POST" action="{{url_for('vendors.route_delete', vendor_id=v.vendor_id)}}">
   <input type="hidden" name="csrf_token" value="{{csrf_token()}}"/>
-  <button class="btn btn-danger">Delete</button>
+  <button class="card-link btn btn-danger">Delete</button>
 </form>
   </div>
 </div>

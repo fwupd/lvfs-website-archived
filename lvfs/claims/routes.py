@@ -52,7 +52,7 @@ def route_create():
     flash('Added claim', 'info')
     return redirect(url_for('claims.route_show', claim_id=claim.claim_id))
 
-@bp_claims.route('/<int:claim_id>/delete')
+@bp_claims.route('/<int:claim_id>/delete', methods=['POST'])
 @login_required
 @admin_login_required
 def route_delete(claim_id):

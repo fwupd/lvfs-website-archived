@@ -111,7 +111,7 @@ def route_modify(user_id):
     flash('Updated profile', 'info')
     return redirect(url_for('main.route_profile'))
 
-@bp_users.route('/<int:user_id>/deactivate')
+@bp_users.route('/<int:user_id>/deactivate', methods=['POST'])
 @login_required
 def route_deactivate(user_id):
 
@@ -263,7 +263,7 @@ def route_otp_test():
     flash('Correct 2FA OTP, it worked!', 'success')
     return redirect(url_for('main.route_profile'))
 
-@bp_users.route('/<int:user_id>/reset_by_admin')
+@bp_users.route('/<int:user_id>/reset_by_admin', methods=['POST'])
 @login_required
 def route_reset_by_admin(user_id):
     """ Reset the users password """
@@ -516,7 +516,7 @@ def route_recover():
     flash('An email has been sent with a recovery link', 'info')
     return redirect(url_for('main.route_index'), 302)
 
-@bp_users.route('/certificate/remove/<int:certificate_id>')
+@bp_users.route('/certificate/remove/<int:certificate_id>', methods=['POST'])
 @login_required
 def route_certificate_remove(certificate_id):
 
@@ -655,7 +655,7 @@ def route_create():
     flash('Added user %i and an email has been sent to the user' % user.user_id, 'info')
     return redirect(url_for('users.route_list'), 302)
 
-@bp_users.route('/<int:user_id>/delete')
+@bp_users.route('/<int:user_id>/delete', methods=['POST'])
 @login_required
 @admin_login_required
 def route_delete(user_id):

@@ -41,12 +41,12 @@ class LocalTestCase(LvfsTestCase):
         assert self.checksum_upload_sha256 in rv.data.decode('utf-8'), rv.data
         rv = self.app.get('/lvfs/firmware/1')
         assert '>☠ Nuke ☠<' not in rv.data.decode('utf-8'), rv.data
-        rv = self.app.get('/lvfs/firmware/1/nuke', follow_redirects=True)
+        rv = self.app.post('/lvfs/firmware/1/nuke', follow_redirects=True)
         assert b'Cannot nuke file not yet deleted' in rv.data, rv.data
         self.delete_firmware()
         rv = self.app.get('/lvfs/firmware/1')
         assert '>☠ Nuke ☠<' in rv.data.decode('utf-8'), rv.data
-        rv = self.app.get('/lvfs/firmware/1/nuke', follow_redirects=True)
+        rv = self.app.post('/lvfs/firmware/1/nuke', follow_redirects=True)
         assert b'No firmware has been uploaded' in rv.data, rv.data
 
     def test_user_delete_wrong_user(self):
@@ -64,8 +64,7 @@ class LocalTestCase(LvfsTestCase):
 
         # try to delete as otheruser
         self.login('otheruser@fwupd.org')
-        rv = self.app.get('/lvfs/firmware/1/delete',
-                          follow_redirects=True)
+        rv = self.app.post('/lvfs/firmware/1/delete', follow_redirects=True)
         assert b'Firmware deleted' not in rv.data, rv.data
         assert b'Insufficient permissions to delete firmware' in rv.data, rv.data
 
@@ -84,8 +83,7 @@ class LocalTestCase(LvfsTestCase):
 
         # try to delete as otheruser
         self.login('otheruser@fwupd.org')
-        rv = self.app.get('/lvfs/firmware/1/delete',
-                          follow_redirects=True)
+        rv = self.app.post('/lvfs/firmware/1/delete', follow_redirects=True)
         assert b'Firmware deleted' not in rv.data, rv.data
         assert b'Insufficient permissions to delete firmware' in rv.data, rv.data
 
@@ -115,8 +113,7 @@ class LocalTestCase(LvfsTestCase):
 
         # move to stable
         self.run_cron_firmware()
-        rv = self.app.get('/lvfs/firmware/1/promote/stable',
-                          follow_redirects=True)
+        rv = self.app.post('/lvfs/firmware/1/promote/stable', follow_redirects=True)
         assert b'>stable<' in rv.data, rv.data.decode()
 
         # upload a failed report
@@ -189,8 +186,7 @@ class LocalTestCase(LvfsTestCase):
         self._download_firmware(useragent='wget/1.2.3')
 
         # delete download limit
-        rv = self.app.get('/lvfs/firmware/limit/1/delete',
-                          follow_redirects=True)
+        rv = self.app.post('/lvfs/firmware/limit/1/delete', follow_redirects=True)
         assert b'Deleted limit' in rv.data, rv.data
 
         # check no limits set
@@ -262,8 +258,7 @@ class LocalTestCase(LvfsTestCase):
         assert '/downloads/' + self.checksum_upload_sha256 in rv.data.decode('utf-8'), rv.data
         rv = self.app.get('/lvfs/firmware/')
         assert b'/lvfs/firmware/1' in rv.data, rv.data
-        rv = self.app.get('/lvfs/firmware/1/promote/testing',
-                          follow_redirects=True)
+        rv = self.app.post('/lvfs/firmware/1/promote/testing', follow_redirects=True)
         assert b'Permission denied: No QA access' in rv.data, rv.data
         self.logout()
 
@@ -274,8 +269,7 @@ class LocalTestCase(LvfsTestCase):
         rv = self.app.get('/lvfs/firmware/')
         assert b'/lvfs/firmware/1' in rv.data, rv.data
         self.run_cron_firmware()
-        rv = self.app.get('/lvfs/firmware/1/promote/testing',
-                          follow_redirects=True)
+        rv = self.app.post('/lvfs/firmware/1/promote/testing', follow_redirects=True)
         assert b'>testing<' in rv.data, rv.data.decode()
         self.logout()
 
@@ -337,8 +331,7 @@ class LocalTestCase(LvfsTestCase):
 
         # check alice can't see or promote the irmware uploaded by bob
         self.login('alice@odm.com')
-        rv = self.app.get('/lvfs/firmware/1/promote/testing',
-                          follow_redirects=True)
+        rv = self.app.post('/lvfs/firmware/1/promote/testing', follow_redirects=True)
         assert b'Permission denied: No QA access to 1' in rv.data, rv.data
 
     def test_oem_firmware_in_odm_metadata(self):
@@ -360,8 +353,7 @@ class LocalTestCase(LvfsTestCase):
         # test uploading to a OEM account we have an affiliation with
         self.login('bob@odm.com')
         self.upload(vendor_id=2)
-        rv = self.app.get('/lvfs/firmware/1/promote/embargo',
-                          follow_redirects=True)
+        rv = self.app.post('/lvfs/firmware/1/promote/embargo', follow_redirects=True)
         assert b'Moved firmware' in rv.data, rv.data
         self.logout()
 
@@ -381,7 +373,7 @@ class LocalTestCase(LvfsTestCase):
 
         # remove affiliation as admin
         self.login()
-        rv = self.app.get('/lvfs/vendors/2/affiliation/1/delete', follow_redirects=True)
+        rv = self.app.post('/lvfs/vendors/2/affiliation/1/delete', follow_redirects=True)
         assert b'Deleted affiliation' in rv.data, rv.data
         rv = self.app.get('/lvfs/vendors/2/affiliations')
         assert b'No affiliations exist' in rv.data, rv.data

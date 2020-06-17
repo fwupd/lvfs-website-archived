@@ -277,7 +277,7 @@ def route_show(component_id, page='overview'):
                            md=md,
                            page=page)
 
-@bp_components.route('/<int:component_id>/requirement/delete/<requirement_id>')
+@bp_components.route('/<int:component_id>/requirement/delete/<requirement_id>', methods=['POST'])
 @login_required
 def route_requirement_delete(component_id, requirement_id):
 
@@ -452,7 +452,7 @@ def route_requirement_modify(component_id):
                             component_id=md.component_id,
                             page='requires'))
 
-@bp_components.route('/<int:component_id>/keyword/<keyword_id>/delete')
+@bp_components.route('/<int:component_id>/keyword/<keyword_id>/delete', methods=['POST'])
 @login_required
 def route_keyword_delete(component_id, keyword_id):
 
@@ -521,7 +521,7 @@ def route_keyword_create(component_id):
                             component_id=md.component_id,
                             page='keywords'))
 
-@bp_components.route('/<int:component_id>/issue/<component_issue_id>/delete')
+@bp_components.route('/<int:component_id>/issue/<component_issue_id>/delete', methods=['POST'])
 @login_required
 def route_issue_delete(component_id, component_issue_id):
 
@@ -691,7 +691,7 @@ def route_issue_create(component_id):
                             component_id=md.component_id,
                             page='issues'))
 
-@bp_components.route('/<int:component_id>/checksum/delete/<checksum_id>')
+@bp_components.route('/<int:component_id>/checksum/delete/<checksum_id>', methods=['POST'])
 @login_required
 def route_checksum_delete(component_id, checksum_id):
 

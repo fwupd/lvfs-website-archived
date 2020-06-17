@@ -22,7 +22,10 @@
     <td class="col col-sm-1"><code>{{ev.method}}</code></td>
     <td class="col col-sm-1">{{ev.count}}</td>
     <td class="col">
-      <a class="btn btn-block btn-danger" href="{{url_for('search.route_delete', search_event_id=ev.search_event_id)}}">Delete</a>
+      <form action="{{url_for('search.route_delete', search_event_id=ev.search_event_id)}}" method="POST">
+        <input type="hidden" name="csrf_token" value="{{csrf_token()}}"/>
+        <button class="btn-block btn btn-danger">Delete</button>
+      </form>
     </td>
   </tr>
 {% endfor %}

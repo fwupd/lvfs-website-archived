@@ -20,7 +20,7 @@ from lvfs.util import _get_client_address
 
 bp_search = Blueprint('search', __name__, template_folder='templates')
 
-@bp_search.route('/<int:search_event_id>/delete')
+@bp_search.route('/<int:search_event_id>/delete', methods=['POST'])
 @login_required
 @admin_login_required
 def route_delete(search_event_id):

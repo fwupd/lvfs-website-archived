@@ -139,9 +139,10 @@
             <td class="col col-md-3">{{crt.ctime}}</td>
             <td class="col col-md-7 text-truncate"><code>{{crt.serial}}</code></td>
             <td class="col">
-              <a class="btn btn-danger btn-block"
-                 href="{{url_for('users.route_certificate_remove',
-                                 certificate_id=crt.certificate_id)}}">Remove</a>
+              <form action="{{url_for('users.route_certificate_remove', certificate_id=crt.certificate_id)}}" method="POST">
+                <input type="hidden" name="csrf_token" value="{{csrf_token()}}"/>
+                <button class="btn-block btn btn-danger">Remove</button>
+              </form>
             </td>
           </tr>
 {% endfor %}
@@ -287,7 +288,10 @@ document.getElementById("file").onchange = function() {
       </div>
       <div class="modal-footer">
         <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
-        <a class="btn btn-danger" href="{{url_for('users.route_deactivate', user_id=g.user.user_id)}}">☠ Deactivate ☠</a>
+        <form action="{{url_for('users.route_deactivate', user_id=g.user.user_id)}}" method="POST">
+          <input type="hidden" name="csrf_token" value="{{csrf_token()}}"/>
+          <button class="btn btn-danger">☠ Deactivate ☠</button>
+        </form>
       </div>
     </div>
   </div>

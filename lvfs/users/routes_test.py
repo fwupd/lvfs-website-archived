@@ -80,13 +80,13 @@ class LocalTestCase(LvfsTestCase):
         assert b'Something Funky' in rv.data, rv.data
 
         # try to self-delete
-        rv = self.app.get('/lvfs/users/3/delete', follow_redirects=True)
+        rv = self.app.post('/lvfs/users/3/delete', follow_redirects=True)
         assert b'Only the admin team can access this resource' in rv.data, rv.data
 
         # delete the user as the admin
         self.logout()
         self.login()
-        rv = self.app.get('/lvfs/users/3/delete', follow_redirects=True)
+        rv = self.app.post('/lvfs/users/3/delete', follow_redirects=True)
         assert b'Deleted user' in rv.data, rv.data
         rv = self.app.get('/lvfs/users/')
         assert b'testuser@fwupd.org' not in rv.data, rv.data
@@ -148,24 +148,19 @@ class LocalTestCase(LvfsTestCase):
         # login as user, upload file, then promote
         self.login('testuser@fwupd.org')
         self.upload()
-        rv = self.app.get('/lvfs/firmware/1/promote/embargo',
-                          follow_redirects=True)
+        rv = self.app.post('/lvfs/firmware/1/promote/embargo', follow_redirects=True)
         assert b'Moved firmware' in rv.data, rv.data
         assert b'>embargo-testgroup<' in rv.data, rv.data
-        rv = self.app.get('/lvfs/firmware/1/promote/embargo',
-                          follow_redirects=True)
+        rv = self.app.post('/lvfs/firmware/1/promote/embargo', follow_redirects=True)
         assert b'Firmware already in that target' in rv.data, rv.data
         assert b'>embargo-testgroup<' in rv.data, rv.data
-        rv = self.app.get('/lvfs/firmware/1/promote/testing',
-                          follow_redirects=True)
+        rv = self.app.post('/lvfs/firmware/1/promote/testing', follow_redirects=True)
         assert b'Permission denied' in rv.data, rv.data
-        rv = self.app.get('/lvfs/firmware/1/promote/stable',
-                          follow_redirects=True)
+        rv = self.app.post('/lvfs/firmware/1/promote/stable', follow_redirects=True)
         assert b'Permission denied' in rv.data, rv.data
 
         # demote back to private
-        rv = self.app.get('/lvfs/firmware/1/promote/private',
-                          follow_redirects=True)
+        rv = self.app.post('/lvfs/firmware/1/promote/private', follow_redirects=True)
         assert b'>private<' in rv.data, rv.data
         assert b'Moved firmware' in rv.data, rv.data
 
@@ -175,17 +170,14 @@ class LocalTestCase(LvfsTestCase):
         self.login()
         self.add_namespace()
         self.upload()
-        rv = self.app.get('/lvfs/firmware/1/promote/embargo',
-                          follow_redirects=True)
+        rv = self.app.post('/lvfs/firmware/1/promote/embargo', follow_redirects=True)
         assert b'Moved firmware' in rv.data, rv.data
         assert b'>embargo-admin<' in rv.data, rv.data
         self.run_cron_firmware()
-        rv = self.app.get('/lvfs/firmware/1/promote/testing',
-                          follow_redirects=True)
+        rv = self.app.post('/lvfs/firmware/1/promote/testing', follow_redirects=True)
         assert b'Moved firmware' in rv.data, rv.data
         assert b'>testing<' in rv.data, rv.data
-        rv = self.app.get('/lvfs/firmware/1/promote/stable',
-                          follow_redirects=True)
+        rv = self.app.post('/lvfs/firmware/1/promote/stable', follow_redirects=True)
         assert b'Moved firmware' in rv.data, rv.data
         assert b'>stable<' in rv.data, rv.data
 
@@ -195,12 +187,10 @@ class LocalTestCase(LvfsTestCase):
         self.login()
 
         # demote back to testing then private
-        rv = self.app.get('/lvfs/firmware/1/promote/testing',
-                          follow_redirects=True)
+        rv = self.app.post('/lvfs/firmware/1/promote/testing', follow_redirects=True)
         assert b'Moved firmware' in rv.data, rv.data
         assert b'>testing<' in rv.data, rv.data
-        rv = self.app.get('/lvfs/firmware/1/promote/private',
-                          follow_redirects=True)
+        rv = self.app.post('/lvfs/firmware/1/promote/private', follow_redirects=True)
         assert b'Moved firmware' in rv.data, rv.data
         assert b'>private<' in rv.data, rv.data
 
@@ -227,7 +217,7 @@ class LocalTestCase(LvfsTestCase):
         assert b'No client certificates have been uploaded' not in rv.data, rv.data
 
         # remove
-        rv = self.app.get('/lvfs/users/certificate/remove/1', follow_redirects=True)
+        rv = self.app.post('/lvfs/users/certificate/remove/1', follow_redirects=True)
         assert b'Deleted certificate' in rv.data, rv.data
         rv = self.app.get('/lvfs/profile')
         assert b'5f11a237b994931bbef869bd0153235874fa8f8b' not in rv.data, rv.data

@@ -51,7 +51,7 @@ class LocalTestCase(LvfsTestCase):
         assert b'ACME' in rv.data, rv.data.decode()
 
         # delete
-        rv = self.app.get('/lvfs/categories/3/delete', follow_redirects=True)
+        rv = self.app.post('/lvfs/categories/3/delete', follow_redirects=True)
         assert b'Deleted category' in rv.data, rv.data.decode()
         rv = self.app.get('/lvfs/categories/')
         assert 'X-Acme' not in rv.data.decode('utf-8'), rv.data.decode()

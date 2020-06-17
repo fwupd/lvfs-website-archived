@@ -52,7 +52,7 @@ def route_create():
     flash('Added protocol', 'info')
     return redirect(url_for('protocols.route_show', protocol_id=protocol.protocol_id))
 
-@bp_protocols.route('/<int:protocol_id>/delete')
+@bp_protocols.route('/<int:protocol_id>/delete', methods=['POST'])
 @login_required
 @admin_login_required
 def route_delete(protocol_id):

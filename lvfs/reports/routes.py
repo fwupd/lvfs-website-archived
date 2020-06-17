@@ -77,7 +77,7 @@ def route_show(report_id):
         return redirect(url_for('main.route_dashboard'))
     return render_template('report-details.html', rpt=report)
 
-@bp_reports.route('/<report_id>/delete')
+@bp_reports.route('/<report_id>/delete', methods=['POST'])
 @login_required
 def route_delete(report_id):
     report = db.session.query(Report).filter(Report.report_id == report_id).first()

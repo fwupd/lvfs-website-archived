@@ -125,9 +125,10 @@
       <code>{{rq.value}}</code>
     </td>
     <td class="col col-sm-2 text-right">
-      <a class="btn btn-secondary btn-block"
-        href="{{url_for('components.route_requirement_delete', component_id=rq.md.component_id, requirement_id=rq.requirement_id)}}"
-        role="button">Remove</a>
+      <form action="{{url_for('components.route_requirement_delete', component_id=rq.md.component_id, requirement_id=rq.requirement_id)}}" method="POST">
+        <input type="hidden" name="csrf_token" value="{{csrf_token()}}"/>
+        <button class="btn-block btn btn-secondary">Remove</button>
+      </form>
     </td>
   </tr>
 </table>

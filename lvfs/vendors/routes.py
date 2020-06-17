@@ -201,7 +201,7 @@ def route_create():
 
     return redirect(url_for('vendors.route_show', vendor_id=v.vendor_id), 302)
 
-@bp_vendors.route('/<int:vendor_id>/delete')
+@bp_vendors.route('/<int:vendor_id>/delete', methods=['POST'])
 @login_required
 @admin_login_required
 def route_delete(vendor_id):
@@ -386,7 +386,7 @@ def route_restriction_create(vendor_id):
 
     return redirect(url_for('vendors.route_restrictions', vendor_id=vendor_id), 302)
 
-@bp_vendors.route('/<int:vendor_id>/restriction/<int:restriction_id>/delete')
+@bp_vendors.route('/<int:vendor_id>/restriction/<int:restriction_id>/delete', methods=['POST'])
 @login_required
 @admin_login_required
 def route_restriction_delete(vendor_id, restriction_id):
@@ -434,7 +434,7 @@ def route_namespace_create(vendor_id):
     flash('Added namespace', 'info')
     return redirect(url_for('vendors.route_namespaces', vendor_id=vendor_id), 302)
 
-@bp_vendors.route('/<int:vendor_id>/namespace/<int:namespace_id>/delete')
+@bp_vendors.route('/<int:vendor_id>/namespace/<int:namespace_id>/delete', methods=['POST'])
 @login_required
 @admin_login_required
 def route_namespace_delete(vendor_id, namespace_id):
@@ -661,7 +661,7 @@ def route_affiliations(vendor_id):
                            possible_actions=possible_actions,
                            other_vendors=vendors)
 
-@bp_vendors.route('/<int:vendor_id>/affiliation/<int:affiliation_id>/action/create/<action>')
+@bp_vendors.route('/<int:vendor_id>/affiliation/<int:affiliation_id>/action/create/<action>', methods=['POST'])
 @login_required
 def route_affiliation_action_create(vendor_id, affiliation_id, action):
     """ add an ACL action to an existing affiliation """
@@ -693,7 +693,7 @@ def route_affiliation_action_create(vendor_id, affiliation_id, action):
     flash('Added action', 'info')
     return redirect(url_for('vendors.route_affiliations', vendor_id=vendor_id))
 
-@bp_vendors.route('/<int:vendor_id>/affiliation/<int:affiliation_id>/action/remove/<action>')
+@bp_vendors.route('/<int:vendor_id>/affiliation/<int:affiliation_id>/action/remove/<action>', methods=['POST'])
 @login_required
 def route_affiliation_action_remove(vendor_id, affiliation_id, action):
     """ remove an ACL action to an existing affiliation """
@@ -764,7 +764,7 @@ def route_affiliation_create(vendor_id):
     flash('Added affiliation {}'.format(aff.affiliation_id), 'info')
     return redirect(url_for('vendors.route_affiliations', vendor_id=vendor_id), 302)
 
-@bp_vendors.route('/<int:vendor_id>/affiliation/<int:affiliation_id>/delete')
+@bp_vendors.route('/<int:vendor_id>/affiliation/<int:affiliation_id>/delete', methods=['POST'])
 @login_required
 def route_affiliation_delete(vendor_id, affiliation_id):
     """ Allows changing a vendor [ADMIN ONLY] """
@@ -854,7 +854,7 @@ def route_export_create(vendor_id):
     flash('Added blocked country %s' % export_id, 'info')
     return redirect(url_for('vendors.route_exports', vendor_id=vendor_id), 302)
 
-@bp_vendors.route('/<int:vendor_id>/country/<export_id>/delete')
+@bp_vendors.route('/<int:vendor_id>/country/<export_id>/delete', methods=['POST'])
 @login_required
 def route_export_delete(vendor_id, export_id):
 

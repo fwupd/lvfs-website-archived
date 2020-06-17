@@ -118,6 +118,7 @@
   </tr>
 {% endif %}
   <form class="form-inline" action="{{url_for('components.route_modify', component_id=md.component_id)}}" method="POST">
+<input type="hidden" name="csrf_token" value="{{csrf_token()}}"/>
   <input type="hidden" name="csrf_token" value="{{csrf_token()}}"/>
   <tr class="row">
     <th class="col-3">Protocol</th>
@@ -159,6 +160,7 @@
   </form>
 {% if md.screenshot_url %}
   <form class="form-inline" action="{{url_for('components.route_modify', component_id=md.component_id)}}" method="POST">
+<input type="hidden" name="csrf_token" value="{{csrf_token()}}"/>
   <input type="hidden" name="csrf_token" value="{{csrf_token()}}"/>
   <tr class="row">
     <th class="col-3">Screenshot URL</th>
@@ -177,6 +179,7 @@
 {% endif %}
 {% if md.screenshot_caption %}
   <form class="form-inline" action="{{url_for('components.route_modify', component_id=md.component_id)}}" method="POST">
+<input type="hidden" name="csrf_token" value="{{csrf_token()}}"/>
   <input type="hidden" name="csrf_token" value="{{csrf_token()}}"/>
   <tr class="row">
     <th class="col-3">Screenshot Caption</th>

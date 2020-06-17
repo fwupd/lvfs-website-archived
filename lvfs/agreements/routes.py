@@ -43,7 +43,7 @@ def route_list():
                            category='admin',
                            agreements=agreements)
 
-@bp_agreements.route('/create')
+@bp_agreements.route('/create', methods=['POST'])
 @login_required
 @admin_login_required
 def route_create():
@@ -55,7 +55,7 @@ def route_create():
     flash('Created agreement')
     return redirect(url_for('agreements.route_modify', agreement_id=agreement.agreement_id))
 
-@bp_agreements.route('/<int:agreement_id>/accept')
+@bp_agreements.route('/<int:agreement_id>/accept', methods=['POST'])
 @login_required
 def route_confirm(agreement_id):
 
@@ -77,8 +77,8 @@ def route_confirm(agreement_id):
     flash('Recorded acceptance of the agreement')
     return redirect(url_for('upload.route_firmware'))
 
-@bp_agreements.route('/decline')
-@bp_agreements.route('/<int:agreement_id>/decline')
+@bp_agreements.route('/decline', methods=['POST'])
+@bp_agreements.route('/<int:agreement_id>/decline', methods=['POST'])
 @login_required
 def route_decline(agreement_id=None):
     g.user.agreement_id = None
@@ -111,7 +111,7 @@ def route_modify(agreement_id):
     flash('Modified agreement')
     return redirect(url_for('agreements.route_modify', agreement_id=agreement_id))
 
-@bp_agreements.route('/<int:agreement_id>/delete')
+@bp_agreements.route('/<int:agreement_id>/delete', methods=['POST'])
 @login_required
 @admin_login_required
 def route_delete(agreement_id):

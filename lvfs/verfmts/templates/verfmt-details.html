@@ -27,8 +27,8 @@
     <label for="fallbacks">Legacy fallback (e.g. <code>quad,intelme</code>):</label>
     <input type="text" class="form-control" name="fallbacks" value="{{verfmt.fallbacks if verfmt.fallbacks}}" />
   </div>
-  <input type="submit" class="btn btn-primary btn-large" value="Modify">
-  <button type="button" class="btn btn-danger" data-toggle="modal" data-target="#deleteModal">Delete</button>
+  <input type="submit" class="card-link btn btn-primary" value="Modify">
+  <button type="button" class="card-link btn btn-danger" data-toggle="modal" data-target="#deleteModal">Delete</button>
 </form>
   </div>
 </div>
@@ -48,7 +48,10 @@
       </div>
       <div class="modal-footer">
         <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
-        <a class="btn btn-danger" href="{{url_for('verfmts.route_delete', verfmt_id=verfmt.verfmt_id)}}" role="button">Delete</a>
+        <form action="{{url_for('verfmts.route_delete', verfmt_id=verfmt.verfmt_id)}}" method="POST">
+          <input type="hidden" name="csrf_token" value="{{csrf_token()}}"/>
+          <button class="btn btn-danger">Delete</button>
+        </form>
       </div>
     </div>
   </div>

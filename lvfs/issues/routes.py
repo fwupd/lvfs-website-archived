@@ -95,7 +95,7 @@ def route_condition_create(issue_id):
     flash('Added condition', 'info')
     return redirect(url_for('issues.route_conditions', issue_id=issue_id))
 
-@bp_issues.route('/<issue_id>/condition/<int:condition_id>/delete')
+@bp_issues.route('/<issue_id>/condition/<int:condition_id>/delete', methods=['POST'])
 @login_required
 def route_condition_delete(issue_id, condition_id):
 
@@ -126,7 +126,7 @@ def route_condition_delete(issue_id, condition_id):
     flash('Deleted condition, and disabled issue for safety', 'info')
     return redirect(url_for('issues.route_conditions', issue_id=condition.issue_id))
 
-@bp_issues.route('/<int:issue_id>/delete')
+@bp_issues.route('/<int:issue_id>/delete', methods=['POST'])
 @login_required
 def route_delete(issue_id):
 

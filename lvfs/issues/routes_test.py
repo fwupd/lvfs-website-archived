@@ -67,15 +67,15 @@ class LocalTestCase(LvfsTestCase):
         assert b'https://github.com/hughsie/fwupd/wiki/Arch-Linux' not in rv.data, rv.data
 
         # remove Condition
-        rv = self.app.get('/lvfs/issues/1/condition/1/delete', follow_redirects=True)
+        rv = self.app.post('/lvfs/issues/1/condition/1/delete', follow_redirects=True)
         assert b'Deleted condition' in rv.data, rv.data
-        rv = self.app.get('/lvfs/issues/1/condition/1/delete', follow_redirects=True)
+        rv = self.app.post('/lvfs/issues/1/condition/1/delete', follow_redirects=True)
         assert b'No condition found' in rv.data, rv.data
 
         # delete the issue
-        rv = self.app.get('/lvfs/issues/1/delete', follow_redirects=True)
+        rv = self.app.post('/lvfs/issues/1/delete', follow_redirects=True)
         assert b'Deleted issue' in rv.data, rv.data
-        rv = self.app.get('/lvfs/issues/1/delete', follow_redirects=True)
+        rv = self.app.post('/lvfs/issues/1/delete', follow_redirects=True)
         assert b'No issue found' in rv.data, rv.data
 
     def test_issues_as_qa(self):
@@ -109,17 +109,17 @@ class LocalTestCase(LvfsTestCase):
         assert b'Secret' not in rv.data, rv.data
 
         # we can only view the admin issue
-        rv = self.app.get('/lvfs/issues/1/condition/1/delete', follow_redirects=True)
+        rv = self.app.post('/lvfs/issues/1/condition/1/delete', follow_redirects=True)
         assert b'Unable to delete condition from issue' in rv.data, rv.data
-        rv = self.app.get('/lvfs/issues/1/delete', follow_redirects=True)
+        rv = self.app.post('/lvfs/issues/1/delete', follow_redirects=True)
         assert b'Unable to delete report' in rv.data, rv.data
         rv = self.app.get('/lvfs/issues/1/details')
         assert b'Shared' in rv.data, rv.data
 
         # we can't do anything to the secret issue
-        rv = self.app.get('/lvfs/issues/2/condition/1/delete', follow_redirects=True)
+        rv = self.app.post('/lvfs/issues/2/condition/1/delete', follow_redirects=True)
         assert b'Unable to delete condition from issue' in rv.data, rv.data
-        rv = self.app.get('/lvfs/issues/2/delete', follow_redirects=True)
+        rv = self.app.post('/lvfs/issues/2/delete', follow_redirects=True)
         assert b'Unable to delete report' in rv.data, rv.data
         rv = self.app.get('/lvfs/issues/2/details', follow_redirects=True)
         assert b'Unable to view issue details' in rv.data, rv.data

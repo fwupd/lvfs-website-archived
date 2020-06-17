@@ -32,8 +32,10 @@
     <td class="col col-lg-10"><code><a href="{{issue.url}}">{{issue.value}}</a></code></td>
     <td class="col">
 {% if md.check_acl('@modify-updateinfo') %}
-      <a class="btn btn-block btn-danger"
-        href="{{url_for('components.route_issue_delete', component_id=md.component_id, component_issue_id=issue.component_issue_id)}}">Delete</a>
+      <form action="{{url_for('components.route_issue_delete', component_id=md.component_id, component_issue_id=issue.component_issue_id)}}" method="POST">
+        <input type="hidden" name="csrf_token" value="{{csrf_token()}}"/>
+        <button class="btn-block btn btn-danger">Delete</button>
+      </form>
 {% endif %}
     </td>
   </tr>

@@ -8,9 +8,10 @@
 <div class="card">
   <div class="card-body">
     <pre class="mb-3">{{query.value}}</pre>
-    <a class="card-link btn btn-info"
-       href="{{url_for('queries.route_retry', yara_query_id=query.yara_query_id)}}"
-       role="button">Retry</a>
+    <form action="{{url_for('queries.route_retry', yara_query_id=query.yara_query_id)}}" method="POST">
+      <input type="hidden" name="csrf_token" value="{{csrf_token()}}"/>
+      <button class="card-link btn btn-info">Retry</button>
+    </form>
   </div>
 </div>
 

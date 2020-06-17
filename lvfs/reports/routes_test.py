@@ -82,7 +82,7 @@ class LocalTestCase(LvfsTestCase):
         self._download_firmware()
 
         # delete the report
-        rv = self.app.get('/lvfs/reports/1/delete', follow_redirects=True)
+        rv = self.app.post('/lvfs/reports/1/delete', follow_redirects=True)
         assert b'Deleted report' in rv.data, rv.data
 
         # check it is really deleted

@@ -101,7 +101,7 @@ def route_new(limit=50):
                            fwevs=fwevs_public,
                            limit=limit)
 
-@bp_firmware.route('/<int:firmware_id>/undelete')
+@bp_firmware.route('/<int:firmware_id>/undelete', methods=['POST'])
 @login_required
 def route_undelete(firmware_id):
     """ Undelete a firmware entry and also restore the file from disk """
@@ -136,7 +136,7 @@ def route_undelete(firmware_id):
     flash('Firmware undeleted', 'info')
     return redirect(url_for('firmware.route_show', firmware_id=firmware_id))
 
-@bp_firmware.route('/<int:firmware_id>/delete')
+@bp_firmware.route('/<int:firmware_id>/delete', methods=['POST'])
 @login_required
 def route_delete(firmware_id):
     """ Delete a firmware entry and also delete the file from disk """
@@ -159,7 +159,7 @@ def route_delete(firmware_id):
     flash('Firmware deleted', 'info')
     return redirect(url_for('firmware.route_firmware'))
 
-@bp_firmware.route('/<int:firmware_id>/nuke')
+@bp_firmware.route('/<int:firmware_id>/nuke', methods=['POST'])
 @login_required
 def route_nuke(firmware_id):
     """ Delete a firmware entry and also delete the file from disk """
@@ -204,7 +204,7 @@ def route_nuke(firmware_id):
     flash('Firmware nuked', 'info')
     return redirect(url_for('firmware.route_firmware'))
 
-@bp_firmware.route('/<int:firmware_id>/resign')
+@bp_firmware.route('/<int:firmware_id>/resign', methods=['POST'])
 @login_required
 @admin_login_required
 def route_resign(firmware_id):
@@ -229,7 +229,7 @@ def route_resign(firmware_id):
     flash('Firmware will be re-signed soon', 'info')
     return redirect(url_for('firmware.route_show', firmware_id=firmware_id))
 
-@bp_firmware.route('/<int:firmware_id>/promote/<target>')
+@bp_firmware.route('/<int:firmware_id>/promote/<target>', methods=['POST'])
 @login_required
 def route_promote(firmware_id, target):
     """
@@ -360,7 +360,7 @@ def route_limits(firmware_id):
                            category='firmware',
                            fw=fw)
 
-@bp_firmware.route('/limit/<int:firmware_limit_id>/delete')
+@bp_firmware.route('/limit/<int:firmware_limit_id>/delete', methods=['POST'])
 @login_required
 def route_limit_delete(firmware_limit_id):
 

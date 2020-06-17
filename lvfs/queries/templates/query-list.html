@@ -36,21 +36,25 @@
 {% else %}
     <p class="text-muted">No components matched</p>
 {% endif %}
+    <div class="form-inline">
 {% if query.check_acl('@show') and query.ended_ts %}
-    <a class="card-link btn btn-info"
-       href="{{url_for('queries.route_show', yara_query_id=query.yara_query_id)}}"
-       role="button">Details</a>
+      <a class="card-link btn btn-info m-1"
+         href="{{url_for('queries.route_show', yara_query_id=query.yara_query_id)}}"
+         role="button">Details</a>
 {% endif %}
 {% if query.check_acl('@retry') and query.started_ts %}
-    <a class="card-link btn btn-warning"
-       href="{{url_for('queries.route_retry', yara_query_id=query.yara_query_id)}}"
-       role="button">Retry</a>
+      <form action="{{url_for('queries.route_retry', yara_query_id=query.yara_query_id)}}" method="POST">
+        <input type="hidden" name="csrf_token" value="{{csrf_token()}}"/>
+        <button class="card-link btn btn-warning mx-1">Retry</button>
+      </form>
 {% endif %}
 {% if query.check_acl('@delete') %}
-    <a class="card-link btn btn-danger"
-       href="{{url_for('queries.route_delete', yara_query_id=query.yara_query_id)}}"
-       role="button">Delete</a>
+      <form action="{{url_for('queries.route_delete', yara_query_id=query.yara_query_id)}}" method="POST">
+        <input type="hidden" name="csrf_token" value="{{csrf_token()}}"/>
+        <button class="card-link btn btn-danger mx-1">Delete</button>
+      </form>
 {% endif %}
+    </div>
   </div>
 </div>
 {% endfor %}

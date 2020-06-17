@@ -36,9 +36,10 @@
     <td class="col">{{ns.ctime.strftime('%F %T')}}</td>
     <td class="col"><code>{{ns.user.username}}</code></td>
     <td class="col col-sm-2">
-      <a class="btn btn-block btn-danger"
-        href="{{url_for('vendors.route_namespace_delete', vendor_id=v.vendor_id, namespace_id=ns.namespace_id)}}"
-        role="button">Delete</a>
+      <form action="{{url_for('vendors.route_namespace_delete', vendor_id=v.vendor_id, namespace_id=ns.namespace_id)}}" method="POST">
+        <input type="hidden" name="csrf_token" value="{{csrf_token()}}"/>
+        <button class="btn-block btn btn-danger">Delete</button>
+      </form>
     </td>
   </tr>
 {% endfor %}

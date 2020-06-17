@@ -43,9 +43,10 @@
     </td>
     <td class="col col-sm-2">
 {% if g.user.check_acl('@admin') %}
-      <a class="btn btn-block btn-danger"
-        href="{{url_for('vendors.route_restriction_delete', vendor_id=v.vendor_id, restriction_id=r.restriction_id)}}"
-        role="button">Delete</a>
+      <form action="{{url_for('vendors.route_restriction_delete', vendor_id=v.vendor_id, restriction_id=r.restriction_id)}}" method="POST">
+        <input type="hidden" name="csrf_token" value="{{csrf_token()}}"/>
+        <button class="btn-block btn btn-danger">Delete</button>
+      </form>
 {% endif %}
     </td>
   </tr>

@@ -82,7 +82,7 @@ class LocalTestCase(LvfsTestCase):
         assert b'BOT03.0[2-9]_*' in rv.data, rv.data
 
         # remove the CHID requirement
-        rv = self.app.get('/lvfs/components/1/requirement/delete/3', follow_redirects=True)
+        rv = self.app.post('/lvfs/components/1/requirement/delete/3', follow_redirects=True)
         assert b'Removed requirement 85d38fda-fc0e-5c6f-808f-076984ae7978' in rv.data, rv.data
 
         # add an invalid CHID
@@ -141,7 +141,7 @@ class LocalTestCase(LvfsTestCase):
         assert b'>dave<' in rv.data, rv.data
 
         # delete one of the added keywords
-        rv = self.app.get('/lvfs/components/1/keyword/3/delete', follow_redirects=True)
+        rv = self.app.post('/lvfs/components/1/keyword/3/delete', follow_redirects=True)
         assert b'Removed keyword' in rv.data, rv.data
         assert b'>alice<' in rv.data, rv.data
         assert b'>colorimeter<' not in rv.data, rv.data
@@ -170,7 +170,7 @@ class LocalTestCase(LvfsTestCase):
         assert b'LEN-99999' in rv.data, rv.data.decode()
 
         # delete one of the added CVEs
-        rv = self.app.get('/lvfs/components/1/issue/3/delete', follow_redirects=True)
+        rv = self.app.post('/lvfs/components/1/issue/3/delete', follow_redirects=True)
         assert b'Removed DSA-2018-000' in rv.data, rv.data.decode()
         assert b'CVE-2017' in rv.data, rv.data.decode()
 
@@ -234,7 +234,7 @@ class LocalTestCase(LvfsTestCase):
         assert b'fb6439cbda2add6c394f71b7cf955dd9a276ca5a' in rv.data, rv.data
 
         # delete the checksum
-        rv = self.app.get('/lvfs/components/1/checksum/delete/1', follow_redirects=True)
+        rv = self.app.post('/lvfs/components/1/checksum/delete/1', follow_redirects=True)
         assert b'Removed device checksum' in rv.data, rv.data
         assert b'9d72ffd950d3bedcda99a197d760457e90f3d6f2a62b30b95a488511f0dfa4ad' not in rv.data, rv.data
 

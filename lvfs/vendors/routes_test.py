@@ -54,7 +54,7 @@ class LocalTestCase(LvfsTestCase):
         assert b'USB:0x1234' in rv.data, rv.data
 
         # delete a restriction
-        rv = self.app.get('/lvfs/vendors/2/restriction/1/delete', follow_redirects=True)
+        rv = self.app.post('/lvfs/vendors/2/restriction/1/delete', follow_redirects=True)
         assert b'Deleted restriction' in rv.data, rv.data
         assert b'USB:0x1234' not in rv.data, rv.data
 
@@ -73,7 +73,7 @@ class LocalTestCase(LvfsTestCase):
         assert b'com.dell' in rv.data, rv.data
 
         # delete a namespace
-        rv = self.app.get('/lvfs/vendors/2/namespace/1/delete', follow_redirects=True)
+        rv = self.app.post('/lvfs/vendors/2/namespace/1/delete', follow_redirects=True)
         assert b'Deleted namespace' in rv.data, rv.data
         assert b'com.dell' not in rv.data, rv.data
 
@@ -91,9 +91,9 @@ class LocalTestCase(LvfsTestCase):
         assert b'testvendor' in rv.data, rv.data
 
         # delete
-        rv = self.app.get('/lvfs/vendors/999/delete', follow_redirects=True)
+        rv = self.app.post('/lvfs/vendors/999/delete', follow_redirects=True)
         assert b'No a vendor with that group ID' in rv.data, rv.data
-        rv = self.app.get('/lvfs/vendors/2/delete', follow_redirects=True)
+        rv = self.app.post('/lvfs/vendors/2/delete', follow_redirects=True)
         assert b'Removed vendor' in rv.data, rv.data
         rv = self.app.get('/lvfs/vendors/admin')
         assert b'testvendor' not in rv.data, rv.data
@@ -198,17 +198,17 @@ class LocalTestCase(LvfsTestCase):
         self.add_namespace(vendor_id=2, value='com.hughski')
 
         # add and remove actions
-        rv = self.app.get('/lvfs/vendors/2/affiliation/1/action/create/DAVE',
-                          follow_redirects=True)
+        rv = self.app.post('/lvfs/vendors/2/affiliation/1/action/create/DAVE',
+                           follow_redirects=True)
         assert b'Failed to add action: Expected' in rv.data, rv.data.decode()
-        rv = self.app.get('/lvfs/vendors/2/affiliation/1/action/create/@test',
-                          follow_redirects=True)
+        rv = self.app.post('/lvfs/vendors/2/affiliation/1/action/create/@test',
+                           follow_redirects=True)
         assert b'Added action' in rv.data, rv.data.decode()
-        rv = self.app.get('/lvfs/vendors/2/affiliation/1/action/remove/@notgoingtoexist',
-                          follow_redirects=True)
+        rv = self.app.post('/lvfs/vendors/2/affiliation/1/action/remove/@notgoingtoexist',
+                           follow_redirects=True)
         assert b'Failed to remove action: Not present' in rv.data, rv.data.decode()
-        rv = self.app.get('/lvfs/vendors/2/affiliation/1/action/remove/@test',
-                          follow_redirects=True)
+        rv = self.app.post('/lvfs/vendors/2/affiliation/1/action/remove/@test',
+                           follow_redirects=True)
         assert b'Removed action' in rv.data, rv.data.decode()
 
         self.logout()
@@ -241,21 +241,20 @@ class LocalTestCase(LvfsTestCase):
         # check bob can move the firmware to the embargo remote for the *OEM*
         rv = self.app.get('/lvfs/firmware/1/target')
         assert b'/promote/embargo' in rv.data, rv.data
-        rv = self.app.get('/lvfs/firmware/1/promote/embargo',
-                          follow_redirects=True)
+        rv = self.app.post('/lvfs/firmware/1/promote/embargo',
+                           follow_redirects=True)
         assert b'Moved firmware' in rv.data, rv.data
         assert b'>embargo-oem<' in rv.data, rv.data
         assert b'>embargo-odm<' not in rv.data, rv.data
 
         # check bob can't move the firmware to stable
-        rv = self.app.get('/lvfs/firmware/1/promote/stable',
-                          follow_redirects=True)
+        rv = self.app.post('/lvfs/firmware/1/promote/stable', follow_redirects=True)
         assert b'Permission denied' in rv.data, rv.data
         self.logout()
 
         # remove affiliation as admin
         self.login()
-        rv = self.app.get('/lvfs/vendors/2/affiliation/1/delete', follow_redirects=True)
+        rv = self.app.post('/lvfs/vendors/2/affiliation/1/delete', follow_redirects=True)
         assert b'Deleted affiliation' in rv.data, rv.data
         rv = self.app.get('/lvfs/vendors/2/affiliations')
         assert b'No affiliations exist' in rv.data, rv.data

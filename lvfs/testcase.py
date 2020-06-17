@@ -64,8 +64,8 @@ class LvfsTestCase(unittest.TestCase):
         # ensure the plugins settings are set up
         self.login()
         self.app.get('/lvfs/settings/create')
-        self.app.get('/lvfs/agreements/create')
-        self.app.get('/lvfs/agreements/1/accept')
+        self.app.post('/lvfs/agreements/create')
+        self.app.post('/lvfs/agreements/1/accept')
         rv = self.app.post('/lvfs/settings/modify', data=dict(
             clamav_enable='disabled',
             virustotal_enable='disabled',
@@ -94,8 +94,8 @@ class LvfsTestCase(unittest.TestCase):
         assert b'/lvfs/upload/firmware' in rv.data, rv.data
         assert b'Incorrect username' not in rv.data, rv.data
         if accept_agreement and username != 'sign-test@fwupd.org':
-            rv = self.app.get('/lvfs/agreements/1/accept', follow_redirects=True)
-            assert b'Recorded acceptance of the agreement' in rv.data, rv.data
+            rv = self.app.post('/lvfs/agreements/1/accept', follow_redirects=True)
+            assert b'Recorded acceptance of the agreement' in rv.data, rv.data.decode()
 
     def logout(self):
         rv = self._logout()
@@ -103,8 +103,7 @@ class LvfsTestCase(unittest.TestCase):
         assert b'/lvfs/upload/firmware' not in rv.data, rv.data
 
     def delete_firmware(self, firmware_id=1):
-        rv = self.app.get('/lvfs/firmware/%i/delete' % firmware_id,
-                          follow_redirects=True)
+        rv = self.app.post('/lvfs/firmware/%i/delete' % firmware_id, follow_redirects=True)
         assert b'Firmware deleted' in rv.data, rv.data
 
     def _add_user(self, username, group_id, password):
@@ -345,8 +344,8 @@ ma+I7fM5pmgsEL4tkCZAg0+CPTyhHkMV/cWuOZUjqTsYbDq1pZI=
         if default_actions:
             actions.append('@modify-limit')
         for act in actions:
-            rv = self.app.get('/lvfs/vendors/{}/affiliation/{}/action/create/{}'.format(vendor_id_oem, aff_id, act),
-                              follow_redirects=True)
+            rv = self.app.post('/lvfs/vendors/{}/affiliation/{}/action/create/{}'.format(vendor_id_oem, aff_id, act),
+                               follow_redirects=True)
             assert b'Added action' in rv.data, rv.data.decode()
 
     def add_namespace(self, vendor_id=1, value='com.hughski'):

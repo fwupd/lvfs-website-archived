@@ -14,10 +14,10 @@
       <p class="card-text">Firmware is only available to your specific user.</p>
 {% if fw.remote.name != 'private' %}
 {% if fw.check_acl('@promote-private') %}
-      <a class="card-link btn btn-block btn-primary"
-        href="{{url_for('firmware.route_promote', firmware_id=fw.firmware_id, target='private')}}">
-        Move here
-      </a>
+      <form action="{{url_for('firmware.route_promote', firmware_id=fw.firmware_id, target='private')}}" method="POST">
+        <input type="hidden" name="csrf_token" value="{{csrf_token()}}"/>
+        <button class="card-link btn-block btn btn-primary">Move here</button>
+      </form>
 {% else %}
       <button class="card-link btn btn-block btn-secondary" disabled>
         Permission denied
@@ -32,10 +32,10 @@
       <p class="card-text">Firmware is available to anyone in your vendor group.</p>
 {% if not fw.remote.name.startswith('embargo') %}
 {% if fw.check_acl('@promote-embargo') %}
-      <a class="card-link btn btn-block btn-primary"
-        href="{{url_for('firmware.route_promote', firmware_id=fw.firmware_id, target='embargo')}}">
-        Move here
-      </a>
+      <form action="{{url_for('firmware.route_promote', firmware_id=fw.firmware_id, target='embargo')}}" method="POST">
+        <input type="hidden" name="csrf_token" value="{{csrf_token()}}"/>
+        <button class="card-link btn btn-primary btn-block">Move here</button>
+      </form>
 {% else %}
       <button class="card-link btn btn-block btn-secondary" disabled>
         Permission denied
@@ -52,10 +52,10 @@
 {% if fw.check_acl('@promote-testing') %}
 {% if fw.remote.name != 'stable' %}
 {% if fw.problems|length == 0 %}
-      <a class="card-link btn btn-block btn-primary"
-        href="{{url_for('firmware.route_promote', firmware_id=fw.firmware_id, target='testing')}}">
-        Move here
-      </a>
+      <form action="{{url_for('firmware.route_promote', firmware_id=fw.firmware_id, target='testing')}}" method="POST">
+        <input type="hidden" name="csrf_token" value="{{csrf_token()}}"/>
+        <button class="card-link btn btn-primary btn-block">Move here</button>
+      </form>
 {% else %}
       <button class="card-link btn btn-block btn-secondary" disabled>
         Unavailable due to problems
@@ -142,7 +142,10 @@
       </div>
       <div class="modal-footer">
         <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
-        <a class="btn btn-danger" href="{{url_for('firmware.route_promote', firmware_id=fw.firmware_id, target='testing')}}" role="button">Demote back to testing</a>
+        <form action="{{url_for('firmware.route_promote', firmware_id=fw.firmware_id, target='testing')}}" method="POST">
+          <input type="hidden" name="csrf_token" value="{{csrf_token()}}"/>
+          <button class="btn btn-danger">Demote back to testing</button>
+        </form>
       </div>
     </div>
   </div>
@@ -169,7 +172,10 @@
       </div>
       <div class="modal-footer">
         <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
-        <a class="btn btn-primary" href="{{url_for('firmware.route_promote', firmware_id=fw.firmware_id, target='stable')}}" role="button">Promote to stable</a>
+        <form action="{{url_for('firmware.route_promote', firmware_id=fw.firmware_id, target='stable')}}" method="POST">
+          <input type="hidden" name="csrf_token" value="{{csrf_token()}}"/>
+          <button class="btn btn-primary">Promote to stable</button>
+        </form>
       </div>
     </div>
   </div>

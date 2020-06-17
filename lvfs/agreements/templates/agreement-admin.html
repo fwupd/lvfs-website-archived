@@ -16,7 +16,10 @@
     <textarea class="form-control" name="text" cols="100" rows="25">{{agreement.text}}</textarea>
   </div>
   <input type="submit" class="btn btn-primary" value="Modify">
-  <a class="btn btn-danger" href="{{url_for('agreements.route_delete', agreement_id=agreement.agreement_id)}}">Delete</a>
+</form>
+<form action="{{url_for('agreements.route_delete', agreement_id=agreement.agreement_id)}}" method="POST">
+  <input type="hidden" name="csrf_token" value="{{csrf_token()}}"/>
+  <button class="btn btn-danger">Delete</button>
 </form>
   </div>
 </div>

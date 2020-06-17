@@ -42,12 +42,15 @@
   </tr>
 {% endif %}
 </table>
-    <a class="card-link btn btn-info" href="{{url_for('hsireports.route_view', hsi_report_id=rpt.hsi_report_id)}}">
-      Show JSON
-    </a>
-    <a class="card-link btn btn-danger" href="{{url_for('hsireports.route_delete', hsi_report_id=rpt.hsi_report_id)}}">
-      Delete
-    </a>
+    <div class="form-inline">
+      <a class="card-link btn btn-info mx-1" href="{{url_for('hsireports.route_view', hsi_report_id=rpt.hsi_report_id)}}">
+        Show JSON
+      </a>
+      <form action="{{url_for('hsireports.route_delete', hsi_report_id=rpt.hsi_report_id)}}" method="POST">
+        <input type="hidden" name="csrf_token" value="{{csrf_token()}}"/>
+        <button class="card-link btn btn-danger mx-1">Delete</button>
+      </form>
+    </div>
   </div>
 </div>
 <div class="card">

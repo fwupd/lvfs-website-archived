@@ -10,14 +10,14 @@
     <table class="table">
       <tr class="row table-borderless">
         <th class="col-3">Group ID</th>
-        <th class="col-5">Display Name</th>
+        <th class="col-4">Display Name</th>
         <th class="col-3">Attributes</th>
-        <th class="col-1">&nbsp;</th>
+        <th class="col-2">&nbsp;</th>
       </tr>
 {% for v in vendors %}
       <tr class="row" id="{{v.group_id}}">
         <td class="col-3"><code>{{v.group_id}}</code></td>
-        <td class="col-5">{{v.display_name_with_team}}</td>
+        <td class="col-4">{{v.display_name_with_team}}</td>
         <td class="col-3">
           <code>
 {% if not v.visible %}
@@ -51,9 +51,9 @@
 {% endif %}
           </code>
         </td>
-        <td class="col-1">
-          <a class="card-link btn btn-info"
-             href="{{url_for('vendors.route_show', vendor_id=v.vendor_id)}}">Edit</a>
+        <td class="col-2">
+          <a class="btn-block btn btn-info"
+             href="{{url_for('vendors.route_show', vendor_id=v.vendor_id)}}">Details</a>
         </td>
       </tr>
 {% endfor %}

@@ -51,7 +51,7 @@ class LocalTestCase(LvfsTestCase):
         assert b'ACME' in rv.data, rv.data.decode()
 
         # delete
-        rv = self.app.get('/lvfs/verfmts/3/delete', follow_redirects=True)
+        rv = self.app.post('/lvfs/verfmts/3/delete', follow_redirects=True)
         assert b'Deleted version format' in rv.data, rv.data.decode()
         rv = self.app.get('/lvfs/verfmts/')
         assert 'acme' not in rv.data.decode('utf-8'), rv.data.decode()

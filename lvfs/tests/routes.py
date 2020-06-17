@@ -138,7 +138,7 @@ def route_waived():
                 order_by(Test.scheduled_ts.desc()).all()
     return render_template('test-list.html', category='tests', tests=tests)
 
-@bp_tests.route('/retry/<int:test_id>')
+@bp_tests.route('/retry/<int:test_id>', methods=['POST'])
 @login_required
 def route_retry(test_id):
 
@@ -164,7 +164,7 @@ def route_retry(test_id):
     flash('Test %s will be re-run soon' % test.plugin_id, 'info')
     return redirect(url_for('firmware.route_tests', firmware_id=test.fw.firmware_id))
 
-@bp_tests.route('/waive/<int:test_id>')
+@bp_tests.route('/waive/<int:test_id>', methods=['POST'])
 @login_required
 def route_waive(test_id):
 
@@ -187,7 +187,7 @@ def route_waive(test_id):
     flash('Test %s was waived' % test.plugin_id, 'info')
     return redirect(url_for('firmware.route_tests', firmware_id=test.fw.firmware_id))
 
-@bp_tests.route('/retry/<plugin_id>')
+@bp_tests.route('/retry/<plugin_id>', methods=['POST'])
 @login_required
 @admin_login_required
 def route_retry_all(plugin_id):
@@ -213,7 +213,7 @@ def route_retry_all(plugin_id):
     flash('%i tests will be re-run soon' % len(tests), 'info')
     return redirect(url_for('tests.route_overview'))
 
-@bp_tests.route('/waive/<plugin_id>')
+@bp_tests.route('/waive/<plugin_id>', methods=['POST'])
 @login_required
 @admin_login_required
 def route_waive_all(plugin_id):
@@ -239,7 +239,7 @@ def route_waive_all(plugin_id):
     flash('%i tests have been waived' % len(tests_failed), 'info')
     return redirect(url_for('tests.route_overview'))
 
-@bp_tests.route('/delete/<plugin_id>')
+@bp_tests.route('/delete/<plugin_id>', methods=['POST'])
 @login_required
 @admin_login_required
 def route_delete_all(plugin_id):

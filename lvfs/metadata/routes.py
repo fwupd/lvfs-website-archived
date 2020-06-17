@@ -79,7 +79,7 @@ def route_view():
                            vendors=vendors,
                            remotes=remotes)
 
-@bp_metadata.route('/rebuild')
+@bp_metadata.route('/rebuild', methods=['POST'])
 @login_required
 @admin_login_required
 def route_rebuild():
@@ -100,7 +100,7 @@ def route_rebuild():
         flash('Metadata will be rebuilt %s' % humanize.naturaltime(scheduled_signing), 'info')
     return redirect(url_for('metadata.route_view'))
 
-@bp_metadata.route('/rebuild/<remote_id>')
+@bp_metadata.route('/rebuild/<remote_id>', methods=['POST'])
 @login_required
 @admin_login_required
 def route_rebuild_remote(remote_id):

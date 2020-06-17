@@ -68,12 +68,10 @@ class LocalTestCase(LvfsTestCase):
         # promote the firmware to testing then stable
         self.run_cron_firmware()
         self.run_cron_fwchecks()
-        rv = self.app.get('/lvfs/firmware/1/promote/testing',
-                          follow_redirects=True)
+        rv = self.app.post('/lvfs/firmware/1/promote/testing', follow_redirects=True)
         assert b'>testing<' in rv.data, rv.data
         assert b'>stable<' not in rv.data, rv.data
-        rv = self.app.get('/lvfs/firmware/1/promote/stable',
-                          follow_redirects=True)
+        rv = self.app.post('/lvfs/firmware/1/promote/stable', follow_redirects=True)
         assert b'>stable<' in rv.data, rv.data
 
         # check it's now in the devicelist as anon
@@ -98,7 +96,7 @@ class LocalTestCase(LvfsTestCase):
         assert b'Failed to upload file: A file with hash' in rv.data, rv.data
 
         # undelete it
-        rv = self.app.get('/lvfs/firmware/1/undelete', follow_redirects=True)
+        rv = self.app.post('/lvfs/firmware/1/undelete', follow_redirects=True)
         assert b'Firmware undeleted' in rv.data, rv.data
 
 if __name__ == '__main__':

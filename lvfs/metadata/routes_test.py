@@ -51,7 +51,7 @@ class LocalTestCase(LvfsTestCase):
         # relogin as admin and rebuild metadata
         self.logout()
         self.login()
-        rv = self.app.get('/lvfs/metadata/rebuild', follow_redirects=True)
+        rv = self.app.post('/lvfs/metadata/rebuild', follow_redirects=True)
         assert b'Metadata will be rebuilt' in rv.data, rv.data
 
         # check the remote is generated

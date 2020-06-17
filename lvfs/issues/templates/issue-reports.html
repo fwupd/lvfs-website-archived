@@ -25,8 +25,13 @@
       </tr>
 {% endfor %}
     </table>
-    <a class="card-link btn btn-info" href="{{url_for('firmware.route_show', firmware_id=r.fw.firmware_id)}}">Details</a>
-    <a class="card-link btn btn-danger float-right" href="{{url_for('reports.route_delete', report_id=r.report_id)}}">Delete</a>
+    <div class="form-inline">
+      <a class="card-link btn btn-info mx-1" href="{{url_for('firmware.route_show', firmware_id=r.fw.firmware_id)}}">Details</a>
+      <form action="{{url_for('reports.route_delete', report_id=r.report_id)}}" method="POST">
+        <input type="hidden" name="csrf_token" value="{{csrf_token()}}"/>
+        <button class="card-link btn btn-danger mx-1">Delete</button>
+      </form>
+    </div>
   </div>
 </div>
 {% endfor %}

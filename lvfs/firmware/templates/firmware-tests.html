@@ -51,14 +51,16 @@
     </ul>
 {% endif %}
 {% if test.started_ts and test.check_acl('@retry') %}
-      <a class="card-link btn btn-info"
-         href="{{url_for('tests.route_retry', test_id=test.test_id)}}"
-         role="button">Retry</a>
+      <form action="{{url_for('tests.route_retry', test_id=test.test_id)}}" method="POST">
+        <input type="hidden" name="csrf_token" value="{{csrf_token()}}"/>
+        <button class="card-link btn btn-info">Retry</button>
+      </form>
 {% endif %}
 {% if not test.success and test.ended_ts and test.waivable and not test.waived_ts and test.check_acl('@waive') %}
-      <a class="card-link btn btn-warning"
-         href="{{url_for('tests.route_waive', test_id=test.test_id)}}"
-         role="button">Waive</a>
+      <form action="{{url_for('tests.route_waive', test_id=test.test_id)}}" method="POST">
+        <input type="hidden" name="csrf_token" value="{{csrf_token()}}"/>
+        <button class="card-link btn btn-warning">Waive</button>
+      </form>
 {% endif %}
   </div>
 </div>

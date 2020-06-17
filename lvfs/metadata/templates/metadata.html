@@ -23,9 +23,10 @@
     </div>
 {% endif %}
 {% if g.user.check_acl('@admin') %}
-    <a class="card-link btn btn-primary"
-      href={{url_for('metadata.route_rebuild_remote',
-                     remote_id=remotes['stable'].remote_id)}}>Rebuild</a>
+    <form action="{{url_for('metadata.route_rebuild_remote', remote_id=remotes['stable'].remote_id)}}" method="POST">
+      <input type="hidden" name="csrf_token" value="{{csrf_token()}}"/>
+      <button class="card-link btn btn-primary">Rebuild</button>
+    </form>
 {% endif %}
   </div>
 </div>
@@ -49,9 +50,10 @@
     </div>
 {% endif %}
 {% if g.user.check_acl('@admin') %}
-    <a class="card-link btn btn-primary"
-      href={{url_for('metadata.route_rebuild_remote',
-                     remote_id=remotes['testing'].remote_id)}}>Rebuild</a>
+    <form action="{{url_for('metadata.route_rebuild_remote', remote_id=remotes['testing'].remote_id)}}" method="POST">
+      <input type="hidden" name="csrf_token" value="{{csrf_token()}}"/>
+      <button class="card-link btn btn-primary">Rebuild</button>
+    </form>
 {% endif %}
   </div>
 </div>
@@ -93,13 +95,15 @@
 {% if g.user.check_acl('@admin') %}
 {% if remotes['embargo-' + v.group_id].is_dirty %}
     <!-- Remote will be signed with new firmware -->
-    <a class="card-link btn btn-secondary"
-      href={{url_for('metadata.route_rebuild_remote',
-                     remote_id=remotes['embargo-' + v.group_id].remote_id)}}>Rebuild</a>
+    <form action="{{url_for('metadata.route_rebuild_remote', remote_id=remotes['embargo-' + v.group_id].remote_id)}}" method="POST">
+      <input type="hidden" name="csrf_token" value="{{csrf_token()}}"/>
+      <button class="card-link btn btn-secondary">Rebuild</button>
+    </form>
 {% else %}
-    <a class="card-link btn btn-primary"
-      href={{url_for('metadata.route_rebuild_remote',
-                     remote_id=remotes['embargo-' + v.group_id].remote_id)}}>Rebuild</a>
+    <form action="{{url_for('metadata.route_rebuild_remote', remote_id=remotes['embargo-' + v.group_id].remote_id)}}" method="POST">
+      <input type="hidden" name="csrf_token" value="{{csrf_token()}}"/>
+      <button class="card-link btn btn-primary">Rebuild</button>
+    </form>
 {% endif %}
 {% endif %}
   </div>
@@ -114,7 +118,7 @@
 <p class="card-text">
   This rebuilds metadata for all targets and QA groups.
 </p>
-<form method=\"get\" action="{{url_for('metadata.route_rebuild')}}">
+<form method="POST" action="{{url_for('metadata.route_rebuild')}}">
 <input type="hidden" name="csrf_token" value="{{csrf_token()}}"/>
 <button class="btn btn-danger">Rebuild Metadata</button>
 </form>

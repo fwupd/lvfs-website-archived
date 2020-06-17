@@ -32,8 +32,8 @@
     </label>
   </div>
 {% if issue.check_acl('@modify') %}
-  <input type="submit" class="btn btn-primary btn-large card-link" value="Modify">
-  <button type="button" class="btn btn-danger card-link" data-toggle="modal" data-target="#deleteModal">Delete</button>
+  <input type="submit" class="card-link btn btn-primary" value="Modify">
+  <button type="button" class="card-link btn btn-danger" data-toggle="modal" data-target="#deleteModal">Delete</button>
 {% endif %}
 </form>
   </div>
@@ -54,7 +54,10 @@
       </div>
       <div class="modal-footer">
         <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
-        <a class="btn btn-danger" href="{{url_for('issues.route_delete', issue_id=issue.issue_id)}}" role="button">Delete</a>
+        <form action="{{url_for('issues.route_delete', issue_id=issue.issue_id)}}" method="POST">
+          <input type="hidden" name="csrf_token" value="{{csrf_token()}}"/>
+          <button class="card-link btn btn-danger">Delete</button>
+        </form>
       </div>
     </div>
   </div>

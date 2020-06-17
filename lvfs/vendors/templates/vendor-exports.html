@@ -35,9 +35,10 @@
         <code class="float-right small">{{export_id}}</code>
       </h2>
 {% if v.check_acl('@modify-exports') %}
-      <a class="card-link btn btn-danger"
-        href="{{url_for('vendors.route_export_delete', vendor_id=v.vendor_id, export_id=export_id)}}"
-        role="button">Remove</a>
+      <form action="{{url_for('vendors.route_export_delete', vendor_id=v.vendor_id, export_id=export_id)}}" method="POST">
+        <input type="hidden" name="csrf_token" value="{{csrf_token()}}"/>
+        <button class="card-link btn btn-danger">Delete</button>
+      </form>
 {% endif %}
     </div>
   </div>

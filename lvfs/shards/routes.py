@@ -194,7 +194,7 @@ def route_claims(component_shard_info_id):
                            claims_all=claims_all,
                            shard=shard)
 
-@bp_shards.route('/<int:component_shard_info_id>/claim/<int:component_shard_claim_id>/delete')
+@bp_shards.route('/<int:component_shard_info_id>/claim/<int:component_shard_claim_id>/delete', methods=['POST'])
 @login_required
 @admin_login_required
 def route_shard_claim_delete(component_shard_info_id, component_shard_claim_id):

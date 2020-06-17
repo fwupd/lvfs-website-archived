@@ -25,8 +25,7 @@ class LocalTestCase(LvfsTestCase):
         self.upload(target='embargo')
         self.run_cron_firmware()
         self.run_cron_fwchecks()
-        rv = self.app.get('/lvfs/firmware/1/promote/stable',
-                          follow_redirects=True)
+        rv = self.app.post('/lvfs/firmware/1/promote/stable', follow_redirects=True)
         assert b'>stable<' in rv.data, rv.data
 
         # stats

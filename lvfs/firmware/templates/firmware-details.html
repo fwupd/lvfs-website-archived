@@ -123,18 +123,23 @@ new Chart(ctx, {
 {% endif %}
 {% endif %}
         </p>
+        <div class="form-inline">
 {% if not fw.is_deleted and fw.check_acl('@delete') %}
-        <button type="button" class="btn btn-danger card-link" data-toggle="modal" data-target="#deleteModal">Delete</button>
+          <button type="button" class="btn btn-danger card-link m-1" data-toggle="modal" data-target="#deleteModal">Delete</button>
 {% endif %}
 {% if fw.is_deleted and fw.check_acl('@undelete') %}
-        <a class="btn btn-warning card-link" href="{{url_for('firmware.route_undelete', firmware_id=fw.firmware_id)}}" role="button">Undelete</a>
+          <form class="input-group" action="{{url_for('firmware.route_undelete', firmware_id=fw.firmware_id)}}" method="POST">
+            <input type="hidden" name="csrf_token" value="{{csrf_token()}}"/>
+            <button class="btn btn-warning card-link mx-1">Undelete</button>
+          </form>
 {% endif %}
 {% if fw.is_deleted and fw.check_acl('@nuke') %}
-        <button type="button" class="btn btn-danger card-link" data-toggle="modal" data-target="#nukeModal">☠ Nuke ☠</button>
+          <button type="button" class="btn btn-danger card-link m-1" data-toggle="modal" data-target="#nukeModal">☠ Nuke ☠</button>
 {% endif %}
 {% if (fw.signed_timestamp and fw.check_acl('@resign')) or g.user.check_acl('@admin')  %}
-        <button type="button" class="btn btn-warning card-link" data-toggle="modal" data-target="#resignModal">Re-sign</button>
+          <button type="button" class="btn btn-warning card-link m-1" data-toggle="modal" data-target="#resignModal">Re-sign</button>
 {% endif %}
+        </div>
       </div>
     </div>
   </div>
@@ -239,7 +244,10 @@ new Chart(ctx, {
       </div>
       <div class="modal-footer">
         <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
-        <a class="btn btn-danger" href="{{url_for('firmware.route_delete', firmware_id=fw.firmware_id)}}">Delete Firmware</a>
+        <form action="{{url_for('firmware.route_delete', firmware_id=fw.firmware_id)}}" method="POST">
+          <input type="hidden" name="csrf_token" value="{{csrf_token()}}"/>
+          <button class="btn btn-danger">Delete</button>
+        </form>
       </div>
     </div>
   </div>
@@ -267,7 +275,10 @@ new Chart(ctx, {
       </div>
       <div class="modal-footer">
         <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
-        <a class="btn btn-danger" href="{{url_for('firmware.route_nuke', firmware_id=fw.firmware_id)}}">☠ Nuke ☠</a>
+        <form action="{{url_for('firmware.route_nuke', firmware_id=fw.firmware_id)}}" method="POST">
+          <input type="hidden" name="csrf_token" value="{{csrf_token()}}"/>
+          <button class="btn btn-danger">☠ Nuke ☠</button>
+        </form>
       </div>
     </div>
   </div>
@@ -299,7 +310,10 @@ new Chart(ctx, {
       </div>
       <div class="modal-footer">
         <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
-        <a class="btn btn-warning" href="{{url_for('firmware.route_resign', firmware_id=fw.firmware_id)}}">Re-sign</a>
+        <form action="{{url_for('firmware.route_resign', firmware_id=fw.firmware_id)}}" method="POST">
+          <input type="hidden" name="csrf_token" value="{{csrf_token()}}"/>
+          <button class="btn btn-warning">Re-sign</button>
+        </form>
       </div>
     </div>
   </div>

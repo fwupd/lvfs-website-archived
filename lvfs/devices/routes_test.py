@@ -24,8 +24,7 @@ class LocalTestCase(LvfsTestCase):
         self.add_namespace(vendor_id=1)
         self.upload()
         self.run_cron_firmware()
-        rv = self.app.get('/lvfs/firmware/1/promote/stable',
-                          follow_redirects=True)
+        rv = self.app.post('/lvfs/firmware/1/promote/stable', follow_redirects=True)
         assert b'>stable<' in rv.data, rv.data.decode()
         self.logout()
 
