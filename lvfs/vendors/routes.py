@@ -188,7 +188,15 @@ def route_create():
     if len(request.form['group_id']) > 80:
         flash('Failed to add vendor: Group ID is too long', 'warning')
         return redirect(url_for('vendors.route_list_admin'), 302)
-    r = Remote(name='embargo-%s' % request.form['group_id'])
+
+    # use a random access token, unless running in debug mode
+    if app.config.get('DEBUG', None):
+        access_token = request.form['group_id']
+    else:
+        access_token = secrets.token_hex(nbytes=32)
+
+    r = Remote(name='embargo-%s' % request.form['group_id'],
+               access_token=access_token)
     db.session.add(r)
     db.session.commit()
     v = Vendor(group_id=request.form['group_id'], remote_id=r.remote_id)

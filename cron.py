@@ -15,7 +15,7 @@ from flask import g
 
 from lvfs import app, db, ploader
 
-from lvfs.models import Component, Category, Protocol, Firmware, User, Vendor
+from lvfs.models import Component, Category, Protocol, Firmware, User, Vendor, Remote
 from lvfs.upload.uploadedfile import UploadedFile, MetadataInvalid
 from lvfs.util import _get_absolute_path
 from lvfs.vendors.utils import _vendor_hash
@@ -73,6 +73,12 @@ def _repair_vendor():
                 v.icon = icon
             except FileNotFoundError as _:
                 pass
+
+    for r in db.session.query(Remote):
+        if not r.access_token:
+            # this is to preserve compatibility with old clients
+            salt = app.config['SECRET_VENDOR_SALT']
+            r.access_token = hashlib.sha1((salt + r.name[8:]).encode('utf-8')).hexdigest()
 
     # all done
     db.session.commit()

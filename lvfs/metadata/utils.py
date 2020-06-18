@@ -529,8 +529,7 @@ def _regenerate_and_sign_metadata_remote(r):
     _event_log('Signed metadata {} build {}'.format(r.name, r.build_cnt))
 
     # only keep the last 6 metadata builds (24h / stable refresh every 4h)
-    suffix = r.filename.split('-')[2]
-    fns = glob.glob(os.path.join(download_dir, 'firmware-*-{}'.format(suffix)))
+    fns = glob.glob(os.path.join(download_dir, 'firmware-*-{}.*'.format(r.access_token)))
     for fn in sorted(fns):
         build_cnt = int(fn.split('-')[1])
         if build_cnt + 6 > r.build_cnt:

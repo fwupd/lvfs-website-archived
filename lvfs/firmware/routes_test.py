@@ -362,12 +362,12 @@ class LocalTestCase(LvfsTestCase):
         self.run_cron_metadata(['embargo-oem', 'embargo-odm'])
 
         # verify the firmware is present for the odm
-        rv = self.app.get('/downloads/firmware-6f8926be2d4543878d451be96eb7221eb4313dda.xml.gz')
+        rv = self.app.get('/downloads/firmware-odm.xml.gz')
         xml = _gzip_decompress_buffer(rv.data)
         assert 'com.hughski.ColorHug2.firmware' in xml.decode('utf-8'), xml
 
         # verify the firmware is present for the oem
-        rv = self.app.get('/downloads/firmware-ce7d5a03f067ff4ec73901dbacd378785dea1176.xml.gz')
+        rv = self.app.get('/downloads/firmware-oem.xml.gz')
         xml = _gzip_decompress_buffer(rv.data)
         assert 'com.hughski.ColorHug2.firmware' in xml.decode('utf-8'), xml
 

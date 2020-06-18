@@ -35,7 +35,6 @@ from pkgversion import vercmp
 from lvfs import db
 
 from lvfs.dbutils import _execute_count_star
-from lvfs.hash import _qa_hash
 from lvfs.util import _generate_password, _xml_from_markdown, _get_update_description_problems
 from lvfs.util import _get_absolute_path, _get_shard_path, _validate_guid
 
@@ -1858,6 +1857,7 @@ class Remote(db.Model):
     is_public = Column(Boolean, default=False)
     is_dirty = Column(Boolean, default=False)
     build_cnt = Column(Integer, default=0)
+    access_token = Column(Text, default=None)
 
     vendors = relationship("Vendor", back_populates="remote")
     fws = relationship("Firmware")
@@ -1915,7 +1915,7 @@ class Remote(db.Model):
             return 'firmware-{}-stable.xml.gz'.format(self.build_str)
         if self.name == 'testing':
             return 'firmware-{}-testing.xml.gz'.format(self.build_str)
-        return 'firmware-{}-{}.xml.gz'.format(self.build_str, _qa_hash(self.name[8:]))
+        return 'firmware-{}-{}.xml.gz'.format(self.build_str, self.access_token)
 
     @property
     def filename_newest(self):
@@ -1925,7 +1925,7 @@ class Remote(db.Model):
             return 'firmware.xml.gz'
         if self.name == 'testing':
             return 'firmware-testing.xml.gz'
-        return 'firmware-%s.xml.gz' % _qa_hash(self.name[8:])
+        return 'firmware-%s.xml.gz' % self.access_token
 
     @property
     def scheduled_signing(self):
