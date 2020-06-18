@@ -113,6 +113,7 @@
     <textarea class="form-control" name="comments" cols="64" rows="5">{{v.comments}}</textarea>
   </div>
   <input type="submit" class="card-link btn btn-primary" value="Modify">
+  <button type="button" class="btn btn-warning card-link m-1" data-toggle="modal" data-target="#retokenModal">Regenerate token</button>
 </form>
   </div>
 </div>
@@ -157,4 +158,38 @@
     </div>
   </div>
 </div>
+
+<!-- modal dialog -->
+<div class="modal" id="retokenModal" tabindex="-1" role="dialog" aria-labelledby="retokenModalLabel" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="retokenModalLabel">Really regenerate token?</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <p class="card-text">
+          This forces the LVFS to create a new vendor token for the embargo metadata.
+          Regenerating the token means that all existing users will have to update
+          the <code>embargo.conf</code> files manually.
+        </p>
+        <p class="card-text">
+          You do not normally need to manually regenerate the vendor remote token
+          unless the vendor has accidentally shared the file with another vendor.
+          If if doubt, click <em>Cancel</em>.
+        </p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+        <form action="{{url_for('vendors.route_retoken', vendor_id=v.vendor_id)}}" method="POST">
+          <input type="hidden" name="csrf_token" value="{{csrf_token()}}"/>
+          <button class="btn btn-warning">Regenerate token</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
 {% endblock %}

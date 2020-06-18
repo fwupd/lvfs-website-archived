@@ -8,9 +8,10 @@
 # pylint: disable=too-few-public-methods
 
 import os
+import secrets
 
 from collections import defaultdict
-from glob import fnmatch
+from glob import fnmatch, glob
 
 from flask import Blueprint, request, flash, url_for, redirect, render_template, g
 from flask_login import login_required
@@ -208,6 +209,32 @@ def route_create():
     _async_regenerate_remote.apply_async(args=(r.remote_id,), queue='metadata')
 
     return redirect(url_for('vendors.route_show', vendor_id=v.vendor_id), 302)
+
+@bp_vendors.route('/<int:vendor_id>/retoken', methods=['POST'])
+@login_required
+@admin_login_required
+def route_retoken(vendor_id):
+    """ Removes a vendor [ADMIN ONLY] """
+    vendor = db.session.query(Vendor).filter(Vendor.vendor_id == vendor_id).first()
+    if not vendor:
+        flash('Failed to delete vendor: No a vendor with that group ID', 'warning')
+        return redirect(url_for('vendors.route_list_admin'), 302)
+
+    # delete files with the old access token
+    fns = glob(os.path.join(app.config['DOWNLOAD_DIR'],
+                            'firmware-*-{}.*'.format(vendor.remote.access_token)))
+    for fn in fns:
+        os.remove(fn)
+
+    # a random string
+    vendor.remote.access_token = secrets.token_hex(nbytes=32)
+    db.session.commit()
+
+    # asynchronously rebuilt
+    _async_regenerate_remote.apply_async(args=(vendor.remote.remote_id,), queue='metadata')
+
+    flash('Regenerated vendor access token', 'info')
+    return redirect(url_for('vendors.route_list_admin'), 302)
 
 @bp_vendors.route('/<int:vendor_id>/delete', methods=['POST'])
 @login_required
