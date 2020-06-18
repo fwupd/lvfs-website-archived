@@ -106,33 +106,6 @@ app.register_blueprint(bp_vendors, url_prefix='/lvfs/vendors')
 app.register_blueprint(bp_verfmts, url_prefix='/lvfs/verfmts')
 app.register_blueprint(bp_hsireports, url_prefix='/lvfs/hsireports')
 
-def _set_up_notify_server_error():
-    from lvfs.models import User, UserAction
-    stmt = db.session.query(User.user_id).\
-                            join(UserAction).\
-                            filter(UserAction.value == 'admin').\
-                            subquery()
-    toaddrs = db.session.query(User.username).\
-                               outerjoin(stmt, User.user_id == stmt.c.user_id).\
-                               join(UserAction).\
-                               filter(UserAction.value == 'notify-server-error').\
-                               all()
-    if not toaddrs:
-        return
-    mail_handler = SMTPHandler(
-        mailhost=(app.config['MAIL_SERVER'], app.config['MAIL_PORT']),
-        fromaddr=app.config['MAIL_DEFAULT_SENDER'],
-        toaddrs=toaddrs,
-        subject='LVFS Failure',
-        credentials=(app.config['MAIL_USERNAME'], app.config['MAIL_PASSWORD']),
-        secure=() if app.config['MAIL_USE_TLS'] else None)
-    mail_handler.setLevel(logging.ERROR)
-    app.logger.addHandler(mail_handler)
-
-# email any admins opting-in to the email notification for a server error
-if not app.debug and app.config['MAIL_SERVER']:
-    _set_up_notify_server_error()
-
 @app.cli.command('initdb')
 def initdb_command():
     init_db(db)
