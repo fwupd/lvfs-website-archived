@@ -153,10 +153,6 @@ def flash_save_eventlog(unused_sender, message, category, **unused_extra):
 
 message_flashed.connect(flash_save_eventlog, app)
 
-@app.teardown_appcontext
-def shutdown_session(unused_exception=None):
-    db.session.remove()
-
 @lm.user_loader
 def load_user(user_id):
     from lvfs.models import User
