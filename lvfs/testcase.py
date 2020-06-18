@@ -45,7 +45,6 @@ class LvfsTestCase(unittest.TestCase):
                 "CERTTOOL = 'flatpak run --command=certtool --filesystem=/tmp:ro org.freedesktop.fwupd'",
                 "RESTORE_DIR = '/tmp'",
                 "DOWNLOAD_DIR = '/tmp'",
-                "SECRET_PASSWORD_SALT = 'lvfs%%%'",
                 "SECRET_ADDR_SALT = 'addr%%%'",
                 "SECRET_VENDOR_SALT = 'vendor%%%'",
                 "MAIL_SUPPRESS_SEND = True",
