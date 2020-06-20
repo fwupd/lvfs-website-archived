@@ -14,4 +14,5 @@ Linux Vendor Firmware Service
    telemetry.rst
    custom-plugin.rst
    privacy.rst
+   offline.rst
    news.rst
