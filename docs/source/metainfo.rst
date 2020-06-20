@@ -580,6 +580,44 @@ might only be visible when the user manually visits the software center.
 | ``critical``            | Critical importance, e.g. urgent or security issue |
 +-------------------------+----------------------------------------------------+
 
+Screenshots
+===========
+
+In some circumstances we may need to ask the user to perform an action to
+manually put the device into a special firmware-update mode.
+We can achieve this using a translatable update caption and an optional line-art
+image:
+
+.. figure:: img/screenshot-lineart.png
+    :align: center
+    :width: 100%
+    :alt: Pre-installation dialog
+
+    Showing the user some instructions before updating firmware.
+
+To achieve this the firmware needs to declare the public location of the image
+in the metainfo file:
+
+.. code-block:: xml
+
+    <?xml version='1.0' encoding='UTF-8'?>
+      <component type="firmware">
+        …
+        <screenshots>
+          <screenshot type="default">
+            <caption>Unplug the controller, hold down L+R+START for 3 seconds until both LEDs are flashing then reconnect the controller.</caption>
+            <image>https://raw.githubusercontent.com/hughsie/8bitdo-firmware/master/screenshots/FC30.png</image>
+          </screenshot>
+        </screenshots>
+        …
+      </component>
+
+In the public metadata the URL is rewritten to use the LVFS CDN to preserve the
+privacy of the remote client.
+
+The screenshot will only be shown by the front end client when the device has
+the ``_NEEDS_BOOTLOADER`` flag.
+
 Style Guide
 ===========
 
