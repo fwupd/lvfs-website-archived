@@ -17,6 +17,7 @@ class Pulp:
     def __init__(self, url):
         self.url = url
         self.manifest = 'PULP_MANIFEST'
+        self.useragent = os.path.basename(sys.argv[0])
         self.session = requests.Session()
 
     def _download_file(self, fn):
@@ -24,7 +25,10 @@ class Pulp:
         url_fn = posixpath.join(self.url, os.path.basename(fn))
         print('Downloading {}…'.format(url_fn))
         try:
-            rv = self.session.get(url_fn, timeout=5)
+            headers = {
+                'User-Agent': self.useragent,
+            }
+            rv = self.session.get(url_fn, headers=headers, timeout=5)
         except (
             requests.exceptions.ConnectionError,
             requests.exceptions.ReadTimeout,
@@ -75,7 +79,11 @@ class Pulp:
         # download the PULP_MANIFEST
         try:
             print('Downloading {}…'.format(self.manifest))
-            rv = self.session.get(posixpath.join(self.url, self.manifest), timeout=5)
+            url_manifest = posixpath.join(self.url, self.manifest)
+            headers = {
+                'User-Agent': self.useragent,
+            }
+            rv = self.session.get(url_manifest, headers=headers, timeout=5)
         except (
             requests.exceptions.ConnectionError,
             requests.exceptions.ReadTimeout,
