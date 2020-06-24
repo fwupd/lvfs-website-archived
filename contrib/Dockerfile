@@ -1,27 +1,25 @@
-FROM centos:7
+FROM centos:8
 
-RUN yum -y update
-RUN yum-config-manager --add-repo https://copr.fedorainfracloud.org/coprs/rhughes/lvfs-website/repo/epel-7/rhughes-lvfs-website-epel-7.repo
-RUN yum -y install epel-release
-RUN yum -y install \
+RUN dnf -y update
+RUN dnf -y install dnf-plugins-core
+RUN dnf config-manager --set-enabled PowerTools
+RUN dnf -y install epel-release
+RUN dnf -y install \
 	bsdtar \
-	flatpak \
 	geolite2-country \
 	libgcab1 \
 	GeoIP-devel \
 	cairo-gobject-devel \
 	gobject-introspection-devel \
+	gnutls-utils \
 	gcc \
-	postgresql-devel \
-	python-GeoIP \
-	python36-devel \
-	python36-gobject \
-	python36-pip \
-	python36-psutil \
+	libpq-devel \
+	python3-devel \
+	python3-gobject \
+	python3-pip \
+	python3-psutil \
 	redis \
 	words
-RUN flatpak remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
-RUN flatpak -y install flathub org.freedesktop.fwupd
 COPY requirements.txt /tmp/requirements.txt
 RUN pip3 install -r /tmp/requirements.txt
 RUN mkdir /build
