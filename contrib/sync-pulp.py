@@ -49,12 +49,10 @@ class Pulp:
                     csum_fn = hashlib.sha256(f.read()).hexdigest()
             except FileNotFoundError as _:
                 self._download_file(fn)
-            else:
-                if csum_fn != csum:
-                    print('{} does not match checksum {}'.format(fn, csum))
-                    self._download_file(fn)
-                    return
-            print('Skipping {}…'.format(fn))
+                return
+            if csum_fn != csum:
+                print('{} does not match checksum {}'.format(fn, csum))
+                self._download_file(fn)
             return
 
         # fallback to size
@@ -63,12 +61,10 @@ class Pulp:
                 sz_fn = os.path.getsize(fn)
             except FileNotFoundError as _:
                 self._download_file(fn)
-            else:
-                if sz_fn != sz:
-                    print('{} does not match size {}: {}'.format(fn, sz, sz_fn))
-                    self._download_file(fn)
-                    return
-            print('Skipping {}…'.format(fn))
+                return
+            if sz_fn != sz:
+                print('{} does not match size {}: {}'.format(fn, sz, sz_fn))
+                self._download_file(fn)
             return
 
     def sync(self, path):
