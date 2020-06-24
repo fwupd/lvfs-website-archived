@@ -1,4 +1,6 @@
-#!/usr/bin/python
+#!/usr/bin/python3
+# -*- coding: utf-8 -*-
+#
 # Copyright (C) 2020 Richard Hughes <richard@hughsie.com>
 #
 # SPDX-License-Identifier: GPL-2.0+
