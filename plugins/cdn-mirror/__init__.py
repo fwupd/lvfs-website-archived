@@ -30,7 +30,7 @@ class Plugin(PluginBase):
         return s
 
     def require_test_for_md(self, md):
-        if not md.screenshot_url:
+        if not md.screenshot_url and not md.release_image:
             return False
         return True
 
@@ -42,29 +42,26 @@ class Plugin(PluginBase):
             test = Test(plugin_id=self.id, waivable=False)
             fw.tests.append(test)
 
-    def run_test_on_md(self, test, md):
+    def _cdn_mirror_file(self, test, url):
 
         # download
         try:
-            r = requests.get(md.screenshot_url)
+            r = requests.get(url)
             r.raise_for_status()
         except requests.exceptions.RequestException as e:
             test.add_fail('Download', str(e))
-            return
-        test.add_pass('Download', md.screenshot_url)
+            return None
 
         # load as a PNG
         try:
             im = Image.open(BytesIO(r.content))
         except UnidentifiedImageError as e:
             test.add_fail('Parse', str(e))
-            return
+            return None
         if im.width > 800 or im.height > 600:
             test.add_fail('Size', '{}x{} is too large'.format(im.width, im.height))
         elif im.width < 300 or im.height < 100:
             test.add_fail('Size', '{}x{} is too small'.format(im.width, im.height))
-        else:
-            test.add_pass('Size', '{}x{}'.format(im.width, im.height))
 
         # save to download directory
         basename = 'img-{}.png'.format(hashlib.sha256(r.content).hexdigest())
@@ -74,7 +71,14 @@ class Plugin(PluginBase):
 
         # set the safe URL
         settings = _get_settings('firmware')
-        md.screenshot_url_safe = os.path.join(settings['firmware_baseuri_cdn'], basename)
+        return os.path.join(settings['firmware_baseuri_cdn'], basename)
+
+    def run_test_on_md(self, test, md):
+
+        if md.screenshot_url and not md.screenshot_url_safe:
+            md.screenshot_url_safe = self._cdn_mirror_file(test, md.screenshot_url)
+        if md.release_image and not md.release_image_safe:
+            md.release_image_safe = self._cdn_mirror_file(test, md.release_image)
 
 # run with PYTHONPATH=. ./env/bin/python3 plugins/cdn-mirror/__init__.py
 if __name__ == '__main__':

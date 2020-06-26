@@ -177,6 +177,8 @@ def route_modify(component_id):
         md.release_tag = request.form['release_tag']
     if 'release_message' in request.form:
         md.release_message = request.form['release_message']
+    if 'release_image' in request.form:
+        md.release_image = request.form['release_image']
 
     # the firmware changed protocol
     if retry_all_tests:

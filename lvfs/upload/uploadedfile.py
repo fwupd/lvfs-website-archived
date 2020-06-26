@@ -540,6 +540,14 @@ class UploadedFile:
         except IndexError as _:
             pass
 
+        # allows OEM to set the update image
+        try:
+            text = _node_validate_text(component.xpath('custom/value[@key="LVFS::UpdateImage"]')[0],
+                                       minlen=8, maxlen=1000)
+            md.release_image = text
+        except IndexError as _:
+            pass
+
         # should we parse the .inf file?
         try:
             text = _node_validate_text(component.xpath('custom/value[@key="LVFS::EnableInfParsing"]')[0],

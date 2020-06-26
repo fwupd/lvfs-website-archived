@@ -159,7 +159,11 @@ def anonymize_db(db):
             md.release_installed_size = random.randint(100000, 1000000)
             md.release_download_size = random.randint(200000, 1000000)
             md.screenshot_url = None
+            md.screenshot_url_safe = None
             md.screenshot_caption = None
+            md.release_message = None
+            md.release_image = None
+            md.release_image_safe = None
             md.appstream_id = 'com.' + fw.vendor.group_id + '.' + \
                               _make_boring(md.name) + '.firmware'
             for gu in md.guids:

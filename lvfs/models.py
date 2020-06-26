@@ -1399,6 +1399,8 @@ class Component(db.Model):
     release_urgency = Column(Text, default=None)
     release_tag = Column(Text, default=None)
     release_message = Column(Text, default=None) # LVFS::UpdateMessage
+    release_image = Column(Text, default=None) # LVFS::UpdateImage
+    release_image_safe = Column(Text, default=None)
     screenshot_url = Column(Text, default=None)
     screenshot_url_safe = Column(Text, default=None)
     screenshot_caption = Column(Text, default=None)

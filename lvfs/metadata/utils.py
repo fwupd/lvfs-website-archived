@@ -156,6 +156,11 @@ def _generate_metadata_mds(mds, firmware_baseuri='', local=False, metainfo=False
     for md in mds:
         if md.release_message:
             elements.append(('LVFS::UpdateMessage', md.release_message))
+            if md.release_url:
+                if metainfo or not md.screenshot_url_safe:
+                    elements.append(('LVFS::UpdateImage', md.release_image))
+                else:
+                    elements.append(('LVFS::UpdateImage', md.release_image_safe))
             break
     for md in mds:
         verfmt = md.verfmt_with_fallback

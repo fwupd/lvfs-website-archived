@@ -102,6 +102,13 @@
         The update message may be shown when the firmware update has completed.
       </p>
   </div>
+  <div class="form-group">
+    <label for="release_message">Update Image</label>
+      <input class="form-control" type="text" name="release_image" value="{{md.release_image if md.release_image}}"/>
+      <p class="text-secondary">
+        The update image may be shown when the firmware update has completed.
+      </p>
+  </div>
 {% if md.requires_source_url or md.source_url %}
   <div class="form-group">
     <label for="source_url">Source URL</label>
