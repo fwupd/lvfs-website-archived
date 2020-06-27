@@ -404,7 +404,7 @@ Depth is specified as ``1`` to match the parent device and
 Client Features
 ---------------
 
-Newer versions of fwupd can restrict updates depending on the features the
+Versions of fwupd ``>=1.4.5`` can restrict updates depending on the features the
 client can provide. For instance, if the tools are being run in non-interactive
 mode then it may not be possible to ask the user to perform a manual action.
 
@@ -676,7 +676,7 @@ The screenshot will only be shown by the front end client when the device has
 the ``_NEEDS_BOOTLOADER`` flag.
 
 Please also add a ``<client>`` requirement if the update cannot be performed
-without showing the image.
+without showing the image or caption.
 
 Style Guide
 ===========

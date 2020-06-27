@@ -101,12 +101,22 @@
       <p class="text-secondary">
         The update message may be shown when the firmware update has completed.
       </p>
+      <p class="text-secondary">
+        A <a href="{{url_for('components.route_show', component_id=md.component_id, page='requires')}}>">
+        component requirement</a> should be used if the update text has to be
+        shown for the update to complete successfully.
+      </p>
   </div>
   <div class="form-group">
     <label for="release_message">Update Image</label>
       <input class="form-control" type="text" name="release_image" value="{{md.release_image if md.release_image}}"/>
       <p class="text-secondary">
         The update image may be shown when the firmware update has completed.
+      </p>
+      <p class="text-secondary">
+        A <a href="{{url_for('components.route_show', component_id=md.component_id, page='requires')}}">
+        component requirement</a> should be used if the update image has to be
+        shown for the update to complete successfully.
       </p>
   </div>
 {% if md.requires_source_url or md.source_url %}
