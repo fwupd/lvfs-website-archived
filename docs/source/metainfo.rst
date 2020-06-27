@@ -401,6 +401,63 @@ Depth is specified as ``1`` to match the parent device and
       <firmware depth="1">12345678-1234-1234-1234-123456789012</firmware>
     </requires>
 
+Client Features
+---------------
+
+Newer versions of fwupd can restrict updates depending on the features the
+client can provide. For instance, if the tools are being run in non-interactive
+mode then it may not be possible to ask the user to perform a manual action.
+
+Some devices may need to show the user some text or an image of how to
+manually detach the firmware from runtime mode to bootloader mode.
+
+.. code-block:: xml
+
+    …
+    <screenshots>
+      <screenshot type="default">
+        <caption>Unplug the controller, hold down L+R+START for 3 seconds until both LEDs are flashing then reconnect the controller.</caption>
+        <image>https://raw.githubusercontent.com/hughsie/8bitdo-firmware/master/screenshots/FC30.png</image>
+      </screenshot>
+    </screenshots>
+    …
+    <!-- only newer versions of fwupd understand 'client' requirements -->
+    <requires>
+      <id compare="ge" version="1.4.5">org.freedesktop.fwupd</id>
+      <client>detach-action</client>
+    </requires>
+    …
+
+Other firmware may require showing the user a message or image on how to reset
+the hardware when the firmware update has completed.
+This specific post-update message functionality is only available in very new
+versions of GNOME Software for instance.
+
+.. figure:: img/update-image.png
+    :align: center
+    :width: 100%
+    :alt: Post-installation dialog
+
+    Showing the user some instructions to reboot the hardware.
+
+This action can be performed with one or two metadata keys set in the
+``.metainfo.xml`` file, or chosen using the LVFS component editor.
+
+.. code-block:: xml
+
+    …
+    <custom>
+      <value key="LVFS::UpdateMessage">Please turn the device off and back on again for the update to complete</value>
+      <value key="LVFS::UpdateImage">https://people.freedesktop.org/~hughsient/temp/unifying-power.png</value>
+    </custom>
+    …
+    <!-- only newer versions of fwupd understand 'client' requirements -->
+    <requires>
+      <id compare="ge" version="1.4.5">org.freedesktop.fwupd</id>
+      <client>update-action</client>
+    </requires>
+    …
+
 Restricting Direct Downloads
 ----------------------------
 
@@ -617,6 +674,9 @@ privacy of the remote client.
 
 The screenshot will only be shown by the front end client when the device has
 the ``_NEEDS_BOOTLOADER`` flag.
+
+Please also add a ``<client>`` requirement if the update cannot be performed
+without showing the image.
 
 Style Guide
 ===========

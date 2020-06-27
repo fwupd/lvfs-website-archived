@@ -12,12 +12,25 @@
   </div>
 {% endif %}
 
+<div class="card mt-3">
+  <div class="card-body">
+    <h2 class="card-title">
+      Requirements
+    </h2>
+    <p class="card-text">
+      Requirements added here will be added to the <code>metainfo.xml</code> file
+      inside the cabinet archive and <strong>also</strong> added to the shared metadata.
+    </p>
+    <a class="card-link btn btn-info" href="{{url_for('components.route_show', component_id=md.component_id, page='requires-advanced')}}">Show detailed view</a>
+  </div>
+</div>
+
 <fieldset {{ 'disabled="disabled"' if md.fw.remote.is_public }} >
 <form class="form" action="{{url_for('components.route_requirement_modify', component_id=md.component_id)}}" method="POST" >
 <input type="hidden" name="csrf_token" value="{{csrf_token()}}"/>
 <input type="hidden" name="kind" value="firmware">
 <input type="hidden" name="value" value="">
-<div class="card">
+<div class="card mt-3">
   <div class="card-body">
     <h2 class="card-title">Existing firmware version</h2>
     <div class="row card-text">
@@ -109,8 +122,44 @@
 </div>
 </form>
 
-<form class="form" action="{{url_for('components.route_requirement_create', component_id=md.component_id)}}" method="POST" >
-<input type="hidden" name="csrf_token" value="{{csrf_token()}}"/>
+<div class="card mt-3">
+  <div class="card-body">
+    <h2 class="card-title">Client Features</h2>
+    <p class="card-text">
+      Add enumerated kinds here to require specific front-end features.
+      You should also set a fwupd version requirement of <code>&ge; 1.4.5</code>
+      to avoid errors.
+    </p>
+{% for rq in md.requirements %}
+{% if rq.kind == 'client' %}
+<table class="table card-text">
+  <tr class="row">
+    <td class="col col-sm-10">
+      <code>{{rq.value}}</code>
+    </td>
+    <td class="col col-sm-2 text-right">
+      <form action="{{url_for('components.route_requirement_delete', component_id=rq.md.component_id, requirement_id=rq.requirement_id)}}" method="POST">
+        <input type="hidden" name="csrf_token" value="{{csrf_token()}}"/>
+        <button class="btn-block btn btn-secondary">Remove</button>
+      </form>
+    </td>
+  </tr>
+</table>
+{% endif %}
+{% endfor %}
+{% if md.check_acl('@modify-requirements') %}
+    <form class="form" action="{{url_for('components.route_requirement_create', component_id=md.component_id)}}" method="POST" >
+    <input type="hidden" name="csrf_token" value="{{csrf_token()}}"/>
+    <div class="card-text mb-3">
+      <input type="hidden" name="kind" value="client">
+      <input type="text" class="form-control fixed-width" name="value" placeholder="detach-action|update-action"/>
+    </div>
+    <input class="card-link btn btn-primary" type="submit" value="Add"/>
+    </form>
+{% endif %}
+  </div>
+</div>
+
 <div class="card mt-3">
   <div class="card-body">
     <h2 class="card-title">Computer Hardware IDs</h2>
@@ -135,18 +184,18 @@
 {% endif %}
 {% endfor %}
 {% if md.check_acl('@modify-requirements') %}
+    <form class="form" action="{{url_for('components.route_requirement_create', component_id=md.component_id)}}" method="POST" >
+    <input type="hidden" name="csrf_token" value="{{csrf_token()}}"/>
     <div class="card-text mb-3">
       <input type="hidden" name="kind" value="hardware">
       <input type="text" class="form-control fixed-width" name="value" placeholder="b0f340b1-361e-55f9-b691-bc46d0921ea8"/>
     </div>
     <input class="card-link btn btn-primary" type="submit" value="Add"/>
-{% endif %}
-{% if md.requirements %}
-    <a class="card-link btn btn-info" href="{{url_for('components.route_show', component_id=md.component_id, page='requires-advanced')}}">Show detailed view</a>
+    </form>
 {% endif %}
   </div>
 </div>
-</form>
+
 </fieldset>
 
 {% endblock %}

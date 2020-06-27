@@ -323,7 +323,7 @@ def route_requirement_create(component_id):
     for key in ['kind', 'value']:
         if key not in request.form or not request.form[key]:
             return _error_internal('No %s specified!' % key)
-    if request.form['kind'] not in ['hardware', 'firmware', 'id']:
+    if request.form['kind'] not in ['hardware', 'firmware', 'id', 'client']:
         return _error_internal('No valid kind specified!')
 
     # get firmware component
@@ -387,7 +387,7 @@ def route_requirement_modify(component_id):
     for key in ['kind', 'value']:
         if key not in request.form:
             return _error_internal('No %s specified!' % key)
-    if request.form['kind'] not in ['hardware', 'firmware', 'id']:
+    if request.form['kind'] not in ['hardware', 'firmware', 'id', 'client']:
         return _error_internal('No valid kind specified!')
 
     # get firmware component
