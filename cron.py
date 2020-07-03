@@ -17,7 +17,7 @@ from lvfs import app, db, ploader
 
 from lvfs.models import Component, Category, Protocol, Firmware, User, Vendor, Remote
 from lvfs.upload.uploadedfile import UploadedFile, MetadataInvalid
-from lvfs.util import _get_absolute_path
+from lvfs.util import _get_absolute_path, _get_sanitized_basename
 from lvfs.vendors.utils import _vendor_hash
 
 def _repair_ts():
@@ -45,6 +45,28 @@ def _repair_ts():
                                                                  md_local.release_timestamp))
                 md.release_timestamp = md_local.release_timestamp
                 md.fw.mark_dirty()
+
+    # all done
+    db.session.commit()
+
+def _repair_fn():
+    for firmware_id, in db.session.query(Firmware.firmware_id)\
+                                  .order_by(Firmware.firmware_id.asc()):
+        fw = db.session.query(Firmware)\
+                       .filter(Firmware.firmware_id == firmware_id)\
+                       .one()
+        filename = _get_sanitized_basename(fw.filename)
+        if filename != fw.filename:
+
+            print('moving {} to {}'.format(fw.filename, filename))
+            fn_old = _get_absolute_path(fw)
+            fn_new = os.path.join(os.path.dirname(fn_old), filename)
+            try:
+                os.rename(fn_old, fn_new)
+                fw.filename = filename
+                fw.mark_dirty()
+            except FileNotFoundError as _:
+                pass
 
     # all done
     db.session.commit()
@@ -135,6 +157,8 @@ def _ensure_tests():
 def _main_with_app_context():
     if 'repair-ts' in sys.argv:
         _repair_ts()
+    if 'repair-fn' in sys.argv:
+        _repair_fn()
     if 'repair-csum' in sys.argv:
         _repair_csum()
     if 'repair-vendor' in sys.argv:

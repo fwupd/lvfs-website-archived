@@ -242,6 +242,12 @@ def _get_absolute_path(fw):
         return os.path.join(app.config['RESTORE_DIR'], fw.filename)
     return os.path.join(app.config['DOWNLOAD_DIR'], fw.filename)
 
+def _get_sanitized_basename(basename):
+    basename_sane = basename.encode('ascii', 'ignore').decode('utf-8')
+    for key, value in [(',', '_')]:
+        basename_sane = basename_sane.replace(key, value)
+    return basename_sane
+
 def _get_shard_path(shard):
     from lvfs import app
     return os.path.join(app.config['SHARD_DIR'], str(shard.component_id), shard.name)

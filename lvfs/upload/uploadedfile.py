@@ -22,7 +22,7 @@ from cabarchive import CabArchive, CabFile
 from infparser import InfParser
 
 from lvfs.models import Firmware, Component, ComponentIssue, Guid, Requirement, Checksum
-from lvfs.util import _validate_guid, _markdown_from_root
+from lvfs.util import _validate_guid, _markdown_from_root, _get_sanitized_basename
 
 class FileTooLarge(Exception):
     pass
@@ -645,7 +645,8 @@ class UploadedFile:
         self.fw.checksum_upload_sha1 = hashlib.sha1(data).hexdigest()
         self.fw.checksum_upload_sha256 = hashlib.sha256(data).hexdigest()
         if use_hashed_prefix:
-            self.fw.filename = self.fw.checksum_upload_sha256 + '-' + filename.replace('.zip', '.cab')
+            filename_safe = _get_sanitized_basename(filename)
+            self.fw.filename = self.fw.checksum_upload_sha256 + '-' + filename_safe.replace('.zip', '.cab')
         else:
             self.fw.filename = filename.replace('.zip', '.cab')
 
