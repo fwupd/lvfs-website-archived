@@ -423,7 +423,9 @@ def _metadata_update_pulp(download_dir):
     with open(os.path.join(download_dir, 'PULP_MANIFEST'), 'w') as manifest:
 
         # add metadata
-        for basename in ['firmware.xml.gz',
+        r = db.session.query(Remote).filter(Remote.name == 'stable').one()
+        for basename in [r.filename,
+                         r.filename_newest,
                          'firmware.xml.gz.asc',
                          'firmware.xml.gz.jcat']:
             fn = os.path.join(download_dir, basename)
