@@ -24,7 +24,7 @@ from lvfs.util import _error_internal, _email_check, _generate_password
 from lvfs.util import _pkcs7_certificate_info
 from lvfs.models import User, UserAction, Vendor, Remote, Firmware, Event, FirmwareEvent, Certificate
 
-from .utils import _async_user_disable
+from .utils import _async_user_disable, _async_user_email_report
 
 bp_users = Blueprint('users', __name__, template_folder='templates')
 
@@ -33,6 +33,10 @@ def setup_periodic_tasks(sender, **_):
     sender.add_periodic_task(
         crontab(hour=1, minute=0),
         _async_user_disable.s(),
+    )
+    sender.add_periodic_task(
+        crontab(day=1, hour=2, minute=0),
+        _async_user_email_report.s(),
     )
 
 def _password_check(value):
@@ -96,6 +100,7 @@ def route_modify(user_id):
                 'notify-promote',
                 'notify-upload-vendor',
                 'notify-upload-affiliate',
+                'notify-non-public',
                 'notify-server-error']:
         if key in request.form:
             if not user.get_action(key):

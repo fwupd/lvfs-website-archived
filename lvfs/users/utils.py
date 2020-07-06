@@ -50,7 +50,37 @@ def _user_disable_actual():
         user.display_name = 'Disabled User {}'.format(user.user_id)
         db.session.commit()
 
+def _user_email_report():
+
+    # find all users
+    for user in db.session.query(User)\
+                          .filter(User.auth_type != 'disabled'):
+        if not user.get_action('notify-non-public'):
+            continue
+        fws_embargo = []
+        fws_testing = []
+        for fw in user.fws:
+            if fw.target_duration < datetime.timedelta(days=30):
+                continue
+            if fw.remote.name == 'testing':
+                fws_testing.append(fw)
+                continue
+            if fw.remote.name.startswith('embargo'):
+                fws_embargo.append(fw)
+                continue
+        if fws_embargo or fws_testing:
+            send_email("[LVFS] List of non-public firmware",
+                       user.email_address,
+                       render_template('email-non-public.txt',
+                                       user=user,
+                                       fws_embargo=fws_embargo,
+                                       fws_testing=fws_testing))
+
 @celery.task(max_retries=3, default_retry_delay=60, task_time_limit=120)
 def _async_user_disable():
     _user_disable_notify()
     _user_disable_actual()
+
+@celery.task(max_retries=3, default_retry_delay=60, task_time_limit=120)
+def _async_user_email_report():
+    _user_email_report()

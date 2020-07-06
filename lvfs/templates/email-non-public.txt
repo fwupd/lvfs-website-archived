@@ -1,0 +1,23 @@
+Dear {{ user.display_name }},
+
+You uploaded firmware that remains in neither private or public state. This message is designed as a reminder rather than any kind of warning, and feel free to ignore it if the firmware should remain in embargo or testing for a good reason. This message is automatically generated just once per month.
+{%- if fws_embargo %}
+
+Firmware in embargo:
+{%- for fw in fws_embargo %}
+ * {{fw.md_prio.name_with_vendor}} v{{fw.md_prio.version_display}}: {{url_for('firmware.route_show', firmware_id=fw.firmware_id, _external=True)}}
+{%- endfor %}
+{%- endif %}
+{%- if fws_testing %}
+
+Firmware in testing:
+{%- for fw in fws_testing %}
+ * {{fw.md_prio.name_with_vendor}} v{{fw.md_prio.version_display}} : {{url_for('firmware.route_show', firmware_id=fw.firmware_id, _external=True)}}
+{%- endfor %}
+{%- endif %}
+
+If you believe this reminder was issued in error, please contact the LVFS administrators. This email notification can also be disabled by changing the notification preferences in your profile, or by clicking here: {{url_for('main.route_profile', _external=True)}}
+
+Regards,
+
+The LVFS admins
