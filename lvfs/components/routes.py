@@ -13,7 +13,7 @@ from sqlalchemy import func
 from lvfs import db, ploader
 
 from lvfs.models import Requirement, Component, ComponentIssue, Keyword, Checksum, Category
-from lvfs.models import Protocol, Report, ReportAttribute, Firmware, Remote
+from lvfs.models import Protocol, Report, ReportAttribute, Firmware, Remote, Verfmt
 from lvfs.firmware.utils import _async_sign_fw
 from lvfs.tests.utils import _async_test_run_for_firmware
 from lvfs.util import _error_internal, _validate_guid
@@ -140,6 +140,9 @@ def route_modify(component_id):
         if md.protocol_id != request.form['protocol_id']:
             md.protocol_id = request.form['protocol_id']
             retry_all_tests = True
+    if 'verfmt_id' in request.form:
+        if md.verfmt_id != request.form['verfmt_id']:
+            md.verfmt_id = request.form['verfmt_id']
     if 'category_id' in request.form:
         category_id = request.form['category_id']
         if not category_id:
@@ -265,6 +268,7 @@ def route_show(component_id, page='overview'):
     if page == 'requires' and md.has_complex_requirements:
         page = 'requires-advanced'
 
+    verfmts = db.session.query(Verfmt).order_by(Verfmt.name.asc()).all()
     protocols = db.session.query(Protocol).order_by(Protocol.name.asc()).all()
     for protocol in protocols:
         if protocol.value == 'unknown':
@@ -275,6 +279,7 @@ def route_show(component_id, page='overview'):
     return render_template('component-' + page + '.html',
                            category='firmware',
                            protocols=protocols,
+                           verfmts=verfmts,
                            categories=categories,
                            md=md,
                            page=page)

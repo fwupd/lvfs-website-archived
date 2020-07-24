@@ -89,14 +89,6 @@
     <th class="col-3">Version</th>
     <td class="col"><code>{{md.version_display}}</code></td>
   </tr>
-{% if md.verfmt_with_fallback %}
-  <tr class="row">
-    <th class="col-3">Version Format</th>
-    <td class="col">
-      <code>{{md.verfmt_with_fallback.value}}</code>
-    </td>
-  </tr>
-{% endif %}
 {% for guid in md.guids %}
   <tr class="row">
     <th class="col-3">Device GUID</th>
@@ -136,6 +128,31 @@
     </td>
 {% else %}
     <td class="col-7"><code>{{md.protocol.value}}</code></td>
+{% endif %}
+  </tr>
+  <form class="form-inline" action="{{url_for('components.route_modify', component_id=md.component_id)}}" method="POST">
+  <input type="hidden" name="csrf_token" value="{{csrf_token()}}"/>
+  <tr class="row">
+    <th class="col-3">Version Format</th>
+{% if md.fw.remote.name != 'stable' or g.user.check_acl('@admin') %}
+    <td class="col-7">
+      <select class="form-control" name="verfmt_id">
+        <option value="" {{ 'selected' if not md.verfmt }}>Unknown</option>
+{% for verfmt in verfmts %}
+        <option value="{{verfmt.verfmt_id}}" {{ 'selected' if md.verfmt and md.verfmt.value == verfmt.value }}>
+          {{ verfmt.name if verfmt.name else verfmt.value}}
+{% if md.version.isdigit() %}
+          e.g. {{verfmt.version_display(md.version)}}
+{% endif %}
+        </option>
+{% endfor %}
+      </select>
+    </td>
+    <td class="col-2">
+      <input type="submit" class="btn btn-primary btn-block" value="Set"/>
+    </td>
+{% else %}
+    <td class="col-7"><code>{{md.verfmt.value}}</code></td>
 {% endif %}
   </tr>
   <tr class="row">

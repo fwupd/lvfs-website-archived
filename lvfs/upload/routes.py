@@ -238,9 +238,18 @@ def _upload_firmware():
 
     # verify each component has a version format
     for md in fw.mds:
-        if not md.verfmt_with_fallback:
-            flash('Component {} does not have required LVFS::VersionFormat'.\
-                  format(md.appstream_id), 'warning')
+        if not md.verfmt:
+            if md.protocol and md.protocol.verfmt:
+                md.verfmt = md.protocol.verfmt
+                flash('Component {} does not have LVFS::VersionFormat assuming {} from protocol'.\
+                      format(md.appstream_id, md.verfmt.value), 'warning')
+            elif md.fw.vendor.verfmt and md.protocol and md.protocol.value == 'org.uefi.capsule':
+                md.verfmt = md.fw.vendor.verfmt
+                flash('Component {} does not have LVFS::VersionFormat assuming {} from vendor'.\
+                      format(md.appstream_id, md.verfmt.value), 'warning')
+            else:
+                flash('Component {} does not have required LVFS::VersionFormat'.\
+                      format(md.appstream_id), 'warning')
 
     # add to database
     fw.events.append(FirmwareEvent(remote_id=remote.remote_id, user_id=g.user.user_id))
