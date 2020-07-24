@@ -960,7 +960,7 @@ class Verfmt(db.Model):
         return None
 
     def __repr__(self):
-        return "Verfmt object %s:%s" % (self.category_id, self.value)
+        return "Verfmt object %s:%s" % (self.verfmt_id, self.value)
 
 class Category(db.Model):
 
