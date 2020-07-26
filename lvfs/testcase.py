@@ -353,7 +353,7 @@ ma+I7fM5pmgsEL4tkCZAg0+CPTyhHkMV/cWuOZUjqTsYbDq1pZI=
                            follow_redirects=True)
         assert b'Added namespace' in rv.data, rv.data
 
-    def add_issue(self, issue_id=1, url='https://github.com/hughsie/fwupd/wiki/Arch-Linux', name='ColorHug on Fedora'):
+    def add_issue(self, issue_id=1, url='https://github.com/fwupd/fwupd/wiki/Arch-Linux', name='ColorHug on Fedora'):
 
         # create an issue
         rv = self.app.post('/lvfs/issues/create', data=dict(

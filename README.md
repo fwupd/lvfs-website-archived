@@ -18,7 +18,7 @@ The official instance is set up using puppet on RHEL 7, on which you could use:
 
     yum-config-manager --add-repo https://copr.fedorainfracloud.org/coprs/rhughes/lvfs-website/repo/epel-7/rhughes-lvfs-website-epel-7.repo
     yum install epel-release libgcab1 puppet
-    git clone https://github.com/hughsie/lvfs-puppet.git
+    git clone https://github.com/fwupd/lvfs-puppet.git
     cd lvfs-puppet
     hostname admin
     puppet module install puppetlabs-vcsrepo --version 2.2.0
