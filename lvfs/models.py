@@ -475,7 +475,7 @@ class Vendor(db.Model):
     @property
     @functools.lru_cache()
     def fws_stable_recent(self):
-        now = datetime.datetime.utcnow() - datetime.timedelta(weeks=25)
+        now = datetime.datetime.utcnow() - datetime.timedelta(weeks=26) # 26 weeks is half a year or about 6 months
         return _execute_count_star(db.session.query(Firmware.firmware_id).\
                     join(Firmware.remote).\
                     filter(Remote.name == 'stable',
