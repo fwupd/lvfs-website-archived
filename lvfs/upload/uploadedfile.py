@@ -407,7 +407,7 @@ class UploadedFile:
         # get <project_license>
         try:
             md.project_license = _node_validate_text(component.xpath('project_license')[0],
-                                                     minlen=4, maxlen=50, nourl=True)
+                                                     minlen=3, maxlen=50, nourl=True)
         except IndexError as _:
             raise MetadataInvalid('<project_license> tag missing')
         if not md.project_license:

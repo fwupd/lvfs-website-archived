@@ -105,6 +105,29 @@ def _repair_vendor():
     # all done
     db.session.commit()
 
+def _repair_verfmt():
+
+    # fix all the checksums and file sizes
+    for component_id, in db.session.query(Component.component_id)\
+                                   .filter(Component.verfmt_id == None)\
+                                   .order_by(Component.component_id.asc()):
+        md = db.session.query(Component)\
+                       .filter(Component.component_id == component_id)\
+                       .one()
+        if md.protocol and md.protocol.verfmt:
+            md.verfmt = md.protocol.verfmt
+            print('repairing Component {} verfmt to {} using protocol {}'\
+                  .format(md.component_id, md.verfmt.value, md.protocol.value))
+            continue
+        if md.fw.vendor.verfmt and md.protocol and md.protocol.value == 'org.uefi.capsule':
+            md.verfmt = md.fw.vendor.verfmt
+            print('repairing Component {} verfmt to {} using vendor'\
+                  .format(md.component_id, md.verfmt.value))
+            continue
+
+    # all done
+    db.session.commit()
+
 def _repair_csum():
 
     # fix all the checksums and file sizes
@@ -163,6 +186,8 @@ def _main_with_app_context():
         _repair_csum()
     if 'repair-vendor' in sys.argv:
         _repair_vendor()
+    if 'repair-verfmt' in sys.argv:
+        _repair_verfmt()
     if 'fsck' in sys.argv:
         _fsck()
     if 'ensure' in sys.argv:

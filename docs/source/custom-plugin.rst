@@ -44,7 +44,7 @@ Building fwupd
     $ cd ~
     $ sudo dnf -y builddep fwupd
     $ sudo dnf -y install tpm2-tss-devel # if using Fedora version less than F32
-    $ git clone https://github.com/hughsie/fwupd.git
+    $ git clone https://github.com/fwupd/fwupd.git
     $ cd fwupd
     $ mkdir build && cd build
     $ meson ../ -Dsystemd_root_prefix=/tmp -Dudevdir=/tmp --prefix=/home/emily/.root

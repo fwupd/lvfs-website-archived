@@ -163,7 +163,7 @@ def _generate_metadata_mds(mds, firmware_baseuri='', local=False, metainfo=False
                     elements.append(('LVFS::UpdateImage', md.release_image_safe))
             break
     for md in mds:
-        verfmt = md.verfmt_with_fallback
+        verfmt = md.verfmt
         if verfmt:
             if verfmt.fallbacks and not _is_verfmt_supported_by_fwupd(md, verfmt):
                 for fallback in verfmt.fallbacks.split(','):

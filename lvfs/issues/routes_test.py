@@ -59,12 +59,12 @@ class LocalTestCase(LvfsTestCase):
         rv = self._report(updatestate=3)
         assert b'"success": true' in rv.data, rv.data
         assert b'The failure is a known issue' in rv.data, rv.data
-        assert b'https://github.com/hughsie/fwupd/wiki/Arch-Linux' in rv.data, rv.data
+        assert b'https://github.com/fwupd/fwupd/wiki/Arch-Linux' in rv.data, rv.data
 
         # add a report not matching the issue
         rv = self._report(updatestate=3, distro_id='rhel')
         assert b'The failure is a known issue' not in rv.data, rv.data
-        assert b'https://github.com/hughsie/fwupd/wiki/Arch-Linux' not in rv.data, rv.data
+        assert b'https://github.com/fwupd/fwupd/wiki/Arch-Linux' not in rv.data, rv.data
 
         # remove Condition
         rv = self.app.post('/lvfs/issues/1/condition/1/delete', follow_redirects=True)

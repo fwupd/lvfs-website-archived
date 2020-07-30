@@ -233,6 +233,7 @@ document.getElementById("file").onchange = function() {
 }
 </script>
 
+{% if g.user.check_acl('@manage-password') %}
 <!-- Modal -->
 <div class="modal" id="otpSetupModal" tabindex="-1" role="dialog" aria-labelledby="otpSetupModalLabel" aria-hidden="true">
   <div class="modal-dialog" role="document">
@@ -269,6 +270,7 @@ document.getElementById("file").onchange = function() {
     </div>
   </div>
 </div>
+{% endif %}
 
 <!-- modal dialog -->
 <div class="modal" id="deactivateModal" tabindex="-1" role="dialog" aria-labelledby="nukeModalLabel" aria-hidden="true">

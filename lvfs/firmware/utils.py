@@ -92,7 +92,7 @@ def _delete_embargo_obsoleted_fw():
         if not all_newer:
             continue
 
-        # delete, but not purge for another 6 months...
+        # delete, but not purge...
         _firmware_delete(fw)
 
         # dedupe emails by user
@@ -117,7 +117,7 @@ def _purge_old_deleted_firmware():
         fw = db.session.query(Firmware)\
                        .filter(Firmware.firmware_id == firmware_id)\
                        .one()
-        if fw.target_duration > datetime.timedelta(days=30*6):
+        if fw.target_duration > datetime.timedelta(days=30):
             print('Deleting %s as age %s' % (fw.filename, fw.target_duration))
             path = os.path.join(app.config['RESTORE_DIR'], fw.filename)
             if os.path.exists(path):

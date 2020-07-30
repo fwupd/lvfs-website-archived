@@ -475,7 +475,7 @@ class Vendor(db.Model):
     @property
     @functools.lru_cache()
     def fws_stable_recent(self):
-        now = datetime.datetime.utcnow() - datetime.timedelta(weeks=25)
+        now = datetime.datetime.utcnow() - datetime.timedelta(weeks=26) # 26 weeks is half a year or about 6 months
         return _execute_count_star(db.session.query(Firmware.firmware_id).\
                     join(Firmware.remote).\
                     filter(Remote.name == 'stable',
@@ -917,7 +917,7 @@ class Verfmt(db.Model):
             return 0
         return len(self.example.split('.'))
 
-    def uint32_to_str(self, v):
+    def _uint32_to_str(self, v):
         if self.value == 'plain':
             return str(v)
         if self.value == 'quad':
@@ -959,8 +959,13 @@ class Verfmt(db.Model):
             return "%#08x" % v
         return None
 
+    def version_display(self, version):
+        if version.isdigit():
+            return self._uint32_to_str(int(version))
+        return version
+
     def __repr__(self):
-        return "Verfmt object %s:%s" % (self.category_id, self.value)
+        return "Verfmt object %s:%s" % (self.verfmt_id, self.value)
 
 class Category(db.Model):
 
@@ -1496,16 +1501,6 @@ class Component(db.Model):
         return name
 
     @property
-    def verfmt_with_fallback(self):
-        if self.verfmt:
-            return self.verfmt
-        if self.protocol and self.protocol.verfmt:
-            return self.protocol.verfmt
-        if self.fw.vendor.verfmt and self.protocol and self.protocol.value == 'org.uefi.capsule':
-            return self.fw.vendor.verfmt
-        return None
-
-    @property
     def developer_name_display(self):
         if not self.developer_name:
             return None
@@ -1592,9 +1587,8 @@ class Component(db.Model):
     @property
     def version_display(self):
         if self.version.isdigit():
-            verfmt = self.verfmt_with_fallback
-            if verfmt:
-                return verfmt.uint32_to_str(int(self.version))
+            if self.verfmt:
+                return self.verfmt._uint32_to_str(int(self.version))
         return self.version
 
     @property
@@ -1670,27 +1664,16 @@ class Component(db.Model):
                                                   component_id=self.component_id)))
 
         # check the version matches the expected section count
-        if self.verfmt_with_fallback and \
-           self.verfmt_with_fallback.value != 'plain' and \
-           self.verfmt_with_fallback.sections:
-            if self.version_sections != self.verfmt_with_fallback.sections:
+        if self.verfmt and \
+           self.verfmt.value != 'plain' and \
+           self.verfmt.sections:
+            if self.version_sections != self.verfmt.sections:
                 problems.append(Claim(kind='invalid-version-for-format',
                                       icon='warning',
                                       summary='Version format invalid',
                                       description='The version number {} incompatible with {}.'.\
                                                     format(self.version_display,
-                                                           self.verfmt_with_fallback.value),
-                                      url=url_for('components.route_show',
-                                                  component_id=self.component_id)))
-
-        # if the component and protocol both have verfmt, they must match
-        if self.verfmt and self.protocol and self.protocol.verfmt:
-            if self.verfmt.value != self.protocol.verfmt.value:
-                problems.append(Claim(kind='invalid-format-for-protocol',
-                                      icon='warning',
-                                      summary='Version vormat {} incompatible with protocol-defined {}'.\
-                                                    format(self.verfmt.value,
-                                                           self.protocol.verfmt.value),
+                                                           self.verfmt.value),
                                       url=url_for('components.route_show',
                                                   component_id=self.component_id)))
 

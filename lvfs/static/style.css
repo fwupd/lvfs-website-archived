@@ -34,3 +34,7 @@ img.grayscale {
             filter: grayscale(100%);
    opacity: 0.4;
 }
+
+.search-input-landing:focus {
+  color: rgba(255, 255, 255, 0.7);
+}
