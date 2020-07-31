@@ -105,6 +105,29 @@ def _repair_vendor():
     # all done
     db.session.commit()
 
+def _repair_tests():
+
+    # fix all the PFAT tests
+    for component_id, in db.session.query(Component.component_id)\
+                                   .filter(Component.verfmt_id == None)\
+                                   .filter(Component.protocol_id == 17)\
+                                   .order_by(Component.component_id.asc()):
+        md = db.session.query(Component)\
+                       .filter(Component.component_id == component_id)\
+                       .one()
+        if md.blob[8:16] == b'_AMIPFAT':
+            for test in md.fw.tests:
+                if test.plugin_id in ['uefi-extract',
+                                      'microcode',
+                                      'shard-claim',
+                                      'microcode-mcedb',
+                                      'intelme']:
+                    test.retry()
+            print('Retrying tests for component {} ({})'.format(md.component_id, md.name_with_vendor))
+
+    # all done
+    db.session.commit()
+
 def _repair_verfmt():
 
     # fix all the checksums and file sizes
@@ -188,6 +211,8 @@ def _main_with_app_context():
         _repair_vendor()
     if 'repair-verfmt' in sys.argv:
         _repair_verfmt()
+    if 'repair-tests' in sys.argv:
+        _repair_tests()
     if 'fsck' in sys.argv:
         _fsck()
     if 'ensure' in sys.argv:
