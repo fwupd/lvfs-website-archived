@@ -135,6 +135,96 @@ class InfoTxtFile:
             return int(value[:-1], 16)
         return int(value)
 
+
+class PfatFile:
+
+    PFAT_HEADER = '<II8sB'
+    PFAT_BLOCK_HEADER = '<I16sIIIIIII'
+    PFAT_BLOCK_SIGN = '<II64II64I'
+
+    def __init__(self, blob=None):
+        self.shards = []
+        if blob:
+            self.parse(blob)
+
+    def parse(self, blob):
+
+        # sanity check
+        PfatHeader = namedtuple('PfatHeader', ['size', 'csum', 'tag', 'ctrl'])
+        try:
+            pfat_hdr = PfatHeader._make(
+                struct.unpack_from(PfatFile.PFAT_HEADER, blob, 0x0)
+            )
+        except struct.error as e:
+            raise RuntimeError(str(e))
+        if pfat_hdr.tag != b'_AMIPFAT':
+            raise RuntimeError('Not a PFAT header')
+
+        # parse the header data which seems to be of the form:
+        # "1 /B 4 ;BIOS_FV_BB.bin" where the blockcount is 4 in this example
+        section_data = (
+            blob[struct.calcsize(PfatFile.PFAT_HEADER) : pfat_hdr.size]
+            .decode('utf-8')
+            .splitlines()
+        )
+        PfatSection = namedtuple(
+            'PfatSection', ['flash', 'param', 'blockcnt', 'filename']
+        )
+        sections = []
+        for entry in section_data[1:]:
+            entry_data = entry.split(' ')
+            sections.append(
+                PfatSection(
+                    flash=int(entry_data[0]),
+                    param=entry_data[1],
+                    blockcnt=int(entry_data[2]),
+                    filename=entry_data[3][1:],
+                )
+            )
+
+        # parse sections
+        offset = pfat_hdr.size
+        for section in sections:
+            data = b''
+            for _ in range(section.blockcnt):
+                PfatBlockHeader = namedtuple(
+                    'PfatBlockHeader',
+                    [
+                        'revision',
+                        'platform',
+                        'unknown0',
+                        'unknown1',
+                        'flagsz',
+                        'datasz',
+                        'unknown2',
+                        'unknown3',
+                        'unknown4',
+                    ],
+                )
+                block_hdr = PfatBlockHeader._make(
+                    struct.unpack_from(PfatFile.PFAT_BLOCK_HEADER, blob, offset)
+                )
+                block_data_start = (
+                    offset
+                    + struct.calcsize(PfatFile.PFAT_BLOCK_HEADER)
+                    + block_hdr.flagsz
+                )
+                data += blob[block_data_start : block_data_start + block_hdr.datasz]
+                offset += (
+                    struct.calcsize(PfatFile.PFAT_BLOCK_HEADER)
+                    + block_hdr.flagsz
+                    + block_hdr.datasz
+                    + struct.calcsize(PfatFile.PFAT_BLOCK_SIGN)
+                )
+
+            # add shard blob
+            shard = ComponentShard()
+            shard.set_blob(data)
+            shard.name = 'com.ami.' + section.filename
+            shard.guid = uuid.uuid3(uuid.NAMESPACE_DNS, section.filename)
+            self.shards.append(shard)
+
+
 class Plugin(PluginBase):
     def __init__(self, plugin_id=None):
         PluginBase.__init__(self, plugin_id)
@@ -374,28 +464,40 @@ class Plugin(PluginBase):
                 db.session.delete(shard)
         db.session.commit()
 
-        # try first with the plain blob (possibly with a capsule header) and
+        # is this a AMI BIOS with PFAT sections
+        if md.blob[8:16] == b'_AMIPFAT':
+            pfat = PfatFile(md.blob)
+            shards = []
+            for shard in pfat.shards:
+                shards.append(shard)
+                if shard.name == 'com.ami.BIOS_FV_BB.bin':
+                    continue
+                shards.extend(self._get_shards_for_blob(shard.blob))
+            test.add_pass('Found PFAT blob')
+
+        # try with the plain blob (possibly with a capsule header) and
         # then look for a Zlib section (with an optional PFS-prefixed) blob
-        shards = self._get_shards_for_blob(md.blob)
-        if not shards:
-            for blob in self._find_zlib_sections(md.blob):
-                try:
-                    pfs = PfsFile(blob)
-                    for shard in pfs.shards:
+        else:
+            shards = self._get_shards_for_blob(md.blob)
+            if not shards:
+                for blob in self._find_zlib_sections(md.blob):
+                    try:
+                        pfs = PfsFile(blob)
+                        for shard in pfs.shards:
+                            shards.append(shard)
+                            shards.extend(self._get_shards_for_blob(shard.blob))
+                        test.add_pass('Found PFS in Zlib compressed blob')
+                    except RuntimeError as _:
+                        shard = ComponentShard(plugin_id=self.id)
+                        shard.set_blob(blob)
+                        shard.name = 'Zlib'
+                        shard.guid = '68b8cc0e-4664-5c7a-9ce3-8ed9b4ffbffb'
                         shards.append(shard)
                         shards.extend(self._get_shards_for_blob(shard.blob))
-                    test.add_pass('Found PFS in Zlib compressed blob')
-                except RuntimeError as _:
-                    shard = ComponentShard(plugin_id=self.id)
-                    shard.set_blob(blob)
-                    shard.name = 'Zlib'
-                    shard.guid = '68b8cc0e-4664-5c7a-9ce3-8ed9b4ffbffb'
-                    shards.append(shard)
-                    shards.extend(self._get_shards_for_blob(shard.blob))
-                    test.add_pass('Found Zlib compressed blob')
-        if not shards:
-            test.add_pass('No firmware volumes found in {}'.format(md.filename_contents))
-            return
+                        test.add_pass('Found Zlib compressed blob')
+            if not shards:
+                test.add_pass('No firmware volumes found in {}'.format(md.filename_contents))
+                return
 
         # add shard to component
         for shard in shards:
