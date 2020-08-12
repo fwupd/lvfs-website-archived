@@ -22,6 +22,7 @@ from cabarchive import CabArchive, CabFile
 from infparser import InfParser
 
 from lvfs.models import Firmware, Component, ComponentIssue, Guid, Requirement, Checksum
+from lvfs.models import Verfmt, Protocol, Category
 from lvfs.util import _validate_guid, _markdown_from_root, _get_sanitized_basename
 
 class FileTooLarge(Exception):
@@ -145,7 +146,7 @@ class UploadedFile:
         self.enable_inf_parsing = True
         self.fwupd_min_version = '0.8.0'    # a guess, but everyone should have this
         self.version_formats = {}
-        self.category_map = {'X-Device' : 1}
+        self.category_map = {}
         self.protocol_map = {}
 
         # strip out any unlisted files
@@ -502,11 +503,12 @@ class UploadedFile:
         try:
             version_format = _node_validate_text(component.xpath('custom/value[@key="LVFS::VersionFormat"]')[-1])
             if not self.version_formats:
-                raise MetadataInvalid('Valid version formats have not been added')
-            if version_format not in self.version_formats:
+                md.verfmt = Verfmt(value=version_format)
+            elif version_format not in self.version_formats:
                 raise MetadataInvalid('LVFS::VersionFormat can only be {}'.\
                                       format(','.join(self.version_formats.keys())))
-            md.verfmt = self.version_formats[version_format]
+            else:
+                md.verfmt = self.version_formats[version_format]
         except IndexError as _:
             pass
 
@@ -518,9 +520,12 @@ class UploadedFile:
         # allows OEM to specify protocol
         try:
             text = _node_validate_text(component.xpath('custom/value[@key="LVFS::UpdateProtocol"]')[0])
-            if text not in self.protocol_map:
+            if not self.version_formats:
+                md.protocol = Protocol(value=text)
+            elif text not in self.protocol_map:
                 raise MetadataInvalid('No valid UpdateProtocol {} found'.format(text))
-            md.protocol_id = self.protocol_map[text]
+            else:
+                md.protocol_id = self.protocol_map[text]
         except IndexError as _:
             pass
 
@@ -564,6 +569,9 @@ class UploadedFile:
         # allows OEM to specify category
         for category in component.xpath('categories/category'):
             text = _node_validate_text(category, minlen=8, maxlen=50, nourl=True)
+            if not self.category_map:
+                md.category = Category(value=text)
+                break
             if text in self.category_map:
                 md.category_id = self.category_map[text]
                 break
