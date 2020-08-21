@@ -48,7 +48,7 @@ pyasn1-modules==0.2.8
 pycairo==1.19.1
 pycparser==2.20
 PyGObject==3.36.1
-pylint==2.5.3
+pylint==2.6.0
 pyparsing==2.4.7
 Pillow==7.2.0
 PyQRCode==1.2.1
