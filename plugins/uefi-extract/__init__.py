@@ -45,7 +45,7 @@ class PfsFile:
             try:
                 pfs_info = nt._make(struct.unpack_from(PfsFile.PFS_INFO, blob, off))
             except struct.error as e:
-                raise RuntimeError(str(e))
+                raise RuntimeError from e
             if pfs_info.hdr_ver != 1:
                 raise RuntimeError('PFS info version %i unsupported' % pfs_info.hdr_ver)
             guid = str(uuid.UUID(bytes_le=pfs_info.guid))
@@ -60,7 +60,7 @@ class PfsFile:
         try:
             pfs_hdr = nt._make(struct.unpack_from(PfsFile.PFS_HEADER, blob, 0x0))
         except struct.error as e:
-            raise RuntimeError(str(e))
+            raise RuntimeError from e
         if pfs_hdr.tag != b'PFS.HDR.':
             raise RuntimeError('Not a PFS header')
         if pfs_hdr.hdr_ver != 1:
@@ -78,7 +78,7 @@ class PfsFile:
             try:
                 pfs_sect = nt._make(struct.unpack_from(PfsFile.PFS_SECTION, blob, offset))
             except struct.error as e:
-                raise RuntimeError(str(e))
+                raise RuntimeError from e
             if pfs_sect.hdr_ver != 1:
                 raise RuntimeError('PFS section version %i unsupported' % pfs_hdr.hdr_ver)
             offset += struct.calcsize(PfsFile.PFS_SECTION)
@@ -156,7 +156,7 @@ class PfatFile:
                 struct.unpack_from(PfatFile.PFAT_HEADER, blob, 0x0)
             )
         except struct.error as e:
-            raise RuntimeError(str(e))
+            raise RuntimeError from e
         if pfat_hdr.tag != b'_AMIPFAT':
             raise RuntimeError('Not a PFAT header')
 
@@ -424,7 +424,7 @@ class Plugin(PluginBase):
                                     stderr=subprocess.PIPE,
                                     cwd=cwd.name)
         except subprocess.CalledProcessError as e:
-            raise PluginError('Failed to decode file: {}'.format(e.output))
+            raise PluginError('Failed to decode file') from e
 
         # look for shards
         files = glob.glob(src.name + '.dump' + '/**/info.txt', recursive=True)

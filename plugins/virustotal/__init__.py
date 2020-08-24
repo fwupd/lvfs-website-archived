@@ -63,4 +63,4 @@ class Plugin(PluginBase):
                 test.add_fail('Failed to upload', r.text)
                 return
         except IOError as e:
-            raise PluginError(e)
+            raise PluginError from e

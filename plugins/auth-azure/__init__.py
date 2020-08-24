@@ -60,7 +60,7 @@ class Plugin(PluginBase):
         try:
             oauth_response = remote_app.authorized_response()
         except OAuthException as e:
-            raise PluginError(str(e))
+            raise PluginError from e
         if oauth_response is None:
             raise PluginError('Access Denied' + str(request))
 

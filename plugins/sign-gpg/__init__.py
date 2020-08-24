@@ -25,7 +25,7 @@ class Affidavit:
             try:
                 os.mkdir(homedir)
             except OSError as e:
-                raise PluginError(e)
+                raise PluginError from e
 
         # find correct key ID for the UID
         self._keyid = None

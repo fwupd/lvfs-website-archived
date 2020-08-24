@@ -102,7 +102,7 @@ def _node_validate_text(node, minlen=0, maxlen=0, nourl=False, allow_none=False)
         try:
             text = _markdown_from_root(node)
         except KeyError as e:
-            raise MetadataInvalid(e)
+            raise MetadataInvalid from e
     else:
         text = node.text
         if text:
@@ -167,18 +167,18 @@ class UploadedFile:
         # check .inf file is valid
         try:
             cfg = InfParser(contents)
-        except configparser.MissingSectionHeaderError as _:
-            raise MetadataInvalid('The inf file could not be parsed')
+        except configparser.MissingSectionHeaderError as e:
+            raise MetadataInvalid('The inf file could not be parsed') from e
         try:
             tmp = cfg.get('Version', 'Class')
-        except (configparser.NoOptionError, configparser.NoSectionError) as _:
-            raise MetadataInvalid('The inf file Version:Class was missing')
+        except (configparser.NoOptionError, configparser.NoSectionError) as e:
+            raise MetadataInvalid('The inf file Version:Class was missing') from e
         if tmp.lower() != 'firmware':
             raise MetadataInvalid('The inf file Version:Class was invalid')
         try:
             tmp = cfg.get('Version', 'ClassGuid')
-        except configparser.NoOptionError as _:
-            raise MetadataInvalid('The inf file Version:ClassGuid was missing')
+        except configparser.NoOptionError as e:
+            raise MetadataInvalid('The inf file Version:ClassGuid was missing') from e
         if tmp.lower() != '{f2e7dd72-6468-4e36-b6f1-6488f42c1b52}':
             raise MetadataInvalid('The inf file Version:ClassGuid was invalid')
         try:
@@ -221,12 +221,12 @@ class UploadedFile:
                 dt_utc = dt.replace(tzinfo=datetime.timezone.utc)
                 md.release_timestamp = int(dt_utc.timestamp())
             except ValueError as e:
-                raise MetadataInvalid('<release> has invalid date attribute: {}'.format(str(e)))
+                raise MetadataInvalid('<release> has invalid date attribute') from e
         elif 'timestamp' in release.attrib:
             try:
                 md.release_timestamp = int(release.get('timestamp'))
             except ValueError as e:
-                raise MetadataInvalid('<release> has invalid timestamp attribute: {}'.format(str(e)))
+                raise MetadataInvalid('<release> has invalid timestamp attribute') from e
         else:
             raise MetadataInvalid('<release> had no date or timestamp attributes')
 
@@ -311,8 +311,8 @@ class UploadedFile:
                     raise MetadataInvalid('<id> Cannot contain {}'.format(char))
             if len(md.appstream_id.split('.')) < 4:
                 raise MetadataInvalid('<id> Should contain at least 4 sections to identify the model')
-        except IndexError as _:
-            raise MetadataInvalid('<id> tag missing')
+        except IndexError as e:
+            raise MetadataInvalid('<id> tag missing') from e
 
         # get <developer_name>
         try:
@@ -321,8 +321,8 @@ class UploadedFile:
             if md.developer_name == 'LenovoLtd.':
                 md.developer_name = 'Lenovo Ltd.'
             md.add_keywords_from_string(md.developer_name, priority=10)
-        except IndexError as _:
-            raise MetadataInvalid('<developer_name> tag missing')
+        except IndexError as e:
+            raise MetadataInvalid('<developer_name> tag missing') from e
         if md.developer_name.find('@') != -1 or md.developer_name.find('_at_') != -1:
             raise MetadataInvalid('<developer_name> cannot contain an email address')
 
@@ -362,16 +362,16 @@ class UploadedFile:
                     if md.developer_name_display.lower() in words:
                         raise MetadataInvalid('<name> tag should not contain '
                                               'the vendor name "{}"'.format(md.developer_name_display))
-        except IndexError as _:
-            raise MetadataInvalid('<name> tag missing')
+        except IndexError as e:
+            raise MetadataInvalid('<name> tag missing') from e
 
         # get <summary>
         try:
             md.summary = _node_validate_text(component.xpath('summary')[0],
                                              minlen=10, maxlen=500)
             md.add_keywords_from_string(md.summary, priority=1)
-        except IndexError as _:
-            raise MetadataInvalid('<summary> tag missing')
+        except IndexError as e:
+            raise MetadataInvalid('<summary> tag missing') from e
 
         # get optional <name_variant_suffix>
         try:
@@ -395,10 +395,10 @@ class UploadedFile:
                                                'CC-BY-3.0', 'CC-BY-SA-3.0', 'CC-BY-4.0', 'CC-BY-SA-4.0',
                                                'GFDL-1.1', 'GFDL-1.2', 'GFDL-1.3']:
                     raise MetadataInvalid('Invalid <metadata_license> tag of {}'.format(md.metadata_license))
-            except AttributeError as _:
-                raise MetadataInvalid('<metadata_license> tag')
-            except IndexError as _:
-                raise MetadataInvalid('<metadata_license> tag missing')
+            except AttributeError as e:
+                raise MetadataInvalid('<metadata_license> tag') from e
+            except IndexError as e:
+                raise MetadataInvalid('<metadata_license> tag missing') from e
         else:
             try:
                 md.metadata_license = _node_validate_text(component.xpath('metadata_license')[0])
@@ -409,8 +409,8 @@ class UploadedFile:
         try:
             md.project_license = _node_validate_text(component.xpath('project_license')[0],
                                                      minlen=3, maxlen=50, nourl=True)
-        except IndexError as _:
-            raise MetadataInvalid('<project_license> tag missing')
+        except IndexError as e:
+            raise MetadataInvalid('<project_license> tag missing') from e
         if not md.project_license:
             raise MetadataInvalid('<project_license> value invalid')
 
@@ -418,8 +418,8 @@ class UploadedFile:
         try:
             md.url_homepage = _node_validate_text(component.xpath('url[@type="homepage"]')[0],
                                                   minlen=7, maxlen=1000)
-        except IndexError as _:
-            raise MetadataInvalid('<url type="homepage"> tag missing')
+        except IndexError as e:
+            raise MetadataInvalid('<url type="homepage"> tag missing') from e
         if not md.url_homepage:
             raise MetadataInvalid('<url type="homepage"> value invalid')
 
@@ -579,8 +579,8 @@ class UploadedFile:
         # parse the default (first) release
         try:
             default_release = component.xpath('releases/release')[0]
-        except IndexError as _:
-            raise MetadataInvalid('The metadata file did not provide any releases')
+        except IndexError as e:
+            raise MetadataInvalid('The metadata file did not provide any releases') from e
         self._parse_release(md, default_release)
 
         # ensure the update description does not refer to a file in the archive
@@ -622,9 +622,9 @@ class UploadedFile:
             if len(components) > 1:
                 raise MetadataInvalid('Multiple <component> tags')
         except UnicodeDecodeError as e:
-            raise MetadataInvalid('The metadata file could not be parsed: {}'.format(str(e)))
+            raise MetadataInvalid('The metadata file could not be parsed as unicode') from e
         except ET.XMLSyntaxError as e:
-            raise MetadataInvalid('The metadata file could not be parsed: {}'.format(str(e)))
+            raise MetadataInvalid('The metadata file could not be parsed as valid XML') from e
         md = self._parse_component(components[0])
         md.release_download_size = self._data_size
         md.filename_xml = cabfile.filename
@@ -632,8 +632,8 @@ class UploadedFile:
         # add the firmware.bin to the archive
         try:
             cabfile_fw = self.cabarchive_upload[md.filename_contents]
-        except KeyError as _:
-            raise MetadataInvalid('No {} found in the archive'.format(md.filename_contents))
+        except KeyError as e:
+            raise MetadataInvalid('No {} found in the archive'.format(md.filename_contents)) from e
         self.cabarchive_repacked[cabfile_fw.filename] = cabfile_fw
         md.checksum_contents_sha1 = hashlib.sha1(cabfile_fw.buf).hexdigest()
         md.checksum_contents_sha256 = hashlib.sha256(cabfile_fw.buf).hexdigest()
@@ -665,7 +665,7 @@ class UploadedFile:
             else:
                 self.cabarchive_upload = _repackage_archive(filename, data)
         except NotImplementedError as e:
-            raise FileNotSupported('Invalid file type: %s' % str(e))
+            raise FileNotSupported('Invalid file type') from e
 
         # load metainfo files
         cabfiles = [cabfile for cabfile in self.cabarchive_upload.values()
