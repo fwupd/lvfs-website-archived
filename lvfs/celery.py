@@ -16,7 +16,7 @@ class FlaskCelery(Celery):
 
     def __init__(self, *args, **kwargs):
 
-        super(FlaskCelery, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         self.patch_task()
 
         if 'app' in kwargs:
