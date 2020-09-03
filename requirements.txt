@@ -1,6 +1,6 @@
 alembic==1.4.2
 astroid==2.4.2
-amqp==2.6.1
+amqp==5.0.0
 attrs==20.1.0
 billiard==3.6.3
 blinker==1.4
