@@ -54,7 +54,11 @@ def _use_hex_release_version(md):
         return False
     return True
 
-def _generate_metadata_mds(mds, firmware_baseuri='', local=False, metainfo=False):
+def _generate_metadata_mds(mds,
+                           firmware_baseuri='',
+                           local=False,
+                           metainfo=False,
+                           allow_unrestricted=True):
 
     # assume all the components have the same parent firmware information
     md = mds[0]
@@ -298,14 +302,18 @@ def _generate_metadata_mds(mds, firmware_baseuri='', local=False, metainfo=False
 
             # the vendor can upload to any hardware
             vendor = md.fw.vendor_odm
-            if vendor.is_unrestricted:
+            if vendor.is_unrestricted and allow_unrestricted:
                 continue
 
             # no restrictions in place!
             if not vendor.restrictions:
                 vendor_ids.append('XXX:NEVER_GOING_TO_MATCH')
                 continue
+
+            # add all the actual vendor_ids
             for res in vendor.restrictions:
+                if res.value == '*':
+                    continue
                 if res.value not in vendor_ids:
                     vendor_ids.append(res.value)
 
@@ -389,7 +397,7 @@ def _generate_metadata_mds(mds, firmware_baseuri='', local=False, metainfo=False
     # success
     return component
 
-def _generate_metadata_kind(fws, firmware_baseuri='', local=False):
+def _generate_metadata_kind(fws, firmware_baseuri='', local=False, allow_unrestricted=True):
     """ Generates AppStream metadata of a specific kind """
 
     root = ET.Element('components')
@@ -408,7 +416,8 @@ def _generate_metadata_kind(fws, firmware_baseuri='', local=False):
         mds = sorted(components[appstream_id], reverse=True)[:5]
         component = _generate_metadata_mds(mds,
                                            firmware_baseuri=firmware_baseuri,
-                                           local=local)
+                                           local=local,
+                                           allow_unrestricted=allow_unrestricted)
         root.append(component)
 
     # dump to file
@@ -482,7 +491,8 @@ def _regenerate_and_sign_metadata_remote(r):
             fws_filtered.append(fw)
     settings = _get_settings()
     blob_xmlgz = _generate_metadata_kind(fws_filtered,
-                                         firmware_baseuri=settings['firmware_baseuri'])
+                                         firmware_baseuri=settings['firmware_baseuri'],
+                                         allow_unrestricted=r.is_public)
 
     # write metadata-?????.xml.gz
     fn_xmlgz = os.path.join(download_dir, r.filename)
