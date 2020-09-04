@@ -59,4 +59,4 @@ class Plugin(PluginBase):
                     raise PluginError('Failed to purge metadata on CDN: ' + r.text)
             except ValueError as e:
                 # BunnyCDN doesn't sent a JSON blob
-                raise PluginError('Failed to purge metadata on CDN: %s: %s' % (r.text, str(e)))
+                raise PluginError('Failed to purge metadata on CDN: %s' % r.text) from e

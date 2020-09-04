@@ -142,7 +142,7 @@ def route_modify(component_id):
             retry_all_tests = True
     if 'verfmt_id' in request.form:
         if md.verfmt_id != request.form['verfmt_id']:
-            md.verfmt_id = request.form['verfmt_id']
+            md.verfmt_id = request.form['verfmt_id'] or None
     if 'category_id' in request.form:
         category_id = request.form['category_id']
         if not category_id:

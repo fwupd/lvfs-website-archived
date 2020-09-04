@@ -36,7 +36,7 @@ class CabArchive(dict):
             try:
                 cfarchive.load(istream)
             except gi.repository.GLib.GError as e:
-                raise NotSupportedError(e)
+                raise NotSupportedError from e
             cfarchive.extract(None)
             for cffolder in cfarchive.get_folders():
                 for cffile in cffolder.get_files():

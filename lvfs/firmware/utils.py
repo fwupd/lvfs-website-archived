@@ -162,7 +162,7 @@ def _sign_fw(fw):
         with open(fn, 'rb') as f:
             cabarchive = CabArchive(f.read())
     except IOError as e:
-        raise NotImplementedError('cannot read %s: %s' % (fn, str(e)))
+        raise NotImplementedError('cannot read %s' % fn) from e
 
     # create Jcat file
     jcatfile = JcatFile()
@@ -189,8 +189,8 @@ def _sign_fw(fw):
                 # add to Jcat file too
                 jcatitem.add_blob(blob)
 
-        except KeyError as _:
-            raise NotImplementedError('no {} firmware found'.format(md.filename_contents))
+        except KeyError as e:
+            raise NotImplementedError('no {} firmware found'.format(md.filename_contents)) from e
 
     # rewrite the metainfo.xml file to reflect latest changes and sign it
     for md in fw.mds:

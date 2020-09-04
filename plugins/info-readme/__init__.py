@@ -37,7 +37,7 @@ class Plugin(PluginBase):
             with open(self.get_setting('info_readme_template', required=True), 'rb') as f:
                 template = f.read().decode('utf-8')
         except IOError as e:
-            raise PluginError(e)
+            raise PluginError from e
         for key in metadata:
             template = template.replace(key, metadata[key])
 

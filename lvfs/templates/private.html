@@ -214,6 +214,9 @@
             </div>
           </a>
           <ul class="nav collapse {{'show' if category == 'analytics'}}" id="analytics" data-parent="#navbarVerticalCollapse">
+            <li class="nav-item {{'active' if request.url_rule.endpoint == 'analytics.route_day'}}">
+              <a class="nav-link" href="{{url_for('analytics.route_day')}}">Download Day</a>
+            </li>
             <li class="nav-item {{'active' if request.url_rule.endpoint == 'analytics.route_month'}}">
               <a class="nav-link" href="{{url_for('analytics.route_month')}}">Download Month</a>
             </li>

@@ -33,7 +33,7 @@ def create_metadata(archive_dir, basename, metadata_fn):
             if not filename.endswith('.cab'):
                 continue
             print('Processing %s...' % filename)
-            ufile = UploadedFile()
+            ufile = UploadedFile(is_strict=False)
             try:
                 with open(os.path.join(root, filename), 'rb') as f:
                     ufile.parse(filename, f.read(), use_hashed_prefix=False)

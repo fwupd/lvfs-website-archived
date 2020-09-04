@@ -955,6 +955,8 @@ class Verfmt(db.Model):
             return '%i.%i.%i' % ((v & 0x00ff0000) >> 16,
                                  (v & 0x0000ff00) >> 8,
                                  v & 0x000000ff)
+        if self.value == 'number':
+            return "%i" % v
         if self.value == 'hex':
             return "%#08x" % v
         return None

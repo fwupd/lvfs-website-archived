@@ -5,7 +5,7 @@
 #
 # SPDX-License-Identifier: GPL-2.0+
 #
-# pylint: disable=too-few-public-methods,bad-continuation
+# pylint: disable=too-few-public-methods
 #
 # The machine that runs this script must have the 'requests' module installed,
 # for example `yum install -y python-requests`

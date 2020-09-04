@@ -34,6 +34,31 @@ def setup_periodic_tasks(sender, **_):
         _async_generate_stats.s(),
     )
 
+def _get_chart_labels_hours(limit=24):
+    """ Gets the chart labels """
+    labels = []
+    for i in range(0, limit):
+        labels.append("%02i" % i)
+    return labels
+
+@bp_analytics.route('/day')
+@bp_analytics.route('/day/<int:offset>')
+@login_required
+@admin_login_required
+def route_day(offset=1):
+    """ A analytics screen to show information about users """
+    now = datetime.date.today() - datetime.timedelta(days=offset)
+    datestr = _get_datestr_from_datetime(now)
+    print(datestr)
+    data = [0] * 24
+    for ts, in db.session.query(Client.timestamp)\
+                         .filter(Client.datestr == datestr):
+        data[ts.hour] += 1
+    return render_template('analytics-month.html',
+                           category='analytics',
+                           labels_days=_get_chart_labels_hours(),
+                           data_days=data)
+
 @bp_analytics.route('/')
 @bp_analytics.route('/month')
 @login_required
