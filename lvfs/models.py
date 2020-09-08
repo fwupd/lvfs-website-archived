@@ -1148,7 +1148,8 @@ class ComponentShard(db.Model):
                                 back_populates='shard',
                                 cascade='all,delete-orphan')
     info = relationship('ComponentShardInfo')
-    yara_query_results = relationship('YaraQueryResult')
+    yara_query_results = relationship('YaraQueryResult',
+                                      cascade='all,delete-orphan')
 
     md = relationship('Component', back_populates="shards")
     attributes = relationship("ComponentShardAttribute",

@@ -459,8 +459,6 @@ class Plugin(PluginBase):
         # remove any old shards we added
         for shard in md.shards:
             if shard.plugin_id == self.id:
-                for result in shard.yara_query_results:
-                    db.session.delete(result)
                 db.session.delete(shard)
         db.session.commit()
 
