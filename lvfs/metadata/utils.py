@@ -553,7 +553,11 @@ def _regenerate_and_sign_metadata_remote(r):
     # only keep the last 6 metadata builds (24h / stable refresh every 4h)
     fns = glob.glob(os.path.join(download_dir, 'firmware-*-{}.*'.format(r.access_token)))
     for fn in sorted(fns):
-        build_cnt = int(fn.split('-')[1])
+        try:
+            build_cnt = int(fn.split('-')[1])
+        except ValueError as _:
+            print('ignoring {} in self tests'.format(fn))
+            continue
         if build_cnt + 6 > r.build_cnt:
             continue
         os.remove(fn)
@@ -572,6 +576,7 @@ def _regenerate_and_sign_metadata():
 def _async_regenerate_remote(remote_id):
     r = db.session.query(Remote)\
                   .filter(Remote.remote_id == remote_id)\
+                  .filter(Remote.is_dirty)\
                   .first()
     if not r:
         return

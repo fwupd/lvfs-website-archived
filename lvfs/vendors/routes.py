@@ -192,12 +192,13 @@ def route_create():
 
     # use a random access token, unless running in debug mode
     if app.config.get('DEBUG', None):
-        access_token = request.form['group_id']
+        access_token = request.form['group_id'].replace('-', '_')
     else:
         access_token = secrets.token_hex(nbytes=32)
 
     r = Remote(name='embargo-%s' % request.form['group_id'],
-               access_token=access_token)
+               access_token=access_token,
+               is_dirty=True)
     db.session.add(r)
     db.session.commit()
     v = Vendor(group_id=request.form['group_id'], remote_id=r.remote_id)
@@ -228,6 +229,7 @@ def route_retoken(vendor_id):
 
     # a random string
     vendor.remote.access_token = secrets.token_hex(nbytes=32)
+    vendor.remote.is_dirty = True
     db.session.commit()
 
     # asynchronously rebuilt
@@ -413,6 +415,7 @@ def route_restriction_create(vendor_id):
     if not 'value' in request.form:
         return _error_internal('No value')
     vendor.restrictions.append(Restriction(value=request.form['value']))
+    vendor.remote.is_dirty = True
     db.session.commit()
     flash('Added restriction', 'info')
 
@@ -435,8 +438,9 @@ def route_restriction_delete(vendor_id, restriction_id):
     for res in vendor.restrictions:
         if res.restriction_id == restriction_id:
             db.session.delete(res)
-            db.session.commit()
             break
+    vendor.remote.is_dirty = True
+    db.session.commit()
     flash('Deleted restriction', 'info')
 
     # asynchronously rebuilt

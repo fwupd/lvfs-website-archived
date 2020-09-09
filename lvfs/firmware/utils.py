@@ -45,12 +45,13 @@ def _firmware_delete(fw):
     # generate next cron run
     fw.mark_dirty()
 
-    # asynchronously sign
-    _async_regenerate_remote.apply_async(args=(fw.remote.remote_id,), queue='metadata')
-
     # mark as invalid
     fw.remote_id = remote.remote_id
     fw.events.append(FirmwareEvent(remote_id=fw.remote_id, user_id=g.user.user_id))
+    db.session.commit()
+
+    # asynchronously sign
+    _async_regenerate_remote.apply_async(args=(fw.remote.remote_id,), queue='metadata')
 
 def _delete_embargo_obsoleted_fw():
 
@@ -145,6 +146,7 @@ def _show_diff(blob_old, blob_new):
 def _async_sign_fw(firmware_id):
     fw = db.session.query(Firmware)\
                    .filter(Firmware.firmware_id == firmware_id)\
+                   .filter(Firmware.is_dirty)\
                    .first()
     if not fw:
         return

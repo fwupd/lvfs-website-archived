@@ -39,6 +39,7 @@ def _demote_back_to_testing(fw):
     # asynchronously sign straight away, even public remotes
     for r in set([remote, fw.remote]):
         r.is_dirty = True
+        db.session.commit()
         _async_regenerate_remote.apply_async(args=(r.remote_id,), queue='metadata', countdown=1)
 
     fw.remote_id = remote.remote_id

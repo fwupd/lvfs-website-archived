@@ -280,13 +280,14 @@ def route_promote(firmware_id, target):
     fw.remote.is_dirty = True
     fw.vendor_odm.remote.is_dirty = True
 
+    # invalidate the firmware as we're waiting for the metadata generation
+    fw.mark_dirty()
+    db.session.commit()
+
     # asynchronously sign
     for r in set([remote, fw.remote, fw.vendor_odm.remote]):
         r.is_dirty = True
         _async_regenerate_remote.apply_async(args=(r.remote_id,), queue='metadata', countdown=1)
-
-    # invalidate the firmware as we're waiting for the metadata generation
-    fw.mark_dirty()
 
     # some tests only run when the firmware is in stable
     ploader.ensure_test_for_fw(fw)
