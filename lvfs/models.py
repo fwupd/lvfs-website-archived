@@ -1846,6 +1846,7 @@ class Remote(db.Model):
     is_dirty = Column(Boolean, default=False)
     build_cnt = Column(Integer, default=0)
     access_token = Column(Text, default=None)
+    regenerate_ts = Column(DateTime, default=None)
 
     vendors = relationship("Vendor", back_populates="remote")
     fws = relationship("Firmware")
@@ -1888,6 +1889,12 @@ class Remote(db.Model):
     @property
     def is_signed(self):
         return self.name != 'deleted' and self.name != 'private'
+
+    @property
+    def is_regenerating(self):
+        if not self.regenerate_ts:
+            return False
+        return datetime.datetime.utcnow() < self.regenerate_ts.replace(tzinfo=None) + datetime.timedelta(hours=2)
 
     @property
     def build_str(self):
@@ -1983,6 +1990,7 @@ class Firmware(db.Model):
     failure_percentage = Column(Integer, default=0)
     _do_not_track = Column('do_not_track', Boolean, default=False)
     vendor_odm_id = Column(Integer, ForeignKey('vendors.vendor_id'), nullable=False, index=True)
+    regenerate_ts = Column(DateTime, default=None)
 
     mds = relationship("Component",
                        back_populates="fw",
@@ -2034,6 +2042,12 @@ class Firmware(db.Model):
     @property
     def is_deleted(self):
         return self.remote.is_deleted
+
+    @property
+    def is_regenerating(self):
+        if not self.regenerate_ts:
+            return False
+        return datetime.datetime.utcnow() < self.regenerate_ts.replace(tzinfo=None) + datetime.timedelta(hours=2)
 
     @property
     def banned_country_codes(self):

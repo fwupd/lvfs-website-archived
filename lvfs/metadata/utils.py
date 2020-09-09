@@ -11,6 +11,7 @@ import os
 import gzip
 import hashlib
 import glob
+import datetime
 
 from collections import defaultdict
 from datetime import date
@@ -454,6 +455,10 @@ def _metadata_update_pulp(download_dir):
 
 def _regenerate_and_sign_metadata_remote(r):
 
+    # already being regenerated
+    if r.is_regenerating:
+        return
+
     # not required */
     if not r.is_signed:
         return
@@ -471,6 +476,10 @@ def _regenerate_and_sign_metadata_remote(r):
     # not needed
     if not r.is_dirty:
         return
+
+    # claim this
+    r.regenerate_ts = datetime.datetime.utcnow()
+    db.session.commit()
 
     # set destination path from app config
     download_dir = app.config['DOWNLOAD_DIR']
@@ -566,6 +575,9 @@ def _regenerate_and_sign_metadata_remote(r):
     # all firmwares are contained in the correct metadata now
     for fw in fws_filtered:
         fw.is_dirty = False
+
+    # release this
+    r.regenerate_ts = None
     db.session.commit()
 
 def _regenerate_and_sign_metadata():

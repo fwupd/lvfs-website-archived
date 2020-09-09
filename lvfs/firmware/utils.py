@@ -159,6 +159,10 @@ def _async_sign_fw(firmware_id):
 
 def _sign_fw(fw):
 
+    # already being regenerated
+    if fw.is_regenerating:
+        return
+
     # load the .cab file
     download_dir = app.config['DOWNLOAD_DIR']
     fn = os.path.join(download_dir, fw.filename)
@@ -167,6 +171,10 @@ def _sign_fw(fw):
             cabarchive = CabArchive(f.read())
     except IOError as e:
         raise NotImplementedError('cannot read %s' % fn) from e
+
+    # claim this
+    fw.regenerate_ts = datetime.datetime.utcnow()
+    db.session.commit()
 
     # create Jcat file
     jcatfile = JcatFile()
@@ -236,6 +244,9 @@ def _sign_fw(fw):
     fw.checksum_signed_sha1 = hashlib.sha1(cab_data).hexdigest()
     fw.checksum_signed_sha256 = hashlib.sha256(cab_data).hexdigest()
     fw.signed_timestamp = datetime.datetime.utcnow()
+
+    # release this
+    fw.regenerate_ts = None
     db.session.commit()
 
     # log
