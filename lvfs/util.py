@@ -162,6 +162,8 @@ def _check_both(problems, txt):
         _add_problem(problems, 'Dell-specific security advisory tag in update description')
     if txt.find('INTEL-SA-') != -1:
         _add_problem(problems, 'Intel-specific security advisory tag in update description')
+    if txt.find('INTEL-TA-') != -1:
+        _add_problem(problems, 'Intel-specific technical advisory tag in update description')
 
 def _check_is_fake_li(txt):
     for line in txt.split('\n'):

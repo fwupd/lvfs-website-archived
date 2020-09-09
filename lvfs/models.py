@@ -1301,16 +1301,16 @@ class ComponentIssue(db.Model):
             return None
         if self.kind == 'intel':
             parts = self.value.split('-')
-            if len(parts) != 3 or parts[0] != 'INTEL' or parts[1] != 'SA':
+            if len(parts) != 3 or parts[0] != 'INTEL' or parts[1] not in ['SA', 'TA']:
                 return Claim(kind='invalid-issue',
                              icon='warning',
                              summary='Invalid component issue',
-                             description='Format expected to be INTEL-SA-XXXXX')
+                             description='Format expected to be INTEL-XA-XXXXX')
             if not parts[2].isnumeric:
                 return Claim(kind='invalid-issue',
                              icon='warning',
                              summary='Invalid component issue',
-                             description='Expected integer in INTEL-SA token')
+                             description='Expected integer in INTEL-XA token')
             return None
         return Claim(kind='invalid-issue',
                      icon='warning',
