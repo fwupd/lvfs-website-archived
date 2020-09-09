@@ -14,7 +14,6 @@ import glob
 import datetime
 
 from collections import defaultdict
-from datetime import date
 from distutils.version import StrictVersion
 from lxml import etree as ET
 
@@ -200,7 +199,7 @@ def _generate_metadata_mds(mds,
                 rel.set('version', md.version)
         if md.release_timestamp:
             if metainfo:
-                rel.set('date', date.fromtimestamp(md.release_timestamp).isoformat())
+                rel.set('date', datetime.date.fromtimestamp(md.release_timestamp).isoformat())
             else:
                 rel.set('timestamp', str(md.release_timestamp))
         if md.release_urgency and md.release_urgency != 'unknown':
