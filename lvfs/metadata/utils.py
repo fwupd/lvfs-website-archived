@@ -305,6 +305,12 @@ def _generate_metadata_mds(mds,
             if vendor.is_unrestricted and allow_unrestricted:
                 continue
 
+            # UEFI devices only got vendor-id values assigned in fwupd 1.3.6,
+            # which is made worse by earlier versions of fwupd applying the
+            # vendor_id restrictions even when the device vendor ID is NULL :/
+            if md.protocol and md.protocol.value == 'org.uefi.capsule':
+                continue
+
             # no restrictions in place!
             if not vendor.restrictions:
                 vendor_ids.append('XXX:NEVER_GOING_TO_MATCH')
