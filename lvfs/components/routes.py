@@ -595,13 +595,11 @@ def _autoimport_issues(md, prefix, kind):
         # advance string to end of CVE number
         start = idx + len(prefix) + issue_len
 
+        # add something the user has to manually remove
+        description_new += 'REMOVE_ME'
+
     # success
     if issues:
-        for empty in ['()', '( )', '(  )', '(   )', '(    )',
-                      '(,)', '(, , )', '(, , , )', '(, , , , )',
-                      '( & )']:
-            description_new = description_new.replace(empty, '')
-        description_new = description_new.replace(' \n', '\n')
         md.release_description = description_new
         md.issues.extend(issues)
 

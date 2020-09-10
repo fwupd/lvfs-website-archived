@@ -193,8 +193,9 @@ class LocalTestCase(LvfsTestCase):
         rv = self.app.get('/lvfs/firmware/1/problems')
         assert b'CVEs in update description' not in rv.data, rv.data.decode()
         rv = self.app.get('/lvfs/components/1/update')
-        assert b'- Address security advisories\n' +\
-               b'- Firmware updates to address security advisory' in rv.data, rv.data.decode()
+        assert b'- Address security advisories' in rv.data, rv.data.decode()
+        assert b'REMOVE_ME' in rv.data, rv.data.decode()
+        assert b'- Firmware updates to address security advisory' in rv.data, rv.data.decode()
 
     def test_device_checksums(self):
 
