@@ -45,12 +45,13 @@ def _firmware_delete(fw):
     # generate next cron run
     fw.mark_dirty()
 
-    # asynchronously sign
-    _async_regenerate_remote.apply_async(args=(fw.remote.remote_id,), queue='metadata')
-
     # mark as invalid
     fw.remote_id = remote.remote_id
     fw.events.append(FirmwareEvent(remote_id=fw.remote_id, user_id=g.user.user_id))
+    db.session.commit()
+
+    # asynchronously sign
+    _async_regenerate_remote.apply_async(args=(fw.remote.remote_id,), queue='metadata')
 
 def _delete_embargo_obsoleted_fw():
 
@@ -145,7 +146,10 @@ def _show_diff(blob_old, blob_new):
 def _async_sign_fw(firmware_id):
     fw = db.session.query(Firmware)\
                    .filter(Firmware.firmware_id == firmware_id)\
-                   .one()
+                   .filter(Firmware.is_dirty)\
+                   .first()
+    if not fw:
+        return
     _sign_fw(fw)
 
     # just do it now
@@ -155,6 +159,10 @@ def _async_sign_fw(firmware_id):
 
 def _sign_fw(fw):
 
+    # already being regenerated
+    if fw.is_regenerating:
+        return
+
     # load the .cab file
     download_dir = app.config['DOWNLOAD_DIR']
     fn = os.path.join(download_dir, fw.filename)
@@ -163,6 +171,10 @@ def _sign_fw(fw):
             cabarchive = CabArchive(f.read())
     except IOError as e:
         raise NotImplementedError('cannot read %s' % fn) from e
+
+    # claim this
+    fw.regenerate_ts = datetime.datetime.utcnow()
+    db.session.commit()
 
     # create Jcat file
     jcatfile = JcatFile()
@@ -232,6 +244,9 @@ def _sign_fw(fw):
     fw.checksum_signed_sha1 = hashlib.sha1(cab_data).hexdigest()
     fw.checksum_signed_sha256 = hashlib.sha256(cab_data).hexdigest()
     fw.signed_timestamp = datetime.datetime.utcnow()
+
+    # release this
+    fw.regenerate_ts = None
     db.session.commit()
 
     # log

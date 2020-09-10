@@ -196,12 +196,14 @@ class LvfsTestCase(unittest.TestCase):
         from lvfs.main.utils import _regenerate_metrics
         from lvfs.reports.utils import _regenerate_reports
         from lvfs.analytics.utils import _generate_stats_for_datestr
+        from lvfs.shards.utils import _regenerate_shard_infos
         from lvfs.models import _get_datestr_from_datetime
         with app.test_request_context():
             with io.StringIO() as buf, redirect_stdout(buf):
                 _generate_stats_for_datestr(_get_datestr_from_datetime(datetime.date.today()))
                 _regenerate_metrics()
                 _regenerate_reports()
+                _regenerate_shard_infos()
                 stdout = buf.getvalue()
 
         assert 'generated' in stdout, stdout

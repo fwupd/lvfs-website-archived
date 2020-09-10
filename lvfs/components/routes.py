@@ -628,6 +628,7 @@ def route_issue_autoimport(component_id):
     n_issues += _autoimport_issues(md, 'DSA-', 'dell')
     n_issues += _autoimport_issues(md, 'LEN-', 'lenovo')
     n_issues += _autoimport_issues(md, 'INTEL-SA-', 'intel')
+    n_issues += _autoimport_issues(md, 'INTEL-TA-', 'intel')
 
     # success
     if not n_issues:
@@ -675,7 +676,7 @@ def route_issue_create(component_id):
             issue = ComponentIssue(kind='dell', value=value)
         elif value.startswith('LEN-'):
             issue = ComponentIssue(kind='lenovo', value=value)
-        elif value.startswith('INTEL-SA-'):
+        elif value.startswith('INTEL-SA-') or value.startswith('INTEL-TA-'):
             issue = ComponentIssue(kind='intel', value=value)
         else:
             flash('Issue invalid: {}'.format(value), 'danger')

@@ -11,9 +11,9 @@ import os
 import gzip
 import hashlib
 import glob
+import datetime
 
 from collections import defaultdict
-from datetime import date
 from distutils.version import StrictVersion
 from lxml import etree as ET
 
@@ -54,7 +54,11 @@ def _use_hex_release_version(md):
         return False
     return True
 
-def _generate_metadata_mds(mds, firmware_baseuri='', local=False, metainfo=False):
+def _generate_metadata_mds(mds,
+                           firmware_baseuri='',
+                           local=False,
+                           metainfo=False,
+                           allow_unrestricted=True):
 
     # assume all the components have the same parent firmware information
     md = mds[0]
@@ -195,7 +199,7 @@ def _generate_metadata_mds(mds, firmware_baseuri='', local=False, metainfo=False
                 rel.set('version', md.version)
         if md.release_timestamp:
             if metainfo:
-                rel.set('date', date.fromtimestamp(md.release_timestamp).isoformat())
+                rel.set('date', datetime.date.fromtimestamp(md.release_timestamp).isoformat())
             else:
                 rel.set('timestamp', str(md.release_timestamp))
         if md.release_urgency and md.release_urgency != 'unknown':
@@ -298,14 +302,18 @@ def _generate_metadata_mds(mds, firmware_baseuri='', local=False, metainfo=False
 
             # the vendor can upload to any hardware
             vendor = md.fw.vendor_odm
-            if vendor.is_unrestricted:
+            if vendor.is_unrestricted and allow_unrestricted:
                 continue
 
             # no restrictions in place!
             if not vendor.restrictions:
                 vendor_ids.append('XXX:NEVER_GOING_TO_MATCH')
                 continue
+
+            # add all the actual vendor_ids
             for res in vendor.restrictions:
+                if res.value == '*':
+                    continue
                 if res.value not in vendor_ids:
                     vendor_ids.append(res.value)
 
@@ -389,7 +397,7 @@ def _generate_metadata_mds(mds, firmware_baseuri='', local=False, metainfo=False
     # success
     return component
 
-def _generate_metadata_kind(fws, firmware_baseuri='', local=False):
+def _generate_metadata_kind(fws, firmware_baseuri='', local=False, allow_unrestricted=True):
     """ Generates AppStream metadata of a specific kind """
 
     root = ET.Element('components')
@@ -408,7 +416,8 @@ def _generate_metadata_kind(fws, firmware_baseuri='', local=False):
         mds = sorted(components[appstream_id], reverse=True)[:5]
         component = _generate_metadata_mds(mds,
                                            firmware_baseuri=firmware_baseuri,
-                                           local=local)
+                                           local=local,
+                                           allow_unrestricted=allow_unrestricted)
         root.append(component)
 
     # dump to file
@@ -445,6 +454,10 @@ def _metadata_update_pulp(download_dir):
 
 def _regenerate_and_sign_metadata_remote(r):
 
+    # already being regenerated
+    if r.is_regenerating:
+        return
+
     # not required */
     if not r.is_signed:
         return
@@ -462,6 +475,10 @@ def _regenerate_and_sign_metadata_remote(r):
     # not needed
     if not r.is_dirty:
         return
+
+    # claim this
+    r.regenerate_ts = datetime.datetime.utcnow()
+    db.session.commit()
 
     # set destination path from app config
     download_dir = app.config['DOWNLOAD_DIR']
@@ -482,7 +499,8 @@ def _regenerate_and_sign_metadata_remote(r):
             fws_filtered.append(fw)
     settings = _get_settings()
     blob_xmlgz = _generate_metadata_kind(fws_filtered,
-                                         firmware_baseuri=settings['firmware_baseuri'])
+                                         firmware_baseuri=settings['firmware_baseuri'],
+                                         allow_unrestricted=r.is_public)
 
     # write metadata-?????.xml.gz
     fn_xmlgz = os.path.join(download_dir, r.filename)
@@ -543,7 +561,11 @@ def _regenerate_and_sign_metadata_remote(r):
     # only keep the last 6 metadata builds (24h / stable refresh every 4h)
     fns = glob.glob(os.path.join(download_dir, 'firmware-*-{}.*'.format(r.access_token)))
     for fn in sorted(fns):
-        build_cnt = int(fn.split('-')[1])
+        try:
+            build_cnt = int(fn.split('-')[1])
+        except ValueError as _:
+            print('ignoring {} in self tests'.format(fn))
+            continue
         if build_cnt + 6 > r.build_cnt:
             continue
         os.remove(fn)
@@ -552,6 +574,9 @@ def _regenerate_and_sign_metadata_remote(r):
     # all firmwares are contained in the correct metadata now
     for fw in fws_filtered:
         fw.is_dirty = False
+
+    # release this
+    r.regenerate_ts = None
     db.session.commit()
 
 def _regenerate_and_sign_metadata():
@@ -562,7 +587,10 @@ def _regenerate_and_sign_metadata():
 def _async_regenerate_remote(remote_id):
     r = db.session.query(Remote)\
                   .filter(Remote.remote_id == remote_id)\
-                  .one()
+                  .filter(Remote.is_dirty)\
+                  .first()
+    if not r:
+        return
     _regenerate_and_sign_metadata_remote(r)
 
 @celery.task(max_retries=3, default_retry_delay=10, task_time_limit=60)

@@ -13,15 +13,14 @@ RUN dnf -y install \
 	gobject-introspection-devel \
 	gnutls-utils \
 	gcc \
-	libpq-devel \
 	python3-devel \
-	python3-gobject \
 	python3-pip \
 	python3-psutil \
 	redis \
 	words
 COPY requirements.txt /tmp/requirements.txt
-RUN pip3 install -r /tmp/requirements.txt
+RUN pip3 install pip -U
+RUN pip3 install -r /tmp/requirements.txt --use-feature=2020-resolver
 RUN mkdir /build
 WORKDIR /build
 COPY . .

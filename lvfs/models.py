@@ -98,16 +98,16 @@ class User(db.Model):
     events = relationship("Event",
                           order_by="desc(Event.timestamp)",
                           lazy='dynamic',
-                          cascade='all,delete-orphan')
+                          cascade='all,delete,delete-orphan')
     queries = relationship("YaraQuery",
                            order_by="desc(YaraQuery.ctime)",
-                           cascade='all,delete-orphan')
+                           cascade='all,delete,delete-orphan')
     certificates = relationship("Certificate",
                                 order_by="desc(Certificate.ctime)",
-                                cascade='all,delete-orphan')
+                                cascade='all,delete,delete-orphan')
     actions = relationship("UserAction",
                            lazy='joined',
-                           cascade='all,delete-orphan')
+                           cascade='all,delete,delete-orphan')
 
     def get_action(self, value):
         for action in self.actions:
@@ -276,7 +276,7 @@ class YaraQuery(db.Model):
     ended_ts = Column(DateTime, default=None)
 
     user = relationship('User', foreign_keys=[user_id])
-    results = relationship("YaraQueryResult", lazy='joined', cascade='all,delete-orphan')
+    results = relationship("YaraQueryResult", lazy='joined', cascade='all,delete,delete-orphan')
 
     @property
     def color(self):
@@ -397,7 +397,7 @@ class Affiliation(db.Model):
 
     vendor = relationship("Vendor", foreign_keys=[vendor_id], back_populates="affiliations")
     vendor_odm = relationship("Vendor", foreign_keys=[vendor_id_odm])
-    actions = relationship("AffiliationAction", cascade='all,delete-orphan')
+    actions = relationship("AffiliationAction", cascade='all,delete,delete-orphan')
 
     def get_action(self, action):
         for act in self.actions:
@@ -440,37 +440,37 @@ class Vendor(db.Model):
 
     users = relationship("User",
                          back_populates="vendor",
-                         cascade='all,delete-orphan')
+                         cascade='all,delete,delete-orphan')
     restrictions = relationship("Restriction",
                                 back_populates="vendor",
-                                cascade='all,delete-orphan')
+                                cascade='all,delete,delete-orphan')
     namespaces = relationship("Namespace",
                               back_populates="vendor",
-                              cascade='all,delete-orphan')
+                              cascade='all,delete,delete-orphan')
     affiliations = relationship("Affiliation",
                                 foreign_keys=[Affiliation.vendor_id],
                                 back_populates="vendor",
-                                cascade='all,delete-orphan')
+                                cascade='all,delete,delete-orphan')
     affiliations_for = relationship("Affiliation",
                                     foreign_keys=[Affiliation.vendor_id_odm],
                                     back_populates="vendor")
     fws = relationship("Firmware",
                        foreign_keys='[Firmware.vendor_id]',
-                       cascade='all,delete-orphan')
+                       cascade='all,delete,delete-orphan')
     mdrefs = relationship('ComponentRef',
                           foreign_keys='[ComponentRef.vendor_id_partner]',
-                          cascade='all,delete-orphan',
+                          cascade='all,delete,delete-orphan',
                           back_populates='vendor_partner')
     events = relationship("Event",
                           order_by="desc(Event.timestamp)",
                           lazy='dynamic',
-                          cascade='all,delete-orphan')
+                          cascade='all,delete,delete-orphan')
 
     verfmt = relationship('Verfmt', foreign_keys=[verfmt_id])
     remote = relationship('Remote',
                           foreign_keys=[remote_id],
                           single_parent=True,
-                          cascade='all,delete-orphan')
+                          cascade='all,delete,delete-orphan')
 
     @property
     @functools.lru_cache()
@@ -807,7 +807,7 @@ class Test(db.Model):
     attributes = relationship("TestAttribute",
                               lazy='joined',
                               back_populates="test",
-                              cascade='all,delete-orphan')
+                              cascade='all,delete,delete-orphan')
 
     fw = relationship("Firmware", back_populates="tests")
 
@@ -1036,7 +1036,7 @@ class ComponentShardInfo(db.Model):
     cnt = Column(Integer, default=0)
     claim_id = Column(Integer, ForeignKey('claims.claim_id'), nullable=True, index=True)
 
-    shards = relationship("ComponentShard", cascade='all,delete-orphan')
+    shards = relationship("ComponentShard", cascade='all,delete,delete-orphan')
     claim = relationship('Claim')
 
     def __repr__(self):
@@ -1142,18 +1142,19 @@ class ComponentShard(db.Model):
 
     checksums = relationship("ComponentShardChecksum",
                              back_populates="shard",
-                             cascade='all,delete-orphan')
+                             cascade='all,delete,delete-orphan')
     certificates = relationship("ComponentShardCertificate",
                                 order_by="desc(ComponentShardCertificate.component_shard_certificate_id)",
                                 back_populates='shard',
-                                cascade='all,delete-orphan')
+                                cascade='all,delete,delete-orphan')
     info = relationship('ComponentShardInfo')
-    yara_query_results = relationship('YaraQueryResult')
+    yara_query_results = relationship('YaraQueryResult',
+                                      cascade='all,delete,delete-orphan')
 
     md = relationship('Component', back_populates="shards")
     attributes = relationship("ComponentShardAttribute",
                               back_populates="component_shard",
-                              cascade='all,delete-orphan')
+                              cascade='all,delete,delete-orphan')
 
     def get_attr_value(self, key):
         for attr in self.attributes:
@@ -1300,16 +1301,16 @@ class ComponentIssue(db.Model):
             return None
         if self.kind == 'intel':
             parts = self.value.split('-')
-            if len(parts) != 3 or parts[0] != 'INTEL' or parts[1] != 'SA':
+            if len(parts) != 3 or parts[0] != 'INTEL' or parts[1] not in ['SA', 'TA']:
                 return Claim(kind='invalid-issue',
                              icon='warning',
                              summary='Invalid component issue',
-                             description='Format expected to be INTEL-SA-XXXXX')
+                             description='Format expected to be INTEL-XA-XXXXX')
             if not parts[2].isnumeric:
                 return Claim(kind='invalid-issue',
                              icon='warning',
                              summary='Invalid component issue',
-                             description='Expected integer in INTEL-SA token')
+                             description='Expected integer in INTEL-XA token')
             return None
         return Claim(kind='invalid-issue',
                      icon='warning',
@@ -1419,31 +1420,31 @@ class Component(db.Model):
     fw = relationship("Firmware", back_populates="mds", lazy='joined')
     requirements = relationship("Requirement",
                                 back_populates="md",
-                                cascade='all,delete-orphan')
+                                cascade='all,delete,delete-orphan')
     issues = relationship('ComponentIssue',
                           back_populates='md',
-                          cascade='all,delete-orphan')
+                          cascade='all,delete,delete-orphan')
     component_claims = relationship('ComponentClaim',
                                     back_populates='md',
-                                    cascade='all,delete-orphan')
+                                    cascade='all,delete,delete-orphan')
     issue_values = association_proxy('issues', 'value')
     device_checksums = relationship("Checksum",
                                     back_populates="md",
-                                    cascade='all,delete-orphan')
+                                    cascade='all,delete,delete-orphan')
     guids = relationship("Guid",
                          back_populates="md",
                          lazy='joined',
-                         cascade='all,delete-orphan')
+                         cascade='all,delete,delete-orphan')
     shards = relationship("ComponentShard",
                           order_by="desc(ComponentShard.component_shard_id)",
                           back_populates='md',
-                          cascade='all,delete-orphan')
+                          cascade='all,delete,delete-orphan')
     keywords = relationship("Keyword",
                             back_populates="md",
-                            cascade='all,delete-orphan')
+                            cascade='all,delete,delete-orphan')
     mdrefs = relationship("ComponentRef",
                           back_populates="md",
-                          cascade='all,delete-orphan')
+                          cascade='all,delete,delete-orphan')
     protocol = relationship('Protocol', foreign_keys=[protocol_id])
     category = relationship('Category', foreign_keys=[category_id])
     verfmt = relationship('Verfmt', foreign_keys=[verfmt_id])
@@ -1845,6 +1846,7 @@ class Remote(db.Model):
     is_dirty = Column(Boolean, default=False)
     build_cnt = Column(Integer, default=0)
     access_token = Column(Text, default=None)
+    regenerate_ts = Column(DateTime, default=None)
 
     vendors = relationship("Vendor", back_populates="remote")
     fws = relationship("Firmware")
@@ -1887,6 +1889,12 @@ class Remote(db.Model):
     @property
     def is_signed(self):
         return self.name != 'deleted' and self.name != 'private'
+
+    @property
+    def is_regenerating(self):
+        if not self.regenerate_ts:
+            return False
+        return datetime.datetime.utcnow() < self.regenerate_ts.replace(tzinfo=None) + datetime.timedelta(hours=2)
 
     @property
     def build_str(self):
@@ -1982,31 +1990,32 @@ class Firmware(db.Model):
     failure_percentage = Column(Integer, default=0)
     _do_not_track = Column('do_not_track', Boolean, default=False)
     vendor_odm_id = Column(Integer, ForeignKey('vendors.vendor_id'), nullable=False, index=True)
+    regenerate_ts = Column(DateTime, default=None)
 
     mds = relationship("Component",
                        back_populates="fw",
                        lazy='joined',
-                       cascade='all,delete-orphan')
+                       cascade='all,delete,delete-orphan')
     events = relationship("FirmwareEvent",
                           order_by="desc(FirmwareEvent.timestamp)",
                           back_populates="fw",
-                          cascade='all,delete-orphan')
+                          cascade='all,delete,delete-orphan')
     reports = relationship("Report",
                            back_populates="fw",
-                           cascade='all,delete-orphan')
+                           cascade='all,delete,delete-orphan')
     clients = relationship("Client",
                            back_populates="fw",
-                           cascade='all,delete-orphan')
+                           cascade='all,delete,delete-orphan')
     limits = relationship("FirmwareLimit",
                           back_populates="fw",
-                          cascade='all,delete-orphan')
+                          cascade='all,delete,delete-orphan')
     tests = relationship("Test",
                          order_by="desc(Test.scheduled_ts)",
                          back_populates="fw",
-                         cascade='all,delete-orphan')
+                         cascade='all,delete,delete-orphan')
     analytics = relationship("AnalyticFirmware",
                              back_populates="firmware",
-                             cascade='all,delete-orphan')
+                             cascade='all,delete,delete-orphan')
 
     vendor = relationship('Vendor', foreign_keys=[vendor_id])
     vendor_odm = relationship('Vendor', foreign_keys=[vendor_odm_id])
@@ -2033,6 +2042,12 @@ class Firmware(db.Model):
     @property
     def is_deleted(self):
         return self.remote.is_deleted
+
+    @property
+    def is_regenerating(self):
+        if not self.regenerate_ts:
+            return False
+        return datetime.datetime.utcnow() < self.regenerate_ts.replace(tzinfo=None) + datetime.timedelta(hours=2)
 
     @property
     def banned_country_codes(self):
@@ -2426,7 +2441,7 @@ class Issue(db.Model):
     description = Column(Text, default='')
     conditions = relationship("Condition",
                               back_populates="issue",
-                              cascade='all,delete-orphan')
+                              cascade='all,delete,delete-orphan')
 
     vendor = relationship('Vendor', foreign_keys=[vendor_id])
 
@@ -2505,7 +2520,7 @@ class HsiReport(db.Model):
     user = relationship('User', foreign_keys=[user_id])
     attrs = relationship("HsiReportAttr",
                          back_populates="report",
-                         cascade='all,delete-orphan')
+                         cascade='all,delete,delete-orphan')
 
     @property
     def host_sku_sane(self):
@@ -2567,7 +2582,7 @@ class Report(db.Model):
     attributes = relationship("ReportAttribute",
                               back_populates="report",
                               lazy='joined',
-                              cascade='all,delete-orphan')
+                              cascade='all,delete,delete-orphan')
 
     @property
     def color(self):

@@ -113,11 +113,8 @@ def route_rebuild_remote(remote_id):
     r.is_dirty = True
     db.session.commit()
 
-    if r.is_public:
-        flash('Remote %s marked as dirty' % r.name, 'info')
-    else:
-        flash('Remote {} is being regenerated'.format(r.name), 'info')
-        # asynchronously rebuilt
-        _async_regenerate_remote.apply_async(args=(r.remote_id,), queue='metadata')
+    # asynchronously rebuilt
+    flash('Remote {} is being regenerated'.format(r.name), 'info')
+    _async_regenerate_remote.apply_async(args=(r.remote_id,), queue='metadata')
 
     return redirect(url_for('metadata.route_view'))

@@ -96,7 +96,7 @@ class LocalTestCase(LvfsTestCase):
         assert 'No claims exist yet' in rv.data.decode(), rv.data.decode()
 
         # delete it again
-        rv = self.app.get('/lvfs/shards/1/claim/1/delete', follow_redirects=True)
+        rv = self.app.post('/lvfs/shards/1/claim/1/delete', follow_redirects=True)
         assert 'No shard claim found' in rv.data.decode(), rv.data.decode()
 
         # view claims

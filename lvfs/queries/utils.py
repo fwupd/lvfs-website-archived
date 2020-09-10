@@ -19,7 +19,9 @@ from lvfs.models import Remote, Firmware, Component, YaraQuery, YaraQueryResult
 def _async_query_run(yara_query_id):
     query = db.session.query(YaraQuery)\
                       .filter(YaraQuery.yara_query_id == yara_query_id)\
-                      .one()
+                      .first()
+    if not query:
+        return
     _query_run(query)
 
 def _query_run_shard(query, md, shard):
