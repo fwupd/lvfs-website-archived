@@ -66,6 +66,23 @@ class LocalTestCase(LvfsTestCase):
         rv = self.app.get('/lvfs/firmware/1/problems')
         assert b'ColorHug2 is already part' not in rv.data, rv.data.decode()
 
+    def test_vendor_in_name(self):
+
+        # get the default update info from the firmware archive
+        self.login()
+        self.add_namespace()
+        self.upload()
+
+        # edit the name_variant_suffix to something contained in the <name>
+        rv = self.app.post('/lvfs/components/1/modify', data=dict(
+            name='Acme ColorHug2',
+        ), follow_redirects=True)
+        assert b'Component updated' in rv.data, rv.data
+
+        # verify the new problems
+        rv = self.app.get('/lvfs/firmware/1/problems')
+        assert b'The vendor should not be part of the name' in rv.data, rv.data.decode()
+
     def test_requires(self):
 
         # check existing requires were added

@@ -1762,6 +1762,15 @@ class Component(db.Model):
                                           url=url_for('components.route_show',
                                                       component_id=self.component_id)))
 
+        # name contains the vendor
+        if self.name and self.fw.vendor.display_name:
+            if self.name.upper().find(self.fw.vendor.display_name.upper()) != -1:
+                problems.append(Claim(kind='invalid-name',
+                                      icon='warning',
+                                      summary='The vendor should not be part of the name',
+                                      url=url_for('components.route_show',
+                                                  component_id=self.component_id)))
+
         # add all CVE problems
         for issue in self.issues:
             if issue.problem:
