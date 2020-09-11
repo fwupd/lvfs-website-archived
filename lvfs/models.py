@@ -415,6 +415,7 @@ class Vendor(db.Model):
     vendor_id = Column(Integer, primary_key=True)
     group_id = Column(String(80), nullable=False, index=True)
     display_name = Column(Text, default=None)
+    legal_name = Column(Text, default=None)
     internal_team = Column(Text, default=None)
     plugins = Column(Text, default=None)
     description = Column(Text, default=None)

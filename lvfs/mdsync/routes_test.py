@@ -116,11 +116,11 @@ class LocalTestCase(LvfsTestCase):
 
         # list all vendors with different world-views
         rv = self.app.get('/lvfs/mdsync/', follow_redirects=True)
-        assert b'Acme Corp' in rv.data, rv.data.decode()
+        assert b'Acme' in rv.data, rv.data.decode()
 
         # all OEMs scanned by Acme Corp.
         rv = self.app.get('/lvfs/mdsync/1', follow_redirects=True)
-        assert b'Acme Corp.' in rv.data, rv.data.decode()
+        assert b'Acme' in rv.data, rv.data.decode()
 
         # all ColorHug firmware known by Acme Corp.
         rv = self.app.get('/lvfs/mdsync/1/1', follow_redirects=True)

@@ -8,6 +8,7 @@ have, or just with questions or for more details.
 Information to Supply
 =====================
 
+* The vendor full legal name
 * The public homepage for this vendor
 * The domain used for email address assigned to this vendor, e.g. ``@realtek.com,@realtek.com.tw``
 * The update protocol are you using, and if it is already supported in fwupd

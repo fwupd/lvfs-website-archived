@@ -216,7 +216,8 @@ def init_db(db):
         db.session.add(remote)
         db.session.commit()
         vendor = Vendor(group_id='admin')
-        vendor.display_name = 'Acme Corp.'
+        vendor.display_name = 'Acme'
+        vendor.legal_name = 'Acme Corp.'
         vendor.description = 'A fake vendor used for testing firmware'
         vendor.remote_id = remote.remote_id
         db.session.add(vendor)

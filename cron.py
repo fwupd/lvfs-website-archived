@@ -95,6 +95,8 @@ def _repair_vendor():
                 v.icon = icon
             except FileNotFoundError as _:
                 pass
+        if not v.legal_name:
+            v.legal_name = v.display_name
 
     for r in db.session.query(Remote):
         if not r.access_token:
