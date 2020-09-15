@@ -1,7 +1,7 @@
 #!/usr/bin/python3
 # -*- coding: utf-8 -*-
 #
-# Copyright (C) 2015-2018 Richard Hughes <richard@hughsie.com>
+# Copyright (C) 2015-2020 Richard Hughes <richard@hughsie.com>
 #
 # SPDX-License-Identifier: GPL-2.0+
 
@@ -9,7 +9,10 @@ from __future__ import print_function
 
 import os
 import sys
+import time
 import requests
+
+MAX_RETRIES = 5
 
 def _upload(session, filename):
 
@@ -22,20 +25,33 @@ def _upload(session, filename):
 
     # upload
     payload = {'target': 'private'}
-    rv = session.post('/'.join([os.environ['LVFS_SERVER'], 'lvfs', 'upload']), data=payload, files={'file': f})
-    if rv.status_code != 201:
+    for _ in range(MAX_RETRIES):
+        rv = session.post('/'.join([os.environ['LVFS_SERVER'], 'lvfs', 'upload']),
+                          data=payload,
+                          files={'file': f})
+        if rv.status_code == 201:
+            return
         print('failed to upload to %s: %s' % (rv.url, rv.text))
-        sys.exit(1)
+        time.sleep(30)
+
+    # no more retries
+    sys.exit(1)
 
 def _vendor_user_add(session, vendor_id, username, display_name):
 
     # upload
     payload = {'username': username,
                'display_name': display_name}
-    rv = session.post('/'.join([os.environ['LVFS_SERVER'], 'lvfs', 'vendor', vendor_id, 'user', 'add']), data=payload)
-    if rv.status_code != 200:
+    for _ in range(MAX_RETRIES):
+        rv = session.post('/'.join([os.environ['LVFS_SERVER'], 'lvfs', 'vendor', vendor_id, 'user', 'add']),
+                          data=payload)
+        if rv.status_code == 200:
+            return
         print('failed to create user using %s: %s' % (rv.url, rv.text))
-        sys.exit(1)
+        time.sleep(30)
+
+    # no more retries
+    sys.exit(1)
 
 def _mdsync_import(session, filename):
 
@@ -46,26 +62,37 @@ def _mdsync_import(session, filename):
     except IOError as e:
         print('Failed to load file', str(e))
         sys.exit(1)
-    rv = session.post('/'.join([os.environ['LVFS_SERVER'], 'lvfs', 'mdsync', 'import']), data=payload)
-    if rv.status_code != 200:
+    for _ in range(MAX_RETRIES):
+        rv = session.post('/'.join([os.environ['LVFS_SERVER'], 'lvfs', 'mdsync', 'import']),
+                          data=payload)
+        if rv.status_code == 200:
+            print('imported {} successfully: {}'.format(filename, rv.text))
+            return
         print('failed to import mdsync using %s: %s' % (rv.url, rv.text))
-        sys.exit(1)
-    print('imported {} successfully: {}'.format(filename, rv.text))
+        time.sleep(30)
+
+    # no more retries
+    sys.exit(1)
 
 def _mdsync_export(session, filename):
 
     # export
-    rv = session.get('/'.join([os.environ['LVFS_SERVER'], 'lvfs', 'mdsync', 'export']))
-    if rv.status_code != 400:
+    for _ in range(MAX_RETRIES):
+        rv = session.get('/'.join([os.environ['LVFS_SERVER'], 'lvfs', 'mdsync', 'export']))
+        if rv.status_code == 400:
+            try:
+                with open(filename, 'w') as f:
+                    f.write(rv.text)
+            except IOError as e:
+                print('Failed to save file', str(e))
+                sys.exit(1)
+            print('exported {} successfully'.format(filename))
+            return
         print('failed to export mdsync: {}'.format(rv.status_code))
-        sys.exit(1)
-    try:
-        with open(filename, 'w') as f:
-            f.write(rv.text)
-    except IOError as e:
-        print('Failed to save file', str(e))
-        sys.exit(1)
-    print('exported {} successfully'.format(filename))
+        time.sleep(30)
+
+    # no more retries
+    sys.exit(1)
 
 if __name__ == '__main__':
 
@@ -83,9 +110,17 @@ if __name__ == '__main__':
     s = requests.Session()
     data = {'username': os.environ['LVFS_USERNAME'],
             'password': os.environ['LVFS_PASSWORD']}
-    r = s.post('%s/lvfs/login' % os.environ['LVFS_SERVER'], data=data)
-    if r.status_code != 200:
+    success = False
+    for _ in range(MAX_RETRIES):
+        r = s.post('%s/lvfs/login' % os.environ['LVFS_SERVER'], data=data)
+        if r.status_code == 200:
+            success = True
+            break
         print('failed to login to %s: %s' % (r.url, r.text))
+        time.sleep(30)
+
+    # no more retries
+    if not success:
         sys.exit(1)
 
     # different actions
