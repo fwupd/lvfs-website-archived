@@ -228,6 +228,7 @@ def _upload_firmware():
     fw.is_dirty = True
     fw.failure_minimum = settings['default_failure_minimum']
     fw.failure_percentage = settings['default_failure_percentage']
+    fw.mark_dirty()
 
     # fix name
     for md in fw.mds:
