@@ -222,7 +222,7 @@ def route_resign(firmware_id):
         return redirect(url_for('firmware.route_show', firmware_id=firmware_id))
 
     # asynchronously sign
-    fw.signed_timestamp = None
+    fw.mark_dirty()
     db.session.commit()
     _async_sign_fw.apply_async(args=(fw.firmware_id,), queue='firmware')
 
