@@ -35,6 +35,8 @@ def _md_to_mdsync_dict(md):
         if md.fw.success:
             obj['success'] = md.fw.success
             obj['success_confidence'] = md.fw.success_confidence
+        if md.fw.filename:
+            obj['filename'] = md.fw.filename
     return obj
 
 def _mds_to_mdsync_dict(mds):
