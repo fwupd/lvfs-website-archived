@@ -1,5 +1,5 @@
-Linux Vendor Firmware Service
-=============================
+Linux Vendor Firmware Service - An amazing project
+==================================================
 
 This is the website for the Linux Vendor Firmware Service
 
