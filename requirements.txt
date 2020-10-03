@@ -71,4 +71,4 @@ Werkzeug==0.16.1
 wrapt==1.12.1
 WTForms==2.3.3
 yara-python==4.0.2
-zipp==3.1.0
+zipp==3.3.0
