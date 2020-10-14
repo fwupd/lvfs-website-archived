@@ -51,7 +51,7 @@ pycparser==2.20
 PyGObject==3.38.0
 pylint==2.6.0
 pyparsing==2.4.7
-Pillow==7.2.0
+Pillow==8.0.0
 PyQRCode==1.2.1
 pyserial==3.4
 pytest==6.1.1
